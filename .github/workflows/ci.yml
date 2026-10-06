@@ -32,3 +32,15 @@ jobs:
 
       - name: Validate spec
         run: spec-check spec
+
+  core-headers:
+    name: Core headers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Compile as C11
+        run: gcc -std=c11 -Wall -Wextra -Wpedantic -Werror -fsyntax-only -Isdk/core/include sdk/core/tests/header_check.c
+
+      - name: Compile as C++20
+        run: g++ -std=c++20 -Wall -Wextra -Wpedantic -Werror -fsyntax-only -Isdk/core/include sdk/core/tests/header_check.cpp
