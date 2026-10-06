@@ -1,6 +1,6 @@
 # Entscheidungen, Annahmen, offene Punkte
 
-Stand: 2026-10-06, Revision 4 mit Festlegungen für M0 (E34–E40; vorherige Stände unter `_archiv/`)
+Stand: 2026-10-06, Revision 4 mit Festlegungen für M0 (E34–E44; vorherige Stände unter `_archiv/`)
 
 ## 1. Entscheidungen
 
@@ -46,6 +46,10 @@ Stand: 2026-10-06, Revision 4 mit Festlegungen für M0 (E34–E40; vorherige St�
 | E38 | Kern-Toolchain | C++20, Build mit CMake | – |
 | E39 | Format von `spec/api/` | JSON, mit eigenem Schema | Quelle für Binding-Tests und die spätere API-Referenz (M8) |
 | E40 | Lizenz | MIT-0 (MIT No Attribution) | Gilt für das ganze Repo inklusive SDKs; Bot-Autoren unterliegen keinen Auflagen |
+| E41 | Versionsstabile Nachrichten | `init`, `error` und `game_over` tragen kein `v`; ihr Format bleibt über alle Protokollversionen gleich und wird nur ergänzt | Jedes SDK kann sie lesen, auch wenn die Aushandlung scheitert; `turn`, `move`, `resign`, `ready` tragen `v` |
+| E42 | FEN in `turn` | Der Referee sendet die FEN in jedem `turn`; bei Abweichung vom eigenen Brett übernimmt das SDK sie und protokolliert eine Warnung | Wiederholungshistorie geht dabei verloren; Abweichung gilt als SDK-Fehler |
+| E43 | Bot-`info` | Optionale Felder `depth`, `seldepth`, `score_cp` oder `score_mate`, `nodes`, `pv` (≤ 32 Züge), `text` (≤ 256 Zeichen) | Feste Obergrenzen im Schema; unbekannte Felder sind ein Protokollverstoß |
+| E44 | Spielende im Protokoll | `game_over` enthält `result` (PGN, `*` = abgebrochen) und `termination` aus einer festen Code-Liste; dieselben Codes speichert die Datenbank | Schema erzwingt, dass `result` zum Code passt; `forfeit_withdrawn` gibt es nur in der Datenbank |
 
 Aus dem Anforderungstext fix: MongoDB, Flask, GitHub Actions, Sprachen Python / C++ / Java / C# / JavaScript.
 

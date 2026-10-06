@@ -60,7 +60,7 @@ Namen sind wortgleich, Schreibweise idiomatisch (`legal_moves` / `legalMoves` / 
 - `Move`: `from`, `to`, `promotion`, `is_capture`, `is_castling`, `is_en_passant`, `uci()`, `parse(uci)`; intern eine 16-Bit-Ganzzahl (E34). `Move.parse(uci)` kennt ohne Brett keine Flags; `is_legal` und `make_move` vergleichen deshalb nur Start, Ziel und Umwandlung.
 - `Clock`: `remaining_ms()`, `opponent_remaining_ms()`, `increment_ms()`, `elapsed_ms()`.
 - `load_data(name) -> Bytes`: Liest eine mit dem Bot hochgeladene Datendatei (E30). Einziger Weg zu Dateien; lokal liest die Funktion aus einem Ordner neben dem Bot.
-- `GameInfo`: `game_id`, `color`, `opponent_name`, `start_fen`, `initial_time_ms`, `increment_ms`, `discipline`.
+- `GameInfo`: `game_id`, `color`, `opponent_name`, `start_fen`, `initial_time_ms`, `increment_ms`, `memory_limit_mib`, `discipline`.
 
 ## API – Rohzugriff (E21)
 

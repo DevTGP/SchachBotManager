@@ -37,7 +37,7 @@ Führt genau ein Spiel aus und ist die einzige Instanz, die über Züge, Zeit un
 | Beide Bots starten nicht | Annulliert / beidseitige Niederlage (konfigurierbar) |
 | Infrastrukturfehler (Runner-Absturz, Host-Neustart) | Spiel wird verworfen und neu angesetzt, nicht gewertet |
 
-Jedes Ende bekommt einen maschinenlesbaren `termination`-Code, der im Viewer und in der Bot-Historie angezeigt wird.
+Jedes Ende bekommt einen maschinenlesbaren `termination`-Code (Liste in [bot-protokoll.md](bot-protokoll.md), E44), der im Viewer und in der Bot-Historie angezeigt wird. Starten beide Bots nicht, erhalten beide `startup_timeout` mit Ergebnis `*`; wie das gewertet wird, legt der Wettbewerb fest.
 
 ## Fairness
 

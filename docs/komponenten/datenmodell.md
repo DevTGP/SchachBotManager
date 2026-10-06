@@ -50,6 +50,7 @@ Große Binärdaten (Quellcode-Archive, Artefakte, Bot-Logs) liegen im Artefakt-S
 - Züge eingebettet: Eine Partie liegt mit wenigen hundert Halbzügen weit unter dem Dokumentlimit von 16 MB; die maximale Zugzahl der Disziplin sichert das ab.
 - `fen` pro Zug macht den Viewer unabhängig von einer eigenen Regelimplementierung und erlaubt direkte Sprünge.
 - **Kampflose Siege (E17)** sind eigene Match-Dokumente mit `status: forfeited`, leerer Zugliste, `rated: false` und `termination: forfeit_withdrawn`; so bleiben sie in Tabelle und Partienliste sichtbar und unterscheidbar.
+- `termination` nutzt die Codes aus [bot-protokoll.md](bot-protokoll.md) (E44), ergänzt um `forfeit_withdrawn`.
 - `discipline_snapshot` hält fest, unter welchen Bedingungen gespielt wurde, auch wenn die Disziplin später geändert wird.
 
 ## Indizes
