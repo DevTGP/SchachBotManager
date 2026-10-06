@@ -103,8 +103,10 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
+      # The annotation plugin reports each failing test as an annotation of the run, which is
+      # readable without signing in, unlike the job logs.
       - name: Build and install the package with the core
-        run: pip install "./sdk/python[dev]"
+        run: pip install "./sdk/python[dev]" pytest-github-actions-annotate-failures==0.4.2
 
       - name: Lint
         run: |
