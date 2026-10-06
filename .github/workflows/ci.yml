@@ -68,3 +68,41 @@ jobs:
 
       - name: Compile as C++20
         run: g++ -std=c++20 -Wall -Wextra -Wpedantic -Werror -fsyntax-only -Isdk/core/include sdk/core/tests/header_check.cpp
+
+  core:
+    name: Core (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Configure
+        run: cmake -S sdk/core -B build/core -DCMAKE_BUILD_TYPE=Release -DSBM_SLOW_TESTS=ON
+
+      - name: Build
+        run: cmake --build build/core --config Release --parallel
+
+      - name: Test (unit tests, all vectors, slow perft included)
+        run: ctest --test-dir build/core -C Release --output-on-failure
+
+  core-format:
+    name: Core format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install clang-format
+        run: pip install clang-format==19.1.7
+
+      - name: Check formatting
+        run: >
+          find sdk/core/include sdk/core/src sdk/core/tests
+          -name '*.h' -o -name '*.c' -o -name '*.hpp' -o -name '*.cpp'
+          | xargs clang-format --dry-run --Werror
