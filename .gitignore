@@ -43,3 +43,6 @@ CMakeUserPresets.json
 
 ### Node
 node_modules/
+
+### Wheels built locally with cibuildwheel
+wheelhouse/

@@ -26,6 +26,18 @@ field = "version"
 input = "../core/CMakeLists.txt"
 regex = 'project\(sbm_core VERSION (?P<value>[0-9]+\.[0-9]+\.[0-9]+)'
 
+# Wheels for Windows, Linux and macOS (E64); built from the repository root, which carries the
+# core and the spec the tests read.
+[tool.cibuildwheel]
+build = "cp311-* cp312-* cp313-* cp314-*"
+skip = "*-musllinux_*"
+archs = ["auto64"]
+test-extras = ["dev"]
+test-command = "pytest {project}/sdk/python/tests"
+
+[tool.cibuildwheel.macos.environment]
+MACOSX_DEPLOYMENT_TARGET = "11.0"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 

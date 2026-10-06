@@ -1,0 +1,36 @@
+name: Wheels
+
+# Builds and tests the Python SDK wheels for every platform (E64). The wheels are kept as
+# workflow artifacts; publishing them is not decided yet.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wheels:
+    name: Wheels (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # Native runners for every architecture: x86-64 and arm64 each on Linux and macOS.
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-15-intel, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build and test the wheels
+        uses: pypa/cibuildwheel@v4.3.0
+        with:
+          package-dir: sdk/python
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
+          if-no-files-found: error
