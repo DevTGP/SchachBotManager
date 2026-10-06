@@ -21,18 +21,18 @@ def test_schema_reference_only_for_relative_paths():
 
 
 def test_document_matching_its_schema_passes(spec_root: Path, write_json):
-    write_json("testvectors/schema/vectors.schema.json", VECTOR_SCHEMA)
+    write_json("data/schema/records.schema.json", VECTOR_SCHEMA)
     write_json(
-        "testvectors/perft.json",
-        {"$schema": "schema/vectors.schema.json", "vectors": []},
+        "data/records.json",
+        {"$schema": "schema/records.schema.json", "vectors": []},
     )
 
     assert check_spec(spec_root) == []
 
 
 def test_document_violating_its_schema_is_reported(spec_root: Path, write_json):
-    write_json("testvectors/schema/vectors.schema.json", VECTOR_SCHEMA)
-    doc = write_json("testvectors/perft.json", {"$schema": "schema/vectors.schema.json"})
+    write_json("data/schema/records.schema.json", VECTOR_SCHEMA)
+    doc = write_json("data/records.json", {"$schema": "schema/records.schema.json"})
 
     problems = check_spec(spec_root)
 
@@ -41,7 +41,7 @@ def test_document_violating_its_schema_is_reported(spec_root: Path, write_json):
 
 
 def test_missing_schema_is_reported(spec_root: Path, write_json):
-    doc = write_json("testvectors/perft.json", {"$schema": "../nowhere.schema.json"})
+    doc = write_json("data/records.json", {"$schema": "../nowhere.schema.json"})
 
     problems = check_spec(spec_root)
 

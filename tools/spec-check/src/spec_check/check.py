@@ -9,6 +9,7 @@ from spec_check.loading import load_json_files
 from spec_check.patterns import check_patterns
 from spec_check.problem import Problem
 from spec_check.schemas import build_registry, check_schemas
+from spec_check.testvectors import check_testvectors
 
 
 def check_spec(root: Path) -> list[Problem]:
@@ -22,4 +23,5 @@ def check_spec(root: Path) -> list[Problem]:
     problems.extend(check_documents(documents, registry, valid_schemas))
     problems.extend(check_examples(documents, registry, valid_schemas, root))
     problems.extend(check_api(documents, registry, valid_schemas, root))
+    problems.extend(check_testvectors(documents, registry, valid_schemas, root))
     return problems
