@@ -1,0 +1,33 @@
+{
+  "$schema": "calls.schema.json",
+  "description": "Standard algebraic notation of legal moves with Board.san.",
+  "vectors": [
+    {"id": "san.pawn_push", "function": "Board.san", "note": "e2e4", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [5900], "result": "e4"},
+    {"id": "san.knight", "function": "Board.san", "note": "g1f3", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [1350], "result": "Nf3"},
+    {"id": "san.black_piece", "function": "Board.san", "note": "b8c6", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4"]}, "args": [2745], "result": "Nc6"},
+    {"id": "san.king", "function": "Board.san", "note": "e1e2", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4", "e7e5"]}, "args": [772], "result": "Ke2"},
+    {"id": "san.piece_capture", "function": "Board.san", "note": "e5c6", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4", "d7d5", "g1f3", "d5e4", "f3e5", "b8c6"]}, "args": [19108], "result": "Nxc6"},
+    {"id": "san.pawn_capture", "function": "Board.san", "note": "e4d5", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4", "d7d5"]}, "args": [18652], "result": "exd5"},
+    {"id": "san.en_passant", "function": "Board.san", "note": "e5d6", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4", "a7a6", "e4e5", "d7d5"]}, "args": [23268], "result": "exd6"},
+    {"id": "san.disambiguate_file", "function": "Board.san", "note": "b1d2", "board": {"fen": "4k3/8/8/8/8/5N2/8/1N2K3 w - - 0 1", "moves": []}, "args": [705], "result": "Nbd2"},
+    {"id": "san.disambiguate_rank", "function": "Board.san", "note": "a1a3", "board": {"fen": "4k3/8/8/R7/8/8/8/R3K3 w - - 0 1", "moves": []}, "args": [1024], "result": "R1a3"},
+    {"id": "san.disambiguate_both", "function": "Board.san", "note": "a1b2; the queens on a3 and c1 share the file and the rank.", "board": {"fen": "4k3/8/8/8/8/Q7/8/Q1Q1K3 w - - 0 1", "moves": []}, "args": [576], "result": "Qa1b2"},
+    {"id": "san.disambiguate_file_over_rank", "function": "Board.san", "note": "a1d1", "board": {"fen": "4k3/8/8/8/8/8/8/R4RK1 w - - 0 1", "moves": []}, "args": [192], "result": "Rad1"},
+    {"id": "san.no_disambiguation_when_pinned", "function": "Board.san", "note": "g1f3; the knight on d2 also reaches f3 but is pinned.", "board": {"fen": "4k3/8/8/8/1b6/8/3N4/4K1N1 w - - 0 1", "moves": []}, "args": [1350], "result": "Nf3"},
+    {"id": "san.no_disambiguation_other_type", "function": "Board.san", "note": "g1e2", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4", "e7e5"]}, "args": [774], "result": "Ne2"},
+    {"id": "san.king_castle", "function": "Board.san", "note": "e1g1", "board": {"fen": "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1", "moves": []}, "args": [8580], "result": "O-O"},
+    {"id": "san.queen_castle", "function": "Board.san", "note": "e1c1", "board": {"fen": "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1", "moves": []}, "args": [12420], "result": "O-O-O"},
+    {"id": "san.black_queen_castle", "function": "Board.san", "note": "e8c8", "board": {"fen": "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1", "moves": ["a1b1"]}, "args": [16060], "result": "O-O-O"},
+    {"id": "san.castle_with_check", "function": "Board.san", "note": "e1g1", "board": {"fen": "5k2/8/8/8/8/8/8/4K2R w K - 0 1", "moves": []}, "args": [8580], "result": "O-O+"},
+    {"id": "san.promotion", "function": "Board.san", "note": "b7b8q", "board": {"fen": "r7/1P6/8/8/8/8/8/k3K3 w - - 0 1", "moves": []}, "args": [48753], "result": "b8=Q"},
+    {"id": "san.underpromotion", "function": "Board.san", "note": "b7b8n", "board": {"fen": "r7/1P6/8/8/8/8/8/k3K3 w - - 0 1", "moves": []}, "args": [36465], "result": "b8=N"},
+    {"id": "san.promotion_capture", "function": "Board.san", "note": "b7a8r", "board": {"fen": "r7/1P6/8/8/8/8/8/k3K3 w - - 0 1", "moves": []}, "args": [60977], "result": "bxa8=R+"},
+    {"id": "san.promotion_check", "function": "Board.san", "note": "b7b8q", "board": {"fen": "4k3/1P6/8/8/8/8/8/4K3 w - - 0 1", "moves": []}, "args": [48753], "result": "b8=Q+"},
+    {"id": "san.check", "function": "Board.san", "note": "d1h5", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4", "f7f6"]}, "args": [2499], "result": "Qh5+"},
+    {"id": "san.checkmate", "function": "Board.san", "note": "d8h4", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["f2f3", "e7e5", "g2g4"]}, "args": [2043], "result": "Qh4#"},
+    {"id": "san.en_passant_check", "function": "Board.san", "note": "e4d3", "board": {"fen": "8/8/8/3k4/4p3/8/3PK3/8 w - - 0 1", "moves": ["d2d4"]}, "args": [21724], "result": "exd3+"},
+    {"id": "san.illegal", "function": "Board.san", "note": "e2e5", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [2316], "error": "IllegalMove"},
+    {"id": "san.null_move", "function": "Board.san", "note": "NULL_MOVE", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [0], "error": "IllegalMove"},
+    {"id": "san.resign", "function": "Board.san", "note": "RESIGN", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [65535], "error": "IllegalMove"}
+  ]
+}

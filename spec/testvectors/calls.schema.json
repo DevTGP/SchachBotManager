@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Call vectors",
+  "description": "Each vector is one call of a Board or Move function from spec/api/ with its expected outcome (E55). Values are encoded as follows: Move and every alias of an integer primitive except u64 as JSON integer, u64 and Bitboard as string 0x plus 16 lower-case hex digits, bool as JSON boolean, Board as its FEN, list<T> as array.",
+  "type": "object",
+  "properties": {
+    "$schema": { "type": "string" },
+    "description": { "type": "string", "minLength": 1 },
+    "vectors": { "type": "array", "items": { "$ref": "#/$defs/vector" }, "minItems": 1 }
+  },
+  "required": ["$schema", "description", "vectors"],
+  "additionalProperties": false,
+  "$defs": {
+    "id": {
+      "description": "Unique across all files below testvectors/.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+([._-][a-z0-9]+)*(?!\\n)$"
+    },
+    "board": {
+      "description": "The board the method is called on: Board.from_fen(fen), then each move in order, Board.parse_move plus Board.make_move, or Board.make_null_move for 0000.",
+      "type": "object",
+      "properties": {
+        "fen": { "$ref": "../protocol/v1/common.schema.json#/$defs/fen" },
+        "moves": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^([a-h][1-8][a-h][1-8][nbrq]?|0000)(?!\\n)$" }
+        }
+      },
+      "required": ["fen", "moves"],
+      "additionalProperties": false
+    },
+    "vector": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "function": {
+          "description": "Owner and name as in spec/api/, e.g. Board.make_move.",
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z0-9]*\\.[a-z][a-z0-9_]*(?!\\n)$"
+        },
+        "note": { "description": "Explanation for readers, e.g. a move value in UCI.", "type": "string", "minLength": 1 },
+        "board": { "$ref": "#/$defs/board" },
+        "move": {
+          "description": "The Move a Move method is called on.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "args": { "description": "Arguments in the order of params.", "type": "array" },
+        "result": { "description": "Expected return value; null for functions without one." },
+        "result_contains": {
+          "description": "For results whose layout is not part of the API (Board.to_text): the returned string contains this text.",
+          "type": "string",
+          "minLength": 1
+        },
+        "error": { "description": "Expected error from errors.json.", "type": "string", "pattern": "^[A-Z][A-Za-z0-9]*(?!\\n)$" },
+        "unordered": { "description": "The result is a list whose order is not part of the API.", "const": true },
+        "board_after": {
+          "description": "FEN of the board after the call, also after an error.",
+          "$ref": "../protocol/v1/common.schema.json#/$defs/fen"
+        }
+      },
+      "required": ["id", "function", "args"],
+      "additionalProperties": false,
+      "oneOf": [
+        { "required": ["result"] },
+        { "required": ["result_contains"] },
+        { "required": ["error"] }
+      ],
+      "dependentRequired": { "unordered": ["result"] }
+    }
+  }
+}

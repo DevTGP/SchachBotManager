@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "testvector-gen"
+version = "0.1.0"
+description = "Generates the expected values of the test vectors below spec/testvectors/"
+license = "MIT-0"
+requires-python = ">=3.12"
+# python-chess (GPL-3.0) is only the reference for expected values in this dev tool; it is never
+# shipped with the SDK, the referee or the server (E54). Pinned so regenerated files stay equal.
+dependencies = ["chess==1.11.2"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+testvector-gen = "testvector_gen.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM"]

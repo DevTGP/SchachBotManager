@@ -1,0 +1,27 @@
+{
+  "$schema": "../calls.schema.json",
+  "description": "Board functions for end conditions, with each declared error.",
+  "vectors": [
+    {"id": "api.board_state.is_check.true", "function": "Board.is_check", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4", "f7f6", "d1h5"]}, "args": [], "result": true},
+    {"id": "api.board_state.is_check.false", "function": "Board.is_check", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [], "result": false},
+    {"id": "api.board_state.is_checkmate.true", "function": "Board.is_checkmate", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["f2f3", "e7e5", "g2g4", "d8h4"]}, "args": [], "result": true},
+    {"id": "api.board_state.is_checkmate.false", "function": "Board.is_checkmate", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4", "f7f6", "d1h5"]}, "args": [], "result": false},
+    {"id": "api.board_state.is_stalemate.true", "function": "Board.is_stalemate", "board": {"fen": "7k/5Q2/6K1/8/8/8/8/8 b - - 0 1", "moves": []}, "args": [], "result": true},
+    {"id": "api.board_state.is_stalemate.false", "function": "Board.is_stalemate", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["f2f3", "e7e5", "g2g4", "d8h4"]}, "args": [], "result": false},
+    {"id": "api.board_state.is_fifty_move_rule.true", "function": "Board.is_fifty_move_rule", "board": {"fen": "4k3/8/8/8/8/8/8/R3K3 w - - 100 80", "moves": []}, "args": [], "result": true},
+    {"id": "api.board_state.is_fifty_move_rule.false", "function": "Board.is_fifty_move_rule", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [], "result": false},
+    {"id": "api.board_state.is_insufficient_material.true", "function": "Board.is_insufficient_material", "board": {"fen": "4k3/8/8/8/8/8/8/4K3 w - - 0 1", "moves": []}, "args": [], "result": true},
+    {"id": "api.board_state.is_insufficient_material.false", "function": "Board.is_insufficient_material", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [], "result": false},
+    {"id": "api.board_state.is_draw.true", "function": "Board.is_draw", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["g1f3", "g8f6", "f3g1", "f6g8", "g1f3", "g8f6", "f3g1", "f6g8"]}, "args": [], "result": true},
+    {"id": "api.board_state.is_draw.false", "function": "Board.is_draw", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["f2f3", "e7e5", "g2g4", "d8h4"]}, "args": [], "result": false},
+    {"id": "api.board_state.is_game_over.true", "function": "Board.is_game_over", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["f2f3", "e7e5", "g2g4", "d8h4"]}, "args": [], "result": true},
+    {"id": "api.board_state.is_game_over.false", "function": "Board.is_game_over", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [], "result": false},
+    {"id": "api.board_state.is_repetition.three", "function": "Board.is_repetition", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["g1f3", "g8f6", "f3g1", "f6g8", "g1f3", "g8f6", "f3g1", "f6g8"]}, "args": [3], "result": true},
+    {"id": "api.board_state.is_repetition.four", "function": "Board.is_repetition", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["g1f3", "g8f6", "f3g1", "f6g8", "g1f3", "g8f6", "f3g1", "f6g8"]}, "args": [4], "result": false},
+    {"id": "api.board_state.is_repetition.zero", "function": "Board.is_repetition", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [0], "error": "InvalidArgument"},
+    {"id": "api.board_state.is_repetition.negative", "function": "Board.is_repetition", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [-1], "error": "InvalidArgument"},
+    {"id": "api.board_state.has_insufficient_material.white_rook", "function": "Board.has_insufficient_material", "board": {"fen": "4k3/8/8/8/8/8/8/R3K3 w - - 0 1", "moves": []}, "args": [0], "result": false},
+    {"id": "api.board_state.has_insufficient_material.black_king", "function": "Board.has_insufficient_material", "board": {"fen": "4k3/8/8/8/8/8/8/R3K3 w - - 0 1", "moves": []}, "args": [1], "result": true},
+    {"id": "api.board_state.has_insufficient_material.color_2", "function": "Board.has_insufficient_material", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [2], "error": "InvalidArgument"}
+  ]
+}

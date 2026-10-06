@@ -1,0 +1,21 @@
+{
+  "$schema": "../calls.schema.json",
+  "description": "Board functions for creating, copying and printing, with each declared error.",
+  "vectors": [
+    {"id": "api.board.create", "function": "Board.create", "args": [], "result": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"},
+    {"id": "api.board.from_fen.start", "function": "Board.from_fen", "args": ["rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"], "result": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"},
+    {"id": "api.board.from_fen.kiwipete", "function": "Board.from_fen", "args": ["r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"], "result": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"},
+    {"id": "api.board.from_fen.invalid", "function": "Board.from_fen", "args": ["8/8/8/8/8/8/8/8 w - - 0 1"], "error": "InvalidFen"},
+    {"id": "api.board.fen.start", "function": "Board.fen", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [], "result": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"},
+    {"id": "api.board.fen.played", "function": "Board.fen", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4", "e7e5", "g1f3", "0000", "f1c4"]}, "args": [], "result": "rnbqkbnr/pppp1ppp/8/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3"},
+    {"id": "api.board.copy.start", "function": "Board.copy", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [], "result": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"},
+    {"id": "api.board.copy.played", "function": "Board.copy", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4", "e7e5", "g1f3", "0000", "f1c4"]}, "args": [], "result": "rnbqkbnr/pppp1ppp/8/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3"},
+    {"id": "api.board.hash.start", "function": "Board.hash", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [], "result": "0x463b96181691fc9c"},
+    {"id": "api.board.hash.played", "function": "Board.hash", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4", "e7e5", "g1f3", "0000", "f1c4"]}, "args": [], "result": "0x4845ed6e81768b32"},
+    {"id": "api.board.move_history.empty", "function": "Board.move_history", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [], "result": []},
+    {"id": "api.board.move_history.played", "function": "Board.move_history", "note": "e2e4 double push, e7e5 double push, g1f3, NULL_MOVE, f1c4.", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4", "e7e5", "g1f3", "0000", "f1c4"]}, "args": [], "result": [5900, 6452, 1350, 0, 1669]},
+    {"id": "api.board.move_history.from_fen", "function": "Board.move_history", "note": "from_fen starts with an empty history.", "board": {"fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", "moves": []}, "args": [], "result": []},
+    {"id": "api.board.to_text.start", "function": "Board.to_text", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [], "result_contains": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"},
+    {"id": "api.board.to_text.played", "function": "Board.to_text", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4", "e7e5", "g1f3", "0000", "f1c4"]}, "args": [], "result_contains": "rnbqkbnr/pppp1ppp/8/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3"}
+  ]
+}

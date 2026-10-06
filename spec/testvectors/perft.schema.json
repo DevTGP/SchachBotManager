@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Perft vectors",
+  "description": "Number of leaf nodes of the legal move tree to a fixed depth (E37).",
+  "type": "object",
+  "properties": {
+    "$schema": { "type": "string" },
+    "description": { "type": "string", "minLength": 1 },
+    "vectors": { "type": "array", "items": { "$ref": "#/$defs/vector" }, "minItems": 1 }
+  },
+  "required": ["$schema", "description", "vectors"],
+  "additionalProperties": false,
+  "$defs": {
+    "vector": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "calls.schema.json#/$defs/id" },
+        "fen": { "$ref": "../protocol/v1/common.schema.json#/$defs/fen" },
+        "depth": { "type": "integer", "minimum": 1 },
+        "nodes": { "type": "integer", "minimum": 0 },
+        "slow": {
+          "description": "More than 5,000,000 nodes; test runs may skip it by default.",
+          "const": true
+        }
+      },
+      "required": ["id", "fen", "depth", "nodes"],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "../calls.schema.json",
+  "description": "Board functions reading single properties, with each declared error.",
+  "vectors": [
+    {"id": "api.board_query.piece_at.a1", "function": "Board.piece_at", "board": {"fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", "moves": []}, "args": [0], "result": 3},
+    {"id": "api.board_query.piece_at.e2", "function": "Board.piece_at", "board": {"fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", "moves": []}, "args": [12], "result": 2},
+    {"id": "api.board_query.piece_at.e8", "function": "Board.piece_at", "board": {"fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", "moves": []}, "args": [60], "result": 11},
+    {"id": "api.board_query.piece_at.e7", "function": "Board.piece_at", "board": {"fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", "moves": []}, "args": [52], "result": 10},
+    {"id": "api.board_query.piece_at.h3", "function": "Board.piece_at", "board": {"fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", "moves": []}, "args": [23], "result": 6},
+    {"id": "api.board_query.piece_at.a3", "function": "Board.piece_at", "board": {"fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", "moves": []}, "args": [16], "result": 12},
+    {"id": "api.board_query.piece_at.square_64", "function": "Board.piece_at", "board": {"fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", "moves": []}, "args": [64], "error": "InvalidArgument"},
+    {"id": "api.board_query.side_to_move.white", "function": "Board.side_to_move", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [], "result": 0},
+    {"id": "api.board_query.side_to_move.black", "function": "Board.side_to_move", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4"]}, "args": [], "result": 1},
+    {"id": "api.board_query.castling_rights.all", "function": "Board.castling_rights", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [], "result": 15},
+    {"id": "api.board_query.castling_rights.none", "function": "Board.castling_rights", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4", "e7e5", "e1e2", "e8e7"]}, "args": [], "result": 0},
+    {"id": "api.board_query.castling_rights.subset", "function": "Board.castling_rights", "board": {"fen": "r3k2r/8/8/8/8/8/8/R3K2R w Kq - 0 1", "moves": []}, "args": [], "result": 9},
+    {"id": "api.board_query.castling_rights.not_possible_now", "function": "Board.castling_rights", "note": "Independent of whether castling is legal right now.", "board": {"fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", "moves": []}, "args": [], "result": 15},
+    {"id": "api.board_query.en_passant_square.legal", "function": "Board.en_passant_square", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4", "d7d5", "e4e5", "f7f5"]}, "args": [], "result": 45},
+    {"id": "api.board_query.en_passant_square.not_capturable", "function": "Board.en_passant_square", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4"]}, "args": [], "result": 64},
+    {"id": "api.board_query.en_passant_square.pinned", "function": "Board.en_passant_square", "board": {"fen": "8/8/8/KPp4r/8/8/8/7k w - c6 0 1", "moves": []}, "args": [], "result": 64},
+    {"id": "api.board_query.en_passant_square.none", "function": "Board.en_passant_square", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [], "result": 64},
+    {"id": "api.board_query.halfmove_clock.start", "function": "Board.halfmove_clock", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [], "result": 0},
+    {"id": "api.board_query.halfmove_clock.played", "function": "Board.halfmove_clock", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["g1f3", "g8f6", "b1c3"]}, "args": [], "result": 3},
+    {"id": "api.board_query.fullmove_number.start", "function": "Board.fullmove_number", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [], "result": 1},
+    {"id": "api.board_query.fullmove_number.played", "function": "Board.fullmove_number", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["g1f3", "g8f6", "b1c3"]}, "args": [], "result": 2},
+    {"id": "api.board_query.king_square.white", "function": "Board.king_square", "board": {"fen": "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1", "moves": []}, "args": [0], "result": 4},
+    {"id": "api.board_query.king_square.black", "function": "Board.king_square", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": ["e2e4", "e7e5", "g1f3", "e8e7"]}, "args": [1], "result": 52},
+    {"id": "api.board_query.king_square.color_2", "function": "Board.king_square", "board": {"fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "moves": []}, "args": [2], "error": "InvalidArgument"}
+  ]
+}

@@ -33,6 +33,30 @@ jobs:
       - name: Validate spec
         run: spec-check spec
 
+  testvectors:
+    name: Test vectors
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install testvector-gen
+        run: pip install -e "tools/testvector-gen[dev]"
+
+      - name: Lint testvector-gen
+        run: |
+          ruff check tools/testvector-gen
+          ruff format --check tools/testvector-gen
+
+      - name: Test testvector-gen
+        run: pytest tools/testvector-gen
+
+      - name: Check generated files and recount fast perft vectors
+        run: testvector-gen spec --check --perft fast
+
   core-headers:
     name: Core headers
     runs-on: ubuntu-latest
