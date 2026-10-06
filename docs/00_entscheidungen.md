@@ -69,6 +69,7 @@ Stand: 2026-10-06, Revision 4 mit Festlegungen für M0 (E34–E55; vorherige St�
 | E61 | Startparameter von `run` | Argumente `--tcp [PORT]` (verbindet zu `127.0.0.1`, Standardport 7470), `--log-level LEVEL` (`trace` … `off`), `--log-file PATH`; gleichwertig die Umgebungsvariablen `SBM_TRANSPORT` (`stdio`/`tcp`), `SBM_PORT`, `SBM_LOG_LEVEL`, `SBM_LOG_FILE`. Argumente schlagen Umgebung; ohne beides `stdio` und `INFO`. Unbekannte Argumente bleiben dem Bot | Gleiche Namen in allen SDKs; dieselbe Datei läuft lokal, im Debugger (Arena wartet auf Port 7470) und auf dem Server. Ungültige Werte beenden den Prozess mit einer Meldung `sbm: …` und Exit-Code 1. Die Logdatei ist nur lokal sinnvoll; auf dem Server ist das Dateisystem gesperrt |
 | E62 | Datenordner für `load_data` | Der Ordner steht in `SBM_DATA_DIR`, die der Runner auf dem Server setzt; ohne sie der Ordner `data` neben der Hauptdatei des Bots | Lokal genügt `data/` neben dem Skript; `SBM_DATA_DIR` überschreibt auch lokal. Ungültige Namen: leer, mit `/` oder `\`, `.`, `..`; zusätzlich je Sprache, was die Plattform als Pfad deutet (NUL, Laufwerksnamen unter Windows) |
 | E63 | `Info` außerhalb der Grenzen | Das SDK kürzt `pv` auf 32 Züge und `text` auf 256 Zeichen; andere ungültige Felder lässt es mit einer Warnung weg: Zahlen außerhalb ihres Bereichs, `score_cp` wenn beide Bewertungen gesetzt sind, `pv` ab dem ersten Zug ohne UCI-Form | `report` scheitert nie am Inhalt, die gesendete Nachricht ist immer gültig nach `move.schema.json`; nur ein falscher Typ für `info` selbst ist ein Fehler |
+| E64 | Wheels des Python-SDK | cibuildwheel 4.3 im Workflow `wheels.yml` auf nativen Runnern: Windows x64, Linux x64 und arm64 (`manylinux_2_28`), macOS x64 und arm64 (ab macOS 11); CPython 3.11 bis 3.14 ohne free-threaded und ohne musllinux. Jedes Wheel besteht vor dem Hochladen die volle Testsuite. Die Wheels bleiben vorerst Artefakte des Workflows; wohin sie veröffentlicht werden, ist offen (O20) | 20 Wheels je Lauf. Unter Windows bringt das Wheel die MSVC-Laufzeit `msvcp140.dll` mit (delvewheel), unter Linux und macOS ist der Kern statisch gebunden; keine Abhängigkeit außer Python |
 
 Aus dem Anforderungstext fix: MongoDB, Flask, GitHub Actions, Sprachen Python / C++ / Java / C# / JavaScript.
 
@@ -97,6 +98,7 @@ Aus dem Anforderungstext fix: MongoDB, Flask, GitHub Actions, Sprachen Python / 
 | O17 | Ausgestaltung der Ressourcenlimits (E23); vorerst ignoriert, kommt eventuell nie | – |
 | O18 | Genauer Subdomain-Name, SSH-Zugangsdaten und Zielpfad auf dem Server | M2, werden als GitHub-Secrets bzw. Proxy-Eintrag gesetzt, nicht im Repo |
 | O19 | Wie die maximale Log-Stufe der Disziplin den Bot erreicht (`init` hat kein Feld dafür) oder ob der Runner sie selbst durchsetzt; die SDKs setzen sie bisher nicht um | M2 (Match-Runner) |
+| O20 | Veröffentlichung der Wheels: PyPI (Trusted Publishing per Tag), TestPyPI oder GitHub Releases; bis dahin nur Workflow-Artefakte | Vor der Abnahme von M1 („`pip install` genügt“) |
 
 ## 4. Risiken
 
@@ -109,6 +111,6 @@ Aus dem Anforderungstext fix: MongoDB, Flask, GitHub Actions, Sprachen Python / 
 | R5 | Rechenbedarf langer Partien auf schwacher Hardware | Alles konfigurierbar (E13), Queue nutzt die Zeit lückenlos (E20), Laufzeitschätzung in der Admin-UI |
 | R6 | Wanduhrzeit auf geteiltem Server: Fremdlast kostet den Bot am Zug Bedenkzeit | Akzeptiert (E12, E19); gedämpft durch festen Kern und CPU-Priorität |
 | R7 | Übergang über die Sprachgrenze kostet pro Aufruf Zeit | Grobkörnige API (ganze Zuglisten, Massenabfragen), siehe [sdk-api.md](komponenten/sdk-api.md) |
-| R8 | Vorkompilierte SDK-Pakete müssen für jede Plattform der Entwickler gebaut werden | Build-Matrix in CI (Windows, Linux, macOS) |
+| R8 | Vorkompilierte SDK-Pakete müssen für jede Plattform der Entwickler gebaut werden | Build-Matrix in CI (Windows, Linux, macOS); für Python umgesetzt (E64) |
 | R9 | Debugger der Bot-Sprache kann nicht in den Kern steppen | Kern liefert aussagekräftige Fehler; Brettzustand jederzeit als FEN/Text ausgebbar |
 | R10 | Gäste können Spiele gegen Bots starten (E11) und damit die Queue belasten | Eigene Kapazitätsgrenze, niedrigste Priorität |

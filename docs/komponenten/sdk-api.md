@@ -20,7 +20,7 @@ Schachkern (C++)     ── Stellung, Zuggenerierung, make/undo, Endbedingungen,
 
 | Sprache | Anbindung | Auslieferung |
 |---------|-----------|--------------|
-| Python | Erweiterungsmodul `sbm._core` mit nanobind, Kern statisch eingebunden (E58) | Vorkompiliertes Wheel je Python-Version (`pip install schachbotmanager`, E59) |
+| Python | Erweiterungsmodul `sbm._core` mit nanobind, Kern statisch eingebunden (E58) | Vorkompiliertes Wheel je Python-Version und Plattform (`pip install schachbotmanager`, E59, E64) |
 | C++ | Direkt (Header + Bibliothek) | Archiv mit CMake-Einbindung |
 | Java | JNI oder Foreign-Function-API | JAR mit eingebetteten nativen Bibliotheken je Plattform |
 | C# | P/Invoke (nur innerhalb des SDK) | NuGet-Paket mit nativen Bibliotheken je Plattform |

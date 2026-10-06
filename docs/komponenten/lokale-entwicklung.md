@@ -63,7 +63,7 @@ Für Python bedeutet das: ein Skript, ein `pip install`, kein Compiler, keine Bu
 
 Zu beachten:
 
-- **Plattformabdeckung (R8):** Für eine Plattform ohne vorkompiliertes Paket müsste lokal gebaut werden. Die CI-Matrix sollte Windows x64, Linux x64/arm64 und macOS x64/arm64 abdecken.
+- **Plattformabdeckung (R8):** Für eine Plattform ohne vorkompiliertes Paket müsste lokal gebaut werden. Die CI-Matrix deckt Windows x64, Linux x64/arm64 und macOS x64/arm64 ab (Python: E64); Alpine (musl) und 32-Bit-Systeme bauen lokal.
 - **Python-Versionen:** Python 3.11 und neuer, ein Wheel je Version (E59); Import als `import sbm`.
 - **Kein Schritt in den Kern (R9):** Der Python-Debugger hält im eigenen Code und im Python-Teil des SDK, nicht in der Zuggenerierung.
 - **Vorlagenprojekt je Sprache** mit fertiger Debug-Konfiguration und einem lauffähigen Beispielbot.
