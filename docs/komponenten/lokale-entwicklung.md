@@ -14,18 +14,44 @@ Der Bot-Code ist in allen drei Modi identisch; nur der Transport des SDK wechsel
 
 ## Lokale Arena (`sbm-arena`)
 
-- Befehl `sbm-arena` aus dem Python-Paket (`sbm.arena`); nutzt denselben Referee-Kern `sbm.referee` wie der Server (E65, kein Nachbau).
-- Startet Bots als Kindprozesse über `stdio` **oder** wartet auf Bots, die sich per `tcp` verbinden.
+- Befehl `sbm-arena` aus dem Python-Paket (`sbm.arena`, auch `python -m sbm.arena`); nutzt denselben Referee-Kern `sbm.referee` wie der Server (E65, kein Nachbau). Bedienung und Verhalten: E67.
 - Keine Sandbox, keine Container – läuft direkt auf dem Entwicklergerät.
-- Optionen: Zeitkontrolle, Start-FEN, Anzahl Partien mit Farbwechsel, Ausgabe als PGN, Uhr abschaltbar.
-- Mitgeliefert: Referenzbots (Zufall, einfacher Materialzähler) als Gegner und als Vorlage je Sprache.
+- Mitgeliefert (noch offen): Referenzbots (Zufall, einfacher Materialzähler) als Gegner und als Vorlage je Sprache. Ein menschlicher Spieler auf der Konsole kommt später.
+
+```
+sbm-arena mein_bot.py gegner.py --games 10 --time 10+0.1 --pgn partien.pgn
+sbm-arena tcp gegner.py --no-clock          # mein Bot startet in der IDE mit --tcp 7470
+sbm-arena "java -jar bot.jar" mein_bot.py --fen "8/8/8/4k3/8/8/4P3/4K3 w - - 0 1" --moves
+```
+
+| Bot-Angabe | Bedeutung |
+|------------|-----------|
+| `bot.py` | Läuft mit dem Python, in dem die Arena läuft |
+| andere Datei, z. B. `engine.exe` | Wird direkt gestartet |
+| Befehlszeile, z. B. `"java -jar bot.jar"` | Wird so gestartet; Name nach der Datei im Befehl (`bot`) |
+| `tcp`, `tcp:PORT` | Arena wartet auf 127.0.0.1 (Standard 7470), bis sich der Bot verbindet; je Partie eine neue Verbindung |
+
+| Option | Wirkung |
+|--------|---------|
+| `--games N` | N Partien, Farben wechseln; am Ende eine Tabelle mit Punkten |
+| `--time S+I` | Bedenkzeit in Sekunden plus Inkrement je Zug, Standard `60+1` |
+| `--no-clock` | Keine Zeitgrenzen, für Haltepunkte |
+| `--fen FEN` | Startstellung |
+| `--pgn DATEI` | Partien an die Datei anhängen |
+| `--moves` | Jeden Zug mit Zeit und `info` ausgeben |
+| `--quiet` | Logausgaben der Bots verbergen (sonst auf stderr mit `[Name]` davor) |
+| `--startup-ms`, `--tolerance-ms`, `--max-moves` | Startbudget, Toleranz je Zug, Remis nach so vielen ganzen Zügen |
+
+- **Einfrieren:** Lokal gestartete Bots werden wie auf dem Server außerhalb des eigenen Zuges angehalten, samt aller Kindprozesse. Gelingt das nicht, warnt die Arena und der Bot läuft weiter. TCP-Bots werden nie eingefroren.
+- **Ende:** Nach der Partie hat ein Bot 2 s, um sich selbst zu beenden; danach beendet die Arena ihn und alle Prozesse, die er gestartet hat.
+- **Exit-Codes:** 0 fertig, 1 Fehler der Arena (z. B. Port belegt), 2 falsche Argumente, 130 abgebrochen.
 
 ## Debugging
 
 | Thema | Lösung |
 |-------|--------|
 | Bot aus der IDE starten | Bot verbindet sich per `tcp` mit der wartenden Arena (`--tcp` oder `SBM_TRANSPORT=tcp`, Port 7470, E61); dadurch normales Starten/Debuggen als Hauptprogramm |
-| Haltepunkte vs. Uhr | Arena-Option „Uhr aus“ bzw. „Uhr pausiert, solange Debug-Modus“; sonst verliert der Bot beim ersten Haltepunkt auf Zeit |
+| Haltepunkte vs. Uhr | Arena-Option `--no-clock` (E67); sonst verliert der Bot beim ersten Haltepunkt auf Zeit |
 | Reproduzierbarkeit | Start aus beliebiger FEN; Wiedergabe einer gespeicherten Partie bis Zug N, danach übernimmt der Bot |
 | Ausgaben | Log-Bibliothek des SDK mit Stufen (siehe [sdk-api.md](sdk-api.md)); Stufe per `--log-level`/`SBM_LOG_LEVEL`, Logdatei per `--log-file`/`SBM_LOG_FILE` (E61); `print` landet auf stderr, stdout gehört dem Protokoll |
 | Datendateien | Lokal im Ordner `data/` neben dem Bot-Skript; `load_data(name)` liest sie dort wie auf dem Server (E62) |
