@@ -7,7 +7,7 @@
       "name": "run",
       "kind": "free",
       "params": [{ "name": "bot", "type": "Bot", "description": "The bot class, or a factory where the language has no class objects (C++: template argument)." }],
-      "description": "Entry point and the only call in the bot's main. Creates one bot instance, speaks the protocol and returns when the game is over. Transport and log level come from command-line arguments or environment, so the same file runs locally, in a debugger and on the server."
+      "description": "Entry point and the only call in the bot's main. Creates one bot instance, speaks the protocol and returns when the game is over. Transport and log level come from command-line arguments or environment, so the same file runs locally, in a debugger and on the server (E61): --tcp [PORT] connects to 127.0.0.1 (default port 7470) instead of using stdin/stdout, --log-level LEVEL sets the start level (trace, debug, info, warn, error, off), --log-file PATH also writes the log to a file. The environment variables SBM_TRANSPORT (stdio or tcp), SBM_PORT, SBM_LOG_LEVEL and SBM_LOG_FILE do the same; arguments win. Without either the bot uses stdio and INFO. Other arguments are left to the bot."
     },
     {
       "name": "load_data",
@@ -15,7 +15,7 @@
       "params": [{ "name": "name", "type": "string", "description": "File name without directory, as uploaded." }],
       "returns": { "type": "bytes" },
       "errors": ["InvalidArgument", "DataNotFound"],
-      "description": "Reads a data file uploaded with the bot (E30); the only way to read files. Locally it reads from a directory next to the bot. Names containing / or \\ or equal to . or .. are invalid."
+      "description": "Reads a data file uploaded with the bot (E30); the only way to read files. It reads from the directory named by the environment variable SBM_DATA_DIR, which the server sets; without it from the directory data next to the bot's main file (E62). Names that are empty, contain / or \\ or are equal to . or .. are invalid."
     }
   ]
 }

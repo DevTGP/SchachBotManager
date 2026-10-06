@@ -65,7 +65,7 @@
     {
       "name": "Info",
       "kind": "record",
-      "description": "Search information sent with the move (E43); shown publicly in the viewer. Limits as in the protocol schema; the SDK truncates pv and text instead of failing.",
+      "description": "Search information sent with the move (E43); shown publicly in the viewer. Limits as in the protocol schema; the SDK truncates pv and text instead of failing, and leaves out other fields outside their limits with a warning (score_cp if both scores are set, pv from the first move without UCI form) (E63).",
       "fields": [
         { "name": "depth", "type": "i32", "optional": true, "description": "Search depth, 0 to 1024." },
         { "name": "seldepth", "type": "i32", "optional": true, "description": "Selective search depth, 0 to 1024." },
