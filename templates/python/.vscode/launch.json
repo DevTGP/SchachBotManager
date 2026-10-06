@@ -1,0 +1,69 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Bot debuggen: Weiß gegen material",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/bot.py",
+      "args": [
+        "--tcp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "preLaunchTask": "Arena: Bot mit Weiß gegen material"
+    },
+    {
+      "name": "Bot debuggen: Schwarz gegen material",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/bot.py",
+      "args": [
+        "--tcp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "preLaunchTask": "Arena: Bot mit Schwarz gegen material"
+    },
+    {
+      "name": "Bot debuggen: Stellung aus games.pgn, Weiß",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/bot.py",
+      "args": [
+        "--tcp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "preLaunchTask": "Arena: Stellung aus games.pgn, Bot mit Weiß"
+    },
+    {
+      "name": "Bot debuggen: Stellung aus games.pgn, Schwarz",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/bot.py",
+      "args": [
+        "--tcp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "preLaunchTask": "Arena: Stellung aus games.pgn, Bot mit Schwarz"
+    },
+    {
+      "name": "Bot debuggen: Arena läuft schon",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/bot.py",
+      "args": [
+        "--tcp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}

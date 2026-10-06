@@ -16,6 +16,8 @@ $RECYCLE.BIN/
 
 ### Editors
 .vscode/
+# The template projects ship their debug configuration.
+!templates/*/.vscode/
 .idea/
 *.swp
 

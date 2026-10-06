@@ -1,0 +1,158 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Arena: Bot mit Weiß gegen material",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": [
+        "-m",
+        "sbm.arena",
+        "tcp",
+        "material",
+        "--no-clock",
+        "--moves"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "sbm-arena",
+        "pattern": {
+          "regexp": "^sbm-arena reports no problems: (.*):(\\d+): (.*)$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        },
+        "background": {
+          "activeBegin": true,
+          "beginsPattern": "waiting for .* to connect",
+          "endsPattern": "waiting for .* to connect"
+        }
+      }
+    },
+    {
+      "label": "Arena: Bot mit Schwarz gegen material",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": [
+        "-m",
+        "sbm.arena",
+        "material",
+        "tcp",
+        "--no-clock",
+        "--moves"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "sbm-arena",
+        "pattern": {
+          "regexp": "^sbm-arena reports no problems: (.*):(\\d+): (.*)$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        },
+        "background": {
+          "activeBegin": true,
+          "beginsPattern": "waiting for .* to connect",
+          "endsPattern": "waiting for .* to connect"
+        }
+      }
+    },
+    {
+      "label": "Arena: Stellung aus games.pgn, Bot mit Weiß",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": [
+        "-m",
+        "sbm.arena",
+        "tcp",
+        "material",
+        "--no-clock",
+        "--moves",
+        "--replay",
+        "games.pgn",
+        "--replay-game",
+        "${input:replayGame}",
+        "--replay-ply",
+        "${input:replayPly}"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "sbm-arena",
+        "pattern": {
+          "regexp": "^sbm-arena reports no problems: (.*):(\\d+): (.*)$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        },
+        "background": {
+          "activeBegin": true,
+          "beginsPattern": "waiting for .* to connect",
+          "endsPattern": "waiting for .* to connect"
+        }
+      }
+    },
+    {
+      "label": "Arena: Stellung aus games.pgn, Bot mit Schwarz",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": [
+        "-m",
+        "sbm.arena",
+        "material",
+        "tcp",
+        "--no-clock",
+        "--moves",
+        "--replay",
+        "games.pgn",
+        "--replay-game",
+        "${input:replayGame}",
+        "--replay-ply",
+        "${input:replayPly}"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "sbm-arena",
+        "pattern": {
+          "regexp": "^sbm-arena reports no problems: (.*):(\\d+): (.*)$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        },
+        "background": {
+          "activeBegin": true,
+          "beginsPattern": "waiting for .* to connect",
+          "endsPattern": "waiting for .* to connect"
+        }
+      }
+    },
+    {
+      "label": "Arena: 10 Partien gegen material",
+      "type": "process",
+      "command": "${command:python.interpreterPath}",
+      "args": [
+        "-m",
+        "sbm.arena",
+        "bot.py",
+        "material",
+        "--games",
+        "10",
+        "--pgn",
+        "games.pgn"
+      ],
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "replayGame",
+      "type": "promptString",
+      "description": "Nummer der Partie in games.pgn",
+      "default": "1"
+    },
+    {
+      "id": "replayPly",
+      "type": "promptString",
+      "description": "Halbzüge, die nachgespielt werden, bevor die Bots übernehmen"
+    }
+  ]
+}
