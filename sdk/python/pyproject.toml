@@ -6,9 +6,14 @@ build-backend = "scikit_build_core.build"
 name = "schachbotmanager"
 dynamic = ["version"]
 description = "Bot SDK for SchachBotManager: chess board, moves and the bot main loop"
+readme = "README.md"
 license = "MIT-0"
 requires-python = ">=3.11"
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/DevTGP/SchachBotManager"
+Source = "https://github.com/DevTGP/SchachBotManager/tree/master/sdk/python"
 
 [project.scripts]
 sbm-arena = "sbm.arena.cli:main"
