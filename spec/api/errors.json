@@ -1,0 +1,13 @@
+{
+  "$schema": "api.schema.json",
+  "module": "errors",
+  "description": "Errors of the bot API. Each binding raises them as exceptions of the language with these names plus the language's usual suffix (e.g. IllegalMoveError, IllegalMoveException), all derived from one common base ChessError. The core never crashes the process on bad input.",
+  "errors": [
+    { "name": "InvalidArgument", "description": "A value is outside its range, e.g. a square above 63, a color above 1 or an unknown log level." },
+    { "name": "InvalidFen", "description": "A FEN string is malformed or describes an impossible position (e.g. no king, pawns on the first or last rank, side not to move in check)." },
+    { "name": "InvalidUci", "description": "A string is not a move in UCI notation." },
+    { "name": "IllegalMove", "description": "A well-formed move is not legal in the current position." },
+    { "name": "InvalidState", "description": "The operation is not possible in the current state, e.g. undo without history or a null move while in check." },
+    { "name": "DataNotFound", "description": "load_data found no data file with that name." }
+  ]
+}

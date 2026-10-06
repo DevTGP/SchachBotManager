@@ -1,0 +1,21 @@
+{
+  "$schema": "api.schema.json",
+  "module": "runtime",
+  "description": "Module-level functions for starting the bot and reading its data files.",
+  "functions": [
+    {
+      "name": "run",
+      "kind": "free",
+      "params": [{ "name": "bot", "type": "Bot", "description": "The bot class, or a factory where the language has no class objects (C++: template argument)." }],
+      "description": "Entry point and the only call in the bot's main. Creates one bot instance, speaks the protocol and returns when the game is over. Transport and log level come from command-line arguments or environment, so the same file runs locally, in a debugger and on the server."
+    },
+    {
+      "name": "load_data",
+      "kind": "free",
+      "params": [{ "name": "name", "type": "string", "description": "File name without directory, as uploaded." }],
+      "returns": { "type": "bytes" },
+      "errors": ["InvalidArgument", "DataNotFound"],
+      "description": "Reads a data file uploaded with the bot (E30); the only way to read files. Locally it reads from a directory next to the bot. Names containing / or \\ or equal to . or .. are invalid."
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "api.schema.json",
+  "module": "bot",
+  "description": "The base class Bot. The SDK owns the main loop and calls the callbacks (E21). An exception escaping a callback is logged at ERROR and ends the process; the referee scores it as crash.",
+  "functions": [
+    {
+      "name": "on_game_start",
+      "kind": "callback",
+      "owner": "Bot",
+      "mandatory": false,
+      "params": [{ "name": "info", "type": "GameInfo" }],
+      "description": "Called once before the first turn, within the start-up budget startup_ms."
+    },
+    {
+      "name": "choose_move",
+      "kind": "callback",
+      "owner": "Bot",
+      "mandatory": true,
+      "params": [
+        { "name": "board", "type": "Board" },
+        { "name": "clock", "type": "Clock" }
+      ],
+      "returns": { "type": "Move", "description": "A move, or RESIGN to resign." },
+      "description": "Called for each own move with the current game position; returning ends the own thinking time. The bot may make and undo moves on board freely; the SDK restores the game position afterwards. The SDK sends the returned move without checking it; the referee decides on legality. Returning NULL_MOVE is an error (see Move.uci)."
+    },
+    {
+      "name": "on_game_end",
+      "kind": "callback",
+      "owner": "Bot",
+      "mandatory": false,
+      "params": [{ "name": "result", "type": "GameResult" }],
+      "description": "Called after game_over for cleanup and last log lines. Not called if the process is ended before, e.g. on timeout."
+    },
+    {
+      "name": "report",
+      "kind": "method",
+      "owner": "Bot",
+      "params": [{ "name": "info", "type": "Info" }],
+      "description": "Sets the search information sent with the move of the current turn. A later call replaces an earlier one; nothing carries over to the next turn. Ignored when the bot resigns. May be called often; it only stores the value."
+    }
+  ]
+}

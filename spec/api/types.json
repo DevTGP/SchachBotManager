@@ -1,0 +1,80 @@
+{
+  "$schema": "api.schema.json",
+  "module": "types",
+  "description": "Named types of the bot API. Encodings follow E34 and E35.",
+  "types": [
+    { "name": "Color", "kind": "alias", "base": "u8", "description": "WHITE = 0, BLACK = 1." },
+    { "name": "PieceType", "kind": "alias", "base": "u8", "description": "PAWN = 0 to KING = 5; NO_PIECE_TYPE = 6." },
+    { "name": "Piece", "kind": "alias", "base": "u8", "description": "color * 6 + piece type (0 to 11); NO_PIECE = 12." },
+    { "name": "Square", "kind": "alias", "base": "u8", "description": "rank * 8 + file, a1 = 0 to h8 = 63; NO_SQUARE = 64." },
+    { "name": "Bitboard", "kind": "alias", "base": "u64", "description": "Set of squares; bit i stands for square i." },
+    { "name": "CastlingRights", "kind": "alias", "base": "u8", "description": "Bit set of WHITE_KINGSIDE, WHITE_QUEENSIDE, BLACK_KINGSIDE, BLACK_QUEENSIDE." },
+    { "name": "MoveFlags", "kind": "alias", "base": "u8", "description": "Bits 12 to 15 of a move (E34)." },
+    { "name": "LogLevel", "kind": "alias", "base": "u8", "description": "TRACE = 0 to OFF = 5." },
+    {
+      "name": "Move",
+      "kind": "value",
+      "base": "u16",
+      "description": "Move as 16-bit value: bits 0 to 5 from-square, 6 to 11 to-square, 12 to 15 flags (E34). Two moves are equal if their values are equal. NULL_MOVE and RESIGN are special values with from-square equal to to-square, never legal moves."
+    },
+    {
+      "name": "Board",
+      "kind": "class",
+      "description": "Chess position with move history, backed by the shared core. The binding owns the native handle and frees it with the language's memory management."
+    },
+    {
+      "name": "Clock",
+      "kind": "class",
+      "description": "Local view of the time situation during choose_move. The referee's clock is authoritative."
+    },
+    {
+      "name": "Bot",
+      "kind": "class",
+      "description": "Base class the bot author extends; the SDK calls its callbacks."
+    },
+    {
+      "name": "Log",
+      "kind": "class",
+      "description": "Debug log, written to stderr on the server (static functions only)."
+    },
+    {
+      "name": "GameInfo",
+      "kind": "record",
+      "description": "Game parameters from init, passed to on_game_start.",
+      "fields": [
+        { "name": "game_id", "type": "string", "description": "Identifier of the game." },
+        { "name": "color", "type": "Color", "description": "Own color." },
+        { "name": "opponent_name", "type": "string", "description": "Display name of the opponent." },
+        { "name": "start_fen", "type": "string", "description": "Start position of the game." },
+        { "name": "initial_time_ms", "type": "i64", "description": "Base thinking time per side." },
+        { "name": "increment_ms", "type": "i64", "description": "Time added after each own move." },
+        { "name": "startup_ms", "type": "i64", "description": "Budget for start-up including on_game_start." },
+        { "name": "memory_limit_mib", "type": "i32", "description": "Fixed memory protection limit of the sandbox (A14)." },
+        { "name": "discipline", "type": "string", "description": "Display name of the discipline." }
+      ]
+    },
+    {
+      "name": "GameResult",
+      "kind": "record",
+      "description": "End of the game from game_over, passed to on_game_end.",
+      "fields": [
+        { "name": "result", "type": "string", "description": "1-0, 0-1, 1/2-1/2 or * (aborted)." },
+        { "name": "termination", "type": "string", "description": "Termination code as listed in the protocol (E44)." }
+      ]
+    },
+    {
+      "name": "Info",
+      "kind": "record",
+      "description": "Search information sent with the move (E43); shown publicly in the viewer. Limits as in the protocol schema; the SDK truncates pv and text instead of failing.",
+      "fields": [
+        { "name": "depth", "type": "i32", "optional": true, "description": "Search depth, 0 to 1024." },
+        { "name": "seldepth", "type": "i32", "optional": true, "description": "Selective search depth, 0 to 1024." },
+        { "name": "score_cp", "type": "i32", "optional": true, "description": "Score in centipawns from the bot's point of view; not together with score_mate." },
+        { "name": "score_mate", "type": "i32", "optional": true, "description": "Mate in this many moves, negative if the bot gets mated; not 0." },
+        { "name": "nodes", "type": "i64", "optional": true, "description": "Searched nodes." },
+        { "name": "pv", "type": "list<Move>", "optional": true, "description": "Principal variation starting with the move played; at most 32 moves are sent." },
+        { "name": "text", "type": "string", "optional": true, "description": "Free text; at most 256 characters are sent." }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Canonical bot API definition file",
+  "description": "One file per topic. Names are canonical snake_case (functions, fields, parameters), PascalCase (types, errors) and UPPER_SNAKE (constants); bindings convert them to their idiomatic spelling.",
+  "type": "object",
+  "properties": {
+    "$schema": { "type": "string" },
+    "module": { "$ref": "#/$defs/snake" },
+    "description": { "type": "string", "minLength": 1 },
+    "primitives": { "type": "array", "items": { "$ref": "#/$defs/primitive" }, "minItems": 1 },
+    "types": { "type": "array", "items": { "$ref": "#/$defs/type" }, "minItems": 1 },
+    "constants": { "type": "array", "items": { "$ref": "#/$defs/constant" }, "minItems": 1 },
+    "errors": { "type": "array", "items": { "$ref": "#/$defs/error" }, "minItems": 1 },
+    "functions": { "type": "array", "items": { "$ref": "#/$defs/function" }, "minItems": 1 }
+  },
+  "required": ["$schema", "module", "description"],
+  "additionalProperties": false,
+  "$defs": {
+    "snake": { "type": "string", "pattern": "^[a-z][a-z0-9_]*(?!\\n)$" },
+    "pascal": { "type": "string", "pattern": "^[A-Z][A-Za-z0-9]*(?!\\n)$" },
+    "upper": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*(?!\\n)$" },
+    "type_ref": {
+      "description": "A primitive (lower case), a named type (PascalCase) or list<...> of one of them.",
+      "type": "string",
+      "pattern": "^([a-z][a-z0-9]*|[A-Z][A-Za-z0-9]*|list<([a-z][a-z0-9]*|[A-Z][A-Za-z0-9]*)>)(?!\\n)$"
+    },
+    "description": { "type": "string", "minLength": 1 },
+    "primitive": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?!\\n)$" },
+        "description": { "$ref": "#/$defs/description" },
+        "languages": {
+          "description": "Representation per binding language.",
+          "type": "object",
+          "properties": {
+            "python": { "type": "string" },
+            "cpp": { "type": "string" },
+            "java": { "type": "string" },
+            "csharp": { "type": "string" },
+            "javascript": { "type": "string" }
+          },
+          "required": ["python", "cpp", "java", "csharp", "javascript"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["name", "description", "languages"],
+      "additionalProperties": false
+    },
+    "type": {
+      "type": "object",
+      "properties": {
+        "name": { "$ref": "#/$defs/pascal" },
+        "kind": {
+          "description": "alias: a primitive with a meaning; value: a primitive with methods; record: plain data; class: object with identity, owned by the binding.",
+          "enum": ["alias", "value", "record", "class"]
+        },
+        "base": { "$ref": "#/$defs/type_ref" },
+        "fields": { "type": "array", "items": { "$ref": "#/$defs/field" }, "minItems": 1 },
+        "description": { "$ref": "#/$defs/description" }
+      },
+      "required": ["name", "kind", "description"],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "enum": ["alias", "value"] } } },
+          "then": { "required": ["base"], "not": { "required": ["fields"] } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "record" } } },
+          "then": { "required": ["fields"], "not": { "required": ["base"] } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "class" } } },
+          "then": { "not": { "anyOf": [{ "required": ["base"] }, { "required": ["fields"] }] } }
+        }
+      ]
+    },
+    "field": {
+      "type": "object",
+      "properties": {
+        "name": { "$ref": "#/$defs/snake" },
+        "type": { "$ref": "#/$defs/type_ref" },
+        "optional": { "type": "boolean" },
+        "description": { "$ref": "#/$defs/description" }
+      },
+      "required": ["name", "type", "description"],
+      "additionalProperties": false
+    },
+    "constant": {
+      "type": "object",
+      "properties": {
+        "name": { "$ref": "#/$defs/upper" },
+        "type": { "$ref": "#/$defs/pascal" },
+        "value": { "type": "integer" },
+        "description": { "$ref": "#/$defs/description" }
+      },
+      "required": ["name", "type", "value"],
+      "additionalProperties": false
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "name": { "$ref": "#/$defs/pascal" },
+        "description": { "$ref": "#/$defs/description" }
+      },
+      "required": ["name", "description"],
+      "additionalProperties": false
+    },
+    "param": {
+      "type": "object",
+      "properties": {
+        "name": { "$ref": "#/$defs/snake" },
+        "type": { "$ref": "#/$defs/type_ref" },
+        "description": { "$ref": "#/$defs/description" }
+      },
+      "required": ["name", "type"],
+      "additionalProperties": false
+    },
+    "function": {
+      "type": "object",
+      "properties": {
+        "name": { "$ref": "#/$defs/snake" },
+        "kind": {
+          "description": "method: called on an instance of owner; static: called on owner; constructor: creates an owner; callback: implemented by the bot author, called by the SDK; free: module-level function without owner.",
+          "enum": ["method", "static", "constructor", "callback", "free"]
+        },
+        "owner": { "$ref": "#/$defs/pascal" },
+        "mandatory": {
+          "description": "Callbacks only: the bot must implement it.",
+          "type": "boolean"
+        },
+        "params": { "type": "array", "items": { "$ref": "#/$defs/param" } },
+        "returns": {
+          "type": "object",
+          "properties": {
+            "type": { "$ref": "#/$defs/type_ref" },
+            "description": { "$ref": "#/$defs/description" }
+          },
+          "required": ["type"],
+          "additionalProperties": false
+        },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/pascal" },
+          "uniqueItems": true
+        },
+        "description": { "$ref": "#/$defs/description" }
+      },
+      "required": ["name", "kind", "params", "description"],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "free" } } },
+          "then": { "not": { "required": ["owner"] } },
+          "else": { "required": ["owner"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "callback" } } },
+          "then": { "required": ["mandatory"] },
+          "else": { "not": { "required": ["mandatory"] } }
+        }
+      ]
+    }
+  }
+}

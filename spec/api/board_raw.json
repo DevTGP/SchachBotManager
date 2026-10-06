@@ -1,0 +1,114 @@
+{
+  "$schema": "api.schema.json",
+  "module": "board_raw",
+  "description": "Raw access to the position as bitboards and arrays (E21), for bots with their own evaluation or move ordering.",
+  "functions": [
+    {
+      "name": "bitboard",
+      "kind": "method",
+      "owner": "Board",
+      "params": [
+        { "name": "color", "type": "Color" },
+        { "name": "piece_type", "type": "PieceType" }
+      ],
+      "returns": { "type": "Bitboard" },
+      "errors": ["InvalidArgument"],
+      "description": "Squares with pieces of that color and type."
+    },
+    {
+      "name": "bitboards",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "list<Bitboard>", "description": "12 entries, indexed by Piece." },
+      "description": "All piece bitboards in one call."
+    },
+    {
+      "name": "squares",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "list<Piece>", "description": "64 entries, indexed by Square; NO_PIECE on empty squares." },
+      "description": "The whole board square by square in one call."
+    },
+    {
+      "name": "occupied",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "Bitboard" },
+      "description": "All occupied squares."
+    },
+    {
+      "name": "occupied_by",
+      "kind": "method",
+      "owner": "Board",
+      "params": [{ "name": "color", "type": "Color" }],
+      "returns": { "type": "Bitboard" },
+      "errors": ["InvalidArgument"],
+      "description": "Squares occupied by that color."
+    },
+    {
+      "name": "piece_count",
+      "kind": "method",
+      "owner": "Board",
+      "params": [
+        { "name": "color", "type": "Color" },
+        { "name": "piece_type", "type": "PieceType" }
+      ],
+      "returns": { "type": "i32" },
+      "errors": ["InvalidArgument"],
+      "description": "Number of pieces of that color and type."
+    },
+    {
+      "name": "attacks_from",
+      "kind": "method",
+      "owner": "Board",
+      "params": [{ "name": "square", "type": "Square" }],
+      "returns": { "type": "Bitboard", "description": "Empty if the square is empty." },
+      "errors": ["InvalidArgument"],
+      "description": "Squares attacked by the piece on that square with the current occupancy, including squares of own pieces; pawns attack diagonally only. Pins are ignored."
+    },
+    {
+      "name": "attackers_of",
+      "kind": "method",
+      "owner": "Board",
+      "params": [
+        { "name": "square", "type": "Square" },
+        { "name": "color", "type": "Color" }
+      ],
+      "returns": { "type": "Bitboard" },
+      "errors": ["InvalidArgument"],
+      "description": "Pieces of that color that attack the square with the current occupancy. Pins are ignored."
+    },
+    {
+      "name": "is_attacked",
+      "kind": "method",
+      "owner": "Board",
+      "params": [
+        { "name": "square", "type": "Square" },
+        { "name": "color", "type": "Color" }
+      ],
+      "returns": { "type": "bool" },
+      "errors": ["InvalidArgument"],
+      "description": "attackers_of(square, color) is not empty."
+    },
+    {
+      "name": "checkers",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "Bitboard" },
+      "description": "Pieces giving check to the side to move."
+    },
+    {
+      "name": "pinned",
+      "kind": "method",
+      "owner": "Board",
+      "params": [{ "name": "color", "type": "Color" }],
+      "returns": { "type": "Bitboard" },
+      "errors": ["InvalidArgument"],
+      "description": "Pieces of that color that are pinned to their own king by an enemy bishop, rook or queen."
+    }
+  ]
+}

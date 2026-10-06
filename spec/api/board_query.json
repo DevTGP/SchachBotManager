@@ -1,0 +1,65 @@
+{
+  "$schema": "api.schema.json",
+  "module": "board_query",
+  "description": "Reading single properties of the position.",
+  "functions": [
+    {
+      "name": "piece_at",
+      "kind": "method",
+      "owner": "Board",
+      "params": [{ "name": "square", "type": "Square" }],
+      "returns": { "type": "Piece", "description": "NO_PIECE on an empty square." },
+      "errors": ["InvalidArgument"],
+      "description": "Piece on a square."
+    },
+    {
+      "name": "side_to_move",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "Color" },
+      "description": "Color to move."
+    },
+    {
+      "name": "castling_rights",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "CastlingRights" },
+      "description": "Remaining castling rights, independent of whether castling is possible right now."
+    },
+    {
+      "name": "en_passant_square",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "Square", "description": "NO_SQUARE if no en passant capture is legal." },
+      "description": "Target square of a legal en passant capture, same rule as in fen."
+    },
+    {
+      "name": "halfmove_clock",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "i32" },
+      "description": "Half moves since the last capture or pawn move."
+    },
+    {
+      "name": "fullmove_number",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "i32" },
+      "description": "Starts at 1 and increases after each black move."
+    },
+    {
+      "name": "king_square",
+      "kind": "method",
+      "owner": "Board",
+      "params": [{ "name": "color", "type": "Color" }],
+      "returns": { "type": "Square" },
+      "errors": ["InvalidArgument"],
+      "description": "Square of the king of that color."
+    }
+  ]
+}

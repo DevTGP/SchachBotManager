@@ -1,0 +1,72 @@
+{
+  "$schema": "api.schema.json",
+  "module": "board_state",
+  "description": "End conditions. They match the referee, which ends a game automatically on each of them.",
+  "functions": [
+    {
+      "name": "is_check",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "bool" },
+      "description": "The side to move is in check."
+    },
+    {
+      "name": "is_checkmate",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "bool" },
+      "description": "In check and no legal move."
+    },
+    {
+      "name": "is_stalemate",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "bool" },
+      "description": "Not in check and no legal move."
+    },
+    {
+      "name": "is_repetition",
+      "kind": "method",
+      "owner": "Board",
+      "params": [{ "name": "count", "type": "i32" }],
+      "returns": { "type": "bool" },
+      "errors": ["InvalidArgument"],
+      "description": "The current position has occurred at least count times in the history, counting itself. Positions are equal if pieces, side to move, castling rights and en passant square (as in fen) are equal. count must be at least 1; is_repetition(3) is the threefold repetition."
+    },
+    {
+      "name": "is_fifty_move_rule",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "bool" },
+      "description": "halfmove_clock is at least 100 and the position is not checkmate."
+    },
+    {
+      "name": "is_insufficient_material",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "bool" },
+      "description": "Neither side can checkmate: only kings, kings and one knight or bishop, or kings and any number of bishops all on squares of one color."
+    },
+    {
+      "name": "is_draw",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "bool" },
+      "description": "is_stalemate, is_repetition(3), is_fifty_move_rule or is_insufficient_material."
+    },
+    {
+      "name": "is_game_over",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "bool" },
+      "description": "is_checkmate or is_draw. Time, resignation and move limits are known only to the referee."
+    }
+  ]
+}

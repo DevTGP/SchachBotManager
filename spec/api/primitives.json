@@ -1,0 +1,47 @@
+{
+  "$schema": "api.schema.json",
+  "module": "primitives",
+  "description": "Primitive types and their representation in each binding language.",
+  "primitives": [
+    {
+      "name": "bool",
+      "description": "Truth value.",
+      "languages": { "python": "bool", "cpp": "bool", "java": "boolean", "csharp": "bool", "javascript": "boolean" }
+    },
+    {
+      "name": "u8",
+      "description": "Unsigned 8-bit integer.",
+      "languages": { "python": "int", "cpp": "std::uint8_t", "java": "int", "csharp": "byte", "javascript": "number" }
+    },
+    {
+      "name": "u16",
+      "description": "Unsigned 16-bit integer.",
+      "languages": { "python": "int", "cpp": "std::uint16_t", "java": "int", "csharp": "ushort", "javascript": "number" }
+    },
+    {
+      "name": "i32",
+      "description": "Signed 32-bit integer.",
+      "languages": { "python": "int", "cpp": "std::int32_t", "java": "int", "csharp": "int", "javascript": "number" }
+    },
+    {
+      "name": "i64",
+      "description": "Signed 64-bit integer. Values used by the API (times in ms, node counts) stay below 2^53, so JavaScript uses number.",
+      "languages": { "python": "int", "cpp": "std::int64_t", "java": "long", "csharp": "long", "javascript": "number" }
+    },
+    {
+      "name": "u64",
+      "description": "Unsigned 64-bit integer, used for bitboards and hashes. Java stores the bits in a signed long. JavaScript uses bigint and additionally offers every function returning u64 or list<u64> with the suffix 32, returning a Uint32Array with low and high half per value.",
+      "languages": { "python": "int", "cpp": "std::uint64_t", "java": "long", "csharp": "ulong", "javascript": "bigint" }
+    },
+    {
+      "name": "string",
+      "description": "UTF-8 text.",
+      "languages": { "python": "str", "cpp": "std::string", "java": "String", "csharp": "string", "javascript": "string" }
+    },
+    {
+      "name": "bytes",
+      "description": "Raw binary data.",
+      "languages": { "python": "bytes", "cpp": "std::vector<std::uint8_t>", "java": "byte[]", "csharp": "byte[]", "javascript": "Uint8Array" }
+    }
+  ]
+}

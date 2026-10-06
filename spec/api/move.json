@@ -1,0 +1,119 @@
+{
+  "$schema": "api.schema.json",
+  "module": "move",
+  "description": "Functions of the value type Move (E34). They work on the 16-bit value alone and need no board.",
+  "functions": [
+    {
+      "name": "create",
+      "kind": "constructor",
+      "owner": "Move",
+      "params": [
+        { "name": "from_square", "type": "Square" },
+        { "name": "to_square", "type": "Square" },
+        { "name": "flags", "type": "MoveFlags" }
+      ],
+      "returns": { "type": "Move" },
+      "errors": ["InvalidArgument"],
+      "description": "Builds a move from its parts. Squares above 63 and the unused flags 6 and 7 are invalid. The move is not checked against any position."
+    },
+    {
+      "name": "from_value",
+      "kind": "static",
+      "owner": "Move",
+      "params": [{ "name": "value", "type": "u16" }],
+      "returns": { "type": "Move" },
+      "errors": ["InvalidArgument"],
+      "description": "Wraps a raw 16-bit value, e.g. from a transposition table. Values outside 0 to 65535 or with flags 6 or 7 are invalid; NULL_MOVE and RESIGN are accepted."
+    },
+    {
+      "name": "parse",
+      "kind": "static",
+      "owner": "Move",
+      "params": [{ "name": "uci", "type": "string" }],
+      "returns": { "type": "Move", "description": "Flags 8 to 11 for a promotion, otherwise 0." },
+      "errors": ["InvalidUci"],
+      "description": "Reads UCI notation without a board, so capture, castling, en passant and double push are unknown. Board.is_legal and Board.make_move therefore compare only from-square, to-square and promotion piece; Board.parse_move gives the complete move. 0000 is not accepted."
+    },
+    {
+      "name": "value",
+      "kind": "method",
+      "owner": "Move",
+      "params": [],
+      "returns": { "type": "u16" },
+      "description": "The raw 16-bit value."
+    },
+    {
+      "name": "from_square",
+      "kind": "method",
+      "owner": "Move",
+      "params": [],
+      "returns": { "type": "Square" },
+      "description": "Bits 0 to 5. Named from_square because from is a keyword in Python."
+    },
+    {
+      "name": "to_square",
+      "kind": "method",
+      "owner": "Move",
+      "params": [],
+      "returns": { "type": "Square" },
+      "description": "Bits 6 to 11."
+    },
+    {
+      "name": "flags",
+      "kind": "method",
+      "owner": "Move",
+      "params": [],
+      "returns": { "type": "MoveFlags" },
+      "description": "Bits 12 to 15."
+    },
+    {
+      "name": "promotion",
+      "kind": "method",
+      "owner": "Move",
+      "params": [],
+      "returns": { "type": "PieceType", "description": "KNIGHT to QUEEN, or NO_PIECE_TYPE." },
+      "description": "Piece type the pawn turns into: (flags & 3) + 1 if flags >= 8."
+    },
+    {
+      "name": "is_promotion",
+      "kind": "method",
+      "owner": "Move",
+      "params": [],
+      "returns": { "type": "bool" },
+      "description": "Flags 8 to 15."
+    },
+    {
+      "name": "is_capture",
+      "kind": "method",
+      "owner": "Move",
+      "params": [],
+      "returns": { "type": "bool" },
+      "description": "Flags 4, 5 and 12 to 15, i.e. including en passant."
+    },
+    {
+      "name": "is_castling",
+      "kind": "method",
+      "owner": "Move",
+      "params": [],
+      "returns": { "type": "bool" },
+      "description": "Flags 2 and 3."
+    },
+    {
+      "name": "is_en_passant",
+      "kind": "method",
+      "owner": "Move",
+      "params": [],
+      "returns": { "type": "bool" },
+      "description": "Flag 5."
+    },
+    {
+      "name": "uci",
+      "kind": "method",
+      "owner": "Move",
+      "params": [],
+      "returns": { "type": "string", "description": "e.g. e2e4 or e7e8q; castling as king move e1g1." },
+      "errors": ["InvalidArgument"],
+      "description": "UCI notation. NULL_MOVE and RESIGN have none and raise InvalidArgument."
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "$schema": "api.schema.json",
+  "module": "board_moves",
+  "description": "Generating, checking, making and taking back moves. Moves are matched by from-square, to-square and promotion piece; the other flags are filled in by the board.",
+  "functions": [
+    {
+      "name": "legal_moves",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "list<Move>", "description": "Complete moves with all flags; the order is not part of the API." },
+      "description": "All legal moves, in one call (R7). Empty if the side to move is checkmated or stalemated."
+    },
+    {
+      "name": "legal_captures",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "list<Move>" },
+      "description": "The legal moves with is_capture, including en passant and capturing promotions."
+    },
+    {
+      "name": "is_legal",
+      "kind": "method",
+      "owner": "Board",
+      "params": [{ "name": "move", "type": "Move" }],
+      "returns": { "type": "bool", "description": "False for NULL_MOVE, RESIGN and every malformed value." },
+      "description": "Whether a legal move with the same from-square, to-square and promotion piece exists."
+    },
+    {
+      "name": "parse_move",
+      "kind": "method",
+      "owner": "Board",
+      "params": [{ "name": "uci", "type": "string" }],
+      "returns": { "type": "Move", "description": "The complete move with all flags." },
+      "errors": ["InvalidUci", "IllegalMove"],
+      "description": "Reads UCI notation and looks the move up in this position."
+    },
+    {
+      "name": "make_move",
+      "kind": "method",
+      "owner": "Board",
+      "params": [{ "name": "move", "type": "Move" }],
+      "errors": ["IllegalMove"],
+      "description": "Plays a legal move and appends it to the history. On error the board is unchanged."
+    },
+    {
+      "name": "undo_move",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "errors": ["InvalidState"],
+      "description": "Takes back the last move. InvalidState if the history is empty or the last entry is a null move."
+    },
+    {
+      "name": "make_null_move",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "errors": ["InvalidState"],
+      "description": "Passes the turn to the other side for null-move pruning; clears the en passant square and increases the halfmove clock. InvalidState while in check."
+    },
+    {
+      "name": "undo_null_move",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "errors": ["InvalidState"],
+      "description": "Takes back the last null move. InvalidState if the last entry of the history is not a null move."
+    }
+  ]
+}

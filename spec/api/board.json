@@ -1,0 +1,64 @@
+{
+  "$schema": "api.schema.json",
+  "module": "board",
+  "description": "Creating, copying and printing a Board. A board stores the moves made on it since it was created; from_fen starts with an empty history.",
+  "functions": [
+    {
+      "name": "create",
+      "kind": "constructor",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "Board" },
+      "description": "Board in the standard start position."
+    },
+    {
+      "name": "from_fen",
+      "kind": "static",
+      "owner": "Board",
+      "params": [{ "name": "fen", "type": "string" }],
+      "returns": { "type": "Board" },
+      "errors": ["InvalidFen"],
+      "description": "Board in the given position. All six FEN fields are required. An en passant square on which no capture is legal is accepted and dropped. Rejected: not exactly one king per side, pawns on rank 1 or 8, more than 16 pieces per side, the side not to move in check, castling rights without king and rook on their start squares, an en passant square without the pawn that just moved."
+    },
+    {
+      "name": "fen",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "string" },
+      "description": "FEN of the position. The en passant square is written only if an en passant capture is legal, so equal positions give equal FEN."
+    },
+    {
+      "name": "copy",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "Board" },
+      "description": "Independent copy including the move history."
+    },
+    {
+      "name": "hash",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "u64" },
+      "description": "Zobrist hash with the published Polyglot keys, equal to the Polyglot book key of the position. Polyglot includes the en passant file only if a pawn of the side to move stands next to the double-pushed pawn, regardless of legality."
+    },
+    {
+      "name": "move_history",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "list<Move>", "description": "Oldest first; null moves appear as NULL_MOVE." },
+      "description": "Moves made on this board that are not undone."
+    },
+    {
+      "name": "to_text",
+      "kind": "method",
+      "owner": "Board",
+      "params": [],
+      "returns": { "type": "string" },
+      "description": "Readable diagram for debugging: eight lines from rank 8 to rank 1 with FEN letters and dots for empty squares, then the FEN. The exact layout is not part of the API."
+    }
+  ]
+}

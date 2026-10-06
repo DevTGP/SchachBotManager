@@ -1,0 +1,37 @@
+{
+  "$schema": "api.schema.json",
+  "module": "log",
+  "description": "Debug log. Locally on the console with time stamp, move number and level; on the server to stderr, stored with a size limit and visible only to owner and admin. The discipline sets a maximum level for the server.",
+  "functions": [
+    { "name": "trace", "kind": "static", "owner": "Log", "params": [{ "name": "message", "type": "string" }], "description": "Writes at level TRACE." },
+    { "name": "debug", "kind": "static", "owner": "Log", "params": [{ "name": "message", "type": "string" }], "description": "Writes at level DEBUG." },
+    { "name": "info", "kind": "static", "owner": "Log", "params": [{ "name": "message", "type": "string" }], "description": "Writes at level INFO." },
+    { "name": "warn", "kind": "static", "owner": "Log", "params": [{ "name": "message", "type": "string" }], "description": "Writes at level WARN." },
+    { "name": "error", "kind": "static", "owner": "Log", "params": [{ "name": "message", "type": "string" }], "description": "Writes at level ERROR." },
+    {
+      "name": "set_level",
+      "kind": "static",
+      "owner": "Log",
+      "params": [{ "name": "level", "type": "LogLevel" }],
+      "errors": ["InvalidArgument"],
+      "description": "Sets the minimum level written. The server maximum of the discipline still applies."
+    },
+    {
+      "name": "level",
+      "kind": "static",
+      "owner": "Log",
+      "params": [],
+      "returns": { "type": "LogLevel" },
+      "description": "Current minimum level. The start value comes from the command line or environment, default INFO."
+    },
+    {
+      "name": "is_enabled",
+      "kind": "static",
+      "owner": "Log",
+      "params": [{ "name": "level", "type": "LogLevel" }],
+      "returns": { "type": "bool" },
+      "errors": ["InvalidArgument"],
+      "description": "Whether a message at that level would be written; avoids building expensive messages."
+    }
+  ]
+}

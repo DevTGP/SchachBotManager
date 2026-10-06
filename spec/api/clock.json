@@ -1,0 +1,39 @@
+{
+  "$schema": "api.schema.json",
+  "module": "clock",
+  "description": "Time view passed to choose_move. Values come from the turn message; elapsed time is measured locally with a monotonic clock from the moment the SDK received turn.",
+  "functions": [
+    {
+      "name": "remaining_ms",
+      "kind": "method",
+      "owner": "Clock",
+      "params": [],
+      "returns": { "type": "i64" },
+      "description": "Own remaining time at the start of this turn, as sent by the referee; does not decrease while thinking."
+    },
+    {
+      "name": "opponent_remaining_ms",
+      "kind": "method",
+      "owner": "Clock",
+      "params": [],
+      "returns": { "type": "i64" },
+      "description": "Remaining time of the opponent."
+    },
+    {
+      "name": "increment_ms",
+      "kind": "method",
+      "owner": "Clock",
+      "params": [],
+      "returns": { "type": "i64" },
+      "description": "Time added after each own move."
+    },
+    {
+      "name": "elapsed_ms",
+      "kind": "method",
+      "owner": "Clock",
+      "params": [],
+      "returns": { "type": "i64" },
+      "description": "Time spent on this turn so far. The referee's measurement additionally contains transport time, so bots should keep a margin."
+    }
+  ]
+}
