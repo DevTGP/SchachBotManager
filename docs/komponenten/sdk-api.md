@@ -145,8 +145,8 @@ Jeder Aufruf aus Python/Java/C#/JS in den Kern kostet einen festen Betrag, unabh
 
 | Ebene | Inhalt |
 |-------|--------|
-| Kern | Perft-Vektoren, Regel-Vektoren (Matt, Patt, Wiederholung, 50 Züge, Material), FEN/UCI – einmal, im Kern |
-| Binding je Sprache | Jede API-Funktion gegen feste Erwartungswerte aus `spec/testvectors/`; Speicherverhalten (kein Leck bei vielen Brettkopien); Fehlerfälle (illegaler Zug, ungültige FEN) als Ausnahme der Sprache |
+| Kern | Perft-Vektoren, Regel-Vektoren (Matt, Patt, Wiederholung, 50 Züge, Material), FEN/UCI/SAN, Polyglot-Hash – einmal, im Kern (`spec/testvectors/*.json`) |
+| Binding je Sprache | Jede `Board`- und `Move`-Funktion gegen die API-Vektoren aus `spec/testvectors/api/` (Format E55); `Clock`, `Log`, `Bot`, `run` und `load_data` mit eigenen Tests des Bindings; Speicherverhalten (kein Leck bei vielen Brettkopien); Fehlerfälle (illegaler Zug, ungültige FEN) als Ausnahme der Sprache |
 | Protokoll je Sprache | Aufgezeichnete Nachrichtenfolgen |
 | Kreuztest | Jedes SDK spielt in CI gegen jedes andere über die Arena |
 

@@ -4,7 +4,7 @@ Website, auf der Schachbots (Python, C++, Java, C#, JavaScript) in Ligen, Turnie
 
 ## Stand
 
-**M0** laut `docs/roadmap.md` läuft. Erledigt: Festlegungen E34–E53, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`), C-Schnittstelle des Kerns (`sdk/core/include/sbm/`). Offen: Testvektoren. Danach M1 (C++-Kern, Python-Binding, lokale Arena).
+**M0** laut `docs/roadmap.md` ist abgeschlossen: Festlegungen E34–E55, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`), C-Schnittstelle des Kerns (`sdk/core/include/sbm/`), Testvektoren (`spec/testvectors/`, erzeugt mit `tools/testvector-gen`). Als Nächstes M1 (C++-Kern, Python-Binding, lokale Arena).
 
 ## Zuerst lesen
 
@@ -58,13 +58,17 @@ Build-, Test- und Lint-Befehle hier eintragen, sobald sie entstehen.
 
 | Zweck | Befehl (aus dem Repo-Wurzelverzeichnis) |
 |-------|------------------------------------------|
-| Werkzeuge einrichten | `python -m venv .venv` und dann `.venv/Scripts/pip install -e "tools/spec-check[dev]"` (Linux: `.venv/bin/`) |
+| Werkzeuge einrichten | `python -m venv .venv` und dann `.venv/Scripts/pip install -e "tools/spec-check[dev]" -e "tools/testvector-gen[dev]"` (Linux: `.venv/bin/`) |
 | Spezifikation prüfen | `spec-check spec` |
 | Tests spec-check | `pytest tools/spec-check` |
 | Lint/Format spec-check | `ruff check tools/spec-check` und `ruff format --check tools/spec-check` |
+| Testvektoren erzeugen | `testvector-gen spec` |
+| Testvektoren prüfen | `testvector-gen spec --check --perft fast` (CI); alle Perft-Vektoren nachzählen mit `--perft all` (einige Minuten) |
+| Tests testvector-gen | `pytest tools/testvector-gen` |
+| Lint/Format testvector-gen | `ruff check tools/testvector-gen` und `ruff format --check tools/testvector-gen` |
 | Header des Kerns prüfen | `gcc -std=c11 -Wall -Wextra -Wpedantic -Werror -fsyntax-only -Isdk/core/include sdk/core/tests/header_check.c`, ebenso `g++ -std=c++20 … header_check.cpp` |
 
-CI: `.github/workflows/ci.yml` (Job `spec` für spec-check, Job `core-headers` für die Header).
+CI: `.github/workflows/ci.yml` (Job `spec` für spec-check, Job `testvectors` für den Generator und die erzeugten Dateien, Job `core-headers` für die Header).
 
 ## Offen (erst für M2 nötig)
 

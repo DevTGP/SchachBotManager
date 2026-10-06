@@ -13,7 +13,10 @@ Quelle der Wahrheit für Referee, SDKs und Doku. Änderungen erfolgen hier zuers
 | `protocol/v<N>/examples/invalid/<type>.<fall>.json` | Nachrichten, die gegen das Schema verstoßen; je Datei genau ein Verstoß | E36 |
 | `api/api.schema.json` | Schema der API-Dateien | E39 |
 | `api/<modul>.json` | Kanonische, sprachneutrale Bot-API, je Thema eine Datei (Grundtypen, Typen, Konstanten, Fehler, `Move`, `Board` in Gruppen, `Clock`, `Bot`, `Log`, Laufzeit) | E21, E39, E45–E49 |
-| `testvectors/` | Perft, FEN, UCI, Regeln, API-Erwartungswerte | E37 |
+| `testvectors/perft.schema.json`, `calls.schema.json` | Schemas der Vektordateien: Perft-Zählungen und Funktionsaufrufe | E37, E55 |
+| `testvectors/perft.json` | Perft-Stellungen mit Knotenzahl je Tiefe; tiefe Läufe mit `"slow": true` | E37, E54 |
+| `testvectors/fen.json`, `uci.json`, `san.json`, `hash.json`, `rules.json` | Kernvektoren: FEN lesen und schreiben, UCI, SAN, Polyglot-Hash, Spielende (Matt, Patt, Wiederholung, 50 Züge, Material) | E37, E46, E48, E53 |
+| `testvectors/api/<modul>.json` | API-Vektoren: jede `Board`- und `Move`-Funktion mit Erfolgs- und Fehlerfällen | E55 |
 
 ## Regeln
 
@@ -33,3 +36,7 @@ Quelle der Wahrheit für Referee, SDKs und Doku. Änderungen erfolgen hier zuers
 - Jedes Dokument mit relativem `$schema` erfüllt dieses Schema.
 - Gültige Beispielnachrichten erfüllen das Schema ihres Typs, ungültige verletzen es.
 - Die API-Dateien sind untereinander stimmig: Jeder genannte Typ, Fehler und Besitzer ist deklariert, Namen sind eindeutig, Konstanten passen in den Wertebereich ihres Typs.
+- Jede Vektordatei nennt `perft.schema.json` oder `calls.schema.json`; jede `id` ist eindeutig und beginnt mit dem Dateipfad (`api.board_moves.…`).
+- Jeder Aufrufvektor passt zur API: Funktion, Empfänger, Argumentzahl und -typen, Ergebnistyp, deklarierter Fehler. Jede `Board`- und `Move`-Funktion hat einen erfolgreichen Vektor und einen je deklariertem Fehler (E55).
+
+Die Dateien unter `testvectors/` (außer den Schemas) werden nicht von Hand bearbeitet, sondern mit `tools/testvector-gen` erzeugt (E54). CI prüft, dass sie dem Generator entsprechen, und zählt die schnellen Perft-Vektoren nach.

@@ -70,7 +70,7 @@ Kernprinzipien:
 ```
 SchachBotManager/
 ├── docs/                    Konzept und Spezifikationen
-├── spec/                    Protokoll-Schema, kanonische API-Definition, Testvektoren (Perft, FEN, Remis)
+├── spec/                    Protokoll-Schema, kanonische API-Definition, Testvektoren (Perft, Regeln, FEN/UCI/SAN, API)
 ├── backend/                 Flask-API
 ├── frontend/                SPA
 ├── services/
@@ -82,7 +82,8 @@ SchachBotManager/
 │   ├── python/  cpp/  java/  csharp/  javascript/   Bindings
 ├── tools/
 │   ├── arena/               Lokale Arena (CLI)
-│   └── spec-check/          Prüft alle JSON-Dateien unter spec/ (CI)
+│   ├── spec-check/          Prüft alle JSON-Dateien unter spec/ (CI)
+│   └── testvector-gen/      Erzeugt die Testvektoren unter spec/testvectors/ (Entwicklungswerkzeug, E54)
 ├── sandbox/                 nsjail-Konfiguration und Laufzeitverzeichnisse je Sprache
 ├── deploy/                  docker-compose, Dockerfiles, Beispiel-Umgebungsdatei
 └── .github/workflows/

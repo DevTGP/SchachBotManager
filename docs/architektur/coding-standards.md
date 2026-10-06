@@ -21,6 +21,6 @@ Gilt für alle Pakete im Monorepo. Werkzeug-Konfigurationen liegen jeweils im Pa
 | C (Schnittstelle des Kerns) | C11-kompatible Header | wie C++ | über die Bindings |
 | Python (Werkzeuge, Backend, Dienste) | 3.12 | ruff (Lint und Format), Typannotationen | pytest |
 | TypeScript (Frontend) | strict | ESLint, Prettier | ab M2 festgelegt |
-| JSON (Spezifikation) | JSON Schema 2020-12 | 2 Leerzeichen Einrückung, von `tools/spec-check` geprüft | – |
+| JSON (Spezifikation) | JSON Schema 2020-12 | 2 Leerzeichen Einrückung, von `tools/spec-check` geprüft; erzeugte Testvektoren mit einem Vektor je Zeile, Layout durch `tools/testvector-gen` festgelegt | – |
 
 Die unterstützte Python-Spanne des Python-SDK wird in M1 festgelegt.

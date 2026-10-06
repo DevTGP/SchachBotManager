@@ -90,4 +90,4 @@ Der Aufrufer stellt allen Speicher für Ergebnisse bereit; der Kern hält keinen
 ## Prüfung
 
 - CI übersetzt `sdk/core/tests/header_check.c` als C11 und `header_check.cpp` als C++20 mit `-Wall -Wextra -Wpedantic -Werror`. Die C-Datei prüft zusätzlich Größen und Codes aus E34, E35 und E45.
-- Das Verhalten jeder Funktion prüfen ab M1 die Vektoren unter `spec/testvectors/` (Kern) und die API-Vektoren (je Binding).
+- Das Verhalten jeder Funktion prüfen ab M1 die Kernvektoren unter `spec/testvectors/` (Perft, FEN, UCI, SAN, Hash, Regeln) und je Binding die API-Vektoren unter `spec/testvectors/api/` (E55). Ein Kerntest ruft die C-Funktionen direkt; Fehlervektoren erwarten den passenden Statuscode.

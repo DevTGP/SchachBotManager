@@ -1,6 +1,6 @@
 # Entscheidungen, Annahmen, offene Punkte
 
-Stand: 2026-10-06, Revision 4 mit Festlegungen für M0 (E34–E53; vorherige Stände unter `_archiv/`)
+Stand: 2026-10-06, Revision 4 mit Festlegungen für M0 (E34–E55; vorherige Stände unter `_archiv/`)
 
 ## 1. Entscheidungen
 
@@ -59,6 +59,8 @@ Stand: 2026-10-06, Revision 4 mit Festlegungen für M0 (E34–E53; vorherige St�
 | E51 | Speicher an der C-Grenze | Der Aufrufer stellt Puffer mit festen Obergrenzen; der Kern reserviert nur beim Anlegen eines Bretts und beim Wachsen des Zugverlaufs und gibt nie Speicher an den Aufrufer | Keine Freigabefunktionen außer `sbm_board_free`; nur `move_history` braucht eine Längenabfrage |
 | E52 | Fehler an der C-Grenze | Jede Funktion liefert nur einen Statuscode (sechs API-Fehler plus Puffer zu klein, Speichermangel, interner Fehler); `sbm_status_name` liefert einen festen Namen; C++-Ausnahmen verlassen den Kern nie | Kein Fehlerzustand im Kern, keine Fehlertexte; das Binding baut die Meldung der Ausnahme |
 | E53 | SAN und Material je Farbe | `board.san(move)` und `board.has_insufficient_material(color)` gehören zur öffentlichen API | Referee (Wertung bei Zeitablauf, E44) und Arena (PGN) nutzen dieselben Funktionen wie die Bots; Materialregel wie python-chess |
+| E54 | Erzeugung der Testvektoren | `tools/testvector-gen` erzeugt die Erwartungswerte unter `spec/testvectors/` mit python-chess (gepinnt auf 1.11.2) als Referenz; die erzeugten Dateien sind eingecheckt. Perft-Werte stammen aus veröffentlichten Tabellen (Chess Programming Wiki, Sammlung von Martin Sedlak) und werden mit python-chess nachgezählt; Vektoren über 5 000 000 Knoten tragen `"slow": true` | python-chess (GPL-3.0) ist nur Entwicklungswerkzeug und wird nie mit SDK, Referee oder Server ausgeliefert. CI prüft, dass die Dateien dem Generator entsprechen, und zählt die Perft-Vektoren ohne `slow` nach; alle Perft-Vektoren lassen sich von Hand nachzählen (`--perft all`, einige Minuten) |
+| E55 | Format der API-Vektoren | Ein Vektor ruft genau eine `Board`- oder `Move`-Funktion: `function`, `args`, bei Methoden `board` (FEN plus Züge) oder `move`, dazu `result`, `result_contains` oder `error`; verändernde Funktionen nennen `board_after`, auch nach einem Fehler. Werte: Ganzzahlen im Bereich ihres Grundtyps, `u64` und `Bitboard` als `0x` plus 16 Hexziffern, `Board` als FEN, Listen als Arrays, `unordered` für Zuglisten. Jede `Board`- und `Move`-Funktion hat einen erfolgreichen Vektor und einen je deklariertem Fehler; `id` ist dateiübergreifend eindeutig und beginnt mit dem Dateipfad | `spec-check` erzwingt Abdeckung, Argumentzahl und Typen; kein Vektor nutzt einen Wert außerhalb des Typbereichs oder einen `Move` mit den unbenutzten Flags 6/7. `Clock`, `Log`, `Bot`, `run` und `load_data` testet jedes Binding selbst. Zusätzlich zu E37 gibt es `san.json` und `hash.json` |
 
 Aus dem Anforderungstext fix: MongoDB, Flask, GitHub Actions, Sprachen Python / C++ / Java / C# / JavaScript.
 
