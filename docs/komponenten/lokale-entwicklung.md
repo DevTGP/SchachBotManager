@@ -16,11 +16,12 @@ Der Bot-Code ist in allen drei Modi identisch; nur der Transport des SDK wechsel
 
 - Befehl `sbm-arena` aus dem Python-Paket (`sbm.arena`, auch `python -m sbm.arena`); nutzt denselben Referee-Kern `sbm.referee` wie der Server (E65, kein Nachbau). Bedienung und Verhalten: E67.
 - Keine Sandbox, keine Container – läuft direkt auf dem Entwicklergerät.
-- Mitgeliefert (noch offen): Referenzbots (Zufall, einfacher Materialzähler) als Gegner und als Vorlage je Sprache. Ein menschlicher Spieler auf der Konsole kommt später.
+- Mitgeliefert: Referenzbots `random` (Zufall) und `material` (Materialzähler mit Suchtiefe 2) als Gegner und als Vorlage (E68); für Python unter `sbm.bots`, für die übrigen Sprachen mit deren SDKs. Ein menschlicher Spieler auf der Konsole kommt später.
 
 ```
 sbm-arena mein_bot.py gegner.py --games 10 --time 10+0.1 --pgn partien.pgn
 sbm-arena tcp gegner.py --no-clock          # mein Bot startet in der IDE mit --tcp 7470
+sbm-arena mein_bot.py material --games 20 --time 5+0.05
 sbm-arena "java -jar bot.jar" mein_bot.py --fen "8/8/8/4k3/8/8/4P3/4K3 w - - 0 1" --moves
 ```
 
@@ -30,6 +31,7 @@ sbm-arena "java -jar bot.jar" mein_bot.py --fen "8/8/8/4k3/8/8/4P3/4K3 w - - 0 1
 | andere Datei, z. B. `engine.exe` | Wird direkt gestartet |
 | Befehlszeile, z. B. `"java -jar bot.jar"` | Wird so gestartet; Name nach der Datei im Befehl (`bot`) |
 | `tcp`, `tcp:PORT` | Arena wartet auf 127.0.0.1 (Standard 7470), bis sich der Bot verbindet; je Partie eine neue Verbindung |
+| `random`, `material` | Referenzbot aus `sbm.bots` (E68); eine Datei dieses Namens als `./random` angeben |
 
 | Option | Wirkung |
 |--------|---------|

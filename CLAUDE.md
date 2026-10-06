@@ -4,7 +4,7 @@ Website, auf der Schachbots (Python, C++, Java, C#, JavaScript) in Ligen, Turnie
 
 ## Stand
 
-**M0** laut `docs/roadmap.md` ist abgeschlossen: Festlegungen E34–E55, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`), C-Schnittstelle des Kerns (`sdk/core/include/sbm/`), Testvektoren (`spec/testvectors/`, erzeugt mit `tools/testvector-gen`). **M1** läuft. Erledigt: C++-Kern unter `sdk/core/` (CMake, besteht alle Vektoren, E56–E57); Python-SDK unter `sdk/python/` (nanobind, besteht alle API-Vektoren, E58–E60): `Board`, `Move`, `Clock`, `Log`, `Bot`, `run` mit `stdio`/`tcp`, `load_data` (E61–E63). Wheels für Windows, Linux und macOS über CI (E64, Veröffentlichung offen: O20). Referee-Kern als `sbm.referee` im Python-Paket (E65, strenge Prüfung der Bot-Nachrichten E66). Lokale Arena als `sbm.arena` mit dem Befehl `sbm-arena` (E67). Offen: Referenzbots, Debug-Workflow.
+**M0** laut `docs/roadmap.md` ist abgeschlossen: Festlegungen E34–E55, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`), C-Schnittstelle des Kerns (`sdk/core/include/sbm/`), Testvektoren (`spec/testvectors/`, erzeugt mit `tools/testvector-gen`). **M1** läuft. Erledigt: C++-Kern unter `sdk/core/` (CMake, besteht alle Vektoren, E56–E57); Python-SDK unter `sdk/python/` (nanobind, besteht alle API-Vektoren, E58–E60): `Board`, `Move`, `Clock`, `Log`, `Bot`, `run` mit `stdio`/`tcp`, `load_data` (E61–E63). Wheels für Windows, Linux und macOS über CI (E64, Veröffentlichung offen: O20). Referee-Kern als `sbm.referee` im Python-Paket (E65, strenge Prüfung der Bot-Nachrichten E66). Lokale Arena als `sbm.arena` mit dem Befehl `sbm-arena` (E67). Referenzbots `random` und `material` als `sbm.bots`, in der Arena per Kurzname (E68). Offen: Debug-Workflow.
 
 ## Zuerst lesen
 
@@ -75,6 +75,7 @@ Build-, Test- und Lint-Befehle hier eintragen, sobald sie entstehen.
 | Lint/Format Python-SDK | `ruff check sdk/python` und `ruff format --check sdk/python` |
 | Wheel lokal bauen und testen | `pip install cibuildwheel==4.3.0`, dann `cibuildwheel --only cp312-win_amd64 sdk/python` (Windows mit `CMAKE_GENERATOR` wie oben; Linux-Wheels brauchen Docker); Ausgabe in `wheelhouse/` |
 | Lokale Arena | `sbm-arena weiss.py schwarz.py --games 2 --moves` bzw. `python -m sbm.arena …` (nach Installation des Python-SDK; Optionen mit `--help`, E67) |
+| Referenzbot starten | `python -m sbm.bots.random_mover` bzw. `python -m sbm.bots.material`; in der Arena als `random`/`material` (E68) |
 | Header des Kerns prüfen | `gcc -std=c11 -Wall -Wextra -Wpedantic -Werror -fsyntax-only -Isdk/core/include sdk/core/tests/header_check.c`, ebenso `g++ -std=c++20 … header_check.cpp` |
 
 CI: `.github/workflows/ci.yml` (Job `spec` für spec-check, Job `testvectors` für den Generator und die erzeugten Dateien, Job `core-headers` für die Header, Job `core` für Build und Tests des Kerns unter Linux, Windows und macOS, Job `python` für Build, Lint und Tests des Python-SDK mit Python 3.11 und 3.14 unter Linux, Windows und macOS, Job `native-format` für clang-format); `.github/workflows/wheels.yml` baut und testet die Wheels aller Plattformen und lädt sie als Artefakte hoch.

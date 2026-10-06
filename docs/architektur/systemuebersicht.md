@@ -79,7 +79,7 @@ SchachBotManager/
 │   └── scheduler/
 ├── sdk/
 │   ├── core/                C++-Schachkern + C-Schnittstelle
-│   ├── python/              Binding, Referee-Kern (sbm.referee) und lokale Arena (sbm.arena, E65)
+│   ├── python/              Binding, Referee-Kern (sbm.referee), lokale Arena (sbm.arena, E65), Referenzbots (sbm.bots, E68)
 │   ├── cpp/  java/  csharp/  javascript/   Bindings
 ├── tools/
 │   ├── spec-check/          Prüft alle JSON-Dateien unter spec/ (CI)
