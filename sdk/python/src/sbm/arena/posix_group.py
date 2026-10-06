@@ -16,8 +16,9 @@ class ProcessGroup:
         self._pgid = pid
 
     def _signal(self, number: int) -> None:
-        # The group is gone once its last process has ended.
-        with contextlib.suppress(ProcessLookupError):
+        # The group is gone once its last process has ended. macOS reports EPERM instead of
+        # ESRCH while the group holds only exited processes that are not reaped yet.
+        with contextlib.suppress(ProcessLookupError, PermissionError):
             os.killpg(self._pgid, number)
 
     def suspend(self) -> None:
