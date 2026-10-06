@@ -44,23 +44,30 @@ Das SDK besitzt die Hauptschleife und ruft den Bot auf.
 | `choose_move(board, clock) -> Move` | **ja** | Pro eigenem Zug; die Rückgabe beendet die eigene Bedenkzeit |
 | `on_game_end(result)` | nein | Aufräumen, letzte Logs |
 
+- **Suchinformation (E45):** `report(info)` aus der Basisklasse speichert ein `Info` (Felder wie `info` im Protokoll, E43) für den laufenden Zug. Der letzte Aufruf vor der Rückgabe wird mit dem Zug gesendet; ein neuer Zug beginnt ohne Info. Zu lange `pv`/`text` kürzt das SDK.
+- **Aufgeben (E45):** `choose_move` gibt `Move.RESIGN` zurück; das SDK sendet `resign`.
+- **Fehler im Bot (E49):** Eine Ausnahme aus einem Callback wird auf Stufe ERROR protokolliert und beendet den Prozess (Wertung `crash`). Den Rückgabewert von `choose_move` prüft das SDK nicht; über Legalität entscheidet der Referee.
+
 Zustand in Objektfeldern (Transpositionstabelle, Suchbaum) bleibt zwischen den Zügen erhalten, begrenzt nur durch die feste Schutzgrenze der Sandbox. Einstieg je Sprache über genau eine Funktion, z. B. `run(MyBot)`; Transport und Log-Stufe kommen aus Argumenten/Umgebung, sodass dieselbe Datei lokal, im Debugger und auf dem Server läuft.
 
 ## API – hohe Ebene
 
-Namen sind wortgleich, Schreibweise idiomatisch (`legal_moves` / `legalMoves` / `LegalMoves`). Die kanonische Definition liegt maschinenlesbar unter `spec/api/`.
+Namen sind wortgleich, Schreibweise idiomatisch (`legal_moves` / `legalMoves` / `LegalMoves`). Die kanonische Definition liegt maschinenlesbar unter `spec/api/` (E39); sie schreibt Funktionen in `snake_case`, Typen in `PascalCase`, Konstanten in `UPPER_SNAKE`, und der kanonische Konstruktor `create` wird zum Konstruktor der Sprache (E47).
 
 | Gruppe | Funktionen |
 |--------|-----------|
 | Abfrage | `piece_at(square)`, `side_to_move()`, `castling_rights()`, `en_passant_square()`, `halfmove_clock()`, `fullmove_number()`, `king_square(color)` |
 | Züge | `legal_moves()`, `legal_captures()`, `is_legal(move)`, `make_move(move)`, `undo_move()`, `make_null_move()` / `undo_null_move()` |
 | Zustand | `is_check()`, `is_checkmate()`, `is_stalemate()`, `is_draw()`, `is_repetition(count)`, `is_fifty_move_rule()`, `is_insufficient_material()`, `is_game_over()` |
-| Hilfen | `fen()`, `from_fen(fen)`, `copy()`, `hash()` (Zobrist), `move_history()`, `to_text()` (lesbares Brett fürs Debugging), `parse_move(uci)` (vollständiger Zug mit Flags) |
+| Hilfen | `Board()` (Grundstellung), `from_fen(fen)`, `fen()`, `copy()`, `hash()` (Polyglot-Zobrist, E46), `move_history()`, `to_text()` (lesbares Brett fürs Debugging), `parse_move(uci)` (vollständiger Zug mit Flags) |
 
-- `Move`: `from`, `to`, `promotion`, `is_capture`, `is_castling`, `is_en_passant`, `uci()`, `parse(uci)`; intern eine 16-Bit-Ganzzahl (E34). `Move.parse(uci)` kennt ohne Brett keine Flags; `is_legal` und `make_move` vergleichen deshalb nur Start, Ziel und Umwandlung.
-- `Clock`: `remaining_ms()`, `opponent_remaining_ms()`, `increment_ms()`, `elapsed_ms()`.
-- `load_data(name) -> Bytes`: Liest eine mit dem Bot hochgeladene Datendatei (E30). Einziger Weg zu Dateien; lokal liest die Funktion aus einem Ordner neben dem Bot.
-- `GameInfo`: `game_id`, `color`, `opponent_name`, `start_fen`, `initial_time_ms`, `increment_ms`, `memory_limit_mib`, `discipline`.
+- `fen()` und `en_passant_square()` nennen das En-passant-Feld nur, wenn das Schlagen legal ist; gleiche Stellungen ergeben so gleiche FEN (E48).
+- `is_draw()` umfasst Patt, dreifache Wiederholung, 50-Züge-Regel und ungenügendes Material, genau wie der Referee; `is_game_over()` zusätzlich Matt.
+- `Move`: `from_square`, `to_square`, `flags`, `promotion`, `is_promotion`, `is_capture`, `is_castling`, `is_en_passant`, `uci()`, `value()`, `Move(from, to, flags)`, `Move.parse(uci)`, `Move.from_value(value)`; intern eine 16-Bit-Ganzzahl (E34). `from_square` statt `from`, weil `from` in Python reserviert ist (E47). `Move.parse(uci)` kennt ohne Brett keine Flags; `is_legal` und `make_move` vergleichen deshalb nur Start, Ziel und Umwandlung. Sonderwerte `NULL_MOVE` und `RESIGN` haben keine UCI-Form.
+- `Clock`: `remaining_ms()`, `opponent_remaining_ms()`, `increment_ms()` aus der `turn`-Nachricht; `elapsed_ms()` misst lokal seit Empfang von `turn`.
+- `load_data(name) -> Bytes`: Liest eine mit dem Bot hochgeladene Datendatei (E30). Einziger Weg zu Dateien; lokal liest die Funktion aus einem Ordner neben dem Bot. Fehlt die Datei, folgt `DataNotFound`.
+- `GameInfo`: `game_id`, `color`, `opponent_name`, `start_fen`, `initial_time_ms`, `increment_ms`, `startup_ms`, `memory_limit_mib`, `discipline`.
+- `GameResult`: `result`, `termination` wie in `game_over` (E44).
 
 ## API – Rohzugriff (E21)
 
@@ -83,9 +90,11 @@ Festlegungen, die dadurch Teil der öffentlichen API werden (E34, E35):
 | Feld | `rank * 8 + file`, a1 = 0 … h8 = 63 |
 | Bitboard | Bit *i* = Feld *i* (a1 = niedrigstes Bit) |
 | `Color` | `WHITE = 0`, `BLACK = 1` |
-| `PieceType` | `PAWN = 0`, `KNIGHT = 1`, `BISHOP = 2`, `ROOK = 3`, `QUEEN = 4`, `KING = 5` |
+| `PieceType` | `PAWN = 0`, `KNIGHT = 1`, `BISHOP = 2`, `ROOK = 3`, `QUEEN = 4`, `KING = 5`, `NO_PIECE_TYPE = 6` |
 | `Piece` | `color * 6 + type` (0–11), `NO_PIECE = 12`; Index in `bitboards()`, Wert in `squares()` |
-| Zug | 16 Bit: Bits 0–5 Startfeld, 6–11 Zielfeld, 12–15 Flags; `0` = `NULL_MOVE` |
+| `Square` | Konstanten `A1` … `H8`, `NO_SQUARE = 64` |
+| `CastlingRights` | Bitmaske: `WHITE_KINGSIDE = 1`, `WHITE_QUEENSIDE = 2`, `BLACK_KINGSIDE = 4`, `BLACK_QUEENSIDE = 8` (E47) |
+| Zug | 16 Bit: Bits 0–5 Startfeld, 6–11 Zielfeld, 12–15 Flags; `0` = `NULL_MOVE`, `0xFFFF` = `RESIGN` (E45) |
 
 | Flags | Bedeutung |
 |-------|-----------|
@@ -99,7 +108,20 @@ Festlegungen, die dadurch Teil der öffentlichen API werden (E34, E35):
 
 Die maschinenlesbare Fassung liegt unter `spec/api/`.
 
-Darstellung von 64-Bit-Werten: Python `int`, C++ `uint64_t`, Java `long`, C# `ulong`, JavaScript `BigInt` (alternativ zwei 32-Bit-Hälften, da `BigInt`-Arithmetik langsam ist – beides anbieten).
+Darstellung von 64-Bit-Werten: Python `int`, C++ `uint64_t`, Java `long`, C# `ulong`, JavaScript `BigInt`. Da `BigInt`-Arithmetik langsam ist, bietet JavaScript jede Funktion mit 64-Bit-Rückgabe zusätzlich mit der Endung `32` an (z. B. `bitboards32()`); sie liefert ein `Uint32Array` mit unterer und oberer Hälfte je Wert. Die Zuordnung aller Grundtypen steht in `spec/api/primitives.json`.
+
+## Fehler (E49)
+
+| Fehler | Wann |
+|--------|------|
+| `InvalidArgument` | Wert außerhalb seines Bereichs (Feld > 63, Farbe > 1, unbekannte Log-Stufe, Dateiname mit Pfad) |
+| `InvalidFen` | FEN fehlerhaft oder Stellung unmöglich |
+| `InvalidUci` | Text ist kein Zug in UCI-Notation |
+| `IllegalMove` | Zug wohlgeformt, aber in der Stellung nicht legal |
+| `InvalidState` | Aufruf im aktuellen Zustand nicht möglich, z. B. `undo_move` ohne Verlauf, Nullzug im Schach |
+| `DataNotFound` | `load_data` findet die Datei nicht |
+
+Jede Sprache wirft sie als eigene Ausnahme mit üblicher Endung (`IllegalMoveError`, `IllegalMoveException`), alle mit der gemeinsamen Basis `ChessError`. Bei einem Fehler bleibt das Brett unverändert.
 
 ## Kosten der Sprachgrenze (R7)
 
@@ -113,7 +135,7 @@ Jeder Aufruf aus Python/Java/C#/JS in den Kern kostet einen festen Betrag, unabh
 ## Log (Debug-Bibliothek)
 
 - Stufen: `TRACE < DEBUG < INFO < WARN < ERROR < OFF`
-- `log.debug(...)` usw., `log.set_level(level)`, `log.is_enabled(level)`
+- `log.debug(...)` usw., `log.set_level(level)`, `log.level()`, `log.is_enabled(level)`; Startstufe `INFO`
 - Stufe zusätzlich per Umgebungsvariable/CLI-Flag setzbar
 - Lokal: Konsole (optional Datei) mit Zeitstempel, Zugnummer, Stufe. Server: `stderr`, mengenbegrenzt gespeichert, nur für Besitzer/Admin einsehbar
 - Die Disziplin legt für den Server eine maximale Stufe und Menge fest

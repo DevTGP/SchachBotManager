@@ -1,6 +1,6 @@
 # Entscheidungen, Annahmen, offene Punkte
 
-Stand: 2026-10-06, Revision 4 mit Festlegungen für M0 (E34–E44; vorherige Stände unter `_archiv/`)
+Stand: 2026-10-06, Revision 4 mit Festlegungen für M0 (E34–E49; vorherige Stände unter `_archiv/`)
 
 ## 1. Entscheidungen
 
@@ -50,6 +50,11 @@ Stand: 2026-10-06, Revision 4 mit Festlegungen für M0 (E34–E44; vorherige St�
 | E42 | FEN in `turn` | Der Referee sendet die FEN in jedem `turn`; bei Abweichung vom eigenen Brett übernimmt das SDK sie und protokolliert eine Warnung | Wiederholungshistorie geht dabei verloren; Abweichung gilt als SDK-Fehler |
 | E43 | Bot-`info` | Optionale Felder `depth`, `seldepth`, `score_cp` oder `score_mate`, `nodes`, `pv` (≤ 32 Züge), `text` (≤ 256 Zeichen) | Feste Obergrenzen im Schema; unbekannte Felder sind ein Protokollverstoß |
 | E44 | Spielende im Protokoll | `game_over` enthält `result` (PGN, `*` = abgebrochen) und `termination` aus einer festen Code-Liste; dieselben Codes speichert die Datenbank | Schema erzwingt, dass `result` zum Code passt; `forfeit_withdrawn` gibt es nur in der Datenbank |
+| E45 | Info und Aufgabe im SDK | `Bot.report(info)` speichert die Suchinformation des laufenden Zuges; der letzte Aufruf vor der Rückgabe wird mit dem Zug gesendet. Aufgeben durch Rückgabe von `Move.RESIGN` (`0xFFFF`, nie ein legaler Zug) | `choose_move` hat genau eine Rückgabeform; `report` wirkt nicht über den Zug hinaus und ist bei Aufgabe wirkungslos |
+| E46 | Zobrist-Hash | `board.hash()` nutzt die veröffentlichten Polyglot-Schlüssel und ist gleich dem Polyglot-Buchschlüssel der Stellung | Hashwerte in Testvektoren festlegbar; Polyglot-Eröffnungsbücher über `load_data` nutzbar; En-passant-Anteil nach Polyglot-Regel (Bauer daneben, ohne Legalitätsprüfung) |
+| E47 | Namen und Codes der API | Kanonisch `snake_case` für Funktionen, Felder, Parameter, `PascalCase` für Typen und Fehler, `UPPER_SNAKE` für Konstanten; Konstruktor `create` wird zum Konstruktor der Sprache; `Move.from_square`/`to_square` statt `from`/`to`; `NO_PIECE_TYPE = 6`, `NO_SQUARE = 64`; Rochaderechte als Bitmaske (1 weiß kurz, 2 weiß lang, 4 schwarz kurz, 8 schwarz lang) | `from` ist in Python reserviert; Felder A1–H8, Zug-Flags und Log-Stufen als benannte Konstanten in `spec/api/constants.json` |
+| E48 | En passant in der FEN | `fen()` und `en_passant_square()` nennen das Feld nur, wenn ein Schlagen en passant legal ist; `from_fen` nimmt ein Feld ohne legales Schlagen an und verwirft es | Gleiche Stellungen ergeben gleiche FEN (Abgleich nach E42, Wiederholungserkennung); `hash()` folgt davon abweichend der Polyglot-Regel (E46) |
+| E49 | Fehler in der API | Sechs Fehlerarten (`InvalidArgument`, `InvalidFen`, `InvalidUci`, `IllegalMove`, `InvalidState`, `DataNotFound`) mit gemeinsamer Basis `ChessError`, als Ausnahme der Sprache mit üblicher Endung; eine Ausnahme aus einem Callback wird protokolliert und beendet den Prozess | Wertung `crash`; das SDK prüft den Rückgabewert von `choose_move` nicht, der Referee entscheidet; `NULL_MOVE` als Rückgabe scheitert an `Move.uci` |
 
 Aus dem Anforderungstext fix: MongoDB, Flask, GitHub Actions, Sprachen Python / C++ / Java / C# / JavaScript.
 

@@ -4,7 +4,7 @@ Website, auf der Schachbots (Python, C++, Java, C#, JavaScript) in Ligen, Turnie
 
 ## Stand
 
-**M0** laut `docs/roadmap.md` läuft. Erledigt: Festlegungen E34–E44, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`). Offen: API-Definition, C-Schnittstelle des Kerns, Testvektoren. Danach M1 (C++-Kern, Python-Binding, lokale Arena).
+**M0** laut `docs/roadmap.md` läuft. Erledigt: Festlegungen E34–E49, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`). Offen: C-Schnittstelle des Kerns, Testvektoren. Danach M1 (C++-Kern, Python-Binding, lokale Arena).
 
 ## Zuerst lesen
 
