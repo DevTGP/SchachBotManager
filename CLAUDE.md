@@ -4,7 +4,7 @@ Website, auf der Schachbots (Python, C++, Java, C#, JavaScript) in Ligen, Turnie
 
 ## Stand
 
-**M0** laut `docs/roadmap.md` ist abgeschlossen: Festlegungen E34–E55, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`), C-Schnittstelle des Kerns (`sdk/core/include/sbm/`), Testvektoren (`spec/testvectors/`, erzeugt mit `tools/testvector-gen`). **M1** läuft. Erledigt: C++-Kern unter `sdk/core/` (CMake, besteht alle Vektoren, E56–E57); Python-Binding für `Board` und `Move` unter `sdk/python/` (nanobind, besteht alle API-Vektoren, E58–E60). Offen: Python-Binding für `Clock`, `Log`, `Bot`, `run`, Transporte und `load_data`, Wheels über CI, Referee-Kern, lokale Arena, Referenzbots, Debug-Workflow.
+**M0** laut `docs/roadmap.md` ist abgeschlossen: Festlegungen E34–E55, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`), C-Schnittstelle des Kerns (`sdk/core/include/sbm/`), Testvektoren (`spec/testvectors/`, erzeugt mit `tools/testvector-gen`). **M1** läuft. Erledigt: C++-Kern unter `sdk/core/` (CMake, besteht alle Vektoren, E56–E57); Python-SDK unter `sdk/python/` (nanobind, besteht alle API-Vektoren, E58–E60): `Board`, `Move`, `Clock`, `Log`, `Bot`, `run` mit `stdio`/`tcp`, `load_data` (E61–E63). Offen: Wheels über CI, Referee-Kern, lokale Arena, Referenzbots, Debug-Workflow.
 
 ## Zuerst lesen
 

@@ -7,7 +7,7 @@ Einzige Schnittstelle zwischen Server und Bot-Prozess. Macht Spiele zwischen bel
 | Transport | Einsatz | Bemerkung |
 |-----------|---------|-----------|
 | `stdio` | Sandbox auf dem Server, lokale Arena | Kein Netzwerk nötig → Sandbox läuft ohne Netzwerk |
-| `tcp` (localhost) | Lokales Debugging: Bot wird aus der IDE gestartet und verbindet sich zur Arena | Nur lokal |
+| `tcp` (localhost) | Lokales Debugging: Bot wird aus der IDE gestartet und verbindet sich zur Arena | Nur lokal; die Arena wartet auf `127.0.0.1:7470`, der Bot wählt den Transport mit `--tcp [PORT]` oder `SBM_TRANSPORT=tcp` (E61) |
 | `remote` (WebSocket über TLS) | Lokaler Bot gegen Web-API | Token-Auth, siehe [lokale-entwicklung.md](lokale-entwicklung.md) |
 
 Die Nachrichten sind in allen Transporten identisch; das SDK kapselt den Transport vollständig.
@@ -86,6 +86,6 @@ Außerhalb von `THINKING` ist der Prozess auf dem Server eingefroren.
 - **Versionierung (E36):** `v` ist eine Ganzzahl und steigt nur bei inkompatiblen Änderungen; neue optionale Felder ändern sie nicht. Der Referee nennt in `init` die unterstützten Versionen, der Bot wählt in `ready` eine davon; `turn`, `move` und `resign` tragen danach diese Version. `init`, `error` und `game_over` können vor einer erfolgreichen Aushandlung kommen; sie tragen kein `v`, ihr Format ist über alle Protokollversionen gleich und wird nur um Felder ergänzt (E41). Jede SDK-Version spricht genau eine Protokollversion; ein Bot ist an die SDK-Version gebunden, mit der er verifiziert wurde.
 - **Strenge:** Das SDK ignoriert unbekannte Felder in Nachrichten des Referees. Der Referee prüft Nachrichten des Bots streng gegen das Schema (feindliche Eingabe).
 - **Schema als Quelle der Wahrheit:** JSON Schema 2020-12 unter `spec/protocol/v<N>/`, Beispielnachrichten unter `spec/protocol/v<N>/examples/`; Referee und alle SDKs testen gegen dieselben Beispiele.
-- **Synchronisation (E42):** Das SDK wendet `last_move` auf sein Brett an und vergleicht das Ergebnis mit `fen`. Bei einer Abweichung protokolliert es eine Warnung und übernimmt `fen`; die Wiederholungshistorie geht dabei verloren. Eine Abweichung bedeutet einen Fehler im SDK.
+- **Synchronisation (E42):** Das SDK wendet `last_move` auf sein Brett an und vergleicht das Ergebnis mit `fen`. Verglichen wird mit der FEN, die der Kern aus `fen` erneut schreibt, damit ein En-passant-Feld ohne legales Schlagen nicht als Abweichung zählt (E48). Bei einer Abweichung protokolliert es eine Warnung und übernimmt `fen`; die Wiederholungshistorie geht dabei verloren. Eine Abweichung bedeutet einen Fehler im SDK.
 - **Pufferung:** SDKs müssen nach jeder Nachricht flushen (häufige Fehlerquelle in C++/Java/Python).
 - **Zeitmessung:** Die Uhr läuft beim Referee, nicht im Bot. Die im SDK angezeigte Restzeit ist eine lokale Schätzung ab Empfang von `turn`.

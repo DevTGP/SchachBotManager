@@ -44,11 +44,19 @@ Das SDK besitzt die Hauptschleife und ruft den Bot auf.
 | `choose_move(board, clock) -> Move` | **ja** | Pro eigenem Zug; die Rückgabe beendet die eigene Bedenkzeit |
 | `on_game_end(result)` | nein | Aufräumen, letzte Logs |
 
-- **Suchinformation (E45):** `report(info)` aus der Basisklasse speichert ein `Info` (Felder wie `info` im Protokoll, E43) für den laufenden Zug. Der letzte Aufruf vor der Rückgabe wird mit dem Zug gesendet; ein neuer Zug beginnt ohne Info. Zu lange `pv`/`text` kürzt das SDK.
+- **Suchinformation (E45):** `report(info)` aus der Basisklasse speichert ein `Info` (Felder wie `info` im Protokoll, E43) für den laufenden Zug. Der letzte Aufruf vor der Rückgabe wird mit dem Zug gesendet; ein neuer Zug beginnt ohne Info. Zu lange `pv`/`text` kürzt das SDK, andere ungültige Felder lässt es mit einer Warnung weg (E63).
 - **Aufgeben (E45):** `choose_move` gibt `Move.RESIGN` zurück; das SDK sendet `resign`.
-- **Fehler im Bot (E49):** Eine Ausnahme aus einem Callback wird auf Stufe ERROR protokolliert und beendet den Prozess (Wertung `crash`). Den Rückgabewert von `choose_move` prüft das SDK nicht; über Legalität entscheidet der Referee.
+- **Fehler im Bot (E49):** Eine Ausnahme aus einem Callback wird auf Stufe ERROR protokolliert und beendet den Prozess (Wertung `crash`). Die Legalität des Rückgabewerts von `choose_move` prüft das SDK nicht, darüber entscheidet der Referee; ein Wert, der kein Zug ist, oder `NULL_MOVE` wird wie eine Ausnahme behandelt.
 
-Zustand in Objektfeldern (Transpositionstabelle, Suchbaum) bleibt zwischen den Zügen erhalten, begrenzt nur durch die feste Schutzgrenze der Sandbox. Einstieg je Sprache über genau eine Funktion, z. B. `run(MyBot)`; Transport und Log-Stufe kommen aus Argumenten/Umgebung, sodass dieselbe Datei lokal, im Debugger und auf dem Server läuft.
+Zustand in Objektfeldern (Transpositionstabelle, Suchbaum) bleibt zwischen den Zügen erhalten, begrenzt nur durch die feste Schutzgrenze der Sandbox. Einstieg je Sprache über genau eine Funktion, z. B. `run(MyBot)`; Transport und Log-Stufe kommen aus Argumenten/Umgebung, sodass dieselbe Datei lokal, im Debugger und auf dem Server läuft (E61):
+
+| Argument | Umgebungsvariable | Wirkung |
+|----------|-------------------|---------|
+| `--tcp [PORT]` | `SBM_TRANSPORT=tcp`, `SBM_PORT` | Verbindet zu `127.0.0.1` (Standardport 7470) statt stdin/stdout zu nutzen |
+| `--log-level LEVEL` | `SBM_LOG_LEVEL` | Startstufe: `trace`, `debug`, `info`, `warn`, `error`, `off` |
+| `--log-file PATH` | `SBM_LOG_FILE` | Schreibt das Log zusätzlich in eine Datei (nur lokal) |
+
+Argumente schlagen Umgebung; ohne beides gelten `stdio` und `INFO`. Andere Argumente bleiben dem Bot.
 
 ## API – hohe Ebene
 
@@ -66,7 +74,7 @@ Namen sind wortgleich, Schreibweise idiomatisch (`legal_moves` / `legalMoves` / 
 - `is_draw()` umfasst Patt, dreifache Wiederholung, 50-Züge-Regel und ungenügendes Material, genau wie der Referee; `is_game_over()` zusätzlich Matt.
 - `Move`: `from_square`, `to_square`, `flags`, `promotion`, `is_promotion`, `is_capture`, `is_castling`, `is_en_passant`, `uci()`, `value()`, `Move(from, to, flags)`, `Move.parse(uci)`, `Move.from_value(value)`; intern eine 16-Bit-Ganzzahl (E34). `from_square` statt `from`, weil `from` in Python reserviert ist (E47). `Move.parse(uci)` kennt ohne Brett keine Flags; `is_legal` und `make_move` vergleichen deshalb nur Start, Ziel und Umwandlung. Sonderwerte `NULL_MOVE` und `RESIGN` haben keine UCI-Form.
 - `Clock`: `remaining_ms()`, `opponent_remaining_ms()`, `increment_ms()` aus der `turn`-Nachricht; `elapsed_ms()` misst lokal seit Empfang von `turn`.
-- `load_data(name) -> Bytes`: Liest eine mit dem Bot hochgeladene Datendatei (E30). Einziger Weg zu Dateien; lokal liest die Funktion aus einem Ordner neben dem Bot. Fehlt die Datei, folgt `DataNotFound`.
+- `load_data(name) -> Bytes`: Liest eine mit dem Bot hochgeladene Datendatei (E30). Einziger Weg zu Dateien; sie liest aus dem Ordner in `SBM_DATA_DIR` (setzt der Runner), lokal ohne diese Variable aus `data/` neben der Hauptdatei des Bots (E62). Fehlt die Datei, folgt `DataNotFound`.
 - `GameInfo`: `game_id`, `color`, `opponent_name`, `start_fen`, `initial_time_ms`, `increment_ms`, `startup_ms`, `memory_limit_mib`, `discipline`.
 - `GameResult`: `result`, `termination` wie in `game_over` (E44).
 
@@ -137,9 +145,9 @@ Jeder Aufruf aus Python/Java/C#/JS in den Kern kostet einen festen Betrag, unabh
 
 - Stufen: `TRACE < DEBUG < INFO < WARN < ERROR < OFF`
 - `log.debug(...)` usw., `log.set_level(level)`, `log.level()`, `log.is_enabled(level)`; Startstufe `INFO`
-- Stufe zusätzlich per Umgebungsvariable/CLI-Flag setzbar
-- Lokal: Konsole (optional Datei) mit Zeitstempel, Zugnummer, Stufe. Server: `stderr`, mengenbegrenzt gespeichert, nur für Besitzer/Admin einsehbar
-- Die Disziplin legt für den Server eine maximale Stufe und Menge fest
+- Stufe zusätzlich per Umgebungsvariable/CLI-Flag setzbar (E61)
+- Lokal: Konsole (optional Datei) mit Zeitstempel, Zugnummer, Stufe, z. B. `14:03:12.517 [ply 12] INFO  depth 6`. Server: `stderr`, mengenbegrenzt gespeichert, nur für Besitzer/Admin einsehbar
+- Die Disziplin legt für den Server eine maximale Stufe und Menge fest; wie die Stufe den Bot erreicht, ist offen (O19)
 
 ## Tests
 

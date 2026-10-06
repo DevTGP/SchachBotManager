@@ -24,10 +24,11 @@ Der Bot-Code ist in allen drei Modi identisch; nur der Transport des SDK wechsel
 
 | Thema | Lösung |
 |-------|--------|
-| Bot aus der IDE starten | Bot verbindet sich per `tcp` mit der wartenden Arena; dadurch normales Starten/Debuggen als Hauptprogramm |
+| Bot aus der IDE starten | Bot verbindet sich per `tcp` mit der wartenden Arena (`--tcp` oder `SBM_TRANSPORT=tcp`, Port 7470, E61); dadurch normales Starten/Debuggen als Hauptprogramm |
 | Haltepunkte vs. Uhr | Arena-Option „Uhr aus“ bzw. „Uhr pausiert, solange Debug-Modus“; sonst verliert der Bot beim ersten Haltepunkt auf Zeit |
 | Reproduzierbarkeit | Start aus beliebiger FEN; Wiedergabe einer gespeicherten Partie bis Zug N, danach übernimmt der Bot |
-| Ausgaben | Log-Bibliothek des SDK mit Stufen (siehe [sdk-api.md](sdk-api.md)); Stufe per Flag/Umgebungsvariable |
+| Ausgaben | Log-Bibliothek des SDK mit Stufen (siehe [sdk-api.md](sdk-api.md)); Stufe per `--log-level`/`SBM_LOG_LEVEL`, Logdatei per `--log-file`/`SBM_LOG_FILE` (E61); `print` landet auf stderr, stdout gehört dem Protokoll |
+| Datendateien | Lokal im Ordner `data/` neben dem Bot-Skript; `load_data(name)` liest sie dort wie auf dem Server (E62) |
 | Server-Fehler nachstellen | Partie vom Server als PGN/JSON herunterladen und lokal bis zur Fehlstellung abspielen |
 | Limits lokal prüfen | Optionaler Modus, der den Bot mit derselben Sandbox-Konfiguration wie der Server startet (nur unter Linux) |
 | Regeln lokal prüfen | Statischer Analyzer als CLI, identisch zur Serverprüfung (siehe [statische-analyse.md](statische-analyse.md)) |
