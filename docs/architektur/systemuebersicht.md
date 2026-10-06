@@ -74,14 +74,14 @@ SchachBotManager/
 ├── backend/                 Flask-API
 ├── frontend/                SPA
 ├── services/
-│   ├── runner/              Match-Runner / Referee
+│   ├── runner/              Match-Runner (Job-Consumer, Sandbox-Adapter); Referee-Kern aus sdk/python (E65)
 │   ├── verifier/            Pipeline + Analyzer je Sprache
 │   └── scheduler/
 ├── sdk/
 │   ├── core/                C++-Schachkern + C-Schnittstelle
-│   ├── python/  cpp/  java/  csharp/  javascript/   Bindings
+│   ├── python/              Binding, Referee-Kern (sbm.referee) und lokale Arena (sbm.arena, E65)
+│   ├── cpp/  java/  csharp/  javascript/   Bindings
 ├── tools/
-│   ├── arena/               Lokale Arena (CLI)
 │   ├── spec-check/          Prüft alle JSON-Dateien unter spec/ (CI)
 │   └── testvector-gen/      Erzeugt die Testvektoren unter spec/testvectors/ (Entwicklungswerkzeug, E54)
 ├── sandbox/                 nsjail-Konfiguration und Laufzeitverzeichnisse je Sprache

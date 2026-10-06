@@ -12,9 +12,9 @@ Ziel: Ein Bot lässt sich ohne Server entwickeln, im Debugger schrittweise ausf�
 
 Der Bot-Code ist in allen drei Modi identisch; nur der Transport des SDK wechselt (siehe [bot-protokoll.md](bot-protokoll.md)).
 
-## Lokale Arena (`tools/arena`)
+## Lokale Arena (`sbm-arena`)
 
-- Eigenständiges CLI-Programm, enthält denselben Referee-Kern wie der Server (gemeinsames Paket, kein Nachbau).
+- Befehl `sbm-arena` aus dem Python-Paket (`sbm.arena`); nutzt denselben Referee-Kern `sbm.referee` wie der Server (E65, kein Nachbau).
 - Startet Bots als Kindprozesse über `stdio` **oder** wartet auf Bots, die sich per `tcp` verbinden.
 - Keine Sandbox, keine Container – läuft direkt auf dem Entwicklergerät.
 - Optionen: Zeitkontrolle, Start-FEN, Anzahl Partien mit Farbwechsel, Ausgabe als PGN, Uhr abschaltbar.

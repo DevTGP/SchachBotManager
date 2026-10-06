@@ -2,6 +2,8 @@
 
 Führt genau ein Spiel aus und ist die einzige Instanz, die über Züge, Zeit und Ergebnis entscheidet.
 
+Der Referee-Kern (Uhr, Zugprüfung, Endbedingungen, Ablauf eines Spiels) liegt als `sbm.referee` im Python-SDK-Paket und wird vom Runner und von der lokalen Arena gleichermaßen benutzt (E65). Der Runner ergänzt Job-Consumer, Sandbox-Adapter und Recorder.
+
 ## Aufbau
 
 | Teil | Aufgabe |
@@ -9,7 +11,7 @@ Führt genau ein Spiel aus und ist die einzige Instanz, die über Züge, Zeit un
 | Job-Consumer | Holt `match`-Jobs atomar aus der Queue, hält Heartbeat |
 | Referee | Autoritative Stellung, Zugprüfung, Endbedingungen; eigene Brett-Instanz auf dem gemeinsamen C++-Kern, getrennt vom Brett im Bot-Prozess |
 | Uhr | Bedenkzeit je Seite, Inkrement, Startbudget |
-| Spieler-Adapter | `SandboxBotPlayer`, `RemoteBotPlayer`, `HumanPlayer` – gleiche Schnittstelle |
+| Spieler-Adapter | `SandboxBotPlayer`, `RemoteBotPlayer`, `HumanPlayer` – gleiche Schnittstelle `sbm.referee.Player` |
 | Sandbox-Treiber | Bot-Prozesse über nsjail starten, einfrieren/fortsetzen, überwachen, beenden |
 | Recorder | Schreibt Züge, Zeiten, Ereignisse fortlaufend in die DB |
 
@@ -18,7 +20,8 @@ Führt genau ein Spiel aus und ist die einzige Instanz, die über Züge, Zeit un
 - Gemessen wird **Wanduhrzeit** mit einer monotonen Systemuhr (E19), keine CPU-Zeit: Wer ab Zeitpunkt x 30 Minuten hat, darf bis x+30 rechnen, egal wie viel Rechenzeit der Prozess tatsächlich bekommt.
 - Die Uhr einer Seite läuft von **Absenden von `turn`** bis **Empfang von `move`**.
 - Außerhalb des eigenen Zuges ist der Bot-Prozess per cgroup-Freezer **eingefroren**: kein Rechnen in gegnerischer Zeit, Speicherinhalt bleibt erhalten. Damit ist die Anforderung „läuft das ganze Spiel, rechnet aber nur in eigener Zeit“ technisch erzwungen statt nur per Regel verlangt.
-- Reihenfolge pro Zug: fortsetzen → `turn` senden → Uhr starten → `move` lesen → Uhr stoppen → einfrieren → prüfen.
+- Reihenfolge pro Zug: fortsetzen → auf vorzeitig gesendete Zeile prüfen → `turn` senden → Uhr starten → `move` lesen → Uhr stoppen → einfrieren → prüfen.
+- Start: Die Bots starten nacheinander (Weiß, dann Schwarz), jeder mit eigenem Startbudget ohne Toleranz; wer es überschreitet, wird sofort eingefroren (E65).
 - Läuft die Zeit ab, wird der Prozess sofort beendet; das Spiel endet mit `timeout`.
 - **Startbudget** (Prozessstart, JIT, `on_game_start`) ist getrennt von der Bedenkzeit und pro Disziplin konfigurierbar.
 - **Toleranz pro Zug** (wenige ms) gleicht Overhead von Fortsetzen/Einfrieren und Pipe-Latenz aus; pro Disziplin einstellbar.
@@ -33,7 +36,7 @@ Führt genau ein Spiel aus und ist die einzige Instanz, die über Züge, Zeit un
 | Zeitüberschreitung | Niederlage; Remis, falls der Gegner mit seinem Material nicht mattsetzen kann |
 | Illegaler Zug, Protokollverstoß, Absturz, Speicherlimit, Start-Timeout | Niederlage |
 | Aufgabe | Niederlage |
-| Maximale Zugzahl (Schutz vor Endlospartien) | Remis |
+| Maximale Zugzahl (Schutz vor Endlospartien, zählt ganze Züge) | Remis |
 | Beide Bots starten nicht | Annulliert / beidseitige Niederlage (konfigurierbar) |
 | Infrastrukturfehler (Runner-Absturz, Host-Neustart) | Spiel wird verworfen und neu angesetzt, nicht gewertet |
 
