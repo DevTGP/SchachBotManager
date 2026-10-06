@@ -4,7 +4,7 @@ Website, auf der Schachbots (Python, C++, Java, C#, JavaScript) in Ligen, Turnie
 
 ## Stand
 
-**M0** laut `docs/roadmap.md` ist abgeschlossen: Festlegungen E34–E55, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`), C-Schnittstelle des Kerns (`sdk/core/include/sbm/`), Testvektoren (`spec/testvectors/`, erzeugt mit `tools/testvector-gen`). Als Nächstes M1 (C++-Kern, Python-Binding, lokale Arena).
+**M0** laut `docs/roadmap.md` ist abgeschlossen: Festlegungen E34–E55, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`), C-Schnittstelle des Kerns (`sdk/core/include/sbm/`), Testvektoren (`spec/testvectors/`, erzeugt mit `tools/testvector-gen`). **M1** läuft. Erledigt: C++-Kern unter `sdk/core/` (CMake, besteht alle Vektoren, E56–E57). Offen: Python-Binding, Wheels über CI, Referee-Kern, lokale Arena, Referenzbots, Debug-Workflow.
 
 ## Zuerst lesen
 
@@ -66,9 +66,13 @@ Build-, Test- und Lint-Befehle hier eintragen, sobald sie entstehen.
 | Testvektoren prüfen | `testvector-gen spec --check --perft fast` (CI); alle Perft-Vektoren nachzählen mit `--perft all` (einige Minuten) |
 | Tests testvector-gen | `pytest tools/testvector-gen` |
 | Lint/Format testvector-gen | `ruff check tools/testvector-gen` und `ruff format --check tools/testvector-gen` |
+| Kern konfigurieren | `cmake -S sdk/core -B build/core -DCMAKE_BUILD_TYPE=Release` (lokal mit `-G Ninja`; `-DSBM_SLOW_TESTS=ON` nimmt die langsamen Perft-Vektoren dazu) |
+| Kern bauen | `cmake --build build/core --config Release` |
+| Kern testen | `ctest --test-dir build/core -C Release --output-on-failure` |
+| Format Kern | `clang-format --dry-run --Werror` über alle `.h/.c/.hpp/.cpp` in `sdk/core/{include,src,tests}` (clang-format 19.1.7: `pip install clang-format==19.1.7`) |
 | Header des Kerns prüfen | `gcc -std=c11 -Wall -Wextra -Wpedantic -Werror -fsyntax-only -Isdk/core/include sdk/core/tests/header_check.c`, ebenso `g++ -std=c++20 … header_check.cpp` |
 
-CI: `.github/workflows/ci.yml` (Job `spec` für spec-check, Job `testvectors` für den Generator und die erzeugten Dateien, Job `core-headers` für die Header).
+CI: `.github/workflows/ci.yml` (Job `spec` für spec-check, Job `testvectors` für den Generator und die erzeugten Dateien, Job `core-headers` für die Header, Job `core` für Build und Tests des Kerns unter Linux, Windows und macOS, Job `core-format` für clang-format).
 
 ## Offen (erst für M2 nötig)
 

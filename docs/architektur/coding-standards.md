@@ -17,7 +17,7 @@ Gilt für alle Pakete im Monorepo. Werkzeug-Konfigurationen liegen jeweils im Pa
 
 | Sprache | Version | Format / Lint | Tests |
 |---------|---------|---------------|-------|
-| C++ (Kern) | C++20, CMake (E38) | clang-format, Warnungen als Fehler (`-Wall -Wextra -Wpedantic` bzw. `/W4`) | Testvektoren aus `spec/testvectors/` |
+| C++ (Kern) | C++20, CMake (E38) | clang-format 19 (`sdk/core/.clang-format`: LLVM, 4 Leerzeichen, 100 Zeichen), Warnungen als Fehler (`-Wall -Wextra -Wpedantic -Werror` bzw. `/W4 /WX`) | Testvektoren aus `spec/testvectors/` und Unit-Tests über CTest (E56) |
 | C (Schnittstelle des Kerns) | C11-kompatible Header | wie C++ | über die Bindings |
 | Python (Werkzeuge, Backend, Dienste) | 3.12 | ruff (Lint und Format), Typannotationen | pytest |
 | TypeScript (Frontend) | strict | ESLint, Prettier | ab M2 festgelegt |

@@ -90,4 +90,6 @@ Der Aufrufer stellt allen Speicher für Ergebnisse bereit; der Kern hält keinen
 ## Prüfung
 
 - CI übersetzt `sdk/core/tests/header_check.c` als C11 und `header_check.cpp` als C++20 mit `-Wall -Wextra -Wpedantic -Werror`. Die C-Datei prüft zusätzlich Größen und Codes aus E34, E35 und E45.
-- Das Verhalten jeder Funktion prüfen ab M1 die Kernvektoren unter `spec/testvectors/` (Perft, FEN, UCI, SAN, Hash, Regeln) und je Binding die API-Vektoren unter `spec/testvectors/api/` (E55). Ein Kerntest ruft die C-Funktionen direkt; Fehlervektoren erwarten den passenden Statuscode.
+- Das Verhalten jeder Funktion prüfen die Kernvektoren unter `spec/testvectors/` (Perft, FEN, UCI, SAN, Hash, Regeln) und je Binding die API-Vektoren unter `spec/testvectors/api/` (E55). Das Testprogramm des Kerns (`sdk/core/tests/vectors/`, E56) ruft die C-Funktionen direkt; Fehlervektoren erwarten den passenden Statuscode. Die reinen Bitoperationen von `Move` (siehe oben) haben kein C-Gegenstück und werden dort übersprungen.
+- `sdk/core/tests/unit/` prüft die Regeln dieser Datei, die kein Vektor abdeckt: NULL-Zeiger, Puffer zu klein, genau passend oder leer, unveränderte Ausgaben bei Fehlern, unabhängige Kopien, Rücknahme von Null- und normalen Zügen, Versionen und Statusnamen.
+- CI baut den Kern unter Linux, Windows und macOS mit Warnungen als Fehler und führt alle Tests aus, einschließlich der langsamen Perft-Vektoren.
