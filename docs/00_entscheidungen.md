@@ -1,6 +1,6 @@
 # Entscheidungen, Annahmen, offene Punkte
 
-Stand: 2026-10-06, Revision 4 mit Festlegungen für M0 (E34–E49; vorherige Stände unter `_archiv/`)
+Stand: 2026-10-06, Revision 4 mit Festlegungen für M0 (E34–E53; vorherige Stände unter `_archiv/`)
 
 ## 1. Entscheidungen
 
@@ -55,6 +55,10 @@ Stand: 2026-10-06, Revision 4 mit Festlegungen für M0 (E34–E49; vorherige St�
 | E47 | Namen und Codes der API | Kanonisch `snake_case` für Funktionen, Felder, Parameter, `PascalCase` für Typen und Fehler, `UPPER_SNAKE` für Konstanten; Konstruktor `create` wird zum Konstruktor der Sprache; `Move.from_square`/`to_square` statt `from`/`to`; `NO_PIECE_TYPE = 6`, `NO_SQUARE = 64`; Rochaderechte als Bitmaske (1 weiß kurz, 2 weiß lang, 4 schwarz kurz, 8 schwarz lang) | `from` ist in Python reserviert; Felder A1–H8, Zug-Flags und Log-Stufen als benannte Konstanten in `spec/api/constants.json` |
 | E48 | En passant in der FEN | `fen()` und `en_passant_square()` nennen das Feld nur, wenn ein Schlagen en passant legal ist; `from_fen` nimmt ein Feld ohne legales Schlagen an und verwirft es | Gleiche Stellungen ergeben gleiche FEN (Abgleich nach E42, Wiederholungserkennung); `hash()` folgt davon abweichend der Polyglot-Regel (E46) |
 | E49 | Fehler in der API | Sechs Fehlerarten (`InvalidArgument`, `InvalidFen`, `InvalidUci`, `IllegalMove`, `InvalidState`, `DataNotFound`) mit gemeinsamer Basis `ChessError`, als Ausnahme der Sprache mit üblicher Endung; eine Ausnahme aus einem Callback wird protokolliert und beendet den Prozess | Wertung `crash`; das SDK prüft den Rückgabewert von `choose_move` nicht, der Referee entscheidet; `NULL_MOVE` als Rückgabe scheitert an `Move.uci` |
+| E50 | Form der C-Schnittstelle | Die Header unter `sdk/core/include/sbm/` sind maßgeblich, die Bedeutung jeder Funktion steht in `spec/api/`; Regeln in [kern-c-schnittstelle.md](komponenten/kern-c-schnittstelle.md). Präfix `sbm_`, Wahrheitswerte als `int32_t`, Bitoperationen von `Move` im Binding | Header C11-kompatibel, CI übersetzt sie als C11 und C++20; keine zweite Beschreibung der Signaturen |
+| E51 | Speicher an der C-Grenze | Der Aufrufer stellt Puffer mit festen Obergrenzen; der Kern reserviert nur beim Anlegen eines Bretts und beim Wachsen des Zugverlaufs und gibt nie Speicher an den Aufrufer | Keine Freigabefunktionen außer `sbm_board_free`; nur `move_history` braucht eine Längenabfrage |
+| E52 | Fehler an der C-Grenze | Jede Funktion liefert nur einen Statuscode (sechs API-Fehler plus Puffer zu klein, Speichermangel, interner Fehler); `sbm_status_name` liefert einen festen Namen; C++-Ausnahmen verlassen den Kern nie | Kein Fehlerzustand im Kern, keine Fehlertexte; das Binding baut die Meldung der Ausnahme |
+| E53 | SAN und Material je Farbe | `board.san(move)` und `board.has_insufficient_material(color)` gehören zur öffentlichen API | Referee (Wertung bei Zeitablauf, E44) und Arena (PGN) nutzen dieselben Funktionen wie die Bots; Materialregel wie python-chess |
 
 Aus dem Anforderungstext fix: MongoDB, Flask, GitHub Actions, Sprachen Python / C++ / Java / C# / JavaScript.
 

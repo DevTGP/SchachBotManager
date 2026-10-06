@@ -4,7 +4,7 @@ Website, auf der Schachbots (Python, C++, Java, C#, JavaScript) in Ligen, Turnie
 
 ## Stand
 
-**M0** laut `docs/roadmap.md` läuft. Erledigt: Festlegungen E34–E49, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`). Offen: C-Schnittstelle des Kerns, Testvektoren. Danach M1 (C++-Kern, Python-Binding, lokale Arena).
+**M0** laut `docs/roadmap.md` läuft. Erledigt: Festlegungen E34–E53, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`), C-Schnittstelle des Kerns (`sdk/core/include/sbm/`). Offen: Testvektoren. Danach M1 (C++-Kern, Python-Binding, lokale Arena).
 
 ## Zuerst lesen
 
@@ -62,8 +62,9 @@ Build-, Test- und Lint-Befehle hier eintragen, sobald sie entstehen.
 | Spezifikation prüfen | `spec-check spec` |
 | Tests spec-check | `pytest tools/spec-check` |
 | Lint/Format spec-check | `ruff check tools/spec-check` und `ruff format --check tools/spec-check` |
+| Header des Kerns prüfen | `gcc -std=c11 -Wall -Wextra -Wpedantic -Werror -fsyntax-only -Isdk/core/include sdk/core/tests/header_check.c`, ebenso `g++ -std=c++20 … header_check.cpp` |
 
-CI: `.github/workflows/ci.yml` (Job `spec` führt alle vier aus).
+CI: `.github/workflows/ci.yml` (Job `spec` für spec-check, Job `core-headers` für die Header).
 
 ## Offen (erst für M2 nötig)
 

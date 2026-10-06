@@ -15,7 +15,7 @@ Schachkern (C++)     ── Stellung, Zuggenerierung, make/undo, Endbedingungen,
 | Teil | Sprache | Inhalt |
 |------|---------|--------|
 | Kern (`sdk/core`) | C++ | Alle Schachregeln. Wird auch vom Referee und von der Arena benutzt |
-| C-Schnittstelle | C | Stabile, flache Funktionen auf einem Brett-Handle; einzige Grenze für alle Bindings |
+| C-Schnittstelle | C | Stabile, flache Funktionen auf einem Brett-Handle; einzige Grenze für alle Bindings; Regeln in [kern-c-schnittstelle.md](kern-c-schnittstelle.md) |
 | Binding | Zielsprache | Klassen `Board`, `Move`, `Clock`, `Log`, Basisklasse `Bot`, Hauptschleife |
 
 | Sprache | Anbindung | Auslieferung |
@@ -58,10 +58,11 @@ Namen sind wortgleich, Schreibweise idiomatisch (`legal_moves` / `legalMoves` / 
 |--------|-----------|
 | Abfrage | `piece_at(square)`, `side_to_move()`, `castling_rights()`, `en_passant_square()`, `halfmove_clock()`, `fullmove_number()`, `king_square(color)` |
 | Züge | `legal_moves()`, `legal_captures()`, `is_legal(move)`, `make_move(move)`, `undo_move()`, `make_null_move()` / `undo_null_move()` |
-| Zustand | `is_check()`, `is_checkmate()`, `is_stalemate()`, `is_draw()`, `is_repetition(count)`, `is_fifty_move_rule()`, `is_insufficient_material()`, `is_game_over()` |
-| Hilfen | `Board()` (Grundstellung), `from_fen(fen)`, `fen()`, `copy()`, `hash()` (Polyglot-Zobrist, E46), `move_history()`, `to_text()` (lesbares Brett fürs Debugging), `parse_move(uci)` (vollständiger Zug mit Flags) |
+| Zustand | `is_check()`, `is_checkmate()`, `is_stalemate()`, `is_draw()`, `is_repetition(count)`, `is_fifty_move_rule()`, `is_insufficient_material()`, `has_insufficient_material(color)`, `is_game_over()` |
+| Hilfen | `Board()` (Grundstellung), `from_fen(fen)`, `fen()`, `copy()`, `hash()` (Polyglot-Zobrist, E46), `move_history()`, `to_text()` (lesbares Brett fürs Debugging), `parse_move(uci)` (vollständiger Zug mit Flags), `san(move)` (Kurznotation wie in PGN, E53) |
 
 - `fen()` und `en_passant_square()` nennen das En-passant-Feld nur, wenn das Schlagen legal ist; gleiche Stellungen ergeben so gleiche FEN (E48).
+- `has_insufficient_material(color)` sagt, ob eine Farbe nicht mehr mattsetzen kann; der Referee wertet damit Zeitablauf (E44, E53). `is_insufficient_material()` gilt, wenn das für beide Farben zutrifft.
 - `is_draw()` umfasst Patt, dreifache Wiederholung, 50-Züge-Regel und ungenügendes Material, genau wie der Referee; `is_game_over()` zusätzlich Matt.
 - `Move`: `from_square`, `to_square`, `flags`, `promotion`, `is_promotion`, `is_capture`, `is_castling`, `is_en_passant`, `uci()`, `value()`, `Move(from, to, flags)`, `Move.parse(uci)`, `Move.from_value(value)`; intern eine 16-Bit-Ganzzahl (E34). `from_square` statt `from`, weil `from` in Python reserviert ist (E47). `Move.parse(uci)` kennt ohne Brett keine Flags; `is_legal` und `make_move` vergleichen deshalb nur Start, Ziel und Umwandlung. Sonderwerte `NULL_MOVE` und `RESIGN` haben keine UCI-Form.
 - `Clock`: `remaining_ms()`, `opponent_remaining_ms()`, `increment_ms()` aus der `turn`-Nachricht; `elapsed_ms()` misst lokal seit Empfang von `turn`.
@@ -152,7 +153,7 @@ Jeder Aufruf aus Python/Java/C#/JS in den Kern kostet einen festen Betrag, unabh
 ## Zu beachten
 
 - **Kein Debugger-Schritt in den Kern** aus Python/Java/C#/JS (R9). Ausgleich: `to_text()`, `fen()`, klare Ausnahmen.
-- **Fehler im Kern dürfen den Prozess nicht abstürzen lassen:** Die C-Schnittstelle prüft Argumente und meldet Fehler als Rückgabecode; das Binding wandelt sie in Ausnahmen.
+- **Fehler im Kern dürfen den Prozess nicht abstürzen lassen:** Die C-Schnittstelle prüft Argumente und meldet Fehler als Statuscode; das Binding wandelt sie in Ausnahmen ([kern-c-schnittstelle.md](kern-c-schnittstelle.md), E52).
 - **Lebensdauer von Brett-Handles** wird vom Binding verwaltet (Freigabe über die Speicherverwaltung der Sprache); der Bot-Autor sieht keine Handles.
 - **Bot-Code darf selbst keine nativen Aufrufe machen** – das SDK ist die einzige Ausnahme in der [statischen Analyse](statische-analyse.md).
 - **Das SDK wird serverseitig bereitgestellt**, nicht mit hochgeladen.

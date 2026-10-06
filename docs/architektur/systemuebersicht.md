@@ -45,7 +45,7 @@ flowchart LR
 | Match-Runner | Referee: autoritativer Spielzustand, Uhren, Start/Stopp der Bot-Prozesse | [match-runner.md](../komponenten/match-runner.md) |
 | Verifier | Statische Analyse, Build, Mindesttests für hochgeladene Bots | [verifikation.md](../komponenten/verifikation.md), [statische-analyse.md](../komponenten/statische-analyse.md) |
 | Sandbox (nsjail) | Isolierte Ausführung je Bot-Prozess | [sandbox.md](../komponenten/sandbox.md) |
-| Schachkern (C++) | Einzige Regelimplementierung; genutzt von Referee, Arena und allen SDKs | [sdk-api.md](../komponenten/sdk-api.md) |
+| Schachkern (C++) | Einzige Regelimplementierung; genutzt von Referee, Arena und allen SDKs | [sdk-api.md](../komponenten/sdk-api.md), [kern-c-schnittstelle.md](../komponenten/kern-c-schnittstelle.md) |
 | SDKs (×5) | Binding auf den Kern, Bot-API, Debug-Logging, Protokoll-Client | [sdk-api.md](../komponenten/sdk-api.md) |
 | Lokale Arena / Remote-Client | Entwicklung und Debugging ohne Server bzw. gegen die Web-API | [lokale-entwicklung.md](../komponenten/lokale-entwicklung.md) |
 
