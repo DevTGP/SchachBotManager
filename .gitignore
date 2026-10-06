@@ -10,3 +10,36 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+### macOS
+.DS_Store
+
+### Editors
+.vscode/
+.idea/
+*.swp
+
+### Environment files (secrets stay on the server / in GitHub secrets)
+.env
+.env.*
+!.env.example
+
+### Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+build/
+
+### C++ / CMake
+/out/
+cmake-build-*/
+CMakeUserPresets.json
+
+### Node
+node_modules/
