@@ -4,7 +4,7 @@ Website, auf der Schachbots (Python, C++, Java, C#, JavaScript) in Ligen, Turnie
 
 ## Stand
 
-**M0** laut `docs/roadmap.md` ist abgeschlossen: Festlegungen E34–E55, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`), C-Schnittstelle des Kerns (`sdk/core/include/sbm/`), Testvektoren (`spec/testvectors/`, erzeugt mit `tools/testvector-gen`). **M1** läuft. Erledigt: C++-Kern unter `sdk/core/` (CMake, besteht alle Vektoren, E56–E57). Offen: Python-Binding, Wheels über CI, Referee-Kern, lokale Arena, Referenzbots, Debug-Workflow.
+**M0** laut `docs/roadmap.md` ist abgeschlossen: Festlegungen E34–E55, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`), C-Schnittstelle des Kerns (`sdk/core/include/sbm/`), Testvektoren (`spec/testvectors/`, erzeugt mit `tools/testvector-gen`). **M1** läuft. Erledigt: C++-Kern unter `sdk/core/` (CMake, besteht alle Vektoren, E56–E57); Python-Binding für `Board` und `Move` unter `sdk/python/` (nanobind, besteht alle API-Vektoren, E58–E60). Offen: Python-Binding für `Clock`, `Log`, `Bot`, `run`, Transporte und `load_data`, Wheels über CI, Referee-Kern, lokale Arena, Referenzbots, Debug-Workflow.
 
 ## Zuerst lesen
 
@@ -69,10 +69,13 @@ Build-, Test- und Lint-Befehle hier eintragen, sobald sie entstehen.
 | Kern konfigurieren | `cmake -S sdk/core -B build/core -DCMAKE_BUILD_TYPE=Release` (lokal mit `-G Ninja`; `-DSBM_SLOW_TESTS=ON` nimmt die langsamen Perft-Vektoren dazu) |
 | Kern bauen | `cmake --build build/core --config Release` |
 | Kern testen | `ctest --test-dir build/core -C Release --output-on-failure` |
-| Format Kern | `clang-format --dry-run --Werror` über alle `.h/.c/.hpp/.cpp` in `sdk/core/{include,src,tests}` (clang-format 19.1.7: `pip install clang-format==19.1.7`) |
+| Format nativer Code | `clang-format --dry-run --Werror` über alle `.h/.c/.hpp/.cpp` in `sdk/core/{include,src,tests}` und `sdk/python/src/native` (clang-format 19.1.7: `pip install clang-format==19.1.7`) |
+| Python-SDK bauen und installieren | `.venv/Scripts/pip install "./sdk/python[dev]"`; unter Windows mit `CMAKE_GENERATOR="Visual Studio 17 2022"`, sonst greift Strawberrys MinGW |
+| Tests Python-SDK | `pytest sdk/python` (gegen das installierte Paket; nach Änderungen neu installieren) |
+| Lint/Format Python-SDK | `ruff check sdk/python` und `ruff format --check sdk/python` |
 | Header des Kerns prüfen | `gcc -std=c11 -Wall -Wextra -Wpedantic -Werror -fsyntax-only -Isdk/core/include sdk/core/tests/header_check.c`, ebenso `g++ -std=c++20 … header_check.cpp` |
 
-CI: `.github/workflows/ci.yml` (Job `spec` für spec-check, Job `testvectors` für den Generator und die erzeugten Dateien, Job `core-headers` für die Header, Job `core` für Build und Tests des Kerns unter Linux, Windows und macOS, Job `core-format` für clang-format).
+CI: `.github/workflows/ci.yml` (Job `spec` für spec-check, Job `testvectors` für den Generator und die erzeugten Dateien, Job `core-headers` für die Header, Job `core` für Build und Tests des Kerns unter Linux, Windows und macOS, Job `python` für Build, Lint und Tests des Python-SDK mit Python 3.11 und 3.14 unter Linux, Windows und macOS, Job `native-format` für clang-format).
 
 ## Offen (erst für M2 nötig)
 

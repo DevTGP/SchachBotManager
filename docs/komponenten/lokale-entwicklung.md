@@ -52,7 +52,7 @@ Der gemeinsame Kern (E3) wird nie vom Bot-Autor kompiliert. Jedes SDK-Paket enth
 
 | Sprache | Einrichtung | Bot starten |
 |---------|-------------|-------------|
-| Python | `pip install <sdk>` | `python mein_bot.py` |
+| Python | `pip install schachbotmanager` | `python mein_bot.py` |
 | JavaScript | `npm install <sdk>` | `node mein_bot.js` |
 | Java | Eine Abhängigkeit (Maven/Gradle) oder ein JAR im Klassenpfad | Normale `main`-Klasse |
 | C# | `dotnet add package <sdk>` | `dotnet run` |
@@ -63,6 +63,6 @@ Für Python bedeutet das: ein Skript, ein `pip install`, kein Compiler, keine Bu
 Zu beachten:
 
 - **Plattformabdeckung (R8):** Für eine Plattform ohne vorkompiliertes Paket müsste lokal gebaut werden. Die CI-Matrix sollte Windows x64, Linux x64/arm64 und macOS x64/arm64 abdecken.
-- **Python-Versionen:** Wheels je unterstützter Python-Version oder über die stabile ABI ein Wheel für alle.
+- **Python-Versionen:** Python 3.11 und neuer, ein Wheel je Version (E59); Import als `import sbm`.
 - **Kein Schritt in den Kern (R9):** Der Python-Debugger hält im eigenen Code und im Python-Teil des SDK, nicht in der Zuggenerierung.
 - **Vorlagenprojekt je Sprache** mit fertiger Debug-Konfiguration und einem lauffähigen Beispielbot.

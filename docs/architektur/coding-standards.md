@@ -17,10 +17,10 @@ Gilt für alle Pakete im Monorepo. Werkzeug-Konfigurationen liegen jeweils im Pa
 
 | Sprache | Version | Format / Lint | Tests |
 |---------|---------|---------------|-------|
-| C++ (Kern) | C++20, CMake (E38) | clang-format 19 (`sdk/core/.clang-format`: LLVM, 4 Leerzeichen, 100 Zeichen), Warnungen als Fehler (`-Wall -Wextra -Wpedantic -Werror` bzw. `/W4 /WX`) | Testvektoren aus `spec/testvectors/` und Unit-Tests über CTest (E56) |
+| C++ (Kern) | C++20, CMake (E38) | clang-format 19 (`sdk/.clang-format`: LLVM, 4 Leerzeichen, 100 Zeichen; gilt für allen nativen Code unter `sdk/`), Warnungen als Fehler (`-Wall -Wextra -Wpedantic -Werror` bzw. `/W4 /WX`) | Testvektoren aus `spec/testvectors/` und Unit-Tests über CTest (E56) |
 | C (Schnittstelle des Kerns) | C11-kompatible Header | wie C++ | über die Bindings |
 | Python (Werkzeuge, Backend, Dienste) | 3.12 | ruff (Lint und Format), Typannotationen | pytest |
+| Python-SDK (`sdk/python`) | 3.11 und neuer (E59); natives Modul C++20 mit nanobind (E58) | ruff wie oben; nativer Code mit clang-format wie der Kern | API-Vektoren und eigene Tests mit pytest |
 | TypeScript (Frontend) | strict | ESLint, Prettier | ab M2 festgelegt |
 | JSON (Spezifikation) | JSON Schema 2020-12 | 2 Leerzeichen Einrückung, von `tools/spec-check` geprüft; erzeugte Testvektoren mit einem Vektor je Zeile, Layout durch `tools/testvector-gen` festgelegt | – |
 
-Die unterstützte Python-Spanne des Python-SDK wird in M1 festgelegt.
