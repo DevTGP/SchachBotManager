@@ -1,6 +1,5 @@
 """The process group of a bot on Linux and macOS."""
 
-import os
 import subprocess
 import sys
 
@@ -13,10 +12,14 @@ from sbm.arena.posix_group import POPEN_OPTIONS, ProcessGroup
 
 
 def test_signals_to_an_exited_group_are_ignored():
-    process = subprocess.Popen([sys.executable, "-c", "pass"], **POPEN_OPTIONS)
+    process = subprocess.Popen(
+        [sys.executable, "-c", "pass"], stdout=subprocess.PIPE, **POPEN_OPTIONS
+    )
     group = ProcessGroup(process.pid)
-    # Exited but not reaped yet, as a bot right after game_over: macOS answers EPERM here.
-    os.waitid(os.P_PID, process.pid, os.WEXITED | os.WNOWAIT)
+    # End of output: the process is exiting but not reaped, as a bot right after game_over.
+    # macOS answers EPERM here.
+    assert process.stdout.read() == b""
+    process.stdout.close()
     group.suspend()
     group.resume()
     group.kill()
