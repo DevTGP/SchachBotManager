@@ -32,8 +32,8 @@ SBM_API sbm_status sbm_board_hash(const sbm_board* board, uint64_t* out);
 
 /* Board.move_history: has no fixed maximum; with capacity 0 (out may then be NULL) the call
  * returns SBM_BUFFER_TOO_SMALL and the required count. */
-SBM_API sbm_status sbm_board_move_history(
-    const sbm_board* board, sbm_move* out, uint32_t capacity, uint32_t* count);
+SBM_API sbm_status
+sbm_board_move_history(const sbm_board* board, sbm_move* out, uint32_t capacity, uint32_t* count);
 
 /* Board.to_text: needs SBM_TEXT_BUFFER_SIZE bytes at most. */
 SBM_API sbm_status sbm_board_to_text(const sbm_board* board, char* buffer, uint32_t size);

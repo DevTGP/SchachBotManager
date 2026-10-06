@@ -3,8 +3,9 @@
 
 #include <type_traits>
 
-static_assert(std::is_same_v<decltype(&sbm_board_new), sbm_status (*)(sbm_board**)>,
-              "declarations have C linkage and the expected signature");
+static_assert(
+    std::is_same_v<decltype(&sbm_board_new), sbm_status (*)(sbm_board**)>,
+    "declarations have C linkage and the expected signature");
 
 int main() {
     return SBM_OK;

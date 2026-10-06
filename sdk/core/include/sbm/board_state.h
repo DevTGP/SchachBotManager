@@ -17,8 +17,8 @@ SBM_API sbm_status sbm_board_is_stalemate(const sbm_board* board, sbm_bool* out)
 SBM_API sbm_status sbm_board_is_repetition(const sbm_board* board, int32_t count, sbm_bool* out);
 SBM_API sbm_status sbm_board_is_fifty_move_rule(const sbm_board* board, sbm_bool* out);
 SBM_API sbm_status sbm_board_is_insufficient_material(const sbm_board* board, sbm_bool* out);
-SBM_API sbm_status sbm_board_has_insufficient_material(
-    const sbm_board* board, sbm_color color, sbm_bool* out);
+SBM_API sbm_status
+sbm_board_has_insufficient_material(const sbm_board* board, sbm_color color, sbm_bool* out);
 SBM_API sbm_status sbm_board_is_draw(const sbm_board* board, sbm_bool* out);
 SBM_API sbm_status sbm_board_is_game_over(const sbm_board* board, sbm_bool* out);
 

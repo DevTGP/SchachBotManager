@@ -49,7 +49,7 @@ enum {
     SBM_FLAG_QUEEN_CASTLE = 3,
     SBM_FLAG_CAPTURE = 4,
     SBM_FLAG_EN_PASSANT = 5,
-    SBM_FLAG_PROMOTION = 8,        /* + 0 knight, 1 bishop, 2 rook, 3 queen */
+    SBM_FLAG_PROMOTION = 8,         /* + 0 knight, 1 bishop, 2 rook, 3 queen */
     SBM_FLAG_PROMOTION_CAPTURE = 12 /* same order */
 };
 
