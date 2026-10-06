@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "error (referee to bot)",
+  "description": "Diagnosis of a protocol violation, sent before game_over. Can arrive before version negotiation succeeded, so it carries no v; its format is stable across all protocol versions and only gains new fields.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "error" },
+    "code": {
+      "enum": [
+        "invalid_json",
+        "line_too_long",
+        "unknown_type",
+        "schema_violation",
+        "unsupported_version",
+        "unexpected_message",
+        "illegal_move"
+      ]
+    },
+    "message": {
+      "description": "Human-readable detail for the bot log.",
+      "type": "string",
+      "maxLength": 1024
+    }
+  },
+  "required": ["type", "code", "message"],
+  "additionalProperties": false
+}

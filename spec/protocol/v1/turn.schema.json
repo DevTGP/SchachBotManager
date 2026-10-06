@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "turn (referee to bot)",
+  "description": "Starts the bot's thinking time. The bot answers with move or resign.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "turn" },
+    "v": { "$ref": "common.schema.json#/$defs/version" },
+    "last_move": {
+      "description": "The opponent's last move, or null if the bot makes the first move of the game.",
+      "oneOf": [{ "$ref": "common.schema.json#/$defs/uci" }, { "type": "null" }]
+    },
+    "fen": {
+      "description": "Position after last_move. The SDK compares it with its own board; on a mismatch it logs a warning and adopts this position (repetition history is lost).",
+      "$ref": "common.schema.json#/$defs/fen"
+    },
+    "ply": {
+      "description": "Number of half-moves played since start_fen.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "remaining_ms": {
+      "description": "Own remaining time when the referee sent this message.",
+      "$ref": "common.schema.json#/$defs/milliseconds"
+    },
+    "opponent_remaining_ms": { "$ref": "common.schema.json#/$defs/milliseconds" }
+  },
+  "required": ["type", "v", "last_move", "fen", "ply", "remaining_ms", "opponent_remaining_ms"],
+  "additionalProperties": false
+}

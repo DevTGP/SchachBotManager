@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Any message from referee to bot",
+  "description": "Everything the referee may send. SDKs ignore unknown fields in these messages.",
+  "oneOf": [
+    { "$ref": "init.schema.json" },
+    { "$ref": "turn.schema.json" },
+    { "$ref": "game_over.schema.json" },
+    { "$ref": "error.schema.json" }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Common definitions of protocol version 1",
+  "$defs": {
+    "version": {
+      "description": "Protocol version carried by every message after negotiation.",
+      "const": 1
+    },
+    "uci": {
+      "description": "Move in UCI notation, promotion piece in lower case. The null move 0000 is not allowed.",
+      "type": "string",
+      "pattern": "^[a-h][1-8][a-h][1-8][nbrq]?(?!\\n)$"
+    },
+    "fen": {
+      "description": "Position in Forsyth-Edwards Notation. Only the syntax is checked here; the core checks the position.",
+      "type": "string",
+      "maxLength": 92,
+      "pattern": "^([pnbrqkPNBRQK1-8]{1,8}/){7}[pnbrqkPNBRQK1-8]{1,8} [wb] (-|KQ?k?q?|Qk?q?|kq?|q) (-|[a-h][36]) (0|[1-9][0-9]*) [1-9][0-9]*(?!\\n)$"
+    },
+    "color": {
+      "enum": ["white", "black"]
+    },
+    "milliseconds": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "name": {
+      "description": "Display name, e.g. of a bot or discipline.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    }
+  }
+}

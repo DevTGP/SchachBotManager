@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Any message from bot to referee",
+  "description": "The referee validates every line from a bot against this schema. A line that fails it is a protocol violation.",
+  "oneOf": [
+    { "$ref": "ready.schema.json" },
+    { "$ref": "move.schema.json" },
+    { "$ref": "resign.schema.json" }
+  ]
+}

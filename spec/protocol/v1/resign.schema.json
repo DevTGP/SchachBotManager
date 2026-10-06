@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "resign (bot to referee)",
+  "description": "Answer to turn instead of move; the bot loses the game.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "resign" },
+    "v": { "$ref": "common.schema.json#/$defs/version" }
+  },
+  "required": ["type", "v"],
+  "additionalProperties": false
+}

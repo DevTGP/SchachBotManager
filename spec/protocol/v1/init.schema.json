@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "init (referee to bot)",
+  "description": "First message of a game, sent before version negotiation. Carries no v; its format is stable across all protocol versions and only gains new fields.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "init" },
+    "supported": {
+      "description": "Protocol versions the referee accepts; the bot picks one in ready.",
+      "type": "array",
+      "items": { "type": "integer", "minimum": 1 },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "game_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,64}(?!\\n)$"
+    },
+    "color": { "$ref": "common.schema.json#/$defs/color" },
+    "start_fen": { "$ref": "common.schema.json#/$defs/fen" },
+    "initial_time_ms": {
+      "description": "Base thinking time per side.",
+      "$ref": "common.schema.json#/$defs/milliseconds",
+      "minimum": 1
+    },
+    "increment_ms": {
+      "description": "Time added after each own move.",
+      "$ref": "common.schema.json#/$defs/milliseconds"
+    },
+    "startup_ms": {
+      "description": "Budget for process start and on_game_start, separate from the thinking time; ready must arrive within it.",
+      "$ref": "common.schema.json#/$defs/milliseconds",
+      "minimum": 1
+    },
+    "memory_limit_mib": {
+      "description": "Fixed memory protection limit of the sandbox (A14), for information only, e.g. to size a hash table.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "discipline": { "$ref": "common.schema.json#/$defs/name" },
+    "opponent_name": { "$ref": "common.schema.json#/$defs/name" }
+  },
+  "required": [
+    "type",
+    "supported",
+    "game_id",
+    "color",
+    "start_fen",
+    "initial_time_ms",
+    "increment_ms",
+    "startup_ms",
+    "memory_limit_mib",
+    "discipline",
+    "opponent_name"
+  ],
+  "additionalProperties": false
+}

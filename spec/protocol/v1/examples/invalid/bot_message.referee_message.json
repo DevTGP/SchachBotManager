@@ -1,0 +1,1 @@
+{"type":"init","supported":[1],"game_id":"66f1c2a9e4b0a1b2c3d4e5f6","color":"white","start_fen":"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1","initial_time_ms":300000,"increment_ms":2000,"startup_ms":10000,"memory_limit_mib":1024,"discipline":"Blitz 5+2","opponent_name":"Stockfisch Junior"}

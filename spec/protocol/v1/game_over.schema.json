@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "game_over (referee to bot)",
+  "description": "End of the game; the bot process is stopped after a short grace period. Can arrive before version negotiation succeeded, so it carries no v; its format is stable across all protocol versions and only gains new fields.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "game_over" },
+    "result": {
+      "description": "PGN result; * if the game was aborted without rating.",
+      "enum": ["1-0", "0-1", "1/2-1/2", "*"]
+    },
+    "termination": {
+      "description": "Machine-readable reason, the same codes as stored in the database.",
+      "enum": [
+        "checkmate",
+        "resignation",
+        "timeout",
+        "illegal_move",
+        "protocol_violation",
+        "crash",
+        "memory_limit",
+        "startup_timeout",
+        "stalemate",
+        "threefold_repetition",
+        "fifty_move_rule",
+        "insufficient_material",
+        "timeout_insufficient_material",
+        "max_moves",
+        "aborted"
+      ]
+    }
+  },
+  "required": ["type", "result", "termination"],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "description": "Decisive terminations have a winner.",
+      "if": {
+        "properties": {
+          "termination": {
+            "enum": [
+              "checkmate",
+              "resignation",
+              "timeout",
+              "illegal_move",
+              "protocol_violation",
+              "crash",
+              "memory_limit"
+            ]
+          }
+        }
+      },
+      "then": { "properties": { "result": { "enum": ["1-0", "0-1"] } } }
+    },
+    {
+      "description": "A startup timeout has a winner, unless both bots failed to start.",
+      "if": { "properties": { "termination": { "const": "startup_timeout" } } },
+      "then": { "properties": { "result": { "enum": ["1-0", "0-1", "*"] } } }
+    },
+    {
+      "description": "Draw terminations end in a draw.",
+      "if": {
+        "properties": {
+          "termination": {
+            "enum": [
+              "stalemate",
+              "threefold_repetition",
+              "fifty_move_rule",
+              "insufficient_material",
+              "timeout_insufficient_material",
+              "max_moves"
+            ]
+          }
+        }
+      },
+      "then": { "properties": { "result": { "const": "1/2-1/2" } } }
+    },
+    {
+      "description": "Aborted games have no result.",
+      "if": { "properties": { "termination": { "const": "aborted" } } },
+      "then": { "properties": { "result": { "const": "*" } } }
+    }
+  ]
+}

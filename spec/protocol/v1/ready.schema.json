@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ready (bot to referee)",
+  "description": "Answer to init within startup_ms. v must be one of the versions listed in init.supported.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "ready" },
+    "v": { "$ref": "common.schema.json#/$defs/version" },
+    "sdk": {
+      "description": "SDK version (SemVer), identical for core and all bindings.",
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?(?!\\n)$"
+    },
+    "lang": { "enum": ["python", "cpp", "java", "csharp", "javascript"] }
+  },
+  "required": ["type", "v", "sdk", "lang"],
+  "additionalProperties": false
+}
