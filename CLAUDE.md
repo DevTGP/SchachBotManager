@@ -4,7 +4,7 @@ Website, auf der Schachbots (Python, C++, Java, C#, JavaScript) in Ligen, Turnie
 
 ## Stand
 
-**M0** laut `docs/roadmap.md` ist abgeschlossen: Festlegungen E34–E55, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`), C-Schnittstelle des Kerns (`sdk/core/include/sbm/`), Testvektoren (`spec/testvectors/`, erzeugt mit `tools/testvector-gen`). **M1** ist bis auf die Veröffentlichung der Wheels (O20) fertig: C++-Kern unter `sdk/core/` (CMake, besteht alle Vektoren, E56–E57); Python-SDK unter `sdk/python/` (nanobind, besteht alle API-Vektoren, E58–E60): `Board`, `Move`, `Clock`, `Log`, `Bot`, `run` mit `stdio`/`tcp`, `load_data` (E61–E63). Wheels für Windows, Linux und macOS über CI (E64, Veröffentlichung offen: O20). Referee-Kern als `sbm.referee` im Python-Paket (E65, strenge Prüfung der Bot-Nachrichten E66). Lokale Arena als `sbm.arena` mit dem Befehl `sbm-arena` (E67). Referenzbots `random` und `material` als `sbm.bots`, in der Arena per Kurzname (E68). Debug-Workflow: Arena-Start aus einer PGN-Stellung (`--replay`) und Vorlagenprojekt `templates/python/` mit VS-Code-Konfiguration (E69). Abnahmetest in `sdk/python/tests/test_acceptance.py`.
+**M0** laut `docs/roadmap.md` ist abgeschlossen: Festlegungen E34–E55, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`), C-Schnittstelle des Kerns (`sdk/core/include/sbm/`), Testvektoren (`spec/testvectors/`, erzeugt mit `tools/testvector-gen`). **M1** ist fertig: C++-Kern unter `sdk/core/` (CMake, besteht alle Vektoren, E56–E57); Python-SDK unter `sdk/python/` (nanobind, besteht alle API-Vektoren, E58–E60): `Board`, `Move`, `Clock`, `Log`, `Bot`, `run` mit `stdio`/`tcp`, `load_data` (E61–E63). Wheels für Windows, Linux und macOS über CI (E64), veröffentlicht auf PyPI per Versions-Tag (E70). Referee-Kern als `sbm.referee` im Python-Paket (E65, strenge Prüfung der Bot-Nachrichten E66). Lokale Arena als `sbm.arena` mit dem Befehl `sbm-arena` (E67). Referenzbots `random` und `material` als `sbm.bots`, in der Arena per Kurzname (E68). Debug-Workflow: Arena-Start aus einer PGN-Stellung (`--replay`) und Vorlagenprojekt `templates/python/` mit VS-Code-Konfiguration (E69). Abnahmetest in `sdk/python/tests/test_acceptance.py`.
 
 ## Zuerst lesen
 
@@ -74,13 +74,14 @@ Build-, Test- und Lint-Befehle hier eintragen, sobald sie entstehen.
 | Tests Python-SDK | `pytest sdk/python` (gegen das installierte Paket; nach Änderungen neu installieren) |
 | Lint/Format Python-SDK | `ruff check sdk/python` und `ruff format --check sdk/python` |
 | Wheel lokal bauen und testen | `pip install cibuildwheel==4.3.0`, dann `cibuildwheel --only cp312-win_amd64 sdk/python` (Windows mit `CMAKE_GENERATOR` wie oben; Linux-Wheels brauchen Docker); Ausgabe in `wheelhouse/` |
+| Version veröffentlichen | Version in `sdk/core/CMakeLists.txt` setzen und committen, dann `git tag vX.Y.Z` und `git push origin master vX.Y.Z`; `wheels.yml` baut, testet und lädt auf PyPI hoch (E70) |
 | Lokale Arena | `sbm-arena weiss.py schwarz.py --games 2 --moves` bzw. `python -m sbm.arena …` (nach Installation des Python-SDK; Optionen mit `--help`, E67) |
 | Referenzbot starten | `python -m sbm.bots.random_mover` bzw. `python -m sbm.bots.material`; in der Arena als `random`/`material` (E68) |
 | Stellung aus einer Partie | `sbm-arena tcp material --no-clock --replay partien.pgn --replay-ply 40` (E69) |
 | Lint/Format Vorlage | `ruff check templates/python` und `ruff format --check templates/python`; ihre Tests laufen mit `pytest sdk/python` |
 | Header des Kerns prüfen | `gcc -std=c11 -Wall -Wextra -Wpedantic -Werror -fsyntax-only -Isdk/core/include sdk/core/tests/header_check.c`, ebenso `g++ -std=c++20 … header_check.cpp` |
 
-CI: `.github/workflows/ci.yml` (Job `spec` für spec-check, Job `testvectors` für den Generator und die erzeugten Dateien, Job `core-headers` für die Header, Job `core` für Build und Tests des Kerns unter Linux, Windows und macOS, Job `python` für Build, Lint und Tests des Python-SDK samt Vorlage `templates/python` mit Python 3.11 und 3.14 unter Linux, Windows und macOS, Job `native-format` für clang-format); `.github/workflows/wheels.yml` baut und testet die Wheels aller Plattformen und lädt sie als Artefakte hoch.
+CI: `.github/workflows/ci.yml` (Job `spec` für spec-check, Job `testvectors` für den Generator und die erzeugten Dateien, Job `core-headers` für die Header, Job `core` für Build und Tests des Kerns unter Linux, Windows und macOS, Job `python` für Build, Lint und Tests des Python-SDK samt Vorlage `templates/python` mit Python 3.11 und 3.14 unter Linux, Windows und macOS, Job `native-format` für clang-format); `.github/workflows/wheels.yml` baut und testet die Wheels aller Plattformen und lädt sie als Artefakte hoch; bei einem Tag `v*` veröffentlicht der Job `publish` sie auf PyPI (Umgebung `pypi`).
 
 ## Offen (erst für M2 nötig)
 
