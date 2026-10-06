@@ -18,7 +18,7 @@
       "params": [{ "name": "fen", "type": "string" }],
       "returns": { "type": "Board" },
       "errors": ["InvalidFen"],
-      "description": "Board in the given position. All six FEN fields are required. An en passant square on which no capture is legal is accepted and dropped. Rejected: not exactly one king per side, pawns on rank 1 or 8, more than 16 pieces per side, the side not to move in check, castling rights without king and rook on their start squares, an en passant square without the pawn that just moved."
+      "description": "Board in the given position. All six FEN fields are required; the halfmove clock is a decimal number from 0 and the fullmove number one from 1, both within i32. An en passant square on which no capture is legal is accepted and dropped. Rejected: not exactly one king per side, pawns on rank 1 or 8, more than 16 pieces per side, the side not to move in check, castling rights without king and rook on their start squares, an en passant square without the pawn that just moved."
     },
     {
       "name": "fen",
