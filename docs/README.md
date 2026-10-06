@@ -10,6 +10,7 @@ Stand: 2026-10-05, Revision 4 · Status: Konzept, vor Implementierungsbeginn · 
 | 2 | [architektur/systemuebersicht.md](architektur/systemuebersicht.md) | Komponenten, Vertrauensgrenzen, Repo-Struktur |
 | 3 | [architektur/ablaeufe.md](architektur/ablaeufe.md) | Zusammenspiel der Komponenten (Upload, Match, Saison, Live) |
 | 4 | [roadmap.md](roadmap.md) | Meilensteine, Prioritäten, Reihenfolge |
+| 5 | [architektur/coding-standards.md](architektur/coding-standards.md) | Regeln und Werkzeuge je Sprache |
 
 ## Komponenten
 
