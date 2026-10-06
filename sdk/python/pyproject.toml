@@ -1,0 +1,37 @@
+[build-system]
+requires = ["scikit-build-core~=1.1", "nanobind~=3.1"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "schachbotmanager"
+dynamic = ["version"]
+description = "Bot SDK for SchachBotManager: chess board, moves and the bot main loop"
+license = "MIT-0"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+build-dir = "build/{wheel_tag}"
+cmake.build-type = "Release"
+wheel.packages = ["src/sbm"]
+
+# The SDK carries the version of the core (E36).
+[[tool.dynamic-metadata]]
+provider = "scikit_build_core.metadata.regex"
+field = "version"
+input = "../core/CMakeLists.txt"
+regex = 'project\(sbm_core VERSION (?P<value>[0-9]+\.[0-9]+\.[0-9]+)'
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM"]
