@@ -16,6 +16,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 option(SBM_BUILD_TESTS "Build the core tests" ${PROJECT_IS_TOP_LEVEL})
+option(SBM_SHARED "Build sbm as a shared library; OFF links it statically into a binding" ON)
 
 include(cmake/warnings.cmake)
 
@@ -52,8 +53,13 @@ set_target_properties(sbm_engine PROPERTIES
 )
 sbm_enable_warnings(sbm_engine)
 
-# The shared library the bindings load.
-add_library(sbm SHARED
+# The library the bindings load (shared) or link into their native module (static).
+if(SBM_SHARED)
+    set(SBM_LIBRARY_TYPE SHARED)
+else()
+    set(SBM_LIBRARY_TYPE STATIC)
+endif()
+add_library(sbm ${SBM_LIBRARY_TYPE}
     src/capi/board.cpp
     src/capi/board_moves.cpp
     src/capi/board_query.cpp
@@ -70,9 +76,13 @@ target_compile_definitions(sbm
     PRIVATE SBM_BUILD SBM_VERSION_STRING="${PROJECT_VERSION}"
 )
 set_target_properties(sbm PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
     CXX_VISIBILITY_PRESET hidden
     VISIBILITY_INLINES_HIDDEN ON
 )
+if(NOT SBM_SHARED)
+    target_compile_definitions(sbm PUBLIC SBM_STATIC)
+endif()
 sbm_enable_warnings(sbm)
 
 if(SBM_BUILD_TESTS)
