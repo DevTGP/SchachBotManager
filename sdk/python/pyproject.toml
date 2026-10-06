@@ -10,6 +10,9 @@ license = "MIT-0"
 requires-python = ">=3.11"
 dependencies = []
 
+[project.scripts]
+sbm-arena = "sbm.arena.cli:main"
+
 [project.optional-dependencies]
 dev = ["jsonschema>=4.23", "pytest>=8", "ruff>=0.6"]
 
