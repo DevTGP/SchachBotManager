@@ -80,7 +80,9 @@ SchachBotManager/
 ├── sdk/
 │   ├── core/                C++-Schachkern + C-Schnittstelle
 │   ├── python/  cpp/  java/  csharp/  javascript/   Bindings
-├── tools/arena/             Lokale Arena (CLI)
+├── tools/
+│   ├── arena/               Lokale Arena (CLI)
+│   └── spec-check/          Prüft alle JSON-Dateien unter spec/ (CI)
 ├── sandbox/                 nsjail-Konfiguration und Laufzeitverzeichnisse je Sprache
 ├── deploy/                  docker-compose, Dockerfiles, Beispiel-Umgebungsdatei
 └── .github/workflows/
