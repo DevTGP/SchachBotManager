@@ -55,9 +55,9 @@ Namen sind wortgleich, Schreibweise idiomatisch (`legal_moves` / `legalMoves` / 
 | Abfrage | `piece_at(square)`, `side_to_move()`, `castling_rights()`, `en_passant_square()`, `halfmove_clock()`, `fullmove_number()`, `king_square(color)` |
 | Züge | `legal_moves()`, `legal_captures()`, `is_legal(move)`, `make_move(move)`, `undo_move()`, `make_null_move()` / `undo_null_move()` |
 | Zustand | `is_check()`, `is_checkmate()`, `is_stalemate()`, `is_draw()`, `is_repetition(count)`, `is_fifty_move_rule()`, `is_insufficient_material()`, `is_game_over()` |
-| Hilfen | `fen()`, `from_fen(fen)`, `copy()`, `hash()` (Zobrist), `move_history()`, `to_text()` (lesbares Brett fürs Debugging) |
+| Hilfen | `fen()`, `from_fen(fen)`, `copy()`, `hash()` (Zobrist), `move_history()`, `to_text()` (lesbares Brett fürs Debugging), `parse_move(uci)` (vollständiger Zug mit Flags) |
 
-- `Move`: `from`, `to`, `promotion`, `is_capture`, `is_castling`, `is_en_passant`, `uci()`, `parse(uci)`; intern eine kompakte Ganzzahl.
+- `Move`: `from`, `to`, `promotion`, `is_capture`, `is_castling`, `is_en_passant`, `uci()`, `parse(uci)`; intern eine 16-Bit-Ganzzahl (E34). `Move.parse(uci)` kennt ohne Brett keine Flags; `is_legal` und `make_move` vergleichen deshalb nur Start, Ziel und Umwandlung.
 - `Clock`: `remaining_ms()`, `opponent_remaining_ms()`, `increment_ms()`, `elapsed_ms()`.
 - `load_data(name) -> Bytes`: Liest eine mit dem Bot hochgeladene Datendatei (E30). Einziger Weg zu Dateien; lokal liest die Funktion aus einem Ordner neben dem Bot.
 - `GameInfo`: `game_id`, `color`, `opponent_name`, `start_fen`, `initial_time_ms`, `increment_ms`, `discipline`.
@@ -76,7 +76,28 @@ Für Bots, die eigene Bewertung oder eigene Zugsortierung direkt auf den Daten r
 | `checkers()`, `pinned(color)` | Schachgebende bzw. gefesselte Figuren als Maske |
 | `piece_count(color, piece_type)` | Materialzählung |
 
-Festlegungen, die dadurch Teil der öffentlichen API werden: Feldnummerierung (a1 = 0 … h8 = 63), Bitreihenfolge, Kodierung von Figur und Farbe, Kodierung eines Zuges als Ganzzahl.
+Festlegungen, die dadurch Teil der öffentlichen API werden (E34, E35):
+
+| Begriff | Kodierung |
+|---------|-----------|
+| Feld | `rank * 8 + file`, a1 = 0 … h8 = 63 |
+| Bitboard | Bit *i* = Feld *i* (a1 = niedrigstes Bit) |
+| `Color` | `WHITE = 0`, `BLACK = 1` |
+| `PieceType` | `PAWN = 0`, `KNIGHT = 1`, `BISHOP = 2`, `ROOK = 3`, `QUEEN = 4`, `KING = 5` |
+| `Piece` | `color * 6 + type` (0–11), `NO_PIECE = 12`; Index in `bitboards()`, Wert in `squares()` |
+| Zug | 16 Bit: Bits 0–5 Startfeld, 6–11 Zielfeld, 12–15 Flags; `0` = `NULL_MOVE` |
+
+| Flags | Bedeutung |
+|-------|-----------|
+| 0 | Ruhiger Zug |
+| 1 | Doppelschritt des Bauern |
+| 2 / 3 | Kurze / lange Rochade |
+| 4 | Schlagzug |
+| 5 | Schlagen en passant |
+| 8–11 | Umwandlung in Springer, Läufer, Turm, Dame (`PieceType = (flags & 3) + 1`) |
+| 12–15 | Umwandlung mit Schlagen, gleiche Reihenfolge |
+
+Die maschinenlesbare Fassung liegt unter `spec/api/`.
 
 Darstellung von 64-Bit-Werten: Python `int`, C++ `uint64_t`, Java `long`, C# `ulong`, JavaScript `BigInt` (alternativ zwei 32-Bit-Hälften, da `BigInt`-Arithmetik langsam ist – beides anbieten).
 
@@ -113,7 +134,7 @@ Jeder Aufruf aus Python/Java/C#/JS in den Kern kostet einen festen Betrag, unabh
 - **Lebensdauer von Brett-Handles** wird vom Binding verwaltet (Freigabe über die Speicherverwaltung der Sprache); der Bot-Autor sieht keine Handles.
 - **Bot-Code darf selbst keine nativen Aufrufe machen** – das SDK ist die einzige Ausnahme in der [statischen Analyse](statische-analyse.md).
 - **Das SDK wird serverseitig bereitgestellt**, nicht mit hochgeladen.
-- **Versionierung:** Kern und Bindings tragen dieselbe Versionsnummer; ein verifizierter Bot bleibt an seine SDK-Version gebunden.
+- **Versionierung:** Kern und Bindings tragen dieselbe Versionsnummer nach SemVer; jede SDK-Version spricht genau eine Protokollversion (E36); ein verifizierter Bot bleibt an seine SDK-Version gebunden.
 - **Zeitüberschreitung in `choose_move`:** Der Server beendet den Prozess hart; es läuft kein Bot-Code mehr.
 - **Kein Threading in der API**, solange A4 gilt.
 

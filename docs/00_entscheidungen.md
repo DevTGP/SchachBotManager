@@ -1,6 +1,6 @@
 # Entscheidungen, Annahmen, offene Punkte
 
-Stand: 2026-10-05, Revision 4 (vorherige Stände unter `_archiv/`)
+Stand: 2026-10-06, Revision 4 mit Festlegungen für M0 (E34–E40; vorherige Stände unter `_archiv/`)
 
 ## 1. Entscheidungen
 
@@ -39,6 +39,13 @@ Stand: 2026-10-05, Revision 4 (vorherige Stände unter `_archiv/`)
 | E32 | Sprache der Oberfläche | Deutsch und Englisch | Übersetzungsdateien von Beginn an |
 | E33 | Bot-`info` | Bewertung/Tiefe eines Bots sind im Viewer öffentlich | – |
 | E22 | Brett-Instanz | Jeder Bot hat sein eigenes Brett im eigenen Prozess; Probezüge sind rein lokal | Der Match-Runner sieht nur den abgegebenen Zug |
+| E34 | Zugkodierung | Zug als 16-Bit-Ganzzahl: Bits 0–5 Startfeld, 6–11 Zielfeld, 12–15 Flags (0 ruhig, 1 Doppelschritt, 2/3 kurze/lange Rochade, 4 Schlagzug, 5 en passant, 8–11 Umwandlung S/L/T/D, 12–15 Umwandlung mit Schlagen); `0` = `NULL_MOVE` | `is_capture`, `is_castling`, `is_en_passant`, `promotion` ohne Brett lesbar; `Move.parse(uci)` kennt keine Flags, deshalb `board.parse_move(uci)`; `is_legal`/`make_move` vergleichen nur Start, Ziel, Umwandlung |
+| E35 | Figur, Farbe, Feld | `WHITE = 0`, `BLACK = 1`; `PAWN = 0` … `KING = 5` (Bauer, Springer, Läufer, Turm, Dame, König); `Piece = color * 6 + type` (0–11), `NO_PIECE = 12`; Feld = `rank * 8 + file` (a1 = 0 … h8 = 63); Bit *i* eines Bitboards = Feld *i* | Index in `bitboards()` = `Piece`-Code; `squares()` liefert 64 `Piece`-Codes; Umwandlungsfigur = `(flags & 3) + 1` |
+| E36 | Protokollversion | `v` ist eine Ganzzahl, erhöht nur bei inkompatiblen Änderungen; Aushandlung über `supported` in `init` und `v` in `ready`; SDK-Version nach SemVer, gleich für Kern und alle Bindings, jede SDK-Version spricht genau eine Protokollversion | SDK ignoriert unbekannte Felder vom Referee; Referee prüft Bot-Nachrichten streng gegen das Schema; Schemas unter `spec/protocol/v<N>/` als JSON Schema 2020-12 |
+| E37 | Testvektoren | Durchgehend JSON, je Thema eine Datei (`perft`, `fen`, `uci`, `rules`, `api/*`); jeder Vektor hat eine `id`; tiefe Perft-Läufe mit `"slow": true` | Eigenes Schema für die Vektordateien; Perft-Stellungen aus dem Chess Programming Wiki |
+| E38 | Kern-Toolchain | C++20, Build mit CMake | – |
+| E39 | Format von `spec/api/` | JSON, mit eigenem Schema | Quelle für Binding-Tests und die spätere API-Referenz (M8) |
+| E40 | Lizenz | MIT-0 (MIT No Attribution) | Gilt für das ganze Repo inklusive SDKs; Bot-Autoren unterliegen keinen Auflagen |
 
 Aus dem Anforderungstext fix: MongoDB, Flask, GitHub Actions, Sprachen Python / C++ / Java / C# / JavaScript.
 

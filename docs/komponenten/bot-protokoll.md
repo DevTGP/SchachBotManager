@@ -23,8 +23,8 @@ Die Nachrichten sind in allen Transporten identisch; das SDK kapselt den Transpo
 
 | Richtung | `type` | Inhalt |
 |----------|--------|--------|
-| R → B | `init` | Spiel-ID, Farbe, Start-FEN, Zeitkontrolle, Limits (Speicher, Startbudget), Disziplin, Gegnername |
-| B → R | `ready` | SDK-Version, Sprache; muss innerhalb des Startbudgets kommen |
+| R → B | `init` | Unterstützte Protokollversionen (`supported`), Spiel-ID, Farbe, Start-FEN, Zeitkontrolle, Startbudget, feste Speicher-Schutzgrenze (A14, nur zur Information, z. B. für die Größe der Hashtabelle), Disziplin, Gegnername |
+| B → R | `ready` | Gewählte Protokollversion (`v`), SDK-Version (`sdk`), Sprache (`lang`); muss innerhalb des Startbudgets kommen |
 | R → B | `turn` | Letzter Gegnerzug (oder `null`), eigene/gegnerische Restzeit in ms, Zugnummer, optional FEN zur Synchronisation |
 | B → R | `move` | Zug in UCI; optional `info` (Bewertung, Tiefe, Freitext – nur Anzeige, begrenzte Größe) |
 | R → B | `game_over` | Ergebnis, Grund; danach kurze Frist bis zum Beenden |
@@ -48,7 +48,8 @@ Außerhalb von `THINKING` ist der Prozess auf dem Server eingefroren.
 | Ereignis | Folge |
 |----------|-------|
 | Kein `ready` im Startbudget | Niederlage (`startup_timeout`) |
-| Ungültiges JSON, unbekannter `type`, zu lange Zeile | Niederlage (`protocol_violation`) |
+| Ungültiges JSON, unbekannter `type`, Verstoß gegen das Schema, zu lange Zeile | Niederlage (`protocol_violation`) |
+| `v` in `ready` nicht in `supported` | Niederlage (`protocol_violation`) |
 | Illegaler oder nicht parsbarer Zug | Niederlage (`illegal_move`) |
 | Prozess endet / stürzt ab | Niederlage (`crash`) |
 | Speicherlimit überschritten | Niederlage (`memory_limit`) |
@@ -56,7 +57,8 @@ Außerhalb von `THINKING` ist der Prozess auf dem Server eingefroren.
 
 ## Zu beachten
 
-- **Versionierung:** Protokollversion wird in `init`/`ready` ausgehandelt; ein Bot ist an die SDK-Version gebunden, mit der er verifiziert wurde.
-- **Schema als Quelle der Wahrheit:** JSON-Schema unter `spec/protocol/`; Referee und alle SDKs testen gegen dieselben Beispiel-Nachrichten.
+- **Versionierung (E36):** `v` ist eine Ganzzahl und steigt nur bei inkompatiblen Änderungen; neue optionale Felder ändern sie nicht. Der Referee nennt in `init` die unterstützten Versionen, der Bot wählt in `ready` eine davon; alle weiteren Nachrichten tragen diese Version. Jede SDK-Version spricht genau eine Protokollversion; ein Bot ist an die SDK-Version gebunden, mit der er verifiziert wurde.
+- **Strenge:** Das SDK ignoriert unbekannte Felder in Nachrichten des Referees. Der Referee prüft Nachrichten des Bots streng gegen das Schema (feindliche Eingabe).
+- **Schema als Quelle der Wahrheit:** JSON Schema 2020-12 unter `spec/protocol/v<N>/`, Beispielnachrichten unter `spec/protocol/v<N>/examples/`; Referee und alle SDKs testen gegen dieselben Beispiele.
 - **Pufferung:** SDKs müssen nach jeder Nachricht flushen (häufige Fehlerquelle in C++/Java/Python).
 - **Zeitmessung:** Die Uhr läuft beim Referee, nicht im Bot. Die im SDK angezeigte Restzeit ist eine lokale Schätzung ab Empfang von `turn`.
