@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+from spec_check.api import check_api
 from spec_check.documents import check_documents
 from spec_check.examples import check_examples
 from spec_check.loading import load_json_files
@@ -20,4 +21,5 @@ def check_spec(root: Path) -> list[Problem]:
     registry = build_registry(schemas)
     problems.extend(check_documents(documents, registry, valid_schemas))
     problems.extend(check_examples(documents, registry, valid_schemas, root))
+    problems.extend(check_api(documents, registry, valid_schemas, root))
     return problems

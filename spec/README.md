@@ -32,3 +32,4 @@ Quelle der Wahrheit für Referee, SDKs und Doku. Änderungen erfolgen hier zuers
 - Jedes `pattern` folgt der Regel für reguläre Ausdrücke oben.
 - Jedes Dokument mit relativem `$schema` erfüllt dieses Schema.
 - Gültige Beispielnachrichten erfüllen das Schema ihres Typs, ungültige verletzen es.
+- Die API-Dateien sind untereinander stimmig: Jeder genannte Typ, Fehler und Besitzer ist deklariert, Namen sind eindeutig, Konstanten passen in den Wertebereich ihres Typs.
