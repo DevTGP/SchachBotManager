@@ -1,4 +1,4 @@
-# Format of the core's C++ sources and C headers (docs/architektur/coding-standards.md).
+# Format of the native C and C++ sources of all SDKs (docs/architektur/coding-standards.md).
 ---
 Language: Cpp
 BasedOnStyle: LLVM
