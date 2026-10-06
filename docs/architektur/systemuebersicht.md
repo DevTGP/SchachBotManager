@@ -81,6 +81,7 @@ SchachBotManager/
 │   ├── core/                C++-Schachkern + C-Schnittstelle
 │   ├── python/              Binding, Referee-Kern (sbm.referee), lokale Arena (sbm.arena, E65), Referenzbots (sbm.bots, E68)
 │   ├── cpp/  java/  csharp/  javascript/   Bindings
+├── templates/               Vorlagenprojekte je Sprache mit Debug-Konfiguration (python/, E69)
 ├── tools/
 │   ├── spec-check/          Prüft alle JSON-Dateien unter spec/ (CI)
 │   └── testvector-gen/      Erzeugt die Testvektoren unter spec/testvectors/ (Entwicklungswerkzeug, E54)
