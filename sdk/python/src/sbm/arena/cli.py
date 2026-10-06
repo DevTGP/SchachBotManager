@@ -12,6 +12,7 @@ from collections.abc import Sequence
 from sbm.arena.bot_spec import parse_bot, unique_names
 from sbm.arena.entrants import create_entrant
 from sbm.arena.pgn import GameInfo, to_pgn
+from sbm.arena.replay import replay_fen
 from sbm.arena.report import ConsoleReport
 from sbm.arena.series import Game, Series
 from sbm.arena.time_control import parse_time_control
@@ -26,6 +27,12 @@ EXIT_INTERRUPTED = 130
 def _positive(text: str) -> int:
     if not text.isdigit() or int(text) < 1:
         raise argparse.ArgumentTypeError(f"{text!r} is not a positive whole number")
+    return int(text)
+
+
+def _non_negative(text: str) -> int:
+    if not text.isdigit():
+        raise argparse.ArgumentTypeError(f"{text!r} is not a whole number")
     return int(text)
 
 
@@ -51,7 +58,19 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--no-clock", action="store_true", help="no time limits, e.g. for breakpoints"
     )
-    parser.add_argument("--fen", default=STANDARD_FEN, help="start position")
+    parser.add_argument("--fen", help="start position (default: the standard position)")
+    parser.add_argument(
+        "--replay", metavar="PGN", help="start where a recorded game stands, see --replay-ply"
+    )
+    parser.add_argument(
+        "--replay-game", type=_positive, metavar="N", help="game in the PGN file (default 1)"
+    )
+    parser.add_argument(
+        "--replay-ply",
+        type=_non_negative,
+        metavar="N",
+        help="half-moves to replay before the bots take over (default: all)",
+    )
     parser.add_argument("--pgn", metavar="PATH", help="append the games to this PGN file")
     parser.add_argument("--moves", action="store_true", help="print each move")
     parser.add_argument("--quiet", action="store_true", help="hide the bots' log output")
@@ -81,9 +100,24 @@ def _settings(args: argparse.Namespace) -> MatchSettings:
         startup_ms=args.startup_ms,
         tolerance_ms=args.tolerance_ms,
         max_moves=args.max_moves,
-        start_fen=args.fen,
+        start_fen=_start_fen(args),
         clock=not args.no_clock,
     )
+
+
+def _start_fen(args: argparse.Namespace) -> str:
+    if args.replay is None:
+        if args.replay_game is not None or args.replay_ply is not None:
+            raise ValueError("--replay-game and --replay-ply need --replay")
+        return args.fen or STANDARD_FEN
+    if args.fen is not None:
+        raise ValueError("--fen and --replay cannot be used together")
+    try:
+        with open(args.replay, encoding="utf-8-sig", errors="replace") as file:
+            pgn = file.read()
+        return replay_fen(pgn, args.replay_game or 1, args.replay_ply)
+    except (OSError, ValueError) as error:
+        raise ValueError(f"--replay: {error}") from None
 
 
 def _status(text: str) -> None:
@@ -98,6 +132,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         settings = _settings(args)
     except ValueError as error:
         parser.error(str(error))
+    if args.replay is not None:
+        _status(f"start position from {args.replay}: {settings.start_fen}")
 
     entrants = []
     with contextlib.ExitStack() as stack:
