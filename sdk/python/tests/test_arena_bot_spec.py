@@ -73,3 +73,11 @@ def test_tcp_ports_must_differ():
     with pytest.raises(BotSpecError, match="different ports"):
         unique_names([parse_bot("tcp"), parse_bot("tcp:7470")])
     assert len(unique_names([parse_bot("tcp"), parse_bot("tcp:7471")])) == 2
+
+
+def test_reference_bots(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "random").write_text("", encoding="utf-8")
+    assert parse_bot("Material") == BotSpec("material", [sys.executable, "-m", "sbm.bots.material"])
+    assert parse_bot("random").command == [sys.executable, "-m", "sbm.bots.random_mover"]
+    assert parse_bot(str(tmp_path / "random")).command == [str(tmp_path / "random")]

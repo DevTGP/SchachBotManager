@@ -36,7 +36,8 @@ def _parser() -> argparse.ArgumentParser:
         description="Plays games between two chess bots by the SchachBotManager protocol.",
         epilog=(
             "A bot is a .py file (run with this Python), a command line such as "
-            '"java -jar bot.jar", or tcp[:PORT] for a bot started in an IDE with --tcp.'
+            '"java -jar bot.jar", tcp[:PORT] for a bot started in an IDE with --tcp, '
+            "or a reference bot: random, material."
         ),
     )
     parser.add_argument("white", help="the bot with white in the first game")

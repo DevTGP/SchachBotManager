@@ -1,6 +1,7 @@
 """How a bot is given on the command line (E67).
 
 - "tcp" or "tcp:PORT": the bot connects over TCP, e.g. from an IDE (default port 7470).
+- "random" or "material": a reference bot from sbm.bots (E68); "./random" means a file.
 - A .py file: runs with the Python that runs the arena, so the SDK is available.
 - Anything else: a command line, e.g. "java -jar bot.jar" or "./engine".
 """
@@ -12,6 +13,9 @@ from pathlib import Path
 
 from sbm.options import DEFAULT_PORT
 from sbm.referee.settings import MAX_NAME_LENGTH
+
+# Short name: module of the reference bot.
+REFERENCE_BOTS = {"random": "sbm.bots.random_mover", "material": "sbm.bots.material"}
 
 
 class BotSpecError(ValueError):
@@ -32,6 +36,8 @@ def parse_bot(text: str) -> BotSpec:
         return _tcp(DEFAULT_PORT)
     if text.lower().startswith("tcp:"):
         return _tcp(_port(text[4:]))
+    if text.lower() in REFERENCE_BOTS:
+        return BotSpec(text.lower(), [sys.executable, "-m", REFERENCE_BOTS[text.lower()]])
     path = Path(text)
     if path.suffix.lower() == ".py":
         if not path.is_file():
