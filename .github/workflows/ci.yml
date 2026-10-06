@@ -108,10 +108,10 @@ jobs:
 
       - name: Lint
         run: |
-          ruff check sdk/python
-          ruff format --check sdk/python
+          ruff check sdk/python templates/python
+          ruff format --check sdk/python templates/python
 
-      - name: Test (API vectors, constants, errors, objects)
+      - name: Test (API vectors, constants, errors, objects, template)
         run: pytest sdk/python
 
   native-format:
