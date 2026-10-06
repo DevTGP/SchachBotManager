@@ -37,6 +37,15 @@
       "description": "Reads UCI notation and looks the move up in this position."
     },
     {
+      "name": "san",
+      "kind": "method",
+      "owner": "Board",
+      "params": [{ "name": "move", "type": "Move" }],
+      "returns": { "type": "string", "description": "e.g. e4, Nbd7, exd6, O-O, e8=Q+, Qxf7#." },
+      "errors": ["IllegalMove"],
+      "description": "Standard algebraic notation of a legal move in this position, as in PGN: piece letters KQRBN; if several pieces of the same type can reach the to-square, the from-file when it suffices, otherwise the from-rank, otherwise both; pawn captures with the from-file; x for captures, =Q for promotions, O-O and O-O-O for castling, + for check and # for checkmate."
+    },
+    {
       "name": "make_move",
       "kind": "method",
       "owner": "Board",

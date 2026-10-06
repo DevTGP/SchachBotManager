@@ -50,7 +50,16 @@
       "owner": "Board",
       "params": [],
       "returns": { "type": "bool" },
-      "description": "Neither side can checkmate: only kings, kings and one knight or bishop, or kings and any number of bishops all on squares of one color."
+      "description": "has_insufficient_material holds for both colors."
+    },
+    {
+      "name": "has_insufficient_material",
+      "kind": "method",
+      "owner": "Board",
+      "params": [{ "name": "color", "type": "Color" }],
+      "returns": { "type": "bool" },
+      "errors": ["InvalidArgument"],
+      "description": "That color cannot checkmate, used by the referee when the opponent runs out of time. True if the color has no pawns, rooks or queens and either only its king, or exactly one knight while the opponent has nothing but king and queens, or only bishops, all bishops on the board stand on squares of one color, and the opponent has no pawns and no knights."
     },
     {
       "name": "is_draw",
