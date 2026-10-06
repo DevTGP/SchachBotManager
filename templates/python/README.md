@@ -17,7 +17,7 @@ python -m venv .venv
 .venv\Scripts\pip install -r requirements.txt      (Linux/macOS: .venv/bin/pip)
 ```
 
-Solange das Paket nicht auf PyPI liegt, das SDK aus dem Repository installieren: `pip install <Repo>/sdk/python`.
+Für ein System ohne vorkompiliertes Wheel (z. B. Alpine oder 32 Bit) das SDK aus dem Repository bauen: `pip install <Repo>/sdk/python`. Das braucht einen C++-Compiler und CMake.
 
 In VS Code den Ordner öffnen, die empfohlenen Erweiterungen installieren und mit „Python: Select Interpreter“ das `.venv` wählen. Die Aufgaben starten die Arena mit diesem Interpreter.
 

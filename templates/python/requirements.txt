@@ -1,2 +1,1 @@
-# Until the package is on PyPI (O20): pip install <path to the repo>/sdk/python
 schachbotmanager
