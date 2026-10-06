@@ -14,7 +14,7 @@
       ],
       "returns": { "type": "Move" },
       "errors": ["InvalidArgument"],
-      "description": "Builds a move from its parts. Squares above 63 and the unused flags 6 and 7 are invalid. The move is not checked against any position."
+      "description": "Builds a move from its parts. Squares above 63, flags above 15 and the unused flags 6 and 7 are invalid. The move is not checked against any position."
     },
     {
       "name": "from_value",

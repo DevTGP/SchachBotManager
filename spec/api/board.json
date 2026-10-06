@@ -18,7 +18,7 @@
       "params": [{ "name": "fen", "type": "string" }],
       "returns": { "type": "Board" },
       "errors": ["InvalidFen"],
-      "description": "Board in the given position. All six FEN fields are required; the halfmove clock is a decimal number from 0 and the fullmove number one from 1, both within i32. An en passant square on which no capture is legal is accepted and dropped. Rejected: not exactly one king per side, pawns on rank 1 or 8, more than 16 pieces per side, the side not to move in check, castling rights without king and rook on their start squares, an en passant square without the pawn that just moved."
+      "description": "Board in the given position. Syntax: exactly six fields separated by single spaces; the placement as eight ranks from 8 to 1 separated by /, each made of the letters PNBRQKpnbrqk and the digits 1 to 8 without two adjacent digits and covering eight squares; the side w or b; castling - or a non-empty subsequence of KQkq in this order; en passant - or a square on rank 3 or 6; the halfmove clock a decimal number from 0 and the fullmove number one from 1, both without leading zeros and within i32. Rejected positions: not exactly one king per side, pawns on rank 1 or 8, more than 16 pieces per side, the side not to move in check, castling rights without king and rook on their start squares, an en passant square that is not on rank 6 with White to move (rank 3 with Black), that is occupied, whose square behind is occupied or that has no pawn of the side not to move in front of it. Such an en passant square is kept even if no capture on it is legal: fen and en_passant_square report it only if one is, hash follows the Polyglot rule."
     },
     {
       "name": "fen",
@@ -26,7 +26,7 @@
       "owner": "Board",
       "params": [],
       "returns": { "type": "string" },
-      "description": "FEN of the position. The en passant square is written only if an en passant capture is legal, so equal positions give equal FEN."
+      "description": "FEN of the position. The board keeps the en passant square after every double push and from from_fen, but writes it only if an en passant capture is legal, so equal positions give equal FEN."
     },
     {
       "name": "copy",
@@ -49,7 +49,7 @@
       "kind": "method",
       "owner": "Board",
       "params": [],
-      "returns": { "type": "list<Move>", "description": "Oldest first; null moves appear as NULL_MOVE." },
+      "returns": { "type": "list<Move>", "description": "Oldest first, as complete moves with all flags; null moves appear as NULL_MOVE." },
       "description": "Moves made on this board that are not undone."
     },
     {

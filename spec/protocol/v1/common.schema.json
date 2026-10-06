@@ -14,7 +14,7 @@
     "fen": {
       "description": "Position in Forsyth-Edwards Notation. Only the syntax is checked here; the core checks the position.",
       "type": "string",
-      "maxLength": 92,
+      "maxLength": 103,
       "pattern": "^([pnbrqkPNBRQK1-8]{1,8}/){7}[pnbrqkPNBRQK1-8]{1,8} [wb] (-|KQ?k?q?|Qk?q?|kq?|q) (-|[a-h][36]) (0|[1-9][0-9]*) [1-9][0-9]*(?!\\n)$"
     },
     "color": {
