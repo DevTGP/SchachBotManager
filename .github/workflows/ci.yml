@@ -202,5 +202,5 @@ jobs:
       - name: Check formatting
         run: >
           find sdk/core/include sdk/core/src sdk/core/tests sdk/python/src/native
-          -name '*.h' -o -name '*.c' -o -name '*.hpp' -o -name '*.cpp'
-          | xargs clang-format --dry-run --Werror
+          \( -name '*.h' -o -name '*.c' -o -name '*.hpp' -o -name '*.cpp' \)
+          -exec clang-format --dry-run --Werror {} +
