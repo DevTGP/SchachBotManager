@@ -50,32 +50,40 @@ def to_pgn(record: MatchRecord, settings: MatchSettings, game: GameInfo) -> str:
         ("TimeControl", time_control if clock else "-"),
         ("Termination", PGN_TERMINATIONS.get(outcome.termination, "normal")),
     ]
+    sans = [move.san for move in record.moves]
+    comment = f"{outcome.termination}: {outcome.detail}"
+    return game_text(tags, record.start_fen, sans, comment, outcome.result)
+
+
+def game_text(
+    tags: list[tuple[str, str]], start_fen: str, sans: list[str], comment: str | None, result: str
+) -> str:
+    """One PGN game from its tags and moves; the web API writes stored games with it too."""
     header = "".join(f'[{name} "{_escape(value)}"]\n' for name, value in tags)
-    return f"{header}\n{_wrap(_movetext(record))}\n"
+    return f"{header}\n{_wrap(_movetext(start_fen, sans, comment, result))}\n"
 
 
 def _escape(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"')
 
 
-def _movetext(record: MatchRecord) -> list[str]:
-    fields = record.start_fen.split()
+def _movetext(start_fen: str, sans: list[str], comment: str | None, result: str) -> list[str]:
+    fields = start_fen.split()
     black_first = fields[1] == "b"
     number = int(fields[5])
     tokens = []
-    for index, move in enumerate(record.moves):
+    for index, san in enumerate(sans):
         white_to_move = (index % 2 == 0) != black_first
         if white_to_move:
             tokens.append(f"{number}.")
         elif index == 0:
             tokens.append(f"{number}...")
-        tokens.append(move.san)
+        tokens.append(san)
         if not white_to_move:
             number += 1
-    outcome = record.outcome
-    comment = f"{outcome.termination}: {outcome.detail}"
-    comment = " ".join(comment.replace("}", ")").split())
-    tokens += ["{" + comment + "}", outcome.result]
+    if comment:
+        tokens.append("{" + " ".join(comment.replace("}", ")").split()) + "}")
+    tokens.append(result)
     return tokens
 
 
