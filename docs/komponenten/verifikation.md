@@ -1,15 +1,15 @@
 # Verifikation (Upload-Pipeline)
 
-Jeder Upload durchläuft die Pipeline vollständig, bevor der Bot an Spielen teilnehmen darf.
+Jeder Upload durchläuft die Pipeline vollständig, bevor der Bot an Spielen teilnehmen darf. Die Pipeline läuft als Job im Runner; Partien haben Vorrang (E81). Quell- und Datendateien liegen in GridFS (E82).
 
 ## Stufen
 
 | # | Stufe | Prüft | Ort |
 |---|-------|-------|-----|
 | 1 | Annahme | Rolle des Nutzers, Upload-Rate, Dateitypen, Größen, Struktur (keine Pfad-Tricks, keine Symlinks) | Web-API |
-| 2 | Statische Analyse | Regeln aus [statische-analyse.md](statische-analyse.md) | Verifier |
+| 2 | Statische Analyse | Regeln aus [statische-analyse.md](statische-analyse.md) | Runner (E81) |
 | 3 | Build | Kompilieren/Paketieren mit festen, serverseitigen Build-Einstellungen; Zeit- und Speicherlimit | Sandbox (Build-Verzeichnis) |
-| 4 | Artefaktprüfung | Größe, bei Java/C# referenzierte APIs im Kompilat | Verifier |
+| 4 | Artefaktprüfung | Größe, bei Java/C# referenzierte APIs im Kompilat | Runner (E81) |
 | 5 | Mindesttests | siehe unten | Sandbox (Laufzeitverzeichnis) |
 | 6 | Freigabe | Automatisch oder zusätzlich manuell durch Admin (konfigurierbar) | Web-API |
 

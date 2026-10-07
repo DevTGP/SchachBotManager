@@ -74,7 +74,7 @@ Abnahme: Mehrere in die Queue gestellte Partien laufen direkt hintereinander, li
 
 | Inhalt | Ergebnis |
 |--------|----------|
-| `runner`/`verifier`-Container mit erweiterten Rechten, nsjail-Konfiguration und Laufzeitverzeichnis Python, feste Schutzgrenzen, Einfrieren über cgroup | Bot läuft isoliert |
+| `runner`-Container mit erweiterten Rechten (führt auch die Verifikation aus, E81), nsjail-Konfiguration und Laufzeitverzeichnis Python, feste Schutzgrenzen, Einfrieren über cgroup | Bot läuft isoliert |
 | Statischer Analyzer Python inklusive Bibliotheks-Whitelist | Regelwerk als Konfiguration |
 | Verifikations-Pipeline mit Mindesttests und Report | Statusmodell umgesetzt |
 | Auth: Invite, Login, Rollen, Sessions | Coder und Admin |
@@ -82,6 +82,8 @@ Abnahme: Mehrere in die Queue gestellte Partien laufen direkt hintereinander, li
 | Upload mehrerer Quelldateien und Datendateien bis 1 MB, `load_data` im SDK | Mehrdatei-Bots möglich |
 | Upload-UI, „Mein Bereich“, Bot-Versionen/Abstammung, Quellcode nur für Besitzer/Admin | Coder kann Bot hochladen und Status verfolgen |
 | Negativ-Suite (Netz, Datei, Fork-Bombe, Speicher, Endlosschleife, übergroße Ausgabe) | In CI |
+
+Reihenfolge in vier Schritten, jeder für sich ausgerollt (E80): (1) Auth und Admin-Seite zum Ansetzen von Partien – umgesetzt (E83–E85); (2) nsjail im Runner und Negativ-Suite; (3) Analyzer, Verifikation und Upload; (4) „Mein Bereich“, Versionen und Reports.
 
 Abnahme: Ein eingeladener Nutzer lädt einen Python-Bot hoch; bösartige Testbots werden abgelehnt oder in der Sandbox folgenlos beendet. Der Admin stellt auf dem Server über die Website mehrere Partien ein, die direkt hintereinander laufen und im Browser abspielbar sind (aus M2 verschoben, E71).
 

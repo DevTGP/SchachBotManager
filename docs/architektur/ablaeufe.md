@@ -7,13 +7,13 @@ sequenceDiagram
   actor Coder
   Coder->>SPA: Quellcode + Metadaten
   SPA->>API: POST /bots
-  API->>Store: Quellcode ablegen
+  API->>Store: Quellcode ablegen (GridFS, E82)
   API->>DB: bot (status=uploaded), job(verify)
-  Verifier->>DB: Job holen
-  Verifier->>Verifier: Statische Analyse
-  Verifier->>Sandbox: Build (ohne Netz)
-  Verifier->>Sandbox: Mindesttests
-  Verifier->>DB: Report, status=verified | rejected
+  Runner->>DB: Job holen (Partien haben Vorrang, E81)
+  Runner->>Runner: Statische Analyse
+  Runner->>Sandbox: Build (ohne Netz)
+  Runner->>Sandbox: Mindesttests
+  Runner->>DB: Report, status=verified | rejected
   API-->>SPA: Status + Report
 ```
 

@@ -62,9 +62,9 @@ Konfigurierbare Ressourcenlimits als Wettbewerbsmerkmal sind zurückgestellt. Fa
 
 JVM, .NET und Node müssen schon jetzt auf die feste Speichergrenze eingestellt werden (Heap-Obergrenze), damit sie nicht unkontrolliert beendet werden.
 
-## Rechte von Runner und Verifier (R4, A13)
+## Rechte des Runners (R4, A13)
 
-- nsjail muss Namespaces und cgroups anlegen können. Runner und Verifier laufen als Container im Compose-Stack und bekommen dafür erweiterte Rechte (privilegiert oder gezielt: Verwaltungs-Capability, eigener cgroup-Zweig, gelockertes seccomp-Profil des Containers).
+- nsjail muss Namespaces und cgroups anlegen können. Der Runner führt Partien und Verifikation aus (E81), läuft als Container im Compose-Stack und bekommt dafür erweiterte Rechte (privilegiert oder gezielt: Verwaltungs-Capability, eigener cgroup-Zweig, gelockertes seccomp-Profil des Containers).
 - Folge: Ein Fehler im Runner selbst wirkt wie Root auf dem Host. Der Runner führt deshalb nie Bot-Code außerhalb von nsjail aus, hängt nicht am Proxy-Netz und nimmt Aufträge nur über die DB an.
 - Die Web-API hat keinerlei Möglichkeit, Prozesse zu starten.
 - Alle Sandbox-Optionen stehen fest in den Konfigurationsdateien; aus Job-Daten kommt nur die Bot-ID.

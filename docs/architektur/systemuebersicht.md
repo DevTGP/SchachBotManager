@@ -15,7 +15,6 @@ flowchart LR
     Store[(Artefakt-Speicher)]
     Sched[Scheduler]
     Runner[Match-Runner / Referee]
-    Verif[Verifier]
     subgraph Sandbox[Sandbox - kein Netz]
       BotA[Bot A]
       BotB[Bot B]
@@ -27,12 +26,10 @@ flowchart LR
   API --> Store
   Sched <--> DB
   Runner <--> DB
-  Verif <--> DB
-  Verif --> Store
   Runner --> Store
   Runner <-- stdio --> BotA
   Runner <-- stdio --> BotB
-  Verif -. Build/Test .-> Sandbox
+  Runner -. Build/Test .-> Sandbox
 ```
 
 | Komponente | Verantwortung | Detail |
@@ -40,10 +37,10 @@ flowchart LR
 | SPA | Anzeige, Viewer, Upload-UI, Admin-UI, Mensch-gegen-Bot | [frontend.md](../komponenten/frontend.md) |
 | Web-API (Flask) | REST + Live-Kanal, Auth, Rollen, Validierung; schreibt Jobs, führt **nie** Bot-Code aus | [backend-api.md](../komponenten/backend-api.md) |
 | MongoDB | Persistenz aller Stammdaten, Partien, Tabellen, Jobs | [datenmodell.md](../komponenten/datenmodell.md) |
-| Artefakt-Speicher | Quellcode-Uploads, Build-Ergebnisse, Bot-Logs (Volume oder GridFS) | [verifikation.md](../komponenten/verifikation.md) |
+| Artefakt-Speicher | Quellcode-Uploads, Build-Ergebnisse, Bot-Logs in GridFS (E82) | [verifikation.md](../komponenten/verifikation.md) |
 | Scheduler | Erzeugt Saisons, Turniere, Paarungen und Match-Jobs nach Konfiguration | [ligen-turniere.md](../komponenten/ligen-turniere.md) |
-| Match-Runner | Referee: autoritativer Spielzustand, Uhren, Start/Stopp der Bot-Prozesse | [match-runner.md](../komponenten/match-runner.md) |
-| Verifier | Statische Analyse, Build, Mindesttests für hochgeladene Bots | [verifikation.md](../komponenten/verifikation.md), [statische-analyse.md](../komponenten/statische-analyse.md) |
+| Match-Runner | Referee: autoritativer Spielzustand, Uhren, Start/Stopp der Bot-Prozesse; führt auch die Verifikation aus (E81) | [match-runner.md](../komponenten/match-runner.md) |
+| Verifikation (im Runner) | Statische Analyse, Build, Mindesttests für hochgeladene Bots | [verifikation.md](../komponenten/verifikation.md), [statische-analyse.md](../komponenten/statische-analyse.md) |
 | Sandbox (nsjail) | Isolierte Ausführung je Bot-Prozess | [sandbox.md](../komponenten/sandbox.md) |
 | Schachkern (C++) | Einzige Regelimplementierung; genutzt von Referee, Arena und allen SDKs | [sdk-api.md](../komponenten/sdk-api.md), [kern-c-schnittstelle.md](../komponenten/kern-c-schnittstelle.md) |
 | SDKs (×5) | Binding auf den Kern, Bot-API, Debug-Logging, Protokoll-Client | [sdk-api.md](../komponenten/sdk-api.md) |
@@ -54,7 +51,7 @@ flowchart LR
 | Zone | Enthält | Regel |
 |------|---------|-------|
 | Öffentlich | SPA, Web-API | Kann keine Prozesse starten, kein Bot-Code |
-| Intern vertrauenswürdig | Scheduler, Runner, Verifier, DB | Nicht von außen erreichbar; nur Runner/Verifier dürfen Sandbox-Prozesse starten |
+| Intern vertrauenswürdig | Scheduler, Runner, DB | Nicht von außen erreichbar; nur der Runner darf Sandbox-Prozesse starten |
 | Nicht vertrauenswürdig | Bot-Code (auch beim **Kompilieren**), Uploads, Eingaben lokaler Bots | Nur in der Sandbox; jede Ausgabe wird als feindliche Eingabe behandelt |
 
 Kernprinzipien:
@@ -71,12 +68,12 @@ Kernprinzipien:
 SchachBotManager/
 ├── docs/                    Konzept und Spezifikationen
 ├── spec/                    Protokoll-Schema, kanonische API-Definition, Testvektoren (Perft, Regeln, FEN/UCI/SAN, API)
-├── backend/                 Flask-API (sbm-api; in M2 nur lesend, E76)
+├── backend/                 Flask-API (sbm-api; E76, Konten und Admin-Routen E83–E85)
 ├── frontend/                SPA
 ├── services/
 │   ├── store/               Gemeinsamer Datenbankzugriff, Migrationen (sbm-store, E75)
 │   ├── runner/              Match-Runner (Job-Consumer, Sandbox-Adapter); Referee-Kern aus sdk/python (E65, E75)
-│   ├── verifier/            Pipeline + Analyzer je Sprache
+│   ├── verifier/            Pipeline + Analyzer je Sprache, ausgeführt vom Runner (E81)
 │   └── scheduler/
 ├── sdk/
 │   ├── core/                C++-Schachkern + C-Schnittstelle
