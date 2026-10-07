@@ -25,6 +25,7 @@ jobs:
       core: ${{ steps.areas.outputs.core }}
       python: ${{ steps.areas.outputs.python }}
       services: ${{ steps.areas.outputs.services }}
+      sandbox: ${{ steps.areas.outputs.sandbox }}
       frontend: ${{ steps.areas.outputs.frontend }}
       native_format: ${{ steps.areas.outputs.native_format }}
     steps:
@@ -207,6 +208,18 @@ jobs:
 
       - name: Test web API (responses checked against spec/web/openapi.json)
         run: pytest backend
+
+  sandbox:
+    name: Sandbox (negative suite)
+    needs: changes
+    if: needs.changes.outputs.sandbox == 'true'
+    # The runner image with nsjail, on a host with cgroup v2 as on the server (E86).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build the runner image and run the suite with the runner's rights
+        run: bash services/runner/tests/sandbox/run-in-docker.sh
 
   frontend:
     name: Frontend

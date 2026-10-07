@@ -15,6 +15,7 @@ declare -A areas=(
   [core]='^(sdk/core/|spec/testvectors/)'
   [python]='^(sdk/core/|sdk/python/|templates/python/|spec/)'
   [services]='^(sdk/core/|sdk/python/|services/|backend/|spec/)'
+  [sandbox]='^(sandbox/|deploy/python\.Dockerfile|sdk/core/|sdk/python/|services/)'
   [frontend]='^(frontend/|spec/web/)'
   [native_format]='^(sdk/\.clang-format$|sdk/core/(include|src|tests)/|sdk/python/src/native/)'
 )
