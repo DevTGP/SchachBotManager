@@ -243,7 +243,8 @@
         "required": ["kind", "bot_id", "name", "sdk", "lang"],
         "additionalProperties": false
       },
-      "MatchSummary": {
+      "MatchFields": {
+        "description": "The fields of MatchSummary, open for extension by Match.",
         "type": "object",
         "properties": {
           "id": { "$ref": "#/components/schemas/Id" },
@@ -282,8 +283,11 @@
           "created_at",
           "started_at",
           "finished_at"
-        ],
-        "additionalProperties": false
+        ]
+      },
+      "MatchSummary": {
+        "allOf": [{ "$ref": "#/components/schemas/MatchFields" }],
+        "unevaluatedProperties": false
       },
       "Move": {
         "type": "object",
@@ -310,7 +314,7 @@
         "additionalProperties": false
       },
       "Match": {
-        "allOf": [{ "$ref": "#/components/schemas/MatchSummary" }],
+        "allOf": [{ "$ref": "#/components/schemas/MatchFields" }],
         "type": "object",
         "properties": {
           "start_fen": { "type": "string" },
