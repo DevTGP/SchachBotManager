@@ -53,12 +53,12 @@ Pfadfilter im Monorepo, damit eine Änderung am Frontend nicht alle SDK-Tests au
 
 ## Stand M2
 
-Umgesetzt unter `deploy/` und `.github/workflows/deploy.yml` (E78). Es laufen `mongo`, `api`, `runner` und `frontend`; `scheduler`, nsjail (E72) und das Replica Set (E75) folgen später. Einen eigenen `verifier` gibt es nicht (E81).
+Umgesetzt unter `deploy/` und `.github/workflows/deploy.yml` (E78). Es laufen `mongo`, `api`, `runner` und `frontend`; `scheduler` und das Replica Set (E75) folgen später. Seit M3 Schritt 2 startet der Runner jeden Bot in nsjail (E86, E87). Einen eigenen `verifier` gibt es nicht (E81).
 
 | Datei | Inhalt |
 |-------|--------|
 | `deploy/compose.yaml` | Stack `sbm`: Dienste, internes Netz ohne Ausgang (API dort mit Alias `sbm-api`), `local-web` nur für `frontend` (Alias `sbm-frontend`), Volume `mongo-data`, Härtung, Log-Rotation; Profil `setup` für die Einmal-Dienste `mongo-users` und `migrate` |
-| `deploy/python.Dockerfile` | Image `sbm-python` für `migrate`, `api`, `runner`: baut die Wheels von SDK (mit Kern), Store, Runner und API, Laufzeit ohne Compiler als Nutzer `sbm` |
+| `deploy/python.Dockerfile` | Ziel `services`, Image `sbm-python` für `migrate` und `api`: baut die Wheels von SDK (mit Kern), Store, Runner und API, Laufzeit ohne Compiler als Nutzer `sbm`. Ziel `runner`, Image `sbm-runner`: zusätzlich nsjail, das Laufzeitverzeichnis der Python-Bots (Python 3.14.8 mit SDK) und `sandbox/`, läuft als root mit den Rechten aus `compose.yaml` (E87) |
 | `deploy/frontend.Dockerfile` | Image `sbm-frontend`: Vite-Build, ausgeliefert von nginx ohne Root auf Port 8080 |
 | `deploy/nginx.conf` | SPA mit Rückfall auf `index.html`, `/api/` an `sbm-api:8000` (Alias der API nur im internen Netz, weil `api` an `local-web` einen fremden Container treffen kann), lange Cache-Zeit nur für `/assets/`, Sicherheits-Header |
 | `deploy/mongo/users.js` | Legt die Rolle `sbm_api_writes` (E85) und die Nutzer der Dienste an oder setzt Rechte und Passwörter neu |
@@ -96,7 +96,8 @@ Umgesetzt unter `deploy/` und `.github/workflows/deploy.yml` (E78). Es laufen `m
 - Erster Admin (E83): nach dem ersten Deploy `docker compose -f deploy/compose.yaml run --rm api sbm-invite --role admin` aufrufen; der Befehl gibt einen Einladungslink aus, über den der Admin Namen und Passwort wählt. Weitere Nutzer lädt der Admin auf der Website ein.
 - Partien setzt der Admin auf der Website an (Admin → Partien); `sbm-enqueue` im Runner-Container bleibt für Tests.
 - `SBM_PROXY_HOPS` steht in `compose.yaml` fest auf 2 (Nginx Proxy Manager und der Nginx im `frontend`, E84). Steht ein weiterer Proxy davor, muss der Wert mitwachsen, sonst zählt das Login-Limit falsche Adressen.
-- Logs: `docker compose -f deploy/compose.yaml logs -f runner` (ebenso `api`, `frontend`).
+- Logs: `docker compose -f deploy/compose.yaml logs -f runner` (ebenso `api`, `frontend`). Beim Start meldet der Runner „sandbox nsjail ready“; scheitert die Selbstprüfung der Sandbox, beendet er sich, und Docker startet ihn neu. Dann im Log nach dem Grund sehen (etwa kein cgroup v2, fehlende Controller, Kernel vor 5.14).
+- Der Runner verschiebt beim Start alle Prozesse seines Containers in die cgroup `runner/`; die Wurzel seines cgroup-Baums nimmt danach keine Prozesse mehr auf. `docker compose exec runner …` sollte trotzdem gehen, weil runc dann die cgroup des Hauptprozesses nimmt; das ist nach dem ersten Deploy zu prüfen. Für Befehle wie `sbm-enqueue` ist ohnehin `docker compose run --rm runner …` vorgesehen, das einen eigenen Container startet.
 - Der Stack lässt sich lokal genauso starten: Netz `local-web` anlegen, `deploy/.env.example` nach `deploy/.env` kopieren und ausfüllen, `bash deploy/deploy.sh`.
 
 ## Zu beachten
@@ -104,7 +105,7 @@ Umgesetzt unter `deploy/` und `.github/workflows/deploy.yml` (E78). Es laufen `m
 - **Laufende Spiele beim Deploy:** Runner bekommen ein Signal „keine neuen Jobs annehmen“ und beenden laufende Spiele, oder abgebrochene Spiele werden neu angesetzt (bei 60-min-Partien relevant).
 - **Laufzeitverzeichnisse sind Teil der Spielregeln:** Neue Laufzeit-/SDK-Version = neue Version; alte bleiben, solange Bots darauf verifiziert sind.
 - **Geteilter Server (E12):** Ressourcenobergrenzen für die eigenen Dienste setzen, damit sie andere Anwendungen nicht verdrängen; Queue-Pause und Zeitfenster über die Website.
-- **Host-Voraussetzungen (Ubuntu x86-64, E26):** cgroup v2 aktiv. nsjail ist im `runner`-Image enthalten und läuft dort mit den Rechten des Containers; die Einschränkung unprivilegierter User-Namespaces neuerer Ubuntu-Versionen ist bei der Einrichtung zu prüfen.
+- **Host-Voraussetzungen (Ubuntu x86-64, E26):** cgroup v2 mit den Controllern `memory` und `pids`, Linux ab 5.14. nsjail ist im `runner`-Image enthalten und läuft dort mit den Rechten des Containers (E87). Die Einschränkung unprivilegierter User-Namespaces neuerer Ubuntu-Versionen trifft den Runner nicht, weil er sie mit `SYS_ADMIN` anlegt; die CI prüft das auf `ubuntu-latest`.
 - **Secrets:** Nur über GitHub-Secrets bzw. Umgebungsdateien auf dem Server, nie im Repo; getrennte DB-Nutzer je Dienst mit minimalen Rechten.
 - **Backups:** Regelmäßiger Dump von MongoDB und Artefakt-Speicher, außerhalb des Hosts abgelegt, Wiederherstellung testen.
 - **Migrationen:** Versionierte Skripte, vor Dienststart ausgeführt.

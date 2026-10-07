@@ -58,13 +58,14 @@ Jedes Ende bekommt einen maschinenlesbaren `termination`-Code (Liste in [bot-pro
 - **Eingaben der Bots sind feindlich:** Längenlimits, Lese-Timeouts, strikte Schema-Prüfung.
 - **stderr-Limit:** Logs werden mitgeschnitten, aber ab einer Obergrenze verworfen (kein Blockieren des Bots durch volle Pipes).
 
-### Stand M2 (E72, E75)
+### Stand M2 (E72, E75), ergänzt in M3 Schritt 2 (E86)
 
-- Der Runner (`services/runner`, Befehl `sbm-runner`) spielt nur die Referenzbots als eigene Prozesse ohne Sandbox; andere Bots führen zum Abbruch der Partie (`aborted`) ohne Wiederholung.
+- Der Runner (`services/runner`, Befehl `sbm-runner`) spielt nur die Referenzbots; andere Bots führen zum Abbruch der Partie (`aborted`) ohne Wiederholung, bis der Upload kommt (E80).
+- Mit `SBM_SANDBOX=nsjail` (im Runner-Image) läuft jeder Bot in nsjail in einer eigenen cgroup, die außerhalb seines Zuges eingefroren ist ([sandbox.md](sandbox.md)). Vor der ersten Partie richtet der Runner den cgroup-Baum ein und prüft die Sandbox; scheitert das, beendet er sich mit Code 1. Mit `SBM_SANDBOX=none` (Standard außerhalb des Images) laufen die Referenzbots als eigene Prozesse ohne Sandbox.
 - Eine Partie gleichzeitig. Vor jedem Abruf gibt der Runner abgelaufene Leases frei; ist die Queue pausiert, wartet er.
 - Infrastrukturfehler (z. B. Datenbank weg): Partie zurücksetzen, nach 30 s neuer Versuch, nach drei Versuchen `aborted`.
 - SIGTERM/SIGINT: Bots beenden, Partie und Job zurück in die Queue, Versuch zählt nicht.
-- Konfiguration über Umgebungsvariablen: `SBM_MONGO_URI`, `SBM_MONGO_DB` (Standard `sbm`), `SBM_WORKER_ID` (Standard Rechnername und PID), `SBM_LOG_LEVEL`.
+- Konfiguration über Umgebungsvariablen: `SBM_MONGO_URI`, `SBM_MONGO_DB` (Standard `sbm`), `SBM_WORKER_ID` (Standard Rechnername und PID), `SBM_LOG_LEVEL`, `SBM_SANDBOX` (`nsjail` oder `none`).
 - `sbm-enqueue WEISS SCHWARZ [--time 60+1] [--games N] [--alternate] [--fen …] [--max-moves N] [--startup-ms N] [--priority N] [--discipline NAME]` reiht Partien zwischen Bots nach Namen ein (Entwicklungswerkzeug bis M3, E71).
 
 ## Aufgezeichnete Daten pro Zug
