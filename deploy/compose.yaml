@@ -98,6 +98,9 @@ services:
       SBM_MONGO_URI: mongodb://sbm_api:${MONGO_API_PASSWORD:?}@mongo:27017/?authSource=${SBM_MONGO_DB:-sbm}
       SBM_MONGO_DB: ${SBM_MONGO_DB:-sbm}
       SBM_PUBLIC_URL: ${SBM_PUBLIC_URL:?}
+      # Nginx Proxy Manager and the frontend's nginx each add one X-Forwarded-For entry; the
+      # login limits count per client address (E84).
+      SBM_PROXY_HOPS: "2"
     command:
       - gunicorn
       - --bind=0.0.0.0:8000
@@ -117,7 +120,7 @@ services:
       retries: 3
       start_period: 10s
 
-  # In M2 only the reference bots play, without sandbox (E72); nsjail and extended rights come in M3.
+  # Only the reference bots play, without sandbox (E72); nsjail and extended rights follow in M3.
   runner:
     <<: [*python, *hardening]
     restart: unless-stopped
