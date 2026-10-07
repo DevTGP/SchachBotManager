@@ -31,10 +31,29 @@ Deutsch und Englisch. Alle Texte liegen von Beginn an in Übersetzungsdateien; S
 | Zugliste | SAN-Notation, verbrauchte Zeit pro Zug |
 | Metadaten | Bots, Versionen, Disziplin, Ergebnis, Endgrund, Wettbewerb |
 | Zusatz | Bot-`info` (Bewertung/Tiefe) als Verlauf, öffentlich sichtbar (E33), geschlagene Figuren/Materialbilanz |
-| Live | Laufende Partien aktualisieren sich über den Live-Kanal; Wechsel zwischen „live folgen“ und freiem Blättern |
+| Live | Laufende Partien aktualisieren sich über den Live-Kanal (bis M4 durch Abfragen, E77); Wechsel zwischen „live folgen“ und freiem Blättern |
 | Export | PGN, FEN der aktuellen Stellung, teilbarer Link auf Partie + Zugnummer |
 
 Der Viewer rendert nur gespeicherte Stellungen (FEN pro Zug) und braucht keine eigene Regelimplementierung.
+
+## Stand M2
+
+Umgesetzt unter `frontend/` (E77): Start, Partienliste mit Filtern, Partie-Viewer, Queue, Bot-Liste; Deutsch und Englisch. Noch nicht: Bewertungsverlauf als Grafik, Versionen, Wettbewerb, Live-Kanal, Bereiche ab M3.
+
+| Ordner | Inhalt |
+|--------|--------|
+| `src/api/` | `schema.d.ts` (aus `spec/web/openapi.json` erzeugt), Typ-Aliase, `fetch`-Hülle mit Fehlercodes, eine Funktion je Endpunkt |
+| `src/hooks/` | `useApi` (Laden, Abfragen in Abständen, Daten bleiben bei Fehlern stehen), Abfrageintervalle, Locale |
+| `src/format/` | Uhr, Zugzeit, Zeitkontrolle, Datum, Bewertung, Ergebnis |
+| `src/chess/` | Auswertung der FEN (Seite am Zug, Zugnummer, Materialbilanz, Felder eines Zuges) – keine Regeln |
+| `src/viewer/` | Stellung und Uhren je Halbzug, Zugnummer in der URL, Wiedergabe, Tastatur, Brett, Spielerleisten, Zugliste, Steuerung, Details, Bot-Info, Export |
+| `src/pages/` | Eine Datei je Seite, dazu die Queue-Tabelle |
+| `src/components/` | Rahmen mit Navigation und Sprachumschalter, Lade- und Fehleranzeige, Partientabelle, Blättern, Kopierknopf |
+| `src/i18n/` | Einrichtung und die Übersetzungsdateien `de.json`, `en.json` |
+| `src/styles/` | Farben (hell/dunkel), Rahmen und Tabellen, Viewer |
+| `src/test/` | Testdaten, `fetch`-Attrappe, Rendern einer Route |
+
+Tests: Komponenten- und Seitentests mit Vitest und Testing Library gegen eine `fetch`-Attrappe; das Brett ist dort durch einen Platzhalter ersetzt, weil jsdom keine Maße kennt. Lokal startet `npm run dev` den Vite-Server, der `/api` an `SBM_API_URL` (Standard `http://127.0.0.1:5000`) weiterreicht.
 
 ## Mensch gegen Bot
 

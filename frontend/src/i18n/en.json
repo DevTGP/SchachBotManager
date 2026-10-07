@@ -1,0 +1,146 @@
+{
+  "app": {
+    "name": "SchachBotManager",
+    "language": "Language"
+  },
+  "nav": {
+    "start": "Home",
+    "matches": "Games",
+    "queue": "Queue",
+    "bots": "Bots"
+  },
+  "common": {
+    "loading": "Loading …",
+    "none": "–",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "{{from}}–{{to}} of {{total}}"
+  },
+  "error": {
+    "invalid_parameter": "The request is invalid.",
+    "not_found": "Not found.",
+    "unavailable": "The service is unavailable right now. Please try again later.",
+    "internal": "An error occurred on the server.",
+    "network": "No connection to the server."
+  },
+  "start": {
+    "intro": "Chess bots compete against each other here. All games are public.",
+    "running": "Running games",
+    "noRunning": "No game is running right now.",
+    "recent": "Recently finished",
+    "noRecent": "No finished games yet.",
+    "allMatches": "All games"
+  },
+  "matches": {
+    "title": "Games",
+    "status": "Status",
+    "allStatuses": "All",
+    "bot": "Bot",
+    "allBots": "All bots",
+    "empty": "No games found."
+  },
+  "matchTable": {
+    "players": "Game",
+    "result": "Result",
+    "timeControl": "Time control",
+    "moves": "Moves",
+    "termination": "End",
+    "date": "Date"
+  },
+  "status": {
+    "queued": "Waiting",
+    "running": "Running",
+    "finished": "Finished",
+    "aborted": "Aborted"
+  },
+  "termination": {
+    "checkmate": "Checkmate",
+    "resignation": "Resignation",
+    "timeout": "Time forfeit",
+    "illegal_move": "Illegal move",
+    "protocol_violation": "Protocol violation",
+    "crash": "Crash",
+    "memory_limit": "Memory limit exceeded",
+    "startup_timeout": "Startup too slow",
+    "stalemate": "Stalemate",
+    "threefold_repetition": "Threefold repetition",
+    "fifty_move_rule": "Fifty-move rule",
+    "insufficient_material": "Insufficient material",
+    "timeout_insufficient_material": "Time forfeit with insufficient material",
+    "max_moves": "Move limit reached",
+    "aborted": "Aborted"
+  },
+  "bots": {
+    "title": "Bots",
+    "name": "Name",
+    "language": "Language",
+    "kind": "Kind",
+    "builtin": "Reference bot",
+    "uploaded": "Uploaded",
+    "created": "Since",
+    "matches": "Games",
+    "empty": "No bots yet."
+  },
+  "language": {
+    "python": "Python",
+    "cpp": "C++",
+    "java": "Java",
+    "csharp": "C#",
+    "javascript": "JavaScript"
+  },
+  "queue": {
+    "title": "Queue",
+    "paused": "The queue is paused; no new games start.",
+    "running": "Running",
+    "noRunning": "No game is running right now.",
+    "waiting": "Waiting",
+    "noWaiting": "No games waiting.",
+    "position": "Position",
+    "started": "Started",
+    "estimatedStart": "Starts approx.",
+    "estimatedEnd": "Ends approx.",
+    "more": "{{count}} more games are waiting.",
+    "estimateNote": "Times are estimated from the duration of earlier games with the same time control."
+  },
+  "viewer": {
+    "white": "White",
+    "black": "Black",
+    "flip": "Flip board",
+    "first": "To the start",
+    "previous": "Previous move",
+    "next": "Next move",
+    "last": "To the end",
+    "play": "Play",
+    "pause": "Pause",
+    "speed": "Speed",
+    "realTime": "Real time",
+    "follow": "Follow live",
+    "following": "Following live",
+    "startPosition": "Starting position",
+    "moves": "Moves",
+    "noMoves": "No moves yet.",
+    "status": "Status",
+    "result": "Result",
+    "termination": "End",
+    "discipline": "Discipline",
+    "started": "Started",
+    "finished": "Finished",
+    "info": "Bot info",
+    "depth": "Depth",
+    "score": "Score (White)",
+    "nodes": "Nodes",
+    "pv": "Line",
+    "noInfo": "No information for this move.",
+    "material": "Material",
+    "export": "Export",
+    "pgn": "Download PGN",
+    "copyFen": "Copy FEN",
+    "copyLink": "Copy link to this move",
+    "copied": "Copied",
+    "keyboard": "Keyboard: ← → step, Home/End jump, Space plays."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "back": "To the home page"
+  }
+}

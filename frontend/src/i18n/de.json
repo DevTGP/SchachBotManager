@@ -1,0 +1,146 @@
+{
+  "app": {
+    "name": "SchachBotManager",
+    "language": "Sprache"
+  },
+  "nav": {
+    "start": "Start",
+    "matches": "Partien",
+    "queue": "Queue",
+    "bots": "Bots"
+  },
+  "common": {
+    "loading": "Lädt …",
+    "none": "–",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "page": "{{from}}–{{to}} von {{total}}"
+  },
+  "error": {
+    "invalid_parameter": "Die Anfrage ist ungültig.",
+    "not_found": "Nicht gefunden.",
+    "unavailable": "Der Dienst ist gerade nicht erreichbar. Bitte später erneut versuchen.",
+    "internal": "Auf dem Server ist ein Fehler aufgetreten.",
+    "network": "Keine Verbindung zum Server."
+  },
+  "start": {
+    "intro": "Schachbots treten hier gegeneinander an. Alle Partien sind öffentlich ansehbar.",
+    "running": "Laufende Partien",
+    "noRunning": "Gerade läuft keine Partie.",
+    "recent": "Zuletzt beendet",
+    "noRecent": "Noch keine beendeten Partien.",
+    "allMatches": "Alle Partien"
+  },
+  "matches": {
+    "title": "Partien",
+    "status": "Status",
+    "allStatuses": "Alle",
+    "bot": "Bot",
+    "allBots": "Alle Bots",
+    "empty": "Keine Partien gefunden."
+  },
+  "matchTable": {
+    "players": "Partie",
+    "result": "Ergebnis",
+    "timeControl": "Bedenkzeit",
+    "moves": "Züge",
+    "termination": "Ende",
+    "date": "Datum"
+  },
+  "status": {
+    "queued": "Wartet",
+    "running": "Läuft",
+    "finished": "Beendet",
+    "aborted": "Abgebrochen"
+  },
+  "termination": {
+    "checkmate": "Matt",
+    "resignation": "Aufgabe",
+    "timeout": "Zeitüberschreitung",
+    "illegal_move": "Illegaler Zug",
+    "protocol_violation": "Protokollverstoß",
+    "crash": "Absturz",
+    "memory_limit": "Speicherlimit überschritten",
+    "startup_timeout": "Start zu langsam",
+    "stalemate": "Patt",
+    "threefold_repetition": "Dreifache Wiederholung",
+    "fifty_move_rule": "50-Züge-Regel",
+    "insufficient_material": "Ungenügendes Material",
+    "timeout_insufficient_material": "Zeitüberschreitung bei ungenügendem Material",
+    "max_moves": "Zuglimit erreicht",
+    "aborted": "Abgebrochen"
+  },
+  "bots": {
+    "title": "Bots",
+    "name": "Name",
+    "language": "Sprache",
+    "kind": "Art",
+    "builtin": "Referenzbot",
+    "uploaded": "Hochgeladen",
+    "created": "Seit",
+    "matches": "Partien",
+    "empty": "Noch keine Bots."
+  },
+  "language": {
+    "python": "Python",
+    "cpp": "C++",
+    "java": "Java",
+    "csharp": "C#",
+    "javascript": "JavaScript"
+  },
+  "queue": {
+    "title": "Queue",
+    "paused": "Die Queue ist pausiert; es starten keine neuen Partien.",
+    "running": "Läuft",
+    "noRunning": "Gerade läuft keine Partie.",
+    "waiting": "Wartet",
+    "noWaiting": "Keine wartenden Partien.",
+    "position": "Platz",
+    "started": "Gestartet",
+    "estimatedStart": "Start ca.",
+    "estimatedEnd": "Ende ca.",
+    "more": "{{count}} weitere Partien warten.",
+    "estimateNote": "Die Zeiten sind aus der Dauer früherer Partien mit derselben Bedenkzeit geschätzt."
+  },
+  "viewer": {
+    "white": "Weiß",
+    "black": "Schwarz",
+    "flip": "Brett drehen",
+    "first": "Zum Anfang",
+    "previous": "Zug zurück",
+    "next": "Zug vor",
+    "last": "Zum Ende",
+    "play": "Abspielen",
+    "pause": "Anhalten",
+    "speed": "Geschwindigkeit",
+    "realTime": "Echtzeit",
+    "follow": "Live folgen",
+    "following": "Folgt live",
+    "startPosition": "Ausgangsstellung",
+    "moves": "Züge",
+    "noMoves": "Noch keine Züge.",
+    "status": "Status",
+    "result": "Ergebnis",
+    "termination": "Ende",
+    "discipline": "Disziplin",
+    "started": "Gestartet",
+    "finished": "Beendet",
+    "info": "Bot-Info",
+    "depth": "Tiefe",
+    "score": "Bewertung (Weiß)",
+    "nodes": "Knoten",
+    "pv": "Variante",
+    "noInfo": "Keine Angaben zu diesem Zug.",
+    "material": "Material",
+    "export": "Export",
+    "pgn": "PGN herunterladen",
+    "copyFen": "FEN kopieren",
+    "copyLink": "Link auf diesen Zug kopieren",
+    "copied": "Kopiert",
+    "keyboard": "Tastatur: ← → blättern, Pos1/Ende springen, Leertaste spielt ab."
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "back": "Zur Startseite"
+  }
+}
