@@ -68,14 +68,26 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
         run: |
+          host=$(printf '%s' "$SSH_HOST" | tr -d '[:space:]')
+          port=$(printf '%s' "${SSH_PORT:-22}" | tr -d '[:space:]')
+          user=$(printf '%s' "$SSH_USER" | tr -d '[:space:]')
           install -m 700 -d ~/.ssh
-          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
-          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # Secrets pasted in the browser may carry CRLF line ends, which ssh does not parse.
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/deploy_key
+          printf '%s\n' "$SSH_KNOWN_HOSTS" | tr -d '\r' > ~/.ssh/known_hosts
+          entry=$host
+          if [ "$port" != 22 ]; then entry="[$host]:$port"; fi
+          if ! ssh-keygen -F "$entry" -f ~/.ssh/known_hosts > /dev/null; then
+            echo "::error::SSH_KNOWN_HOSTS has no line for SSH_HOST; each line must start with exactly the value of SSH_HOST (as [host]:port for a port other than 22)"
+            exit 1
+          fi
+          echo "Host keys from SSH_KNOWN_HOSTS:"
+          ssh-keygen -l -f ~/.ssh/known_hosts
           cat > ~/.ssh/config <<EOF
           Host server
-            HostName $SSH_HOST
-            Port ${SSH_PORT:-22}
-            User $SSH_USER
+            HostName $host
+            Port $port
+            User $user
             IdentityFile ~/.ssh/deploy_key
             IdentitiesOnly yes
             StrictHostKeyChecking yes
