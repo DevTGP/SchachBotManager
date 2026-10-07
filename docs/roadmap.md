@@ -62,13 +62,13 @@ Abnahme: Auf einem frischen Rechner reichen `pip install` und ein Skript, um zwe
 | Inhalt | Ergebnis |
 |--------|----------|
 | MongoDB-Schema für `matches`, `bots`, `jobs`, `settings` | Indizes, Migrationsmechanik |
-| Runner als Dienst mit Spiel-Queue (noch ohne Sandbox, nur vertrauenswürdige Bots) | Spiele laufen lückenlos nacheinander und werden gespeichert |
-| Flask-API: Partien, Bots, Queue lesen (öffentlich) | OpenAPI-Vertrag |
+| Runner als Dienst mit Spiel-Queue (noch ohne Sandbox, nur die Referenzbots, E72) | Spiele laufen lückenlos nacheinander und werden gespeichert |
+| Flask-API: Partien, Bots, Queue lesen (öffentlich) | OpenAPI-Vertrag unter `spec/web/` (E73) |
 | React-SPA: Grundgerüst, Partie-Viewer mit Geschwindigkeiten, Queue-Ansicht mit geschätzten Startzeiten | Gespeicherte Partien ansehbar |
 | Deployment: Compose-Stack, SSH-Deploy aus GitHub Actions, Anbindung an Nginx Proxy Manager über `local-web` | Stack kommt per GitHub Actions auf den Server und ist unter der Subdomain erreichbar |
 | Zweisprachigkeit (Deutsch/Englisch) im SPA-Grundgerüst | Übersetzungsdateien von Beginn an |
 
-Abnahme: Mehrere vom Admin eingestellte Partien laufen auf dem Server direkt hintereinander, liegen in der DB und sind im Browser ohne Login vollständig abspielbar.
+Abnahme: Mehrere in die Queue gestellte Partien laufen direkt hintereinander, liegen in der DB und sind im Browser ohne Login vollständig abspielbar; der Stack läuft auf dem Server unter der Subdomain. Die Partien stellen in M2 Tests und Entwicklungswerkzeuge ein; dass der Admin sie auf dem Server über die Website einstellt, gehört zur Abnahme von M3 (E71).
 
 ### M3 – Sandbox, Verifikation, Upload, Auth (P1)
 
@@ -78,11 +78,12 @@ Abnahme: Mehrere vom Admin eingestellte Partien laufen auf dem Server direkt hin
 | Statischer Analyzer Python inklusive Bibliotheks-Whitelist | Regelwerk als Konfiguration |
 | Verifikations-Pipeline mit Mindesttests und Report | Statusmodell umgesetzt |
 | Auth: Invite, Login, Rollen, Sessions | Coder und Admin |
+| Admin-Seite zum Ansetzen von Partien (aus M2, E71) | Partien auf dem Server ohne DB-Zugriff |
 | Upload mehrerer Quelldateien und Datendateien bis 1 MB, `load_data` im SDK | Mehrdatei-Bots möglich |
 | Upload-UI, „Mein Bereich“, Bot-Versionen/Abstammung, Quellcode nur für Besitzer/Admin | Coder kann Bot hochladen und Status verfolgen |
 | Negativ-Suite (Netz, Datei, Fork-Bombe, Speicher, Endlosschleife, übergroße Ausgabe) | In CI |
 
-Abnahme: Ein eingeladener Nutzer lädt einen Python-Bot hoch; bösartige Testbots werden abgelehnt oder in der Sandbox folgenlos beendet.
+Abnahme: Ein eingeladener Nutzer lädt einen Python-Bot hoch; bösartige Testbots werden abgelehnt oder in der Sandbox folgenlos beendet. Der Admin stellt auf dem Server über die Website mehrere Partien ein, die direkt hintereinander laufen und im Browser abspielbar sind (aus M2 verschoben, E71).
 
 ### M4 – Ligen und Saisons (P1)
 
