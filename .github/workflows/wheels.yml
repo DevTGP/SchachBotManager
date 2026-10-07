@@ -3,12 +3,12 @@ name: Wheels
 # Builds and tests the Python SDK wheels for every platform (E64) and keeps them as workflow
 # artifacts. A version tag such as v0.1.0 also publishes them on PyPI through trusted publishing
 # (E70); PyPI knows this file and the environment pypi as the only allowed publisher.
+# It runs only for a version tag or by hand, not for every push (E79); the CI tests the SDK on
+# every platform anyway.
 
 on:
   push:
-    branches: [master]
     tags: ["v*"]
-  pull_request:
   workflow_dispatch:
 
 permissions:
