@@ -28,5 +28,8 @@ echo "== health"
 compose exec -T frontend wget -q -O - http://127.0.0.1:8080/api/v1/health
 echo
 
+# needs-deploy.sh compares the next commit with this one (E79).
+git rev-parse HEAD > deploy/.deployed-commit
+
 docker image prune -f >/dev/null
 echo "== done"

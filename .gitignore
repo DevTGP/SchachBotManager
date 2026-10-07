@@ -26,6 +26,9 @@ $RECYCLE.BIN/
 .env.*
 !.env.example
 
+### Deployment state on the server
+deploy/.deployed-commit
+
 ### Python
 __pycache__/
 *.py[cod]

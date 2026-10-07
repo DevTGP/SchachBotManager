@@ -2,6 +2,8 @@ name: Deploy
 
 # Brings master onto the server after CI passed (E78): the server pulls the commit from GitHub,
 # gets deploy/.env from the secrets and builds the stack itself with deploy/deploy.sh.
+# After CI it builds only when something the stack is made of changed since the last deploy;
+# a manual run always builds, for example after a secret changed (E79).
 on:
   workflow_run:
     workflows: [CI]
@@ -97,9 +99,11 @@ jobs:
           chmod 600 ~/.ssh/deploy_key ~/.ssh/known_hosts ~/.ssh/config
 
       - name: Check out the commit on the server
+        id: checkout
         run: |
+          set -o pipefail
           # shellcheck disable=SC2029 # expanded here on purpose, quoted with %q for the server
-          ssh server "bash -s -- $(printf '%q ' "$DEPLOY_PATH" "$REPOSITORY_URL" "$SHA")" <<'EOF'
+          ssh server "bash -s -- $(printf '%q ' "$DEPLOY_PATH" "$REPOSITORY_URL" "$SHA")" <<'EOF' | tee checkout.log
           set -euo pipefail
           path=$1 repository=$2 sha=$3
           if [ ! -d "$path/.git" ]; then
@@ -109,9 +113,18 @@ jobs:
           git fetch --quiet origin master
           git checkout --quiet --detach "$sha"
           git log -1 --format='checked out %h %s'
+          needed=$(bash deploy/needs-deploy.sh)
+          echo "needed=$needed"
           EOF
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] || grep -qx 'needed=yes' checkout.log; then
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Nothing the stack is built from changed since the last deploy; the build is skipped"
+            echo "build=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Write the environment file
+        if: steps.checkout.outputs.build == 'true'
         env:
           SBM_PUBLIC_URL: ${{ vars.SBM_PUBLIC_URL }}
           MONGO_ROOT_PASSWORD: ${{ secrets.MONGO_ROOT_PASSWORD }}
@@ -131,6 +144,7 @@ jobs:
           } | ssh server "umask 077 && cat > $(printf '%q' "$DEPLOY_PATH/deploy/.env")"
 
       - name: Build and start the stack
+        if: steps.checkout.outputs.build == 'true'
         run: |
           # shellcheck disable=SC2029 # expanded here on purpose, quoted with %q for the server
           ssh server "cd $(printf '%q' "$DEPLOY_PATH") && bash deploy/deploy.sh"
