@@ -1,0 +1,394 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "SchachBotManager web API",
+    "version": "1",
+    "description": "Public read API for matches, bots and the game queue (backend-api.md, E73). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32).",
+    "license": { "name": "MIT-0", "identifier": "MIT-0" }
+  },
+  "servers": [{ "url": "/api/v1" }],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "get_health",
+        "summary": "Liveness of the API and its database connection.",
+        "responses": {
+          "200": {
+            "description": "The API answers and reaches the database.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Health" } }
+            }
+          },
+          "503": { "$ref": "#/components/responses/Unavailable" }
+        }
+      }
+    },
+    "/matches": {
+      "get": {
+        "operationId": "list_matches",
+        "summary": "Matches, newest first, without their moves.",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Only matches with this status.",
+            "schema": { "$ref": "#/components/schemas/MatchStatus" }
+          },
+          {
+            "name": "bot_id",
+            "in": "query",
+            "description": "Only matches in which this bot plays either colour.",
+            "schema": { "$ref": "#/components/schemas/Id" }
+          },
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Offset" }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of matches.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/MatchPage" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      }
+    },
+    "/matches/{match_id}": {
+      "parameters": [{ "$ref": "#/components/parameters/MatchId" }],
+      "get": {
+        "operationId": "get_match",
+        "summary": "One match with all moves played so far.",
+        "responses": {
+          "200": {
+            "description": "The match.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Match" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/matches/{match_id}/pgn": {
+      "parameters": [{ "$ref": "#/components/parameters/MatchId" }],
+      "get": {
+        "operationId": "get_match_pgn",
+        "summary": "The match as PGN, also while it runs (result * until it ends).",
+        "responses": {
+          "200": {
+            "description": "One PGN game.",
+            "content": { "application/x-chess-pgn": { "schema": { "type": "string" } } }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/bots": {
+      "get": {
+        "operationId": "list_bots",
+        "summary": "All bots, ordered by name.",
+        "responses": {
+          "200": {
+            "description": "The bots.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BotList" } }
+            }
+          }
+        }
+      }
+    },
+    "/bots/{bot_id}": {
+      "parameters": [
+        {
+          "name": "bot_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "get": {
+        "operationId": "get_bot",
+        "summary": "One bot.",
+        "responses": {
+          "200": {
+            "description": "The bot.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Bot" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/queue": {
+      "get": {
+        "operationId": "get_queue",
+        "summary": "Running and waiting matches in queue order with estimated start times (E20).",
+        "responses": {
+          "200": {
+            "description": "The queue.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Queue" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "MatchId": {
+        "name": "match_id",
+        "in": "path",
+        "required": true,
+        "schema": { "$ref": "#/components/schemas/Id" }
+      },
+      "Limit": {
+        "name": "limit",
+        "in": "query",
+        "description": "Page size.",
+        "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+      },
+      "Offset": {
+        "name": "offset",
+        "in": "query",
+        "description": "Number of items to skip.",
+        "schema": { "type": "integer", "minimum": 0, "maximum": 1000000, "default": 0 }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "A parameter is invalid (code invalid_parameter).",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+        }
+      },
+      "NotFound": {
+        "description": "No such resource (code not_found).",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+        }
+      },
+      "Unavailable": {
+        "description": "The database is unreachable (code unavailable).",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+        }
+      }
+    },
+    "schemas": {
+      "Id": {
+        "description": "Identifier of a document: 24 lowercase hexadecimal digits.",
+        "type": "string",
+        "pattern": "^[0-9a-f]{24}(?!\\n)$"
+      },
+      "Timestamp": { "type": "string", "format": "date-time" },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "code": { "enum": ["invalid_parameter", "not_found", "unavailable", "internal"] },
+          "message": { "description": "English text for logs; not shown to users.", "type": "string" },
+          "field": { "description": "The invalid parameter, for invalid_parameter.", "type": "string" }
+        },
+        "required": ["code", "message"],
+        "additionalProperties": false
+      },
+      "Health": {
+        "type": "object",
+        "properties": { "status": { "const": "ok" } },
+        "required": ["status"],
+        "additionalProperties": false
+      },
+      "MatchStatus": {
+        "description": "aborted: discarded after infrastructure errors and not played again (match-runner.md).",
+        "enum": ["queued", "running", "finished", "aborted"]
+      },
+      "Result": { "$ref": "../protocol/v1/game_over.schema.json#/properties/result" },
+      "Termination": { "$ref": "../protocol/v1/game_over.schema.json#/properties/termination" },
+      "Discipline": {
+        "description": "The conditions the match was played under, copied when it was created.",
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 64 },
+          "initial_time_ms": { "type": "integer", "minimum": 1 },
+          "increment_ms": { "type": "integer", "minimum": 0 },
+          "startup_ms": { "type": "integer", "minimum": 1 },
+          "tolerance_ms": { "type": "integer", "minimum": 0 },
+          "max_moves": { "type": "integer", "minimum": 1 }
+        },
+        "required": [
+          "name",
+          "initial_time_ms",
+          "increment_ms",
+          "startup_ms",
+          "tolerance_ms",
+          "max_moves"
+        ],
+        "additionalProperties": false
+      },
+      "Side": {
+        "description": "One side of a match. sdk and lang are filled once the bot reported ready.",
+        "type": "object",
+        "properties": {
+          "kind": { "const": "bot" },
+          "bot_id": { "$ref": "#/components/schemas/Id" },
+          "name": { "type": "string" },
+          "sdk": { "type": ["string", "null"] },
+          "lang": { "type": ["string", "null"] }
+        },
+        "required": ["kind", "bot_id", "name", "sdk", "lang"],
+        "additionalProperties": false
+      },
+      "MatchSummary": {
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Id" },
+          "type": { "const": "single" },
+          "status": { "$ref": "#/components/schemas/MatchStatus" },
+          "white": { "$ref": "#/components/schemas/Side" },
+          "black": { "$ref": "#/components/schemas/Side" },
+          "discipline": { "$ref": "#/components/schemas/Discipline" },
+          "result": {
+            "description": "null until the match ends.",
+            "oneOf": [{ "$ref": "#/components/schemas/Result" }, { "type": "null" }]
+          },
+          "termination": {
+            "description": "null until the match ends.",
+            "oneOf": [{ "$ref": "#/components/schemas/Termination" }, { "type": "null" }]
+          },
+          "ply_count": { "type": "integer", "minimum": 0 },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" },
+          "started_at": {
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          },
+          "finished_at": {
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "status",
+          "white",
+          "black",
+          "discipline",
+          "result",
+          "termination",
+          "ply_count",
+          "created_at",
+          "started_at",
+          "finished_at"
+        ],
+        "additionalProperties": false
+      },
+      "Move": {
+        "type": "object",
+        "properties": {
+          "ply": { "description": "1 for White's first move.", "type": "integer", "minimum": 1 },
+          "uci": { "type": "string" },
+          "san": { "type": "string" },
+          "fen": { "description": "Position after the move.", "type": "string" },
+          "spent_ms": { "description": "Thinking time of this move.", "type": "integer", "minimum": 0 },
+          "clock_ms": {
+            "description": "The mover's remaining time after the move, increment included.",
+            "type": "integer",
+            "minimum": 0
+          },
+          "info": {
+            "description": "Search information the bot reported, public (E33).",
+            "oneOf": [
+              { "$ref": "../protocol/v1/move.schema.json#/properties/info" },
+              { "type": "null" }
+            ]
+          }
+        },
+        "required": ["ply", "uci", "san", "fen", "spent_ms", "clock_ms", "info"],
+        "additionalProperties": false
+      },
+      "Match": {
+        "allOf": [{ "$ref": "#/components/schemas/MatchSummary" }],
+        "type": "object",
+        "properties": {
+          "start_fen": { "type": "string" },
+          "moves": { "type": "array", "items": { "$ref": "#/components/schemas/Move" } }
+        },
+        "required": ["start_fen", "moves"],
+        "unevaluatedProperties": false
+      },
+      "MatchPage": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/MatchSummary" } },
+          "total": { "description": "Matches matching the filter.", "type": "integer", "minimum": 0 }
+        },
+        "required": ["items", "total"],
+        "additionalProperties": false
+      },
+      "Bot": {
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Id" },
+          "name": { "type": "string" },
+          "language": { "enum": ["python", "cpp", "java", "csharp", "javascript"] },
+          "status": { "const": "verified" },
+          "builtin": {
+            "description": "A reference bot shipped with the SDK (E68, E72).",
+            "type": "boolean"
+          },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" }
+        },
+        "required": ["id", "name", "language", "status", "builtin", "created_at"],
+        "additionalProperties": false
+      },
+      "BotList": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/Bot" } }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "QueueEntry": {
+        "type": "object",
+        "properties": {
+          "match": { "$ref": "#/components/schemas/MatchSummary" },
+          "position": {
+            "description": "1 for the next match to start; 0 for running matches.",
+            "type": "integer",
+            "minimum": 0
+          },
+          "estimated_start": {
+            "description": "When the match should start; for running matches when it started.",
+            "$ref": "#/components/schemas/Timestamp"
+          },
+          "estimated_end": { "$ref": "#/components/schemas/Timestamp" }
+        },
+        "required": ["match", "position", "estimated_start", "estimated_end"],
+        "additionalProperties": false
+      },
+      "Queue": {
+        "type": "object",
+        "properties": {
+          "paused": {
+            "description": "No new matches start while the queue is paused.",
+            "type": "boolean"
+          },
+          "running": { "type": "array", "items": { "$ref": "#/components/schemas/QueueEntry" } },
+          "waiting": {
+            "description": "In start order; at most 200 entries.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/QueueEntry" },
+            "maxItems": 200
+          },
+          "waiting_total": { "type": "integer", "minimum": 0 }
+        },
+        "required": ["paused", "running", "waiting", "waiting_total"],
+        "additionalProperties": false
+      }
+    }
+  }
+}
