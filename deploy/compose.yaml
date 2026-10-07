@@ -103,6 +103,8 @@ services:
       - --bind=0.0.0.0:8000
       - --workers=${API_WORKERS:-2}
       - --access-logfile=-
+      # The control socket would go to the read-only home directory and is not needed.
+      - --no-control-socket
       - sbm_api.wsgi:app
     healthcheck:
       test:

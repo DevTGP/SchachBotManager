@@ -10,7 +10,7 @@ license = "MIT-0"
 requires-python = ">=3.12"
 # The SDK (package schachbotmanager, for PGN) and sbm-store come from this repository, as for
 # the runner.
-dependencies = ["flask>=3.1", "gunicorn>=23", "schachbotmanager>=0.1", "sbm-store>=0.1"]
+dependencies = ["flask>=3.1", "gunicorn>=25.1", "schachbotmanager>=0.1", "sbm-store>=0.1"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff>=0.6", "openapi-core>=0.23"]
