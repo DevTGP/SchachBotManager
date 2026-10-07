@@ -15,6 +15,21 @@ from sbm_runner.sandbox.jail import Sandbox
 from sbm_runner.sandbox.settings import NSJAIL, SandboxSettings
 
 
+def pytest_runtest_logreport(report: pytest.TestReport) -> None:
+    """On GitHub every error becomes an annotation, which anyone can read, unlike the job's log."""
+    if report.failed and os.environ.get("GITHUB_ACTIONS") == "true":
+        title = _escape(f"{report.nodeid} ({report.when})", ":,")
+        print(f"\n::error title={title}::{_escape(report.longreprtext[-4000:], '')}", flush=True)
+
+
+def _escape(text: str, extra: str) -> str:
+    """Escapes for a workflow command; titles also escape : and ,."""
+    text = text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    for char in extra:
+        text = text.replace(char, f"%{ord(char):02X}")
+    return text
+
+
 @pytest.fixture(scope="session")
 def sandbox() -> Sandbox:
     settings = SandboxSettings.from_env(os.environ)

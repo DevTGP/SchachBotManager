@@ -21,7 +21,8 @@ docker run --rm \
   --security-opt no-new-privileges:true \
   --security-opt seccomp=unconfined --security-opt apparmor=unconfined \
   --cgroupns private --network none \
-  --volume "$PWD/services/runner/tests/sandbox:/suite:ro" \
+  --volume "$PWD/services/runner/tests/sandbox:/suite:ro" --workdir /suite \
   --env SBM_REQUIRE_SANDBOX=1 --env PYTHONDONTWRITEBYTECODE=1 \
+  --env GITHUB_ACTIONS --env PYTEST_RUN_PATH=services/runner/tests/sandbox \
   sbm-runner-suite \
-  python -m pytest -p no:cacheprovider -v "$@" /suite
+  python -m pytest -p no:cacheprovider -v "$@" .
