@@ -2,6 +2,8 @@
 
 from sbm.referee import MatchSettings
 
+from sbm_runner.sandbox.limits import MEMORY_LIMIT_MIB
+
 
 def match_settings(match: dict) -> MatchSettings:
     discipline = match["discipline_snapshot"]
@@ -14,4 +16,5 @@ def match_settings(match: dict) -> MatchSettings:
         start_fen=match["start_fen"],
         game_id=str(match["_id"]),
         discipline=discipline["name"],
+        memory_limit_mib=MEMORY_LIMIT_MIB,
     )
