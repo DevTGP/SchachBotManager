@@ -116,6 +116,41 @@ jobs:
       - name: Test (API vectors, constants, errors, objects, template)
         run: pytest sdk/python
 
+  services:
+    name: Store and runner
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:8.0
+        ports:
+          - 27017:27017
+    env:
+      SBM_TEST_MONGO_URI: mongodb://localhost:27017
+      # Without this the database tests would be skipped instead of failing.
+      SBM_REQUIRE_MONGO: "1"
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install the SDK and the services
+        run: >-
+          pip install ./sdk/python ./services/store "./services/runner[dev]"
+          pytest-github-actions-annotate-failures==0.4.2
+
+      - name: Lint
+        run: |
+          ruff check services/store services/runner
+          ruff format --check services/store services/runner
+
+      - name: Test store
+        run: pytest services/store
+
+      - name: Test runner (real games between the reference bots)
+        run: pytest services/runner
+
   native-format:
     name: Native format
     runs-on: ubuntu-latest

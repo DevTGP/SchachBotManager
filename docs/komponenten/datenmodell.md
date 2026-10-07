@@ -66,6 +66,13 @@ Große Binärdaten (Quellcode-Archive, Artefakte, Bot-Logs) liegen im Artefakt-S
 | `users` | unique `username`, unique `email` | Login |
 | `invites`, `api_tokens` | unique `token_hash`; TTL auf `expires_at` | Lookup, Aufräumen |
 
+## Stand M2 (E75)
+
+- Zugriff nur über das Paket `sbm-store` (`services/store`). Angelegt sind `bots`, `matches`, `jobs`, `settings` (Dokument `queue` mit `paused`, `parallelism`) und `schema_migrations`.
+- Migrationen laufen mit `sbm-migrate` und sind idempotent: `0001_indexes` legt die Indizes für Partienliste, Bot-Historie, Queue-Abruf und Wiederaufnahme an, `0002_reference_bots` die Referenzbots `Random` und `Material` (E72).
+- Ein Match enthält zusätzlich `termination_detail` (Erklärung des Endes, nur intern) und `schema_version`; ein Job hält die Match-ID in `payload.match_id`.
+- Alle Zeitstempel sind UTC.
+
 ## Zu beachten
 
 - **Tabellen sind abgeleitete Daten.** Sie müssen jederzeit aus `matches` neu berechenbar sein (Reparaturwerkzeug für Admins).

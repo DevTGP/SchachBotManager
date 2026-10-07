@@ -74,7 +74,8 @@ SchachBotManager/
 ├── backend/                 Flask-API
 ├── frontend/                SPA
 ├── services/
-│   ├── runner/              Match-Runner (Job-Consumer, Sandbox-Adapter); Referee-Kern aus sdk/python (E65)
+│   ├── store/               Gemeinsamer Datenbankzugriff, Migrationen (sbm-store, E75)
+│   ├── runner/              Match-Runner (Job-Consumer, Sandbox-Adapter); Referee-Kern aus sdk/python (E65, E75)
 │   ├── verifier/            Pipeline + Analyzer je Sprache
 │   └── scheduler/
 ├── sdk/
