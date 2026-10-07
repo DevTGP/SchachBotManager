@@ -20,6 +20,22 @@ Reine API (E5). Liefert kein HTML, führt keinen Bot-Code aus und kann keine San
 
 Schichtung: Routen → Services (Geschäftslogik) → Repositories (MongoDB). Validierung aller Eingaben über Schemas; OpenAPI-Beschreibung als Vertrag für die SPA.
 
+### Stand M2 (E73, E76)
+
+Umgesetzt ist nur der lesende Teil ohne Login, als Paket `sbm-api` unter `backend/` (Modul `sbm_api`, gunicorn lädt `sbm_api.wsgi:app`). Vertrag: `spec/web/openapi.json`, Präfix `/api/v1`.
+
+| Datei | Aufgabe |
+|-------|---------|
+| `app.py` | `create_app(db, now, public_url)`; ohne `db` aus `SBM_MONGO_URI`/`SBM_MONGO_DB` |
+| `routes/*.py` | Je ein Blueprint für `health`, `matches`, `bots`, `queue` |
+| `params.py` | Prüfung von IDs, Status, `limit`, `offset` |
+| `errors.py` | Fehlerformat und Fehlerbehandlung |
+| `match_view.py`, `bot_view.py`, `timestamps.py` | Ausgabeform der Dokumente; Zeiten als RFC 3339 mit Millisekunden |
+| `pgn.py` | PGN-Export im Format der Arena |
+| `queue_view.py`, `queue_estimate.py` | Queue mit geschätzten Start- und Endzeiten (E20) |
+
+Die API liest nur über `sbm-store` (E75). Statt Repositories und Services gibt es vorerst nur Routen und Ausgabefunktionen; die Schichtung oben entsteht mit den schreibenden Routen in M3. Die Tests prüfen jede Antwort mit openapi-core gegen den Vertrag.
+
 ## Rollen und Rechte
 
 | Rolle | Darf |

@@ -71,7 +71,7 @@ Kernprinzipien:
 SchachBotManager/
 ├── docs/                    Konzept und Spezifikationen
 ├── spec/                    Protokoll-Schema, kanonische API-Definition, Testvektoren (Perft, Regeln, FEN/UCI/SAN, API)
-├── backend/                 Flask-API
+├── backend/                 Flask-API (sbm-api; in M2 nur lesend, E76)
 ├── frontend/                SPA
 ├── services/
 │   ├── store/               Gemeinsamer Datenbankzugriff, Migrationen (sbm-store, E75)

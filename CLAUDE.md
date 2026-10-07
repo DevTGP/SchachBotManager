@@ -79,15 +79,16 @@ Build-, Test- und Lint-Befehle hier eintragen, sobald sie entstehen.
 | Referenzbot starten | `python -m sbm.bots.random_mover` bzw. `python -m sbm.bots.material`; in der Arena als `random`/`material` (E68) |
 | Stellung aus einer Partie | `sbm-arena tcp material --no-clock --replay partien.pgn --replay-ply 40` (E69) |
 | Lint/Format Vorlage | `ruff check templates/python` und `ruff format --check templates/python`; ihre Tests laufen mit `pytest sdk/python` |
-| Dienste installieren | `.venv/Scripts/pip install -e services/store -e "services/runner[dev]"` (braucht das installierte Python-SDK) |
+| Dienste installieren | `.venv/Scripts/pip install -e services/store -e "services/runner[dev]" -e "backend[dev]"` (braucht das installierte Python-SDK) |
 | Test-MongoDB | `docker run -d --name sbm-test-mongo -p 127.0.0.1:27017:27017 mongo:8.0`; Tests lesen `SBM_TEST_MONGO_URI` (Standard `mongodb://localhost:27017`) und werden ohne Server übersprungen, mit `SBM_REQUIRE_MONGO=1` scheitern sie |
-| Tests Store/Runner | `pytest services/store` bzw. `pytest services/runner` (je Paket einzeln aufrufen) |
-| Lint/Format Store/Runner | `ruff check services/store services/runner` und `ruff format --check services/store services/runner` |
+| Tests Store/Runner/API | `pytest services/store`, `pytest services/runner` bzw. `pytest backend` (je Paket einzeln aufrufen; die API-Tests prüfen jede Antwort gegen `spec/web/openapi.json`) |
+| Lint/Format Store/Runner/API | `ruff check services/store services/runner backend` und `ruff format --check services/store services/runner backend` |
 | Datenbank migrieren | `sbm-migrate` (liest `SBM_MONGO_URI`, `SBM_MONGO_DB`) |
+| Web-API lokal | `flask --app sbm_api.wsgi run` mit `SBM_MONGO_URI` (und optional `SBM_MONGO_DB`, `SBM_PUBLIC_URL`); auf dem Server gunicorn mit `sbm_api.wsgi:app` (E76) |
 | Partien einreihen und spielen | `sbm-enqueue Random Material --games 2 --alternate`, dann `sbm-runner` (E75) |
 | Header des Kerns prüfen | `gcc -std=c11 -Wall -Wextra -Wpedantic -Werror -fsyntax-only -Isdk/core/include sdk/core/tests/header_check.c`, ebenso `g++ -std=c++20 … header_check.cpp` |
 
-CI: `.github/workflows/ci.yml` (Job `spec` für spec-check, Job `testvectors` für den Generator und die erzeugten Dateien, Job `core-headers` für die Header, Job `core` für Build und Tests des Kerns unter Linux, Windows und macOS, Job `python` für Build, Lint und Tests des Python-SDK samt Vorlage `templates/python` mit Python 3.11 und 3.14 unter Linux, Windows und macOS, Job `native-format` für clang-format, Job `services` für Lint und Tests von `services/store` und `services/runner` gegen einen MongoDB-Dienstcontainer); `.github/workflows/wheels.yml` baut und testet die Wheels aller Plattformen und lädt sie als Artefakte hoch; bei einem Tag `v*` veröffentlicht der Job `publish` sie auf PyPI (Umgebung `pypi`).
+CI: `.github/workflows/ci.yml` (Job `spec` für spec-check, Job `testvectors` für den Generator und die erzeugten Dateien, Job `core-headers` für die Header, Job `core` für Build und Tests des Kerns unter Linux, Windows und macOS, Job `python` für Build, Lint und Tests des Python-SDK samt Vorlage `templates/python` mit Python 3.11 und 3.14 unter Linux, Windows und macOS, Job `native-format` für clang-format, Job `services` für Lint und Tests von `services/store`, `services/runner` und `backend` gegen einen MongoDB-Dienstcontainer); `.github/workflows/wheels.yml` baut und testet die Wheels aller Plattformen und lädt sie als Artefakte hoch; bei einem Tag `v*` veröffentlicht der Job `publish` sie auf PyPI (Umgebung `pypi`).
 
 ## Offen (erst für M2 nötig)
 

@@ -117,7 +117,7 @@ jobs:
         run: pytest sdk/python
 
   services:
-    name: Store and runner
+    name: Store, runner and web API
     runs-on: ubuntu-latest
     services:
       mongo:
@@ -137,19 +137,22 @@ jobs:
 
       - name: Install the SDK and the services
         run: >-
-          pip install ./sdk/python ./services/store "./services/runner[dev]"
+          pip install ./sdk/python ./services/store "./services/runner[dev]" "./backend[dev]"
           pytest-github-actions-annotate-failures==0.4.2
 
       - name: Lint
         run: |
-          ruff check services/store services/runner
-          ruff format --check services/store services/runner
+          ruff check services/store services/runner backend
+          ruff format --check services/store services/runner backend
 
       - name: Test store
         run: pytest services/store
 
       - name: Test runner (real games between the reference bots)
         run: pytest services/runner
+
+      - name: Test web API (responses checked against spec/web/openapi.json)
+        run: pytest backend
 
   native-format:
     name: Native format
