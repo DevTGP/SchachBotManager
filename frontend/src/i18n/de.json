@@ -7,7 +7,10 @@
     "start": "Start",
     "matches": "Partien",
     "queue": "Queue",
-    "bots": "Bots"
+    "bots": "Bots",
+    "login": "Anmelden",
+    "account": "Konto",
+    "admin": "Verwaltung"
   },
   "common": {
     "loading": "Lädt …",
@@ -21,7 +24,14 @@
     "not_found": "Nicht gefunden.",
     "unavailable": "Der Dienst ist gerade nicht erreichbar. Bitte später erneut versuchen.",
     "internal": "Auf dem Server ist ein Fehler aufgetreten.",
-    "network": "Keine Verbindung zum Server."
+    "network": "Keine Verbindung zum Server.",
+    "unauthenticated": "Bitte zuerst anmelden.",
+    "forbidden": "Dafür fehlen die Rechte.",
+    "csrf_failed": "Die Anfrage wurde abgelehnt. Bitte die Seite neu laden.",
+    "invalid_credentials": "Name oder Passwort ist falsch.",
+    "invalid_token": "Der Link ist ungültig, abgelaufen oder schon benutzt.",
+    "username_taken": "Der Name ist schon vergeben.",
+    "too_many_attempts": "Zu viele Versuche. Bitte später erneut versuchen."
   },
   "start": {
     "intro": "Schachbots treten hier gegeneinander an. Alle Partien sind öffentlich ansehbar.",
@@ -138,6 +148,109 @@
     "copyLink": "Link auf diesen Zug kopieren",
     "copied": "Kopiert",
     "keyboard": "Tastatur: ← → blättern, Pos1/Ende springen, Leertaste spielt ab."
+  },
+  "fieldError": {
+    "username": "Der Name passt nicht zu den Regeln.",
+    "password": "Das Passwort muss 10 bis 128 Zeichen haben.",
+    "new_password": "Das neue Passwort muss 10 bis 128 Zeichen haben.",
+    "token": "Der Link ist ungültig.",
+    "start_fen": "Die Stellung ist ungültig.",
+    "initial_time_ms": "Die Bedenkzeit muss zwischen 1 Sekunde und 24 Stunden liegen.",
+    "increment_ms": "Das Inkrement darf höchstens 1 Stunde betragen.",
+    "games": "Es sind 1 bis 100 Partien möglich.",
+    "priority": "Die Priorität muss zwischen 0 und 1000 liegen.",
+    "max_moves": "Das Zuglimit muss zwischen 1 und 2000 liegen.",
+    "white_bot_id": "Weiß ist kein geprüfter Bot.",
+    "black_bot_id": "Schwarz ist kein geprüfter Bot.",
+    "valid_days": "Ein Link gilt 1 bis 30 Tage.",
+    "role": "Die Rolle ist unbekannt.",
+    "user_id": "Das eigene Konto lässt sich hier nicht ändern."
+  },
+  "login": {
+    "title": "Anmelden",
+    "submit": "Anmelden",
+    "inviteOnly": "Konten gibt es nur auf Einladung. Ansehen geht auch ohne Konto."
+  },
+  "account": {
+    "title": "Konto",
+    "username": "Name",
+    "password": "Passwort",
+    "currentPassword": "Aktuelles Passwort",
+    "newPassword": "Neues Passwort",
+    "repeatPassword": "Passwort wiederholen",
+    "passwordRule": "Mindestens {{min}} Zeichen.",
+    "usernameRule": "3 bis 32 Zeichen: Buchstaben, Ziffern, _ . oder -, am Anfang ein Buchstabe oder eine Ziffer.",
+    "mismatch": "Die Passwörter stimmen nicht überein.",
+    "loggedInAs": "Angemeldet als {{username}}",
+    "logout": "Abmelden",
+    "changePassword": "Passwort ändern",
+    "savePassword": "Passwort speichern",
+    "passwordChanged": "Das Passwort ist geändert. Andere Anmeldungen sind beendet."
+  },
+  "role": {
+    "coder": "Coder",
+    "admin": "Admin"
+  },
+  "invite": {
+    "title": "Einladung annehmen",
+    "intro": "Wähle einen Namen und ein Passwort für dein Konto.",
+    "submit": "Konto anlegen"
+  },
+  "reset": {
+    "title": "Neues Passwort",
+    "intro": "Wähle ein neues Passwort. Alle bisherigen Anmeldungen werden beendet.",
+    "submit": "Passwort setzen"
+  },
+  "oneTimeLink": {
+    "url": "Link",
+    "copy": "Link kopieren",
+    "note": "Der Link wird nur jetzt angezeigt und gilt einmal, bis {{expires}}."
+  },
+  "admin": {
+    "title": "Verwaltung",
+    "matches": "Partien",
+    "users": "Nutzer",
+    "invites": "Einladungen",
+    "queue": "Queue",
+    "queueRunning": "Die Queue läuft.",
+    "queuePaused": "Die Queue ist pausiert.",
+    "pause": "Pausieren",
+    "resume": "Fortsetzen",
+    "enqueueTitle": "Partien ansetzen",
+    "initialSeconds": "Bedenkzeit (s)",
+    "incrementSeconds": "Inkrement (s)",
+    "games": "Partien",
+    "priority": "Priorität",
+    "maxMoves": "Zuglimit",
+    "alternate": "Farben abwechseln",
+    "startFen": "Startstellung (FEN, optional)",
+    "startFenHint": "leer = Grundstellung",
+    "enqueue": "In die Queue stellen",
+    "queued_one": "{{count}} Partie eingereiht.",
+    "queued_other": "{{count}} Partien eingereiht.",
+    "role": "Rolle",
+    "roleOf": "Rolle von {{username}}",
+    "status": "Status",
+    "active": "Aktiv",
+    "inactive": "Deaktiviert",
+    "created": "Angelegt",
+    "lastLogin": "Letzte Anmeldung",
+    "actions": "Aktionen",
+    "you": "du",
+    "activate": "Aktivieren",
+    "deactivate": "Deaktivieren",
+    "resetLink": "Passwort-Link",
+    "resetLinkFor": "Link für ein neues Passwort von {{username}}",
+    "newInvite": "Neue Einladung",
+    "validDays": "Gültig (Tage)",
+    "createInvite": "Einladung erstellen",
+    "inviteLink": "Einladungslink ({{role}})",
+    "openInvites": "Offene Einladungen",
+    "noInvites": "Keine offenen Einladungen.",
+    "createdBy": "Von",
+    "commandLine": "Kommandozeile",
+    "expires": "Gültig bis",
+    "revoke": "Zurückziehen"
   },
   "notFound": {
     "title": "Seite nicht gefunden",

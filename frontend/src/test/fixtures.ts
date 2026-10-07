@@ -1,4 +1,4 @@
-import type { Bot, Match, MatchSummary, Move, Queue } from "../api/types";
+import type { Bot, CurrentUser, Match, MatchSummary, Move, Queue, User } from "../api/types";
 
 export const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -80,4 +80,25 @@ export const BOTS: Bot[] = [
 
 export function queue(overrides: Partial<Queue> = {}): Queue {
   return { paused: false, running: [], waiting: [], waiting_total: 0, ...overrides };
+}
+
+export const ADMIN: CurrentUser = {
+  id: "665f0000000000000000a001",
+  username: "admin",
+  role: "admin",
+};
+export const CODER: CurrentUser = {
+  id: "665f0000000000000000a002",
+  username: "bob",
+  role: "coder",
+};
+
+export function user(current: CurrentUser, overrides: Partial<User> = {}): User {
+  return {
+    ...current,
+    active: true,
+    created_at: "2026-05-01T10:00:00.000Z",
+    last_login_at: null,
+    ...overrides,
+  };
 }

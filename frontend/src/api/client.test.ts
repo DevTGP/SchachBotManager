@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { ApiError, apiUrl, getJson } from "./client";
+import { ApiError, apiUrl, getJson, sendJson } from "./client";
 
 describe("apiUrl", () => {
   it("leaves out missing parameters", () => {
@@ -34,5 +34,44 @@ describe("getJson", () => {
       new Response("<html>Bad Gateway</html>", { status: 502 }),
     );
     await expect(getJson("/matches")).rejects.toMatchObject({ code: "network", status: 502 });
+  });
+});
+
+describe("sendJson", () => {
+  it("sends the body as JSON with the CSRF header", async () => {
+    const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(Response.json({ user: null }));
+    await expect(sendJson("POST", "/session", { username: "bob" })).resolves.toEqual({
+      user: null,
+    });
+    const [url, init] = fetch.mock.calls[0]!;
+    expect(url).toBe("/api/v1/session");
+    expect(init?.method).toBe("POST");
+    expect(init?.body).toBe('{"username":"bob"}');
+    expect(new Headers(init?.headers).get("X-SBM-CSRF")).toBe("1");
+    expect(new Headers(init?.headers).get("Content-Type")).toBe("application/json");
+  });
+
+  it("returns undefined for an answer without content", async () => {
+    const fetch = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 204 }));
+    await expect(sendJson("DELETE", "/session")).resolves.toBeUndefined();
+    const init = fetch.mock.calls[0]![1];
+    expect(init?.body).toBeUndefined();
+    expect(new Headers(init?.headers).has("Content-Type")).toBe(false);
+  });
+
+  it("keeps the invalid field of an error", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      Response.json(
+        { code: "invalid_parameter", message: "too short", field: "password" },
+        { status: 400 },
+      ),
+    );
+    await expect(sendJson("POST", "/invites/redeem", {})).rejects.toMatchObject({
+      code: "invalid_parameter",
+      status: 400,
+      field: "password",
+    });
   });
 });

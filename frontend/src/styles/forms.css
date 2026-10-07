@@ -1,0 +1,98 @@
+input:not([type="checkbox"]) {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.3rem 0.5rem;
+  width: 100%;
+}
+
+button.primary {
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 32rem;
+}
+
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.form label.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form button[type="submit"] {
+  align-self: flex-start;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.link-box {
+  background: var(--highlight);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  margin: 1rem 0;
+  max-width: 48rem;
+}
+
+.link-box p {
+  margin: 0.25rem 0;
+}
+
+.link-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.link-row input {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+
+.tabs a {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 0.25rem 0;
+}
+
+.tabs a.active {
+  color: var(--text);
+  font-weight: 600;
+  border-bottom: 2px solid var(--accent);
+}

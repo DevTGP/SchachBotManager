@@ -11,6 +11,11 @@ export interface ApiState<T> {
 /** A fixed interval, or one that depends on the loaded data (for example only while a match runs). */
 export type PollInterval<T> = number | undefined | ((data: T | undefined) => number | undefined);
 
+export interface ReloadableApiState<T> extends ApiState<T> {
+  /** Loads again, for example after a change; the old data stays visible meanwhile. */
+  reload: () => void;
+}
+
 /**
  * Loads data for `key` and, with an interval, reloads it while the page is open. Data stays
  * visible while a reload runs or fails, so a running match does not flicker.
@@ -19,13 +24,15 @@ export function useApi<T>(
   load: (signal: AbortSignal) => Promise<T>,
   key: string,
   poll?: PollInterval<T>,
-): ApiState<T> {
+): ReloadableApiState<T> {
   const [state, setState] = useState<ApiState<T> & { key: string }>({
     data: undefined,
     error: undefined,
     loading: true,
     key,
   });
+  const [version, setVersion] = useState(0);
+  const reload = useCallback(() => setVersion((current) => current + 1), []);
   const loadRef = useRef(load);
   useEffect(() => {
     loadRef.current = load;
@@ -36,6 +43,7 @@ export function useApi<T>(
 
   const run = useCallback(
     async (signal: AbortSignal) => {
+      void version; // each reload is a new run for the same key
       try {
         const data = await loadRef.current(signal);
         if (!signal.aborted) setState({ data, error: undefined, loading: false, key });
@@ -51,7 +59,7 @@ export function useApi<T>(
         }));
       }
     },
-    [key],
+    [key, version],
   );
 
   // Loads once per key; a later interval only adds the reloads.
@@ -72,6 +80,6 @@ export function useApi<T>(
   }, [run, interval]);
 
   // A new key shows nothing until its data arrives, not the data of the previous key.
-  if (state.key !== key) return { data: undefined, error: undefined, loading: true };
-  return { data: state.data, error: state.error, loading: state.loading };
+  if (state.key !== key) return { data: undefined, error: undefined, loading: true, reload };
+  return { data: state.data, error: state.error, loading: state.loading, reload };
 }

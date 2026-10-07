@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link, NavLink, Outlet } from "react-router";
 
+import { AccountNav } from "./AccountNav";
 import { LanguageSwitch } from "./LanguageSwitch";
 
 const NAV = [
@@ -25,6 +26,7 @@ export function Layout() {
             </NavLink>
           ))}
         </nav>
+        <AccountNav />
         <LanguageSwitch />
       </header>
       <main>

@@ -129,6 +129,202 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Who is logged in; user is null for guests. */
+        get: operations["get_session"];
+        put?: never;
+        /** Logs in and sets the session cookie. */
+        post: operations["login"];
+        /** Ends the session and clears the cookie; also fine without a session. */
+        delete: operations["logout"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/invites/redeem": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Creates an account from an invite and logs it in (E4, E83). */
+        post: operations["redeem_invite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/password-resets/redeem": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sets a new password with a reset link from an admin, ends all other sessions of the account and logs it in. */
+        post: operations["redeem_password_reset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Changes the own password and ends all other sessions of the account. */
+        put: operations["change_password"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All accounts, ordered by name (admin). */
+        get: operations["list_users"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Changes role or active state of another account (admin); deactivation ends its sessions. */
+        patch: operations["update_user"];
+        trace?: never;
+    };
+    "/admin/users/{user_id}/password-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A one-time link that sets a new password, valid for 24 hours (admin, E83). An earlier unused link of the account stops working. */
+        post: operations["create_password_reset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Unused invites that have not expired, newest first (admin). */
+        get: operations["list_invites"];
+        put?: never;
+        /** A new one-time invite (admin, E4). */
+        post: operations["create_invite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/invites/{invite_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invite_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Withdraws an open invite (admin). */
+        delete: operations["revoke_invite"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/matches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Puts single games between two verified bots into the queue (admin, E71, E85). */
+        post: operations["enqueue_matches"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Pauses or resumes the queue (admin); a running match plays to its end. */
+        patch: operations["update_queue"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -139,7 +335,7 @@ export interface components {
         Timestamp: string;
         Error: {
             /** @enum {unknown} */
-            code: "invalid_parameter" | "not_found" | "unavailable" | "internal";
+            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts";
             /** @description English text for logs; not shown to users. */
             message: string;
             /** @description The invalid parameter, for invalid_parameter. */
@@ -246,6 +442,122 @@ export interface components {
             waiting: components["schemas"]["QueueEntry"][];
             waiting_total: number;
         };
+        /** @description 3 to 32 letters, digits, _ . or -, starting with a letter or digit; unique regardless of case (E83). */
+        Username: string;
+        /** @description 10 to 128 characters (E84). */
+        Password: string;
+        /** @description The secret part of an invite or reset link, after the # (E83). */
+        OneTimeToken: string;
+        /**
+         * @description coder: own bots; admin: everything (backend-api.md).
+         * @enum {unknown}
+         */
+        Role: "coder" | "admin";
+        CurrentUser: {
+            id: components["schemas"]["Id"];
+            username: string;
+            role: components["schemas"]["Role"];
+        };
+        SessionState: {
+            /** @description null for guests. */
+            user: components["schemas"]["CurrentUser"] | null;
+        };
+        LoginRequest: {
+            username: string;
+            password: string;
+        };
+        RedeemInvite: {
+            token: components["schemas"]["OneTimeToken"];
+            username: components["schemas"]["Username"];
+            password: components["schemas"]["Password"];
+        };
+        RedeemPasswordReset: {
+            token: components["schemas"]["OneTimeToken"];
+            password: components["schemas"]["Password"];
+        };
+        ChangePassword: {
+            current_password: string;
+            new_password: components["schemas"]["Password"];
+        };
+        User: {
+            id: components["schemas"]["Id"];
+            username: string;
+            role: components["schemas"]["Role"];
+            /** @description A deactivated account cannot log in. */
+            active: boolean;
+            created_at: components["schemas"]["Timestamp"];
+            last_login_at: components["schemas"]["Timestamp"] | null;
+        };
+        UserList: {
+            items: components["schemas"]["User"][];
+        };
+        /** @description At least one field; admins cannot change their own account this way. */
+        UserUpdate: {
+            role?: components["schemas"]["Role"];
+            active?: boolean;
+        };
+        OneTimeLink: {
+            /** @description The page of the SPA with the token after the #, so it stays out of server logs. */
+            url: string;
+            expires_at: components["schemas"]["Timestamp"];
+        };
+        Invite: {
+            id: components["schemas"]["Id"];
+            role: components["schemas"]["Role"];
+            /** @description Name of the admin; null for invites from the command line. */
+            created_by: string | null;
+            created_at: components["schemas"]["Timestamp"];
+            expires_at: components["schemas"]["Timestamp"];
+        };
+        InviteList: {
+            items: components["schemas"]["Invite"][];
+        };
+        InviteRequest: {
+            role: components["schemas"]["Role"];
+            /**
+             * @description How long the invite can be used.
+             * @default 7
+             */
+            valid_days: number;
+        };
+        CreatedInvite: {
+            invite: components["schemas"]["Invite"];
+            /** @description The page of the SPA with the token after the #, so it stays out of server logs. */
+            url: string;
+        };
+        /** @description The discipline is named after the time control in seconds, e.g. 180+2 or 20+0.5; bots get 10 s to start (E85). */
+        EnqueueRequest: {
+            white_bot_id: components["schemas"]["Id"];
+            black_bot_id: components["schemas"]["Id"];
+            initial_time_ms: number;
+            /** @default 0 */
+            increment_ms: number;
+            /** @default 1 */
+            games: number;
+            /**
+             * @description Swap colours after every game.
+             * @default false
+             */
+            alternate: boolean;
+            /**
+             * @description Higher starts first; equal priorities in the order queued.
+             * @default 100
+             */
+            priority: number;
+            /**
+             * @description Full moves until the game is drawn.
+             * @default 500
+             */
+            max_moves: number;
+            /** @description Start position; null or missing for the standard position. */
+            start_fen?: string | null;
+        };
+        EnqueuedMatches: {
+            match_ids: components["schemas"]["Id"][];
+        };
+        QueueUpdate: {
+            paused: boolean;
+        };
         /**
          * @description PGN result; * if the game was aborted without rating.
          * @enum {unknown}
@@ -300,8 +612,76 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
+        /** @description No valid session (code unauthenticated). */
+        Unauthenticated: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description The X-SBM-CSRF header is missing (code csrf_failed) or the account may not do this (code forbidden). */
+        Forbidden: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description Unknown name, wrong password or deactivated account (code invalid_credentials); for routes that need a session also unauthenticated. */
+        InvalidCredentials: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description Too many attempts from this address or for this account; try again later (code too_many_attempts, E84). */
+        TooManyAttempts: {
+            headers: {
+                /** @description Seconds until the next attempt may succeed. */
+                "Retry-After"?: number;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description A field is invalid (code invalid_parameter) or the link is unknown, used or expired (code invalid_token). */
+        BadToken: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description The name is in use, also in another case (code username_taken). */
+        UsernameTaken: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description The session after the request. */
+        Session: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["SessionState"];
+            };
+        };
     };
     parameters: {
+        /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+        Csrf: "1";
+        UserId: components["schemas"]["Id"];
         MatchId: components["schemas"]["Id"];
         /** @description Page size. */
         Limit: number;
@@ -475,6 +855,360 @@ export interface operations {
                     "application/json": components["schemas"]["Queue"];
                 };
             };
+        };
+    };
+    get_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: components["responses"]["Session"];
+        };
+    };
+    login: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            200: components["responses"]["Session"];
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["InvalidCredentials"];
+            403: components["responses"]["Forbidden"];
+            429: components["responses"]["TooManyAttempts"];
+        };
+    };
+    logout: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Logged out. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    redeem_invite: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RedeemInvite"];
+            };
+        };
+        responses: {
+            201: components["responses"]["Session"];
+            400: components["responses"]["BadToken"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["UsernameTaken"];
+            429: components["responses"]["TooManyAttempts"];
+        };
+    };
+    redeem_password_reset: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RedeemPasswordReset"];
+            };
+        };
+        responses: {
+            200: components["responses"]["Session"];
+            400: components["responses"]["BadToken"];
+            403: components["responses"]["Forbidden"];
+            429: components["responses"]["TooManyAttempts"];
+        };
+    };
+    change_password: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePassword"];
+            };
+        };
+        responses: {
+            /** @description The password is changed. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["InvalidCredentials"];
+            403: components["responses"]["Forbidden"];
+            429: components["responses"]["TooManyAttempts"];
+        };
+    };
+    list_users: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The accounts. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserList"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    update_user: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                user_id: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserUpdate"];
+            };
+        };
+        responses: {
+            /** @description The changed account. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    create_password_reset: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                user_id: components["parameters"]["UserId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The link; it is shown only this once. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OneTimeLink"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    list_invites: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The open invites. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteList"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    create_invite: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InviteRequest"];
+            };
+        };
+        responses: {
+            /** @description The invite with its link; the link is shown only this once. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedInvite"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    revoke_invite: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                invite_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The invite no longer works. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    enqueue_matches: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnqueueRequest"];
+            };
+        };
+        responses: {
+            /** @description The new matches in the order they were queued. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnqueuedMatches"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    update_queue: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QueueUpdate"];
+            };
+        };
+        responses: {
+            /** @description The queue settings now in force. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QueueUpdate"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
         };
     };
 }
