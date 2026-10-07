@@ -23,6 +23,7 @@ x-python: &python
   build:
     context: ..
     dockerfile: deploy/python.Dockerfile
+    target: services
   networks:
     - internal
   logging: *logging
@@ -120,10 +121,28 @@ services:
       retries: 3
       start_period: 10s
 
-  # Only the reference bots play, without sandbox (E72); nsjail and extended rights follow in M3.
+  # Every bot runs in nsjail, each in its own cgroup (E86). For that the runner is root inside its
+  # container with a few capabilities: SYS_ADMIN for namespaces, mounts and the cgroup tree,
+  # SETUID and SETGID for the bots' user mapping. The container's seccomp and AppArmor profiles
+  # forbid exactly these steps; nsjail puts its own seccomp policy on every bot instead.
   runner:
     <<: [*python, *hardening]
+    image: sbm-runner
+    build:
+      context: ..
+      dockerfile: deploy/python.Dockerfile
+      target: runner
     restart: unless-stopped
+    cap_add:
+      - SYS_ADMIN
+      - SETUID
+      - SETGID
+    security_opt:
+      - no-new-privileges:true
+      - seccomp:unconfined
+      - apparmor:unconfined
+    # Its own cgroup branch, which the runner remounts writable and divides among the bots.
+    cgroup: private
     depends_on:
       mongo:
         condition: service_healthy

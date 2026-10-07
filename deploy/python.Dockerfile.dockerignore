@@ -5,6 +5,7 @@
 !services/store/
 !services/runner/
 !backend/
+!sandbox/
 **/build/
 **/__pycache__/
 **/*.egg-info/
