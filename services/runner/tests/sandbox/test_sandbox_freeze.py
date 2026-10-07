@@ -2,8 +2,8 @@
 
 import time
 
+from sandbox_suite import QUICK
 from sbm import WHITE
-from sbm.referee import MatchSettings
 from sbm.referee.referee_messages import init
 
 from sbm_runner.sandbox.cgroup_tree import CGROUP_ROOT
@@ -25,7 +25,7 @@ def test_frozen_bot_gets_no_processor_time(jailed):
     player = jailed("spinner")
     try:
         player.start()
-        player.send(init(MatchSettings(), WHITE, "nobody"))
+        player.send(init(QUICK, WHITE, "nobody"))
         player.receive(time.monotonic_ns() + 10_000_000_000)
         (cgroup,) = (path for path in (CGROUP_ROOT / "bots").iterdir() if path.is_dir())
 
