@@ -12,6 +12,7 @@ from sbm_store.migrate import migrate
 
 from sbm_api.app import create_app
 
+from accounts import CSRF, Clock, add_user
 from stored_games import BLITZ, NOW, SITE
 
 SPEC = Path(__file__).resolve().parents[2] / "spec" / "web" / "openapi.json"
@@ -32,9 +33,15 @@ def reference_bots(db) -> tuple[dict, dict]:
 
 
 @pytest.fixture
-def client(db, openapi):
-    """A test client whose every response must match the OpenAPI document."""
-    app = create_app(db, now=lambda: NOW, public_url=SITE)
+def clock() -> Clock:
+    return Clock(NOW)
+
+
+@pytest.fixture
+def app(db, openapi, clock):
+    """An app whose test clients check every response against the OpenAPI document."""
+    migrate(db)
+    app = create_app(db, now=clock.now, public_url=SITE)
     app.testing = True
 
     class CheckedClient(FlaskClient):
@@ -46,7 +53,34 @@ def client(db, openapi):
             return response
 
     app.test_client_class = CheckedClient
+    return app
+
+
+@pytest.fixture
+def client(app):
     return app.test_client()
+
+
+@pytest.fixture
+def login(app, db):
+    """A client logged in to a new account with the given name and role."""
+
+    def login(username: str = "coder", role: str = "coder"):
+        user, password = add_user(db, username, role)
+        client = app.test_client()
+        response = client.post(
+            "/api/v1/session", json={"username": username, "password": password}, headers=CSRF
+        )
+        assert response.status_code == 200
+        return client, user
+
+    return login
+
+
+@pytest.fixture
+def admin(login):
+    client, _ = login("admin", "admin")
+    return client
 
 
 @pytest.fixture

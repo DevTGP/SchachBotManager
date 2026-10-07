@@ -16,3 +16,8 @@ def now() -> datetime:
 
 def public_url() -> str:
     return current_app.extensions["sbm"]["public_url"]
+
+
+def secure_cookies() -> bool:
+    """Cookies only over HTTPS once the site is served that way."""
+    return public_url().startswith("https://")

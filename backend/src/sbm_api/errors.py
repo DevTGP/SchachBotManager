@@ -1,6 +1,8 @@
 """The error format of the API: {code, message, field?}; the frontend translates the code (E32)."""
 
 import logging
+import math
+from datetime import datetime
 
 from flask import Flask
 from pymongo.errors import ConnectionFailure
@@ -12,15 +14,30 @@ INVALID_PARAMETER = "invalid_parameter"
 NOT_FOUND = "not_found"
 UNAVAILABLE = "unavailable"
 INTERNAL = "internal"
+UNAUTHENTICATED = "unauthenticated"
+FORBIDDEN = "forbidden"
+CSRF_FAILED = "csrf_failed"
+INVALID_CREDENTIALS = "invalid_credentials"
+INVALID_TOKEN = "invalid_token"
+USERNAME_TAKEN = "username_taken"
+TOO_MANY_ATTEMPTS = "too_many_attempts"
 
 
 class ApiError(Exception):
-    def __init__(self, status: int, code: str, message: str, field: str | None = None) -> None:
+    def __init__(
+        self,
+        status: int,
+        code: str,
+        message: str,
+        field: str | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> None:
         super().__init__(message)
         self.status = status
         self.code = code
         self.message = message
         self.field = field
+        self.headers = headers or {}
 
 
 def invalid_parameter(field: str, message: str) -> ApiError:
@@ -29,6 +46,32 @@ def invalid_parameter(field: str, message: str) -> ApiError:
 
 def not_found(message: str) -> ApiError:
     return ApiError(404, NOT_FOUND, message)
+
+
+def unauthenticated() -> ApiError:
+    return ApiError(401, UNAUTHENTICATED, "log in first")
+
+
+def forbidden(message: str) -> ApiError:
+    return ApiError(403, FORBIDDEN, message)
+
+
+def invalid_credentials() -> ApiError:
+    return ApiError(401, INVALID_CREDENTIALS, "wrong name or password")
+
+
+def invalid_token() -> ApiError:
+    return ApiError(400, INVALID_TOKEN, "the link is unknown, used or expired", "token")
+
+
+def too_many_attempts(now: datetime, retry_at: datetime) -> ApiError:
+    seconds = max(1, math.ceil((retry_at - now).total_seconds()))
+    return ApiError(
+        429,
+        TOO_MANY_ATTEMPTS,
+        "too many attempts, try again later",
+        headers={"Retry-After": str(seconds)},
+    )
 
 
 def body(code: str, message: str, field: str | None = None) -> dict:
@@ -41,7 +84,7 @@ def body(code: str, message: str, field: str | None = None) -> dict:
 def register_error_handlers(app: Flask) -> None:
     @app.errorhandler(ApiError)
     def api_error(error: ApiError):
-        return body(error.code, error.message, error.field), error.status
+        return body(error.code, error.message, error.field), error.status, error.headers
 
     @app.errorhandler(HTTPException)
     def http_error(error: HTTPException):
