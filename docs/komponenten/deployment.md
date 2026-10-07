@@ -32,11 +32,11 @@ Welche Angaben wohin gehören, steht unter „Stand M2“.
 
 | Workflow | Auslöser | Schritte |
 |----------|----------|----------|
-| CI | Pull Request, Push | Lint + Tests je Paket (Backend, Frontend, Dienste, Kern, Bindings), Kernvektoren, Binding-Tests, Kreuztest über die Arena, Analyzer-Tests |
-| Deploy | Push auf `master` oder manuell, nach grüner CI | Per SSH auf den Server, Stack-Dateien setzen, `docker compose` baut die Images dort und startet die Dienste neu; Migrationen laufen beim Start; Health-Check |
+| CI | Pull Request, Push, manuell; je Job nur bei Änderungen in seinem Bereich (E79) | Lint + Tests je Paket (Backend, Frontend, Dienste, Kern, Bindings), Kernvektoren, Binding-Tests, Kreuztest über die Arena, Analyzer-Tests |
+| Deploy | Nach grüner CI auf `master`, nur bei Änderungen am Stack (E79), oder manuell | Per SSH auf den Server, Stack-Dateien setzen, `docker compose` baut die Images dort und startet die Dienste neu; Migrationen laufen beim Start; Health-Check |
 | SDK-Release | Tag `sdk-vX.Y.Z` | Kern für Windows/Linux/macOS bauen, Pakete je Sprache mit eingebetteten Binaries erzeugen und veröffentlichen, Doku erzeugen |
 
-Pfadfilter im Monorepo, damit eine Änderung am Frontend nicht alle SDK-Tests auslöst.
+Pfadfilter im Monorepo, damit eine Änderung am Frontend nicht alle SDK-Tests auslöst (E79, `.github/scripts/changed-areas.sh`). Die Wheels des Python-SDK baut `wheels.yml` nur bei einem Tag `v*` oder von Hand.
 
 ### Öffentliches Repo (E27)
 
@@ -63,10 +63,11 @@ Umgesetzt unter `deploy/` und `.github/workflows/deploy.yml` (E78). In M2 laufen
 | `deploy/frontend.Dockerfile` | Image `sbm-frontend`: Vite-Build, ausgeliefert von nginx ohne Root auf Port 8080 |
 | `deploy/nginx.conf` | SPA mit Rückfall auf `index.html`, `/api/` an `sbm-api:8000` (Alias der API nur im internen Netz, weil `api` an `local-web` einen fremden Container treffen kann), lange Cache-Zeit nur für `/assets/`, Sicherheits-Header |
 | `deploy/mongo/users.js` | Legt die Nutzer der Dienste an oder setzt ihre Passwörter neu |
-| `deploy/deploy.sh` | Ablauf auf dem Server, aus dem Repo-Wurzelverzeichnis |
+| `deploy/deploy.sh` | Ablauf auf dem Server, aus dem Repo-Wurzelverzeichnis; hält am Ende den ausgerollten Commit in `deploy/.deployed-commit` fest |
+| `deploy/needs-deploy.sh` | Sagt, ob sich seit dem ausgerollten Commit etwas geändert hat, woraus der Stack gebaut wird (E79) |
 | `deploy/.env.example` | Alle Werte der Umgebungsdatei mit Erklärung |
 
-**Ablauf** (`deploy/deploy.sh`): Images bauen → Runner stoppen (laufende Partie geht an die Queue zurück, E75) → `mongo` starten → `mongo-users` → `migrate` → `api`, `runner`, `frontend` starten und auf ihre Health-Checks warten → `/api/v1/health` über das Frontend abfragen → alte Images entfernen. Während des Builds läuft der Runner weiter; das Pausieren der Queue vor dem Deploy kommt mit der Admin-Oberfläche (M3).
+**Ablauf** (`deploy/deploy.sh`): Images bauen → Runner stoppen (laufende Partie geht an die Queue zurück, E75) → `mongo` starten → `mongo-users` → `migrate` → `api`, `runner`, `frontend` starten und auf ihre Health-Checks warten → `/api/v1/health` über das Frontend abfragen → Commit festhalten → alte Images entfernen. Nach der CI prüft der Workflow vorher mit `deploy/needs-deploy.sh`, ob sich etwas am Stack geändert hat, und überspringt sonst Umgebungsdatei und Build (E79). Während des Builds läuft der Runner weiter; das Pausieren der Queue vor dem Deploy kommt mit der Admin-Oberfläche (M3).
 
 **Einmalig auf dem Server einrichten:**
 
@@ -92,7 +93,7 @@ Umgesetzt unter `deploy/` und `.github/workflows/deploy.yml` (E78). In M2 laufen
 
 **Zu wissen:**
 
-- Das Root-Passwort übernimmt MongoDB nur beim ersten Start mit leerem Volume. Für einen späteren Wechsel zuerst in der Datenbank ändern (`db.getSiblingDB("admin").changeUserPassword("root", …)` über `docker compose -f deploy/compose.yaml exec mongo mongosh -u root`), dann das Secret. Die Passwörter der Dienste wechseln mit dem nächsten Deploy.
+- Das Root-Passwort übernimmt MongoDB nur beim ersten Start mit leerem Volume. Für einen späteren Wechsel zuerst in der Datenbank ändern (`db.getSiblingDB("admin").changeUserPassword("root", …)` über `docker compose -f deploy/compose.yaml exec mongo mongosh -u root`), dann das Secret. Die Passwörter der Dienste wechseln mit dem nächsten Deploy, der etwas baut; nach einer Änderung der Secrets daher den Deploy von Hand starten (Actions → Deploy → „Run workflow“).
 - Partien ansetzen bis zur Admin-Oberfläche (M3): `docker compose -f deploy/compose.yaml run --rm runner sbm-enqueue Random Material --time 60+1 --games 2 --alternate`.
 - Logs: `docker compose -f deploy/compose.yaml logs -f runner` (ebenso `api`, `frontend`).
 - Der Stack lässt sich lokal genauso starten: Netz `local-web` anlegen, `deploy/.env.example` nach `deploy/.env` kopieren und ausfüllen, `bash deploy/deploy.sh`.
