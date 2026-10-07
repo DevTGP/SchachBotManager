@@ -26,7 +26,7 @@ Bot-Prozesse haben kein Netzwerk. Laufzeiten der fünf Sprachen, SDK und C++-Ker
 | Echte Client-IP | Weitergereichte IP-Header nur vom Proxy akzeptieren (für Rate-Limits pro IP) |
 | Ports | Der Stack veröffentlicht keine Ports auf dem Host |
 
-Welche Angaben wohin gehören, steht unter „Stand M2“ (O18).
+Welche Angaben wohin gehören, steht unter „Stand M2“.
 
 ## GitHub Actions
 

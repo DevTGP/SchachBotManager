@@ -110,7 +110,6 @@ Aus dem Anforderungstext fix: MongoDB, Flask, GitHub Actions, Sprachen Python / 
 | ID | Frage | Relevant ab |
 |----|-------|-------------|
 | O17 | Ausgestaltung der Ressourcenlimits (E23); vorerst ignoriert, kommt eventuell nie | – |
-| O18 | Genauer Subdomain-Name, SSH-Zugangsdaten und Zielpfad auf dem Server | M2: Namen der Secrets und Variablen stehen fest (E78, [deployment.md](komponenten/deployment.md)); Werte setzt du in GitHub bzw. im Proxy, nicht im Repo |
 | O19 | Wie die maximale Log-Stufe der Disziplin den Bot erreicht (`init` hat kein Feld dafür) oder ob der Runner sie selbst durchsetzt; die SDKs setzen sie bisher nicht um | M3, wenn Bot-Logs gespeichert und für Besitzer sichtbar werden; in M2 laufen nur die Referenzbots (E72) |
 
 ## 4. Risiken
