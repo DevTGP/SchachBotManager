@@ -4,8 +4,11 @@
 
 | Collection | Inhalt | Wichtige Felder |
 |------------|--------|-----------------|
-| `users` | Accounts | `username`, `email`, `password_hash`, `roles[]`, `status`, `created_at` |
-| `invites` | Einladungen (E4) | `token_hash`, `role`, `created_by`, `expires_at`, `used_by`, `used_at` |
+| `users` | Accounts (E83) | `username`, `username_key`, `password_hash`, `role`, `active`, `invited_by`, `failed_logins`, `locked_until`, `created_at`, `last_login_at` |
+| `sessions` | Angemeldete Browser (E84) | `_id` = Hash des Tokens, `user_id`, `created_at`, `expires_at` |
+| `invites` | Einladungen (E4, E83) | `token_hash`, `role`, `created_by`, `created_by_name`, `created_at`, `expires_at`, `used_by`, `used_at` |
+| `password_resets` | Links für ein neues Passwort (E83) | `token_hash`, `user_id`, `created_by`, `created_at`, `expires_at` |
+| `rate_limits` | Zähler für Anmeldeversuche je Client-Adresse (E84) | `_id` = Schlüssel, `count`, `expires_at` |
 | `api_tokens` | Tokens für Remote-Bots | `user_id`, `token_hash`, `name`, `last_used_at`, `revoked` |
 | `bots` | Ein Dokument je Bot-Version (E6) | `owner_id`, `name`, `language`, `lineage_id`, `parent_bot_id`, `version_no`, `status`, `sdk_version`, `runtime_version`, `source_ref`, `artifact_ref`, `source_hash`, `sizes`, `created_at` |
 | `verification_reports` | Ergebnis der Pipeline | `bot_id`, `stages[]` (Status, Meldungen, Dauer), `ruleset_version` |
@@ -21,7 +24,7 @@
 | `jobs` | Queue (A8) | `type`, `payload`, `priority`, `status`, `not_before`, `lease_until`, `worker_id`, `attempts` |
 | `audit_log` | Admin- und sicherheitsrelevante Aktionen | `actor_id`, `action`, `target`, `at`, `details` |
 
-Große Binärdaten (Quellcode-Archive, Artefakte, Bot-Logs) liegen im Artefakt-Speicher (GridFS oder Volume); die DB hält nur Referenzen und Hashes.
+Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derselben Datenbank (E82); die Dokumente halten nur Referenzen und Hashes.
 
 ## `matches`
 
@@ -63,8 +66,10 @@ Große Binärdaten (Quellcode-Archive, Artefakte, Bot-Logs) liegen im Artefakt-S
 | `bots` | `owner_id`, `lineage_id + version_no`, `status` | Verwaltung, Versionslisten |
 | `jobs` | `status + priority + not_before`, `lease_until` | Queue-Abruf, Wiederaufnahme |
 | `registrations` | unique `bot_id + target_type + target_id` | Keine Doppelanmeldung |
-| `users` | unique `username`, unique `email` | Login |
-| `invites`, `api_tokens` | unique `token_hash`; TTL auf `expires_at` | Lookup, Aufräumen |
+| `users` | unique `username_key` | Login, Namen ohne Rücksicht auf Groß- und Kleinschreibung eindeutig |
+| `invites`, `password_resets`, `api_tokens` | unique `token_hash`; TTL auf `expires_at` | Lookup, Aufräumen |
+| `sessions`, `rate_limits` | TTL auf `expires_at` | Aufräumen |
+| `audit_log` | `at` absteigend | Neueste Einträge zuerst |
 
 ## Stand M2 (E75)
 
@@ -72,6 +77,13 @@ Große Binärdaten (Quellcode-Archive, Artefakte, Bot-Logs) liegen im Artefakt-S
 - Migrationen laufen mit `sbm-migrate` und sind idempotent: `0001_indexes` legt die Indizes für Partienliste, Bot-Historie, Queue-Abruf und Wiederaufnahme an, `0002_reference_bots` die Referenzbots `Random` und `Material` (E72).
 - Ein Match enthält zusätzlich `termination_detail` (Erklärung des Endes, nur intern) und `schema_version`; ein Job hält die Match-ID in `payload.match_id`.
 - Alle Zeitstempel sind UTC.
+
+## Stand M3, Schritt 1 (E83–E85)
+
+- Neu sind `users`, `sessions`, `invites`, `password_resets`, `rate_limits` und `audit_log`, je mit einem Modul in `sbm-store`; Tokens hasht `sbm_store.tokens` (SHA-256).
+- `0003_accounts` legt ihre Indizes an, darunter die TTL-Indizes, die abgelaufene Sitzungen, Links und Zähler löschen.
+- Ein Konto hat genau eine Rolle (`coder` oder `admin`) statt einer Liste und kein E-Mail-Feld (E83).
+- `settings` bekommt das Dokument `queue` beim ersten Pausieren über die Website, falls es fehlt.
 
 ## Zu beachten
 

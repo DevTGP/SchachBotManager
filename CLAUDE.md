@@ -4,7 +4,7 @@ Website, auf der Schachbots (Python, C++, Java, C#, JavaScript) in Ligen, Turnie
 
 ## Stand
 
-**M0** laut `docs/roadmap.md` ist abgeschlossen: Festlegungen E34–E55, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`), C-Schnittstelle des Kerns (`sdk/core/include/sbm/`), Testvektoren (`spec/testvectors/`, erzeugt mit `tools/testvector-gen`). **M1** ist fertig: C++-Kern unter `sdk/core/` (CMake, besteht alle Vektoren, E56–E57); Python-SDK unter `sdk/python/` (nanobind, besteht alle API-Vektoren, E58–E60): `Board`, `Move`, `Clock`, `Log`, `Bot`, `run` mit `stdio`/`tcp`, `load_data` (E61–E63). Wheels für Windows, Linux und macOS über CI (E64), veröffentlicht auf PyPI per Versions-Tag (E70). Referee-Kern als `sbm.referee` im Python-Paket (E65, strenge Prüfung der Bot-Nachrichten E66). Lokale Arena als `sbm.arena` mit dem Befehl `sbm-arena` (E67). Referenzbots `random` und `material` als `sbm.bots`, in der Arena per Kurzname (E68). Debug-Workflow: Arena-Start aus einer PGN-Stellung (`--replay`) und Vorlagenprojekt `templates/python/` mit VS-Code-Konfiguration (E69). Abnahmetest in `sdk/python/tests/test_acceptance.py`. **M2** ist fertig: Store mit Migrationen und Runner unter `services/` (E75), lesende Web-API unter `backend/` (E76), SPA unter `frontend/` (E77), Deployment mit Docker Compose unter `deploy/` und Workflow `deploy.yml` (E78); abgenommen auf dem Server am 7. Oktober 2026. Als Nächstes folgt **M3**.
+**M0** laut `docs/roadmap.md` ist abgeschlossen: Festlegungen E34–E55, Repo-Gerüst, CI mit `tools/spec-check`, Protokoll-Schema v1 (`spec/protocol/v1/`), kanonische Bot-API (`spec/api/`), C-Schnittstelle des Kerns (`sdk/core/include/sbm/`), Testvektoren (`spec/testvectors/`, erzeugt mit `tools/testvector-gen`). **M1** ist fertig: C++-Kern unter `sdk/core/` (CMake, besteht alle Vektoren, E56–E57); Python-SDK unter `sdk/python/` (nanobind, besteht alle API-Vektoren, E58–E60): `Board`, `Move`, `Clock`, `Log`, `Bot`, `run` mit `stdio`/`tcp`, `load_data` (E61–E63). Wheels für Windows, Linux und macOS über CI (E64), veröffentlicht auf PyPI per Versions-Tag (E70). Referee-Kern als `sbm.referee` im Python-Paket (E65, strenge Prüfung der Bot-Nachrichten E66). Lokale Arena als `sbm.arena` mit dem Befehl `sbm-arena` (E67). Referenzbots `random` und `material` als `sbm.bots`, in der Arena per Kurzname (E68). Debug-Workflow: Arena-Start aus einer PGN-Stellung (`--replay`) und Vorlagenprojekt `templates/python/` mit VS-Code-Konfiguration (E69). Abnahmetest in `sdk/python/tests/test_acceptance.py`. **M2** ist fertig: Store mit Migrationen und Runner unter `services/` (E75), lesende Web-API unter `backend/` (E76), SPA unter `frontend/` (E77), Deployment mit Docker Compose unter `deploy/` und Workflow `deploy.yml` (E78); abgenommen auf dem Server am 7. Oktober 2026. **M3** läuft in vier Schritten (E80): Schritt 1 ist fertig – Einladungen, Login, Rollen und Sitzungen ohne E-Mail (E83, E84), Admin-Seiten für Nutzer, Einladungen, Partien und Queue mit Audit-Log (E85). Die Verifikation übernimmt der Runner (E81), Dateien liegen in GridFS (E82). Als Nächstes folgt Schritt 2: nsjail im Runner samt Negativ-Suite.
 
 ## Zuerst lesen
 
@@ -39,7 +39,7 @@ Website, auf der Schachbots (Python, C++, Java, C#, JavaScript) in Ligen, Turnie
 - Ein Docker-Compose-Stack. Nur der `frontend`-Container hängt am externen Netz `local-web`; der vorhandene Nginx Proxy Manager zeigt darauf. Der Stack veröffentlicht keine Ports.
 - Adresse: `schachbotmanager.devtgp.net` (als Konfigurationswert, nicht fest im Code).
 - Deploy: GitHub Actions per SSH, Stack setzen, Container bauen auf dem Server.
-- `runner` und `verifier` laufen als Container mit erweiterten Rechten (für nsjail) und hängen nicht am Proxy-Netz.
+- `runner` läuft als Container mit erweiterten Rechten (für nsjail), führt auch die Verifikation aus (E81) und hängt nicht am Proxy-Netz.
 
 ## Regeln für die Arbeit im Repo
 
@@ -85,6 +85,7 @@ Build-, Test- und Lint-Befehle hier eintragen, sobald sie entstehen.
 | Lint/Format Store/Runner/API | `ruff check services/store services/runner backend` und `ruff format --check services/store services/runner backend` |
 | Datenbank migrieren | `sbm-migrate` (liest `SBM_MONGO_URI`, `SBM_MONGO_DB`) |
 | Web-API lokal | `flask --app sbm_api.wsgi run` mit `SBM_MONGO_URI` (und optional `SBM_MONGO_DB`, `SBM_PUBLIC_URL`); auf dem Server gunicorn mit `sbm_api.wsgi:app` (E76) |
+| Einladung anlegen | `sbm-invite --role admin` (Standard `coder`, `--valid-days` 1 bis 30, Standard 7) gibt einen Einladungslink aus; auf dem Server `docker compose -f deploy/compose.yaml run --rm api sbm-invite --role admin` (E83) |
 | Partien einreihen und spielen | `sbm-enqueue Random Material --games 2 --alternate`, dann `sbm-runner` (E75) |
 | Frontend einrichten | `npm ci` in `frontend/` (Node ab 22.12) |
 | Frontend lokal | `npm run dev` in `frontend/`; reicht `/api` an `SBM_API_URL` weiter (Standard `http://127.0.0.1:5000`) |

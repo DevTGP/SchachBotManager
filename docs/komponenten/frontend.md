@@ -55,6 +55,21 @@ Umgesetzt unter `frontend/` (E77): Start, Partienliste mit Filtern, Partie-Viewe
 
 Tests: Komponenten- und Seitentests mit Vitest und Testing Library gegen eine `fetch`-Attrappe; das Brett ist dort durch einen Platzhalter ersetzt, weil jsdom keine Maße kennt. Lokal startet `npm run dev` den Vite-Server, der `/api` an `SBM_API_URL` (Standard `http://127.0.0.1:5000`) weiterreicht.
 
+## Stand M3, Schritt 1 (E83–E85)
+
+Anmeldung, eigenes Konto und die ersten Admin-Seiten:
+
+| Ort | Inhalt |
+|-----|--------|
+| `src/session/` | `SessionProvider` lädt `GET /session` einmal und hält das Konto; `RequireRole` schickt Gäste zur Anmeldung (mit Rücksprung über `?next=`, nur auf eigene Pfade) und zeigt Coder auf Admin-Seiten einen Fehler; `oneTimeToken` liest das Token hinter `#` und entfernt es aus Adresse und Verlauf |
+| `src/pages/account/` | Anmelden, Einladung einlösen, neues Passwort über Link, „Konto“ mit Passwortwechsel und Abmelden |
+| `src/pages/admin/` | Partien ansetzen samt Queue-Steuerung, Nutzer (Rolle, Aktiv-Status, Passwort-Link), Einladungen (erstellen, auflisten, zurückziehen) |
+| `src/api/account.ts`, `src/api/admin.ts` | Eine Funktion je Endpunkt; `sendJson` setzt den Header `X-SBM-CSRF: 1` (E84) |
+| `src/components/` | Navigation zum Konto, Formularfehler, Passwortfelder, Anzeige eines Einmal-Links mit Kopierknopf |
+| `src/hooks/useSubmit.ts` | Absenden eines Formulars mit Fehlercode und Feld aus der API |
+
+Einmal-Links zeigt die Seite nur direkt nach dem Erstellen; die Liste der Einladungen kennt sie nicht mehr (E83). Feldfehler der API (`field`) erscheinen am passenden Eingabefeld.
+
 ## Mensch gegen Bot
 
 - Zugeingabe per Drag-and-drop/Klick; legale Züge kommen vom Server oder aus einer Client-Schachbibliothek (nur Komfort – der Server prüft immer).

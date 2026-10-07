@@ -7,11 +7,10 @@
 | `frontend` | `local-web` + intern | Liefert den statischen SPA-Build aus und reicht `/api` sowie WebSocket an `api` weiter; einziger Dienst, auf den der Proxy zeigt |
 | `api` | intern | Flask hinter WSGI-Server; kann keine Prozesse starten |
 | `scheduler` | intern | Genau eine Instanz |
-| `runner` | intern | Container mit erweiterten Rechten (A13), startet Bots über nsjail; Parallelität aus den Einstellungen in der DB |
-| `verifier` | intern | Wie `runner`, nutzt dieselbe Sandbox |
+| `runner` | intern | Container mit erweiterten Rechten (A13), startet Bots über nsjail und führt auch die Verifikation aus (E81); Parallelität aus den Einstellungen in der DB |
 | `mongo` | intern | Als Replica Set (Einzelknoten, ab M4, E75), Authentifizierung aktiv, Daten auf einem Volume |
 
-Bot-Prozesse haben kein Netzwerk. Laufzeiten der fünf Sprachen, SDK und C++-Kern sind Teil des `runner`/`verifier`-Images und werden von dort read-only in die Sandbox eingehängt.
+Bot-Prozesse haben kein Netzwerk. Laufzeiten der fünf Sprachen, SDK und C++-Kern sind Teil des `runner`-Images und werden von dort read-only in die Sandbox eingehängt.
 
 ## Einbindung in den bestehenden Proxy (E29)
 
@@ -54,7 +53,7 @@ Pfadfilter im Monorepo, damit eine Änderung am Frontend nicht alle SDK-Tests au
 
 ## Stand M2
 
-Umgesetzt unter `deploy/` und `.github/workflows/deploy.yml` (E78). In M2 laufen nur `mongo`, `api`, `runner` und `frontend`; `scheduler`, `verifier`, nsjail (E72) und das Replica Set (E75) folgen später.
+Umgesetzt unter `deploy/` und `.github/workflows/deploy.yml` (E78). Es laufen `mongo`, `api`, `runner` und `frontend`; `scheduler`, nsjail (E72) und das Replica Set (E75) folgen später. Einen eigenen `verifier` gibt es nicht (E81).
 
 | Datei | Inhalt |
 |-------|--------|
@@ -62,12 +61,12 @@ Umgesetzt unter `deploy/` und `.github/workflows/deploy.yml` (E78). In M2 laufen
 | `deploy/python.Dockerfile` | Image `sbm-python` für `migrate`, `api`, `runner`: baut die Wheels von SDK (mit Kern), Store, Runner und API, Laufzeit ohne Compiler als Nutzer `sbm` |
 | `deploy/frontend.Dockerfile` | Image `sbm-frontend`: Vite-Build, ausgeliefert von nginx ohne Root auf Port 8080 |
 | `deploy/nginx.conf` | SPA mit Rückfall auf `index.html`, `/api/` an `sbm-api:8000` (Alias der API nur im internen Netz, weil `api` an `local-web` einen fremden Container treffen kann), lange Cache-Zeit nur für `/assets/`, Sicherheits-Header |
-| `deploy/mongo/users.js` | Legt die Nutzer der Dienste an oder setzt ihre Passwörter neu |
+| `deploy/mongo/users.js` | Legt die Rolle `sbm_api_writes` (E85) und die Nutzer der Dienste an oder setzt Rechte und Passwörter neu |
 | `deploy/deploy.sh` | Ablauf auf dem Server, aus dem Repo-Wurzelverzeichnis; hält am Ende den ausgerollten Commit in `deploy/.deployed-commit` fest |
 | `deploy/needs-deploy.sh` | Sagt, ob sich seit dem ausgerollten Commit etwas geändert hat, woraus der Stack gebaut wird (E79) |
 | `deploy/.env.example` | Alle Werte der Umgebungsdatei mit Erklärung |
 
-**Ablauf** (`deploy/deploy.sh`): Images bauen → Runner stoppen (laufende Partie geht an die Queue zurück, E75) → `mongo` starten → `mongo-users` → `migrate` → `api`, `runner`, `frontend` starten und auf ihre Health-Checks warten → `/api/v1/health` über das Frontend abfragen → Commit festhalten → alte Images entfernen. Nach der CI prüft der Workflow vorher mit `deploy/needs-deploy.sh`, ob sich etwas am Stack geändert hat, und überspringt sonst Umgebungsdatei und Build (E79). Während des Builds läuft der Runner weiter; das Pausieren der Queue vor dem Deploy kommt mit der Admin-Oberfläche (M3).
+**Ablauf** (`deploy/deploy.sh`): Images bauen → Runner stoppen (laufende Partie geht an die Queue zurück, E75) → `mongo` starten → `mongo-users` → `migrate` → `api`, `runner`, `frontend` starten und auf ihre Health-Checks warten → `/api/v1/health` über das Frontend abfragen → Commit festhalten → alte Images entfernen. Nach der CI prüft der Workflow vorher mit `deploy/needs-deploy.sh`, ob sich etwas am Stack geändert hat, und überspringt sonst Umgebungsdatei und Build (E79). Während des Builds läuft der Runner weiter; wer keine Partie unterbrechen will, pausiert die Queue vorher auf der Admin-Seite.
 
 **Einmalig auf dem Server einrichten:**
 
@@ -94,7 +93,9 @@ Umgesetzt unter `deploy/` und `.github/workflows/deploy.yml` (E78). In M2 laufen
 **Zu wissen:**
 
 - Das Root-Passwort übernimmt MongoDB nur beim ersten Start mit leerem Volume. Für einen späteren Wechsel zuerst in der Datenbank ändern (`db.getSiblingDB("admin").changeUserPassword("root", …)` über `docker compose -f deploy/compose.yaml exec mongo mongosh -u root`), dann das Secret. Die Passwörter der Dienste wechseln mit dem nächsten Deploy, der etwas baut; nach einer Änderung der Secrets daher den Deploy von Hand starten (Actions → Deploy → „Run workflow“).
-- Partien ansetzen bis zur Admin-Oberfläche (M3): `docker compose -f deploy/compose.yaml run --rm runner sbm-enqueue Random Material --time 60+1 --games 2 --alternate`.
+- Erster Admin (E83): nach dem ersten Deploy `docker compose -f deploy/compose.yaml run --rm api sbm-invite --role admin` aufrufen; der Befehl gibt einen Einladungslink aus, über den der Admin Namen und Passwort wählt. Weitere Nutzer lädt der Admin auf der Website ein.
+- Partien setzt der Admin auf der Website an (Admin → Partien); `sbm-enqueue` im Runner-Container bleibt für Tests.
+- `SBM_PROXY_HOPS` steht in `compose.yaml` fest auf 2 (Nginx Proxy Manager und der Nginx im `frontend`, E84). Steht ein weiterer Proxy davor, muss der Wert mitwachsen, sonst zählt das Login-Limit falsche Adressen.
 - Logs: `docker compose -f deploy/compose.yaml logs -f runner` (ebenso `api`, `frontend`).
 - Der Stack lässt sich lokal genauso starten: Netz `local-web` anlegen, `deploy/.env.example` nach `deploy/.env` kopieren und ausfüllen, `bash deploy/deploy.sh`.
 
