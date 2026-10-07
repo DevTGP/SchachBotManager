@@ -8,8 +8,8 @@ from pymongo.database import Database
 from sbm.referee import Match, MatchRecord, Player
 from sbm_store import bots, jobs, matches
 
-from sbm_runner.builtin_player import UnsupportedBot, builtin_player
 from sbm_runner.match_settings import match_settings
+from sbm_runner.players import PlayerFactory, UnsupportedBot
 from sbm_runner.recorder import Recorder
 
 log = logging.getLogger(__name__)
@@ -17,7 +17,9 @@ log = logging.getLogger(__name__)
 COLORS = ("white", "black")
 
 
-def run_job(db: Database, job: dict, *, now: Callable[[], datetime]) -> None:
+def run_job(
+    db: Database, job: dict, *, players: PlayerFactory, now: Callable[[], datetime]
+) -> None:
     """Exceptions are infrastructure errors; the caller retries or aborts the match."""
     match_id = job["payload"]["match_id"]
     match = matches.get(db, match_id)
@@ -34,7 +36,7 @@ def run_job(db: Database, job: dict, *, now: Callable[[], datetime]) -> None:
         matches.requeue(db, match_id)
 
     try:
-        white, black = (_player(db, match[color]) for color in COLORS)
+        white, black = (_player(db, match[color], players) for color in COLORS)
     except UnsupportedBot as error:
         log.error("match %s cannot be played: %s", match_id, error)
         matches.abort(db, match_id, str(error), now())
@@ -54,11 +56,11 @@ def run_job(db: Database, job: dict, *, now: Callable[[], datetime]) -> None:
     log.info("match %s: %s (%s)", match_id, record.outcome.result, record.outcome.termination)
 
 
-def _player(db: Database, side: dict) -> Player:
+def _player(db: Database, side: dict, players: PlayerFactory) -> Player:
     bot = bots.get(db, side["bot_id"])
     if bot is None:
         raise UnsupportedBot(f"bot {side['bot_id']} does not exist")
-    return builtin_player(bot)
+    return players(bot)
 
 
 def _store_result(db: Database, match_id, record: MatchRecord, now: datetime) -> None:

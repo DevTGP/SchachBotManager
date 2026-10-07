@@ -12,6 +12,7 @@ from sbm_store import jobs, matches, queue_settings
 from sbm_runner.config import RunnerConfig
 from sbm_runner.game import run_job
 from sbm_runner.heartbeat import Heartbeat
+from sbm_runner.players import PlayerFactory, plain_player
 from sbm_runner.recovery import recover_expired
 from sbm_runner.retries import retry_or_abort
 from sbm_runner.shutdown import Shutdown
@@ -31,11 +32,13 @@ class Worker:
         db: Database,
         config: RunnerConfig,
         *,
+        players: PlayerFactory = plain_player,
         now: Callable[[], datetime] = utc_now,
         sleep: Callable[[float], None] = time.sleep,
     ) -> None:
         self._db = db
         self._config = config
+        self._players = players
         self._now = now
         self._sleep = sleep
 
@@ -78,7 +81,7 @@ class Worker:
 
     def _work(self, job: dict) -> None:
         try:
-            run_job(self._db, job, now=self._now)
+            run_job(self._db, job, players=self._players, now=self._now)
         except Shutdown:
             # Stopping is not the match's fault: it starts over and the attempt does not count.
             matches.requeue(self._db, job["payload"]["match_id"])
