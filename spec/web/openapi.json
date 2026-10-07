@@ -3,7 +3,7 @@
   "info": {
     "title": "SchachBotManager web API",
     "version": "1",
-    "description": "Public read API for matches, bots and the game queue (backend-api.md, E73). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32).",
+    "description": "Web API of SchachBotManager (backend-api.md, E73): public reading of matches, bots and the game queue; sessions, accounts and administration for invited users (E83, E84, E85). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32). Requests other than GET need the header X-SBM-CSRF: 1 (E84).",
     "license": { "name": "MIT-0", "identifier": "MIT-0" }
   },
   "servers": [{ "url": "/api/v1" }],
@@ -137,10 +137,305 @@
           }
         }
       }
+    },
+    "/session": {
+      "get": {
+        "operationId": "get_session",
+        "summary": "Who is logged in; user is null for guests.",
+        "responses": {
+          "200": { "$ref": "#/components/responses/Session" }
+        }
+      },
+      "post": {
+        "operationId": "login",
+        "summary": "Logs in and sets the session cookie.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/LoginRequest" } }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/Session" },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/InvalidCredentials" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyAttempts" }
+        }
+      },
+      "delete": {
+        "operationId": "logout",
+        "summary": "Ends the session and clears the cookie; also fine without a session.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "responses": {
+          "204": { "description": "Logged out." },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/invites/redeem": {
+      "post": {
+        "operationId": "redeem_invite",
+        "summary": "Creates an account from an invite and logs it in (E4, E83).",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/RedeemInvite" } }
+          }
+        },
+        "responses": {
+          "201": { "$ref": "#/components/responses/Session" },
+          "400": { "$ref": "#/components/responses/BadToken" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "409": { "$ref": "#/components/responses/UsernameTaken" },
+          "429": { "$ref": "#/components/responses/TooManyAttempts" }
+        }
+      }
+    },
+    "/password-resets/redeem": {
+      "post": {
+        "operationId": "redeem_password_reset",
+        "summary": "Sets a new password with a reset link from an admin, ends all other sessions of the account and logs it in.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/RedeemPasswordReset" } }
+          }
+        },
+        "responses": {
+          "200": { "$ref": "#/components/responses/Session" },
+          "400": { "$ref": "#/components/responses/BadToken" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyAttempts" }
+        }
+      }
+    },
+    "/account/password": {
+      "put": {
+        "operationId": "change_password",
+        "security": [{ "session": [] }],
+        "summary": "Changes the own password and ends all other sessions of the account.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ChangePassword" } }
+          }
+        },
+        "responses": {
+          "204": { "description": "The password is changed." },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/InvalidCredentials" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyAttempts" }
+        }
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "operationId": "list_users",
+        "security": [{ "session": [] }],
+        "summary": "All accounts, ordered by name (admin).",
+        "responses": {
+          "200": {
+            "description": "The accounts.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/UserList" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/admin/users/{user_id}": {
+      "parameters": [{ "$ref": "#/components/parameters/UserId" }],
+      "patch": {
+        "operationId": "update_user",
+        "security": [{ "session": [] }],
+        "summary": "Changes role or active state of another account (admin); deactivation ends its sessions.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UserUpdate" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The changed account.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/User" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/admin/users/{user_id}/password-reset": {
+      "parameters": [{ "$ref": "#/components/parameters/UserId" }],
+      "post": {
+        "operationId": "create_password_reset",
+        "security": [{ "session": [] }],
+        "summary": "A one-time link that sets a new password, valid for 24 hours (admin, E83). An earlier unused link of the account stops working.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "responses": {
+          "201": {
+            "description": "The link; it is shown only this once.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/OneTimeLink" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/admin/invites": {
+      "get": {
+        "operationId": "list_invites",
+        "security": [{ "session": [] }],
+        "summary": "Unused invites that have not expired, newest first (admin).",
+        "responses": {
+          "200": {
+            "description": "The open invites.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/InviteList" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "post": {
+        "operationId": "create_invite",
+        "security": [{ "session": [] }],
+        "summary": "A new one-time invite (admin, E4).",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/InviteRequest" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The invite with its link; the link is shown only this once.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/CreatedInvite" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/admin/invites/{invite_id}": {
+      "parameters": [
+        {
+          "name": "invite_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "delete": {
+        "operationId": "revoke_invite",
+        "security": [{ "session": [] }],
+        "summary": "Withdraws an open invite (admin).",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "responses": {
+          "204": { "description": "The invite no longer works." },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/admin/matches": {
+      "post": {
+        "operationId": "enqueue_matches",
+        "security": [{ "session": [] }],
+        "summary": "Puts single games between two verified bots into the queue (admin, E71, E85).",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/EnqueueRequest" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The new matches in the order they were queued.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/EnqueuedMatches" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/admin/queue": {
+      "patch": {
+        "operationId": "update_queue",
+        "security": [{ "session": [] }],
+        "summary": "Pauses or resumes the queue (admin); a running match plays to its end.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/QueueUpdate" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The queue settings now in force.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/QueueUpdate" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
     }
   },
   "components": {
+    "securitySchemes": {
+      "session": {
+        "description": "The session from POST /session, /invites/redeem or /password-resets/redeem: an HttpOnly cookie for /api/, SameSite=Strict, Secure behind HTTPS; valid until 14 days after its last use (E84).",
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "sbm_session"
+      }
+    },
     "parameters": {
+      "Csrf": {
+        "name": "X-SBM-CSRF",
+        "in": "header",
+        "required": true,
+        "description": "Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed.",
+        "schema": { "const": "1" }
+      },
+      "UserId": {
+        "name": "user_id",
+        "in": "path",
+        "required": true,
+        "schema": { "$ref": "#/components/schemas/Id" }
+      },
       "MatchId": {
         "name": "match_id",
         "in": "path",
@@ -178,6 +473,54 @@
         "content": {
           "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
         }
+      },
+      "Unauthenticated": {
+        "description": "No valid session (code unauthenticated).",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+        }
+      },
+      "Forbidden": {
+        "description": "The X-SBM-CSRF header is missing (code csrf_failed) or the account may not do this (code forbidden).",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+        }
+      },
+      "InvalidCredentials": {
+        "description": "Unknown name, wrong password or deactivated account (code invalid_credentials); for routes that need a session also unauthenticated.",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+        }
+      },
+      "TooManyAttempts": {
+        "description": "Too many attempts from this address or for this account; try again later (code too_many_attempts, E84).",
+        "headers": {
+          "Retry-After": {
+            "description": "Seconds until the next attempt may succeed.",
+            "schema": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+        }
+      },
+      "BadToken": {
+        "description": "A field is invalid (code invalid_parameter) or the link is unknown, used or expired (code invalid_token).",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+        }
+      },
+      "UsernameTaken": {
+        "description": "The name is in use, also in another case (code username_taken).",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+        }
+      },
+      "Session": {
+        "description": "The session after the request.",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/SessionState" } }
+        }
       }
     },
     "schemas": {
@@ -190,7 +533,21 @@
       "Error": {
         "type": "object",
         "properties": {
-          "code": { "enum": ["invalid_parameter", "not_found", "unavailable", "internal"] },
+          "code": {
+            "enum": [
+              "invalid_parameter",
+              "not_found",
+              "unavailable",
+              "internal",
+              "unauthenticated",
+              "forbidden",
+              "csrf_failed",
+              "invalid_credentials",
+              "invalid_token",
+              "username_taken",
+              "too_many_attempts"
+            ]
+          },
           "message": { "description": "English text for logs; not shown to users.", "type": "string" },
           "field": { "description": "The invalid parameter, for invalid_parameter.", "type": "string" }
         },
@@ -391,6 +748,239 @@
           "waiting_total": { "type": "integer", "minimum": 0 }
         },
         "required": ["paused", "running", "waiting", "waiting_total"],
+        "additionalProperties": false
+      },
+      "Username": {
+        "description": "3 to 32 letters, digits, _ . or -, starting with a letter or digit; unique regardless of case (E83).",
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{2,31}(?!\\n)$"
+      },
+      "Password": {
+        "description": "10 to 128 characters (E84).",
+        "type": "string",
+        "minLength": 10,
+        "maxLength": 128
+      },
+      "OneTimeToken": {
+        "description": "The secret part of an invite or reset link, after the # (E83).",
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_-]{43}(?!\\n)$"
+      },
+      "Role": {
+        "description": "coder: own bots; admin: everything (backend-api.md).",
+        "enum": ["coder", "admin"]
+      },
+      "CurrentUser": {
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Id" },
+          "username": { "type": "string" },
+          "role": { "$ref": "#/components/schemas/Role" }
+        },
+        "required": ["id", "username", "role"],
+        "additionalProperties": false
+      },
+      "SessionState": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "description": "null for guests.",
+            "oneOf": [{ "$ref": "#/components/schemas/CurrentUser" }, { "type": "null" }]
+          }
+        },
+        "required": ["user"],
+        "additionalProperties": false
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string", "minLength": 1, "maxLength": 32 },
+          "password": { "type": "string", "minLength": 1, "maxLength": 128 }
+        },
+        "required": ["username", "password"],
+        "additionalProperties": false
+      },
+      "RedeemInvite": {
+        "type": "object",
+        "properties": {
+          "token": { "$ref": "#/components/schemas/OneTimeToken" },
+          "username": { "$ref": "#/components/schemas/Username" },
+          "password": { "$ref": "#/components/schemas/Password" }
+        },
+        "required": ["token", "username", "password"],
+        "additionalProperties": false
+      },
+      "RedeemPasswordReset": {
+        "type": "object",
+        "properties": {
+          "token": { "$ref": "#/components/schemas/OneTimeToken" },
+          "password": { "$ref": "#/components/schemas/Password" }
+        },
+        "required": ["token", "password"],
+        "additionalProperties": false
+      },
+      "ChangePassword": {
+        "type": "object",
+        "properties": {
+          "current_password": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "new_password": { "$ref": "#/components/schemas/Password" }
+        },
+        "required": ["current_password", "new_password"],
+        "additionalProperties": false
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Id" },
+          "username": { "type": "string" },
+          "role": { "$ref": "#/components/schemas/Role" },
+          "active": {
+            "description": "A deactivated account cannot log in.",
+            "type": "boolean"
+          },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" },
+          "last_login_at": {
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          }
+        },
+        "required": ["id", "username", "role", "active", "created_at", "last_login_at"],
+        "additionalProperties": false
+      },
+      "UserList": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/User" } }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "UserUpdate": {
+        "description": "At least one field; admins cannot change their own account this way.",
+        "type": "object",
+        "properties": {
+          "role": { "$ref": "#/components/schemas/Role" },
+          "active": { "type": "boolean" }
+        },
+        "minProperties": 1,
+        "additionalProperties": false
+      },
+      "OneTimeLink": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "description": "The page of the SPA with the token after the #, so it stays out of server logs.",
+            "type": "string"
+          },
+          "expires_at": { "$ref": "#/components/schemas/Timestamp" }
+        },
+        "required": ["url", "expires_at"],
+        "additionalProperties": false
+      },
+      "Invite": {
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Id" },
+          "role": { "$ref": "#/components/schemas/Role" },
+          "created_by": {
+            "description": "Name of the admin; null for invites from the command line.",
+            "type": ["string", "null"]
+          },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" },
+          "expires_at": { "$ref": "#/components/schemas/Timestamp" }
+        },
+        "required": ["id", "role", "created_by", "created_at", "expires_at"],
+        "additionalProperties": false
+      },
+      "InviteList": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/Invite" } }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "InviteRequest": {
+        "type": "object",
+        "properties": {
+          "role": { "$ref": "#/components/schemas/Role" },
+          "valid_days": {
+            "description": "How long the invite can be used.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30,
+            "default": 7
+          }
+        },
+        "required": ["role"],
+        "additionalProperties": false
+      },
+      "CreatedInvite": {
+        "type": "object",
+        "properties": {
+          "invite": { "$ref": "#/components/schemas/Invite" },
+          "url": {
+            "description": "The page of the SPA with the token after the #, so it stays out of server logs.",
+            "type": "string"
+          }
+        },
+        "required": ["invite", "url"],
+        "additionalProperties": false
+      },
+      "EnqueueRequest": {
+        "description": "The discipline is named after the time control in seconds, e.g. 180+2 or 20+0.5; bots get 10 s to start (E85).",
+        "type": "object",
+        "properties": {
+          "white_bot_id": { "$ref": "#/components/schemas/Id" },
+          "black_bot_id": { "$ref": "#/components/schemas/Id" },
+          "initial_time_ms": { "type": "integer", "minimum": 1000, "maximum": 86400000 },
+          "increment_ms": { "type": "integer", "minimum": 0, "maximum": 3600000, "default": 0 },
+          "games": { "type": "integer", "minimum": 1, "maximum": 100, "default": 1 },
+          "alternate": {
+            "description": "Swap colours after every game.",
+            "type": "boolean",
+            "default": false
+          },
+          "priority": {
+            "description": "Higher starts first; equal priorities in the order queued.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000,
+            "default": 100
+          },
+          "max_moves": {
+            "description": "Full moves until the game is drawn.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2000,
+            "default": 500
+          },
+          "start_fen": {
+            "description": "Start position; null or missing for the standard position.",
+            "type": ["string", "null"],
+            "maxLength": 100
+          }
+        },
+        "required": ["white_bot_id", "black_bot_id", "initial_time_ms"],
+        "additionalProperties": false
+      },
+      "EnqueuedMatches": {
+        "type": "object",
+        "properties": {
+          "match_ids": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Id" },
+            "minItems": 1
+          }
+        },
+        "required": ["match_ids"],
+        "additionalProperties": false
+      },
+      "QueueUpdate": {
+        "type": "object",
+        "properties": {
+          "paused": { "type": "boolean" }
+        },
+        "required": ["paused"],
         "additionalProperties": false
       }
     }
