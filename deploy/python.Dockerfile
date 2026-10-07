@@ -55,7 +55,7 @@ RUN mkdir -p /rt/usr/lib /rt/etc /rt/dev /rt/bot \
     && ln -s usr/lib /rt/lib \
     && ln -s usr/lib64 /rt/lib64 \
     && cp /etc/ld.so.cache /rt/etc/ \
-    && touch /rt/dev/null /rt/dev/urandom
+    && touch /rt/dev/null
 
 FROM python:3.12-slim AS services
 RUN useradd --system --uid 10001 --no-create-home --shell /usr/sbin/nologin sbm

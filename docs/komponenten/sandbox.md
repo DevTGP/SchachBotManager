@@ -88,7 +88,7 @@ Umgesetzt für Python; die übrigen Sprachen folgen mit ihren SDKs nach demselbe
 | `services/runner/src/sbm_runner/sandbox/` | `settings` (`SBM_SANDBOX`), `limits` (feste Grenzen), `cgroup_tree` (Aufteilung des Baums beim Start), `cgroup` (cgroup eines Bots), `jail_player` (Spieler über nsjail), `stderr_tail`, `jail` (Selbstprüfung, Spieler je Bot) |
 | `services/runner/tests/sandbox/` | Negativ-Suite mit Testbots und `run-in-docker.sh` |
 
-**Feste Grenzen** (`limits.py`, A14): 1 GiB Speicher ohne Swap, 128 Prozesse und Threads, 64 Dateideskriptoren, keine beschreibbare Datei, Zeilen bis 64 KiB, von stderr bleiben die letzten 4 KiB im Log des Runners.
+**Feste Grenzen** (`limits.py`, A14): 1 GiB Speicher ohne Swap, 128 Prozesse und Threads, 64 Dateideskriptoren, keine beschreibbare Datei außer `/dev/null`, kein `/dev/urandom` (Zufall über `getrandom`), Zeilen bis 64 KiB, von stderr bleiben die letzten 4 KiB im Log des Runners.
 
 **Ablauf eines Bots:** Runner legt `bots/bot-<zufall>/` mit den Grenzen an → `sh` schreibt sich in deren `cgroup.procs` und wird zu nsjail → nsjail baut die Namespaces, hängt Laufzeit und Bot-Dateien ein, setzt den seccomp-Filter und startet `python3`. Außerhalb seines Zuges ist die cgroup eingefroren. Am Ende: auftauen, stdin schließen, nach `game_over` bis 2 s warten, `cgroup.kill`, cgroup entfernen.
 
