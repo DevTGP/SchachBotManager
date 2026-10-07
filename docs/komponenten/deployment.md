@@ -58,10 +58,10 @@ Umgesetzt unter `deploy/` und `.github/workflows/deploy.yml` (E78). In M2 laufen
 
 | Datei | Inhalt |
 |-------|--------|
-| `deploy/compose.yaml` | Stack `sbm`: Dienste, internes Netz ohne Ausgang, `local-web` nur für `frontend` (Alias `sbm-frontend`), Volume `mongo-data`, Härtung, Log-Rotation; Profil `setup` für die Einmal-Dienste `mongo-users` und `migrate` |
+| `deploy/compose.yaml` | Stack `sbm`: Dienste, internes Netz ohne Ausgang (API dort mit Alias `sbm-api`), `local-web` nur für `frontend` (Alias `sbm-frontend`), Volume `mongo-data`, Härtung, Log-Rotation; Profil `setup` für die Einmal-Dienste `mongo-users` und `migrate` |
 | `deploy/python.Dockerfile` | Image `sbm-python` für `migrate`, `api`, `runner`: baut die Wheels von SDK (mit Kern), Store, Runner und API, Laufzeit ohne Compiler als Nutzer `sbm` |
 | `deploy/frontend.Dockerfile` | Image `sbm-frontend`: Vite-Build, ausgeliefert von nginx ohne Root auf Port 8080 |
-| `deploy/nginx.conf` | SPA mit Rückfall auf `index.html`, `/api/` an `api:8000`, lange Cache-Zeit nur für `/assets/`, Sicherheits-Header |
+| `deploy/nginx.conf` | SPA mit Rückfall auf `index.html`, `/api/` an `sbm-api:8000` (Alias der API nur im internen Netz, weil `api` an `local-web` einen fremden Container treffen kann), lange Cache-Zeit nur für `/assets/`, Sicherheits-Header |
 | `deploy/mongo/users.js` | Legt die Nutzer der Dienste an oder setzt ihre Passwörter neu |
 | `deploy/deploy.sh` | Ablauf auf dem Server, aus dem Repo-Wurzelverzeichnis |
 | `deploy/.env.example` | Alle Werte der Umgebungsdatei mit Erklärung |

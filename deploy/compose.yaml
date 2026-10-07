@@ -85,6 +85,12 @@ services:
   api:
     <<: [*python, *hardening]
     restart: unless-stopped
+    # frontend also sits on local-web, where other stacks may have a service called "api";
+    # it reaches this one through a name that exists only on the internal network.
+    networks:
+      internal:
+        aliases:
+          - sbm-api
     depends_on:
       mongo:
         condition: service_healthy
