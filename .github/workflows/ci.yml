@@ -4,13 +4,57 @@ on:
   push:
     branches: [master]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
+  # Each job below runs only when its part of the repository changed (E79); a manual run or a
+  # change to the CI itself runs all of them.
+  changes:
+    name: Changed areas
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      spec: ${{ steps.areas.outputs.spec }}
+      testvectors: ${{ steps.areas.outputs.testvectors }}
+      core_headers: ${{ steps.areas.outputs.core_headers }}
+      core: ${{ steps.areas.outputs.core }}
+      python: ${{ steps.areas.outputs.python }}
+      services: ${{ steps.areas.outputs.services }}
+      frontend: ${{ steps.areas.outputs.frontend }}
+      native_format: ${{ steps.areas.outputs.native_format }}
+    steps:
+      # The whole history without file contents, so the base commit of the push is there.
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          filter: blob:none
+
+      # A push compares with the last commit of its branch that passed CI, so a push after a red
+      # run tests everything since the green one and the deploy never gets untested code.
+      - name: Find the changed areas
+        id: areas
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -o pipefail
+          base=$PR_BASE
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            base=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?branch=$GITHUB_REF_NAME&event=push&status=success&per_page=1" \
+              --jq '.workflow_runs[0].head_sha // ""')
+          fi
+          echo "base: ${base:-none}" >&2
+          bash .github/scripts/changed-areas.sh "$base" | tee -a "$GITHUB_OUTPUT"
+
   spec:
     name: Spec
+    needs: changes
+    if: needs.changes.outputs.spec == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -35,6 +79,8 @@ jobs:
 
   testvectors:
     name: Test vectors
+    needs: changes
+    if: needs.changes.outputs.testvectors == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -59,6 +105,8 @@ jobs:
 
   core-headers:
     name: Core headers
+    needs: changes
+    if: needs.changes.outputs.core_headers == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -71,6 +119,8 @@ jobs:
 
   core:
     name: Core (${{ matrix.os }})
+    needs: changes
+    if: needs.changes.outputs.core == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -90,6 +140,8 @@ jobs:
 
   python:
     name: Python SDK (${{ matrix.os }}, ${{ matrix.python }})
+    needs: changes
+    if: needs.changes.outputs.python == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -118,6 +170,8 @@ jobs:
 
   services:
     name: Store, runner and web API
+    needs: changes
+    if: needs.changes.outputs.services == 'true'
     runs-on: ubuntu-latest
     services:
       mongo:
@@ -156,6 +210,8 @@ jobs:
 
   frontend:
     name: Frontend
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -188,6 +244,8 @@ jobs:
 
   native-format:
     name: Native format
+    needs: changes
+    if: needs.changes.outputs.native_format == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
