@@ -1,0 +1,60 @@
+// Seccomp policy of a Python bot in kafel syntax (sandbox.md, E86).
+//
+// A whitelist of what CPython and its threads need, taken from traced games; every other
+// system call fails with EPERM. No new processes: clone may only start a thread, clone3 reports
+// ENOSYS, so glibc falls back to clone. No sockets except a local pair for selectors.
+
+#define CLONE_THREAD 0x00010000
+#define AF_UNIX 1
+#define PR_SET_NAME 15
+#define PR_GET_NAME 16
+#define TCGETS 0x5401
+#define TIOCGWINSZ 0x5413
+#define FIONREAD 0x541b
+#define FIONBIO 0x5421
+#define FIONCLEX 0x5450
+#define FIOCLEX 0x5451
+
+POLICY bot {
+  ALLOW {
+    // Files and descriptors; nothing in the jail is writable.
+    read, write, readv, writev, pread64, preadv, lseek, close, close_range,
+    open, openat, newfstatat, newfstat, newstat, newlstat, statx, access, faccessat, faccessat2,
+    readlink, readlinkat, getdents64, getcwd, chdir, fchdir, fcntl, dup, dup2, dup3,
+    ioctl(fd, request) {
+      request == TCGETS || request == TIOCGWINSZ || request == FIONREAD
+        || request == FIONBIO || request == FIONCLEX || request == FIOCLEX
+    },
+
+    // Memory
+    brk, mmap, munmap, mprotect, mremap, madvise,
+
+    // Threads, signals and synchronisation
+    clone(flags) { (flags & CLONE_THREAD) == CLONE_THREAD },
+    futex, set_robust_list, get_robust_list, rseq, set_tid_address, arch_prctl,
+    sched_yield, sched_getaffinity, sched_getparam, sched_getscheduler,
+    rt_sigaction, rt_sigprocmask, rt_sigreturn, rt_sigtimedwait, sigaltstack, kill, tgkill,
+    prctl(option) { option == PR_SET_NAME || option == PR_GET_NAME },
+
+    // Identity, time and randomness
+    getpid, gettid, getppid, getuid, geteuid, getgid, getegid, getgroups,
+    getresuid, getresgid, getpgrp, getpgid, getsid,
+    clock_gettime, clock_getres, clock_nanosleep, nanosleep, gettimeofday, time,
+    alarm, setitimer, getitimer, getrandom,
+
+    // Waiting on descriptors inside the process, e.g. selectors and asyncio
+    poll, ppoll, select, pselect6, epoll_create1, epoll_ctl, epoll_wait, epoll_pwait,
+    pipe, pipe2, eventfd2,
+    socketpair(domain) { domain == AF_UNIX },
+
+    // The process itself
+    execve, exit, exit_group, prlimit64, getrlimit, getrusage, times, newuname, sysinfo, umask
+  },
+  // ENOSYS
+  ERRNO(38) {
+    clone3
+  }
+}
+
+// EPERM
+USE bot DEFAULT ERRNO(1)
