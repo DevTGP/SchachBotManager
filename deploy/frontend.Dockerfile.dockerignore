@@ -1,0 +1,7 @@
+# Only what frontend.Dockerfile copies, without local installs and builds.
+*
+!frontend/
+!deploy/nginx.conf
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo

@@ -1,0 +1,124 @@
+name: Deploy
+
+# Brings master onto the server after CI passed (E78): the server pulls the commit from GitHub,
+# gets deploy/.env from the secrets and builds the stack itself with deploy/deploy.sh.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy
+    # Only pushes to master of this repository, never pull requests from forks.
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master') ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 60
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}.git
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+    steps:
+      - name: Check configuration
+        env:
+          SBM_PUBLIC_URL: ${{ vars.SBM_PUBLIC_URL }}
+          MONGO_ROOT_PASSWORD: ${{ secrets.MONGO_ROOT_PASSWORD }}
+          MONGO_API_PASSWORD: ${{ secrets.MONGO_API_PASSWORD }}
+          MONGO_RUNNER_PASSWORD: ${{ secrets.MONGO_RUNNER_PASSWORD }}
+          MONGO_MIGRATE_PASSWORD: ${{ secrets.MONGO_MIGRATE_PASSWORD }}
+        run: |
+          fail=0
+          for name in MONGO_ROOT_PASSWORD MONGO_API_PASSWORD MONGO_RUNNER_PASSWORD MONGO_MIGRATE_PASSWORD; do
+            # The passwords become part of connection URIs.
+            if [[ ! "${!name}" =~ ^[A-Za-z0-9]{16,}$ ]]; then
+              echo "::error::Secret $name must have at least 16 letters or digits and nothing else"
+              fail=1
+            fi
+          done
+          if [[ ! "$SBM_PUBLIC_URL" =~ ^https?://[^[:space:]]+$ ]]; then
+            echo "::error::Variable SBM_PUBLIC_URL must be an http(s) address"
+            fail=1
+          fi
+          if [[ ! "$DEPLOY_PATH" =~ ^/[^[:space:]]+$ ]]; then
+            echo "::error::Secret DEPLOY_PATH must be an absolute path without spaces"
+            fail=1
+          fi
+          exit "$fail"
+
+      - name: Set up SSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host server
+            HostName $SSH_HOST
+            Port ${SSH_PORT:-22}
+            User $SSH_USER
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+            BatchMode yes
+            ServerAliveInterval 30
+          EOF
+          chmod 600 ~/.ssh/deploy_key ~/.ssh/known_hosts ~/.ssh/config
+
+      - name: Check out the commit on the server
+        run: |
+          # shellcheck disable=SC2029 # expanded here on purpose, quoted with %q for the server
+          ssh server "bash -s -- $(printf '%q ' "$DEPLOY_PATH" "$REPOSITORY_URL" "$SHA")" <<'EOF'
+          set -euo pipefail
+          path=$1 repository=$2 sha=$3
+          if [ ! -d "$path/.git" ]; then
+            git clone --quiet "$repository" "$path"
+          fi
+          cd "$path"
+          git fetch --quiet origin master
+          git checkout --quiet --detach "$sha"
+          git log -1 --format='checked out %h %s'
+          EOF
+
+      - name: Write the environment file
+        env:
+          SBM_PUBLIC_URL: ${{ vars.SBM_PUBLIC_URL }}
+          MONGO_ROOT_PASSWORD: ${{ secrets.MONGO_ROOT_PASSWORD }}
+          MONGO_API_PASSWORD: ${{ secrets.MONGO_API_PASSWORD }}
+          MONGO_RUNNER_PASSWORD: ${{ secrets.MONGO_RUNNER_PASSWORD }}
+          MONGO_MIGRATE_PASSWORD: ${{ secrets.MONGO_MIGRATE_PASSWORD }}
+        # Through stdin, so the values appear in no command line on either side.
+        run: |
+          # shellcheck disable=SC2029 # expanded here on purpose, quoted with %q for the server
+          {
+            echo "SBM_PUBLIC_URL=$SBM_PUBLIC_URL"
+            echo "SBM_MONGO_DB=sbm"
+            echo "MONGO_ROOT_PASSWORD=$MONGO_ROOT_PASSWORD"
+            echo "MONGO_API_PASSWORD=$MONGO_API_PASSWORD"
+            echo "MONGO_RUNNER_PASSWORD=$MONGO_RUNNER_PASSWORD"
+            echo "MONGO_MIGRATE_PASSWORD=$MONGO_MIGRATE_PASSWORD"
+          } | ssh server "umask 077 && cat > $(printf '%q' "$DEPLOY_PATH/deploy/.env")"
+
+      - name: Build and start the stack
+        run: |
+          # shellcheck disable=SC2029 # expanded here on purpose, quoted with %q for the server
+          ssh server "cd $(printf '%q' "$DEPLOY_PATH") && bash deploy/deploy.sh"

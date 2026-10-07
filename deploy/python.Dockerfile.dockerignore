@@ -1,0 +1,12 @@
+# Only what python.Dockerfile copies, without local build output.
+*
+!sdk/core/
+!sdk/python/
+!services/store/
+!services/runner/
+!backend/
+**/build/
+**/__pycache__/
+**/*.egg-info/
+**/.pytest_cache/
+**/.ruff_cache/

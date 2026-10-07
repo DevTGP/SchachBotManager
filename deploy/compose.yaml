@@ -1,0 +1,159 @@
+# The SchachBotManager stack (E28, E78). Values come from deploy/.env, see deploy/.env.example.
+# Only frontend joins the external proxy network local-web; no ports are published on the host.
+# Start it with deploy/deploy.sh, which also runs the one-shot services of the profile "setup".
+name: sbm
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-hardening: &hardening
+  read_only: true
+  tmpfs:
+    - /tmp
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+
+x-python: &python
+  image: sbm-python
+  build:
+    context: ..
+    dockerfile: deploy/python.Dockerfile
+  networks:
+    - internal
+  logging: *logging
+
+services:
+  mongo:
+    image: mongo:8.0
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?}
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    logging: *logging
+
+  # One-shot: creates or updates the database users of the services.
+  mongo-users:
+    image: mongo:8.0
+    profiles: [setup]
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?}
+      SBM_MONGO_DB: ${SBM_MONGO_DB:-sbm}
+      MONGO_API_PASSWORD: ${MONGO_API_PASSWORD:?}
+      MONGO_RUNNER_PASSWORD: ${MONGO_RUNNER_PASSWORD:?}
+      MONGO_MIGRATE_PASSWORD: ${MONGO_MIGRATE_PASSWORD:?}
+    volumes:
+      - ./mongo/users.js:/users.js:ro
+    # The password stays out of the command line that docker inspect shows.
+    command:
+      - sh
+      - -c
+      - mongosh --quiet "mongodb://root:$${MONGO_ROOT_PASSWORD}@mongo:27017/admin" --file /users.js
+    networks:
+      - internal
+    logging: *logging
+
+  # One-shot: applies the database migrations.
+  migrate:
+    <<: [*python, *hardening]
+    profiles: [setup]
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      SBM_MONGO_URI: mongodb://sbm_migrate:${MONGO_MIGRATE_PASSWORD:?}@mongo:27017/?authSource=${SBM_MONGO_DB:-sbm}
+      SBM_MONGO_DB: ${SBM_MONGO_DB:-sbm}
+    command: ["sbm-migrate"]
+
+  api:
+    <<: [*python, *hardening]
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      SBM_MONGO_URI: mongodb://sbm_api:${MONGO_API_PASSWORD:?}@mongo:27017/?authSource=${SBM_MONGO_DB:-sbm}
+      SBM_MONGO_DB: ${SBM_MONGO_DB:-sbm}
+      SBM_PUBLIC_URL: ${SBM_PUBLIC_URL:?}
+    command:
+      - gunicorn
+      - --bind=0.0.0.0:8000
+      - --workers=${API_WORKERS:-2}
+      - --access-logfile=-
+      - sbm_api.wsgi:app
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health', timeout=4)
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # In M2 only the reference bots play, without sandbox (E72); nsjail and extended rights come in M3.
+  runner:
+    <<: [*python, *hardening]
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      SBM_MONGO_URI: mongodb://sbm_runner:${MONGO_RUNNER_PASSWORD:?}@mongo:27017/?authSource=${SBM_MONGO_DB:-sbm}
+      SBM_MONGO_DB: ${SBM_MONGO_DB:-sbm}
+      SBM_WORKER_ID: runner-1
+    command: ["sbm-runner"]
+    # SIGTERM hands the running game back to the queue (E75).
+    stop_grace_period: 30s
+
+  frontend:
+    <<: *hardening
+    image: sbm-frontend
+    build:
+      context: ..
+      dockerfile: deploy/frontend.Dockerfile
+    restart: unless-stopped
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+    depends_on:
+      - api
+    networks:
+      internal: {}
+      local-web:
+        aliases:
+          - sbm-frontend
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging: *logging
+
+volumes:
+  mongo-data:
+
+networks:
+  # No way out: bots, runner and api reach nothing but each other and the database.
+  internal:
+    internal: true
+  local-web:
+    external: true
