@@ -7,6 +7,7 @@ const appDb = db.getSiblingDB(dbName);
 // The api reads everything but writes only what accounts, the admin pages, uploads and
 // interactive games need (E85, E92, E115, E116); the uploaded files go to the GridFS bucket
 // bot_files (E82). Deleting a bot removes it with its matches, their jobs and its report (E105).
+// Disciplines are created and archived, never deleted (E100).
 const writeAll = ["insert", "update", "remove"];
 const apiWrites = {
   users: writeAll,
@@ -22,6 +23,7 @@ const apiWrites = {
   "bot_files.files": ["insert", "remove"],
   "bot_files.chunks": ["insert", "remove"],
   settings: ["insert", "update"],
+  disciplines: ["insert", "update"],
   // Coders make and revoke their API tokens; using one marks it used (E116).
   api_tokens: ["insert", "update"],
 };
