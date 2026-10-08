@@ -293,6 +293,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/account/tokens": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The account's API tokens that are not revoked, newest first (coders, E116). */
+        get: operations["list_tokens"];
+        put?: never;
+        /** Makes an API token for remote bots (coders, E116); at most 10 per account. The token is in this answer only. */
+        post: operations["create_token"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/tokens/{token_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revokes an own API token (coders, E116). */
+        delete: operations["revoke_token"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/remote/matches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A game of the token owner's local bot against a verified bot (coders, E116). The local bot joins its seat over the WebSocket at socket_path (gateway-v1) and then speaks the bot protocol v1. Never rated, not public, within the play limits for the address, the account and the token (E115). */
+        post: operations["start_remote_match"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/account/bots": {
         parameters: {
             query?: never;
@@ -985,6 +1039,39 @@ export interface components {
             max_games: number;
             games_per_client: number;
             games_per_day: number;
+        };
+        ApiToken: {
+            id: components["schemas"]["Id"];
+            name: string;
+            created_at: components["schemas"]["Timestamp"];
+            last_used_at: components["schemas"]["Timestamp"] | null;
+        };
+        ApiTokenList: {
+            items: components["schemas"]["ApiToken"][];
+        };
+        ApiTokenRequest: {
+            /** @description What the token is for, e.g. the machine; 1 to 40 characters. */
+            name: string;
+        };
+        /** @description A new token; token appears only here, the server keeps its hash. */
+        CreatedApiToken: {
+            id: components["schemas"]["Id"];
+            name: string;
+            created_at: components["schemas"]["Timestamp"];
+            last_used_at: null;
+            token: string;
+        };
+        /** @description The opponent and a discipline by name as on the website; without a discipline free times up to 30 min + 30 s (E115, E116). */
+        RemoteMatchRequest: {
+            /** @description Name of a bot; its newest verified version plays. */
+            opponent: string;
+            /** @enum {unknown} */
+            color: "white" | "black" | "random";
+            /** @description Name of a discipline that is not archived; null or missing for free times. */
+            discipline?: string | null;
+            initial_time_ms?: number;
+            /** @default 0 */
+            increment_ms: number;
         };
         QueueUpdate: {
             paused: boolean;
@@ -1705,6 +1792,117 @@ export interface operations {
             401: components["responses"]["InvalidCredentials"];
             403: components["responses"]["Forbidden"];
             429: components["responses"]["TooManyAttempts"];
+        };
+    };
+    list_tokens: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The tokens, without the tokens themselves. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiTokenList"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    create_token: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApiTokenRequest"];
+            };
+        };
+        responses: {
+            /** @description The new token. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedApiToken"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    revoke_token: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                token_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The token no longer works. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    start_remote_match: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemoteMatchRequest"];
+            };
+        };
+        responses: {
+            /** @description The game waits for the local bot to join. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaySeat"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            429: components["responses"]["PlayLimit"];
+            503: components["responses"]["NoCapacity"];
         };
     };
     list_own_bots: {

@@ -1,5 +1,5 @@
 import { getJson, sendJson } from "./client";
-import type { CurrentUser, SessionState } from "./types";
+import type { ApiToken, CreatedApiToken, CurrentUser, SessionState } from "./types";
 
 export async function fetchSession(signal?: AbortSignal): Promise<CurrentUser | null> {
   const state = await getJson<SessionState>("/session", undefined, signal);
@@ -41,4 +41,18 @@ export function changePassword(currentPassword: string, newPassword: string): Pr
     current_password: currentPassword,
     new_password: newPassword,
   });
+}
+
+export async function fetchTokens(signal?: AbortSignal): Promise<ApiToken[]> {
+  const list = await getJson<{ items: ApiToken[] }>("/account/tokens", undefined, signal);
+  return list.items;
+}
+
+/** A token for remote bots; the answer is the only place the token appears (E116). */
+export function createToken(name: string): Promise<CreatedApiToken> {
+  return sendJson("POST", "/account/tokens", { name });
+}
+
+export function revokeToken(id: string): Promise<undefined> {
+  return sendJson("DELETE", `/account/tokens/${encodeURIComponent(id)}`);
 }

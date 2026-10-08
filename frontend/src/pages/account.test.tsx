@@ -132,7 +132,9 @@ describe("password reset page", () => {
 
     expect(await screen.findByText("Logged in as bob")).toBeVisible();
     expect(router.state.location.pathname).toBe("/account");
-    expect(api.calls.at(-1)?.body).toEqual({
+    // The account page then loads the API tokens, so the redeem call is not the last one.
+    const redeem = api.calls.find((call) => call.url.pathname.endsWith("/password-resets/redeem"));
+    expect(redeem?.body).toEqual({
       token: "reset-token",
       password: "another long secret",
     });

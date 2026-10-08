@@ -462,5 +462,23 @@
     "games_per_day": "Games per day per player",
     "save": "Save",
     "saved": "Saved."
+  },
+  "tokens": {
+    "title": "API tokens",
+    "intro": "With a token your bot plays on your machine against bots on the server: python bot.py --remote URL --opponent NAME, with the token in SBM_TOKEN. Such games are not rated and not public.",
+    "token": "Token",
+    "copy": "Copy token",
+    "created": "New token “{{name}}”",
+    "onlyOnce": "Copy it now: it is shown only this once.",
+    "none": "No tokens yet.",
+    "name": "Name",
+    "createdAt": "Created",
+    "lastUsed": "Last used",
+    "never": "never",
+    "revoke": "Revoke",
+    "create": "Create token"
+  },
+  "tokenError": {
+    "name": "1 to 40 characters; an account has at most 10 tokens."
   }
 }

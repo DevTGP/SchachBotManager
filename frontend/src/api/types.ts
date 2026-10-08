@@ -2,6 +2,9 @@ import type { components } from "./schema";
 
 type Schemas = components["schemas"];
 
+export type ApiToken = Schemas["ApiToken"];
+export type CreatedApiToken = Schemas["CreatedApiToken"];
+
 export type Bot = Schemas["Bot"];
 export type BotDetail = Schemas["BotDetail"];
 export type BotDetails = Schemas["BotDetails"];

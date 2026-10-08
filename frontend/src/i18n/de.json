@@ -462,5 +462,23 @@
     "games_per_day": "Partien am Tag je Spieler",
     "save": "Speichern",
     "saved": "Gespeichert."
+  },
+  "tokens": {
+    "title": "API-Tokens",
+    "intro": "Mit einem Token spielt dein Bot auf deinem Rechner gegen Bots auf dem Server: python bot.py --remote URL --opponent NAME, mit dem Token in SBM_TOKEN. Solche Partien werden nicht gewertet und sind nicht öffentlich.",
+    "token": "Token",
+    "copy": "Token kopieren",
+    "created": "Neues Token „{{name}}“",
+    "onlyOnce": "Jetzt kopieren: Es wird nur dieses eine Mal angezeigt.",
+    "none": "Noch keine Tokens.",
+    "name": "Name",
+    "createdAt": "Angelegt",
+    "lastUsed": "Zuletzt benutzt",
+    "never": "nie",
+    "revoke": "Widerrufen",
+    "create": "Token anlegen"
+  },
+  "tokenError": {
+    "name": "1 bis 40 Zeichen; ein Konto hat höchstens 10 Tokens."
   }
 }

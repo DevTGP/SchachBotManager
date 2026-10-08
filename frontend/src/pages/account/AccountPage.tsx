@@ -7,8 +7,9 @@ import { FormError } from "../../components/FormError";
 import { PasswordFields } from "../../components/PasswordFields";
 import { useSubmit } from "../../hooks/useSubmit";
 import { useSession } from "../../session/sessionContext";
+import { ApiTokens } from "./ApiTokens";
 
-/** The own account: who is logged in, a new password, logging out (E83). */
+/** The own account: who is logged in, a new password, logging out (E83), API tokens (E116). */
 export function AccountPage() {
   const { t } = useTranslation();
   const { user, setUser } = useSession();
@@ -83,6 +84,7 @@ export function AccountPage() {
           {t("account.savePassword")}
         </button>
       </form>
+      {user.role !== "player" && <ApiTokens />}
     </>
   );
 }

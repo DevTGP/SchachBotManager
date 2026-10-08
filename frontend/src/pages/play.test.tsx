@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PlayState } from "../play/protocol";
 import { saveSeat } from "../play/seats";
 import { FakeSocket } from "../test/fakeSocket";
-import { ADMIN, BOTS, PLAYER, START_FEN } from "../test/fixtures";
+import { ADMIN, BOTS, CODER, PLAYER, START_FEN } from "../test/fixtures";
 import { type ApiCall, mockApi, renderRoute } from "../test/render";
 
 const MATCH_ID = "665f00000000000000000f01";
@@ -245,5 +245,57 @@ describe("players and the admin limits", () => {
     expect(await screen.findByText("Saved.")).toBeVisible();
     const call = api.calls.find((made) => made.method === "PUT");
     expect(call?.body).toEqual({ max_games: 3, games_per_client: 1, games_per_day: 50 });
+  });
+});
+
+describe("api tokens", () => {
+  it("lets coders make a token, shown once, and revoke it", async () => {
+    const user = userEvent.setup();
+    let items: unknown[] = [];
+    const created = {
+      id: "665f00000000000000000e01",
+      name: "laptop",
+      created_at: "2026-05-01T10:00:00.000Z",
+      last_used_at: null,
+      token: `sbm_${"A".repeat(43)}`,
+    };
+    const api = mockApi({
+      "/session": { user: CODER },
+      "/account/tokens": (_url: URL, call: ApiCall) => {
+        if (call.method === "POST") {
+          items = [
+            {
+              id: created.id,
+              name: created.name,
+              created_at: created.created_at,
+              last_used_at: null,
+            },
+          ];
+          return Response.json(created, { status: 201 });
+        }
+        return { items };
+      },
+      [`/account/tokens/${created.id}`]: () => {
+        items = [];
+        return new Response(null, { status: 204 });
+      },
+    });
+    renderRoute("/account");
+
+    await user.type(await screen.findByRole("textbox", { name: "Name" }), "laptop");
+    await user.click(screen.getByRole("button", { name: "Create token" }));
+
+    expect(await screen.findByRole("textbox", { name: "Token" })).toHaveValue(created.token);
+    expect(await screen.findByRole("cell", { name: "laptop" })).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Revoke" }));
+    expect(await screen.findByText("No tokens yet.")).toBeVisible();
+    expect(api.calls.some((call) => call.method === "DELETE")).toBe(true);
+  });
+
+  it("shows players no tokens", async () => {
+    mockApi({ "/session": { user: PLAYER } });
+    renderRoute("/account");
+    expect(await screen.findByRole("heading", { name: "Account" })).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "API tokens" })).not.toBeInTheDocument();
   });
 });
