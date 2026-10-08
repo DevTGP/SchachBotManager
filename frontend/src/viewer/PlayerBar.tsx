@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import type { Side } from "../api/types";
 import type { Color } from "../chess/fen";
+import { sideLabel } from "../format/botLabel";
 import { formatClock } from "../format/clock";
 
 /** Name, material lead and remaining time of one side; the side to move is highlighted. */
@@ -23,7 +24,7 @@ export function PlayerBar({
   return (
     <div className={`player-bar${toMove ? " to-move" : ""}`} data-testid={`player-${color}`}>
       <span className={`piece-dot ${color}`} aria-label={label} title={label} />
-      <span className="player-name">{side.name}</span>
+      <span className="player-name">{sideLabel(side)}</span>
       {lead > 0 && (
         <span className="material" title={t("viewer.material")}>
           +{lead}

@@ -66,6 +66,7 @@ function own(name: string, version: string): Bot {
     language: "python",
     status: "verified",
     builtin: false,
+    description: "",
     created_at: "2026-05-01T10:00:00.000Z",
   };
 }

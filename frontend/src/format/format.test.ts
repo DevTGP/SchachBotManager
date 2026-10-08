@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { playersLabel, sideLabel } from "./botLabel";
 import { formatClock, formatSpent } from "./clock";
 import { formatResult } from "./result";
 import { formatScore } from "./score";
@@ -68,5 +69,18 @@ describe("formatTimeControl and formatResult", () => {
     expect(formatResult("1/2-1/2")).toBe("½–½");
     expect(formatResult("1-0")).toBe("1–0");
     expect(formatResult(null)).toBe("");
+  });
+});
+
+describe("sideLabel and playersLabel", () => {
+  it("names a side with its version, games before versions by name only", () => {
+    expect(sideLabel({ name: "Sharp", version: "1.2.0" })).toBe("Sharp 1.2.0");
+    expect(sideLabel({ name: "Sharp", version: null })).toBe("Sharp");
+    expect(
+      playersLabel({
+        white: { kind: "bot", bot_id: "a", name: "Sharp", version: "1.2.0", sdk: null, lang: null },
+        black: { kind: "bot", bot_id: "b", name: "Random", version: null, sdk: null, lang: null },
+      }),
+    ).toBe("Sharp 1.2.0 – Random");
   });
 });

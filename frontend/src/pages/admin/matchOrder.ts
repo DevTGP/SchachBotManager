@@ -39,6 +39,6 @@ export function matchOrder(form: MatchForm): MatchOrder {
   };
 }
 
-function secondsToMs(seconds: string): number {
+export function secondsToMs(seconds: string): number {
   return Math.round(Number(seconds.replace(",", ".")) * 1000);
 }

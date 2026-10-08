@@ -14,6 +14,7 @@ import { BotsPage } from "./pages/BotsPage";
 import { MatchesPage } from "./pages/MatchesPage";
 import { MatchPage } from "./pages/MatchPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { OwnBotsPage } from "./pages/ownBots/OwnBotsPage";
 import { QueuePage } from "./pages/QueuePage";
 import { StartPage } from "./pages/StartPage";
 import { UploadPage } from "./pages/upload/UploadPage";
@@ -50,6 +51,14 @@ export const routes: RouteObject[] = [
         element: (
           <RequireRole>
             <AccountPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: "account/bots",
+        element: (
+          <RequireRole>
+            <OwnBotsPage />
           </RequireRole>
         ),
       },

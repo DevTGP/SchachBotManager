@@ -15,7 +15,7 @@ describe("start page", () => {
     });
     renderRoute("/");
     expect(await screen.findByText("No game is running right now.")).toBeVisible();
-    const link = await screen.findByRole("link", { name: "Random – Material" });
+    const link = await screen.findByRole("link", { name: "Random 1.0.0 – Material 1.0.0" });
     expect(link).toHaveAttribute("href", "/matches/665f00000000000000000001");
     expect(screen.getByText("0–1")).toBeVisible();
     expect(screen.getByText("3+2")).toBeVisible();
@@ -88,7 +88,7 @@ describe("queue page", () => {
 
     expect(await screen.findByRole("status")).toHaveTextContent("The queue is paused");
     expect(screen.getByText("No game is running right now.")).toBeVisible();
-    expect(screen.getByRole("link", { name: "Random – Material" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Random 1.0.0 – Material 1.0.0" })).toBeVisible();
     expect(screen.getByText("2 more games are waiting.")).toBeVisible();
   });
 });

@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import type { MatchSummary } from "../api/types";
+import { playersLabel } from "../format/botLabel";
 import { formatDateTime } from "../format/dateTime";
 import { formatResult } from "../format/result";
 import { formatTimeControl } from "../format/timeControl";
@@ -28,9 +29,7 @@ export function MatchTable({ matches, empty }: { matches: MatchSummary[]; empty:
           {matches.map((match) => (
             <tr key={match.id}>
               <td>
-                <Link to={`/matches/${match.id}`}>
-                  {match.white.name} – {match.black.name}
-                </Link>
+                <Link to={`/matches/${match.id}`}>{playersLabel(match)}</Link>
               </td>
               <td>{match.result ? formatResult(match.result) : t(`status.${match.status}`)}</td>
               <td className="optional">

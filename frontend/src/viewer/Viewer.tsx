@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 
 import type { Match } from "../api/types";
 import { materialBalance, sideToMove, type Color } from "../chess/fen";
+import { playersLabel } from "../format/botLabel";
 import { Board } from "./Board";
 import { Controls } from "./Controls";
 import { ExportPanel } from "./ExportPanel";
@@ -61,9 +62,7 @@ export function Viewer({ match, live }: { match: Match; live: boolean }) {
         <p className="muted small">{t("viewer.keyboard")}</p>
       </div>
       <div className="viewer-side">
-        <h1>
-          {match.white.name} – {match.black.name}
-        </h1>
+        <h1>{playersLabel(match)}</h1>
         <MatchDetails match={match} />
         <h2>{t("viewer.moves")}</h2>
         <MoveList match={match} ply={ply} goTo={goTo} />

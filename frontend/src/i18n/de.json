@@ -11,7 +11,8 @@
     "upload": "Bot hochladen",
     "login": "Anmelden",
     "account": "Konto",
-    "admin": "Verwaltung"
+    "admin": "Verwaltung",
+    "ownBots": "Meine Bots"
   },
   "common": {
     "loading": "Lädt …",
@@ -104,7 +105,8 @@
     "testing": "Tests laufen",
     "verified": "Geprüft",
     "rejected": "Abgelehnt",
-    "disabled": "Gesperrt"
+    "disabled": "Gesperrt",
+    "retired": "Zurückgezogen"
   },
   "bot": {
     "verifying": "Der Bot wird geprüft. Diese Seite aktualisiert sich selbst.",
@@ -142,7 +144,20 @@
       "analysis": "Statische Analyse",
       "tests": "Mindesttests",
       "internal": "Server"
-    }
+    },
+    "description": "Beschreibung",
+    "descriptionHint": "Reiner Text, höchstens {{max}} Zeichen. Für alle lesbar.",
+    "editDescription": "Beschreibung bearbeiten",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "retire": "Zurückziehen",
+    "reactivate": "Wieder aktivieren",
+    "retireHint": "Ein zurückgezogener Bot spielt keine neuen Partien; seine Partien bleiben.",
+    "retiredHint": "Der Bot ist zurückgezogen und spielt keine neuen Partien.",
+    "versions": "Versionen",
+    "downloadZip": "Alle Dateien herunterladen (ZIP)",
+    "downloadFile": "Datei herunterladen",
+    "binary": "Diese Datei ist kein Text."
   },
   "upload": {
     "title": "Bot hochladen",
@@ -165,8 +180,24 @@
     "tooManyFiles": "Erlaubt sind höchstens 100 .py-Dateien und 100 Datendateien.",
     "tooLarge": "Die .py-Dateien und die Datendateien dürfen je höchstens 1 MB zusammen haben.",
     "noEntry": "Im obersten Ordner fehlt eine .py-Datei, mit der der Bot startet.",
-    "ownTitle": "Deine Bots",
-    "ownEmpty": "Du hast noch keinen Bot hochgeladen."
+    "ownLink": "Alle deine Bots und Versionen"
+  },
+  "ownBots": {
+    "title": "Meine Bots",
+    "empty": "Du hast noch keinen Bot hochgeladen.",
+    "enqueueTitle": "Partien ansetzen",
+    "ownBot": "Dein Bot",
+    "opponent": "Gegner",
+    "ownColor": "Dein Bot spielt",
+    "noVerified": "Sobald einer deiner Bots geprüft ist, kannst du hier Partien für ihn ansetzen.",
+    "limits": "Höchstens 5 Minuten plus 5 Sekunden je Zug, 10 Partien auf einmal und 20 Partien am Tag. Deine Partien starten nach denen, die Admins ansetzen."
+  },
+  "ownMatchError": {
+    "initial_time_ms": "Die Zeit muss zwischen 1 und 300 Sekunden liegen.",
+    "increment_ms": "Das Inkrement darf höchstens 5 Sekunden betragen.",
+    "games": "1 bis 10 Partien sind möglich.",
+    "white_bot_id": "Einer der Bots muss dir gehören, und beide müssen geprüft sein.",
+    "black_bot_id": "Der Gegner muss ein geprüfter Bot sein."
   },
   "language": {
     "python": "Python",
@@ -248,7 +279,8 @@
     "entry": "Die Startdatei ist ungültig.",
     "paths": "Jede Datei braucht einen Pfad.",
     "files": "1 bis 200 Dateien auswählen.",
-    "status": "Nur geprüfte und gesperrte Bots lassen sich umschalten."
+    "status": "Der Bot kann nicht in diesen Status wechseln.",
+    "description": "Die Beschreibung darf höchstens 500 Zeichen und außer Zeilenumbrüchen keine Steuerzeichen haben."
   },
   "login": {
     "title": "Anmelden",

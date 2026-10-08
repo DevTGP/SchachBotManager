@@ -42,8 +42,8 @@ export const OPENING: Move[] = [
   move(3, "g1f3", "Nf3", "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2", 176_500),
 ];
 
-export function side(name: string, botId: string) {
-  return { kind: "bot" as const, bot_id: botId, name, sdk: "python", lang: "python" };
+export function side(name: string, botId: string, version: string | null = "1.0.0") {
+  return { kind: "bot" as const, bot_id: botId, name, version, sdk: "python", lang: "python" };
 }
 
 export function summary(overrides: Partial<MatchSummary> = {}): MatchSummary {
@@ -76,6 +76,7 @@ export const BOTS: Bot[] = [
     language: "python",
     status: "verified",
     builtin: true,
+    description: "",
     created_at: "2026-05-01T10:00:00.000Z",
   },
   {
@@ -85,6 +86,7 @@ export const BOTS: Bot[] = [
     language: "python",
     status: "verified",
     builtin: true,
+    description: "",
     created_at: "2026-05-01T10:00:00.000Z",
   },
 ];
@@ -116,48 +118,57 @@ export function user(current: CurrentUser, overrides: Partial<User> = {}): User 
 
 export const SHARP_ID = "665f0000000000000000000c";
 
-/** An uploaded bot as its owner sees it, rejected by the static analysis. */
+/** An uploaded bot as its owner sees it, rejected by the static analysis; its only version. */
 export function botDetail(overrides: Partial<BotDetail> = {}): BotDetail {
-  return {
+  const bot: Bot = {
     id: SHARP_ID,
     name: "Sharp",
     version: "1.0.0",
     language: "python",
     status: "rejected",
     builtin: false,
+    description: "",
     created_at: "2026-05-01T10:00:00.000Z",
-    details: {
-      owner: "bob",
-      entry: "bot.py",
-      files: [
-        { path: "bot.py", kind: "source", size: 1234 },
-        { path: "data/book.txt", kind: "data", size: 5 },
-      ],
-      sdk_version: "0.4.0",
-      runtime_version: "3.12.1",
-      verified_at: null,
-      rejected_at: "2026-05-01T10:01:00.000Z",
-      rejection: { stage: "analysis", reason: "1 finding" },
-      report: {
-        result: "failed",
-        ruleset: "python-1",
-        runtime: { python: "3.12.1", sdk: "0.4.0" },
-        started_at: "2026-05-01T10:00:30.000Z",
-        finished_at: "2026-05-01T10:01:00.000Z",
-        stages: [
-          {
-            stage: "analysis",
-            status: "failed",
-            duration_ms: 1200,
-            problem: "1 finding",
-            findings: [
-              { rule: "import", file: "bot.py", line: 3, message: "socket is not allowed" },
+  };
+  const { details, versions, ...fields } = overrides;
+  const shown = { ...bot, ...fields };
+  return {
+    ...shown,
+    versions: versions ?? [shown],
+    details:
+      details !== undefined
+        ? details
+        : {
+            owner: "bob",
+            entry: "bot.py",
+            files: [
+              { path: "bot.py", kind: "source", size: 1234 },
+              { path: "data/book.txt", kind: "data", size: 5 },
             ],
-            truncated: false,
+            sdk_version: "0.4.0",
+            runtime_version: "3.12.1",
+            verified_at: null,
+            rejected_at: "2026-05-01T10:01:00.000Z",
+            rejection: { stage: "analysis", reason: "1 finding" },
+            report: {
+              result: "failed",
+              ruleset: "python-1",
+              runtime: { python: "3.12.1", sdk: "0.4.0" },
+              started_at: "2026-05-01T10:00:30.000Z",
+              finished_at: "2026-05-01T10:01:00.000Z",
+              stages: [
+                {
+                  stage: "analysis",
+                  status: "failed",
+                  duration_ms: 1200,
+                  problem: "1 finding",
+                  findings: [
+                    { rule: "import", file: "bot.py", line: 3, message: "socket is not allowed" },
+                  ],
+                  truncated: false,
+                },
+              ],
+            },
           },
-        ],
-      },
-    },
-    ...overrides,
   };
 }

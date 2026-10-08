@@ -6,14 +6,19 @@ import { FormError } from "../../components/FormError";
 import { useSubmit } from "../../hooks/useSubmit";
 import { useSession } from "../../session/sessionContext";
 
-/** Admins disable a verified bot or enable it again (E93); nobody else sees the switch. */
+/**
+ * Admins disable a verified or retired bot and enable a disabled one, which makes it verified
+ * (E93, E96); nobody else sees the switch.
+ */
 export function BotStatusSwitch({ bot, onChange }: { bot: BotDetail; onChange: () => void }) {
   const { t } = useTranslation();
   const { user } = useSession();
   const { pending, error, submit } = useSubmit();
   if (user?.role !== "admin") return null;
-  if (bot.status !== "verified" && bot.status !== "disabled") return null;
-  const next = bot.status === "verified" ? "disabled" : "verified";
+  if (bot.status !== "verified" && bot.status !== "retired" && bot.status !== "disabled") {
+    return null;
+  }
+  const next = bot.status === "disabled" ? "verified" : "disabled";
 
   function onClick() {
     void submit(async () => {

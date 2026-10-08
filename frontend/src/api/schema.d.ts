@@ -31,7 +31,8 @@ export interface paths {
         /** Matches, newest first, without their moves. */
         get: operations["list_matches"];
         put?: never;
-        post?: never;
+        /** Puts single games between two verified bots into the queue, at least one of them the account's own (E98). At most 20 games a day per account; they start after the matches of admins. */
+        post: operations["enqueue_own_matches"];
         delete?: never;
         options?: never;
         head?: never;
@@ -103,8 +104,47 @@ export interface paths {
             };
             cookie?: never;
         };
-        /** One bot. Verified and disabled bots are public; the owner and admins also see the others, and they alone get the details with the verification report (E15). */
+        /** One bot with the versions of its name. Verified, disabled and retired bots are public; the owner and admins also see the others, and they alone get the details with the verification report (E15, E95). */
         get: operations["get_bot"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Changes the description of an own bot, or retires a verified one and makes it verified again (owner, E95, E96). A bot disabled by an admin stays disabled. */
+        patch: operations["update_own_bot"];
+        trace?: never;
+    };
+    "/bots/{bot_id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** One file of an uploaded bot as a download (owner and admins, E97). Bots that are not public are not found for others. */
+        get: operations["get_bot_file"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bots/{bot_id}/source": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** All files of an uploaded bot as a ZIP file named Name-Version.zip, in a folder Name-Version (owner and admins, E97). */
+        get: operations["get_bot_source"];
         put?: never;
         post?: never;
         delete?: never;
@@ -324,7 +364,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Disables a verified bot or enables a disabled one again (admin, E93); queued matches of a disabled bot are aborted when their turn comes. */
+        /** Disables a verified or retired bot, or makes a disabled one verified again (admin, E93, E96); queued matches of a disabled bot are aborted when their turn comes. */
         patch: operations["update_bot"];
         trace?: never;
     };
@@ -408,6 +448,8 @@ export interface components {
             name: string;
             sdk: string | null;
             lang: string | null;
+            /** @description Version of the bot; null for matches queued before versions were kept (E95). */
+            version: string | null;
         };
         /** @description The fields of MatchSummary, open for extension by Match. */
         MatchFields: {
@@ -452,10 +494,10 @@ export interface components {
             total: number;
         };
         /**
-         * @description uploaded, analyzing, testing: in the verification; verified: plays; rejected: failed the verification; disabled: stopped by an admin (verifikation.md).
+         * @description uploaded, analyzing, testing: in the verification; verified: plays; rejected: failed the verification; disabled: stopped by an admin; retired: withdrawn by its owner (verifikation.md, E96).
          * @enum {unknown}
          */
-        BotStatus: "uploaded" | "analyzing" | "testing" | "verified" | "rejected" | "disabled";
+        BotStatus: "uploaded" | "analyzing" | "testing" | "verified" | "rejected" | "disabled" | "retired";
         /** @description 3 to 32 letters, digits, _ . or -, starting with a letter or digit; regardless of case the name of one owner's bots (E91). */
         BotName: string;
         /** @description X.Y.Z, each part 0 to 999 without leading zeros (E91). */
@@ -470,12 +512,16 @@ export interface components {
             status: components["schemas"]["BotStatus"];
             /** @description A reference bot shipped with the SDK (E68, E72). */
             builtin: boolean;
+            /** @description Plain text by the owner, at most 500 characters; line breaks but no other control characters (E95). */
+            description: string;
             created_at: components["schemas"]["Timestamp"];
         };
         Bot: components["schemas"]["BotFields"];
         BotDetail: {
             /** @description Only for the owner and admins; null for everyone else. */
             details: components["schemas"]["BotDetails"] | null;
+            /** @description The versions of the name the viewer may see, this one included, newest first (E95). */
+            versions: components["schemas"]["Bot"][];
         } & components["schemas"]["BotFields"];
         BotFile: {
             path: string;
@@ -578,6 +624,11 @@ export interface components {
              * @default bot.py
              */
             entry: string;
+            /**
+             * @description Plain text by the owner, at most 500 characters; line breaks but no other control characters (E95).
+             * @default
+             */
+            description: string;
             /** @description The path of each file, in the order of files. */
             paths: string[];
             files: string[];
@@ -585,6 +636,15 @@ export interface components {
         BotUpdate: {
             /** @enum {unknown} */
             status: "verified" | "disabled";
+        };
+        OwnBotUpdate: {
+            /** @description Plain text by the owner, at most 500 characters; line breaks but no other control characters (E95). */
+            description?: string;
+            /**
+             * @description retired withdraws a verified bot, verified brings it back (E96).
+             * @enum {unknown}
+             */
+            status?: "verified" | "retired";
         };
         BotList: {
             items: components["schemas"]["Bot"][];
@@ -714,6 +774,21 @@ export interface components {
             max_moves: number;
             /** @description Start position; null or missing for the standard position. */
             start_fen?: string | null;
+        };
+        /** @description Like EnqueueRequest with tighter limits: from the standard position with the default move limit, at most 5 min + 5 s and 10 games (E98). */
+        OwnMatchRequest: {
+            white_bot_id: components["schemas"]["Id"];
+            black_bot_id: components["schemas"]["Id"];
+            initial_time_ms: number;
+            /** @default 0 */
+            increment_ms: number;
+            /** @default 1 */
+            games: number;
+            /**
+             * @description Swap colours after every game.
+             * @default false
+             */
+            alternate: boolean;
         };
         EnqueuedMatches: {
             match_ids: components["schemas"]["Id"][];
@@ -935,6 +1010,37 @@ export interface operations {
             400: components["responses"]["BadRequest"];
         };
     };
+    enqueue_own_matches: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OwnMatchRequest"];
+            };
+        };
+        responses: {
+            /** @description The new matches in the order they were queued. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnqueuedMatches"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            429: components["responses"]["TooManyAttempts"];
+        };
+    };
     get_match: {
         parameters: {
             query?: never;
@@ -1057,6 +1163,98 @@ export interface operations {
                 };
             };
             400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    update_own_bot: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OwnBotUpdate"];
+            };
+        };
+        responses: {
+            /** @description The changed bot. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotDetail"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    get_bot_file: {
+        parameters: {
+            query: {
+                /** @description The path as listed in the details. */
+                path: string;
+            };
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The bytes of the file as uploaded. */
+            200: {
+                headers: {
+                    /** @description Always attachment, with the file name. */
+                    "Content-Disposition"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": unknown;
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    get_bot_source: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The ZIP file. */
+            200: {
+                headers: {
+                    /** @description Always attachment, with the file name. */
+                    "Content-Disposition"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/zip": unknown;
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
         };
     };

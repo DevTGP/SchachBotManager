@@ -11,7 +11,8 @@
     "upload": "Upload bot",
     "login": "Log in",
     "account": "Account",
-    "admin": "Admin"
+    "admin": "Admin",
+    "ownBots": "My bots"
   },
   "common": {
     "loading": "Loading …",
@@ -104,7 +105,8 @@
     "testing": "Tests running",
     "verified": "Verified",
     "rejected": "Rejected",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "retired": "Withdrawn"
   },
   "bot": {
     "verifying": "The bot is being verified. This page updates itself.",
@@ -142,7 +144,20 @@
       "analysis": "Static analysis",
       "tests": "Minimum tests",
       "internal": "Server"
-    }
+    },
+    "description": "Description",
+    "descriptionHint": "Plain text, at most {{max}} characters. Everyone can read it.",
+    "editDescription": "Edit description",
+    "save": "Save",
+    "cancel": "Cancel",
+    "retire": "Withdraw",
+    "reactivate": "Reactivate",
+    "retireHint": "A withdrawn bot plays no new games; its games stay.",
+    "retiredHint": "The bot is withdrawn and plays no new games.",
+    "versions": "Versions",
+    "downloadZip": "Download all files (ZIP)",
+    "downloadFile": "Download file",
+    "binary": "This file is not text."
   },
   "upload": {
     "title": "Upload a bot",
@@ -165,8 +180,24 @@
     "tooManyFiles": "At most 100 .py files and 100 data files are allowed.",
     "tooLarge": "The .py files and the data files may each be at most 1 MB in all.",
     "noEntry": "The top folder needs a .py file the bot starts with.",
-    "ownTitle": "Your bots",
-    "ownEmpty": "You have not uploaded a bot yet."
+    "ownLink": "All your bots and versions"
+  },
+  "ownBots": {
+    "title": "My bots",
+    "empty": "You have not uploaded a bot yet.",
+    "enqueueTitle": "Schedule games",
+    "ownBot": "Your bot",
+    "opponent": "Opponent",
+    "ownColor": "Your bot plays",
+    "noVerified": "Once one of your bots is verified, you can schedule games for it here.",
+    "limits": "At most 5 minutes plus 5 seconds a move, 10 games at once and 20 games a day. Your games start after those set by admins."
+  },
+  "ownMatchError": {
+    "initial_time_ms": "The time must be between 1 and 300 seconds.",
+    "increment_ms": "The increment may be at most 5 seconds.",
+    "games": "1 to 10 games are possible.",
+    "white_bot_id": "One of the bots must be yours, and both must be verified.",
+    "black_bot_id": "The opponent must be a verified bot."
   },
   "language": {
     "python": "Python",
@@ -248,7 +279,8 @@
     "entry": "The entry file is invalid.",
     "paths": "Each file needs a path.",
     "files": "Choose 1 to 200 files.",
-    "status": "Only verified and disabled bots can be switched."
+    "status": "The bot cannot switch to this status.",
+    "description": "The description may have at most 500 characters and no control characters except line breaks."
   },
   "login": {
     "title": "Log in",

@@ -2,26 +2,28 @@ import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
-import { enqueueMatches } from "../../api/admin";
+import { enqueueOwnMatches } from "../../api/bots";
 import type { Bot } from "../../api/types";
 import { FormError } from "../../components/FormError";
 import { NumberField } from "../../components/NumberField";
 import { botLabel } from "../../format/botLabel";
 import { useSubmit } from "../../hooks/useSubmit";
-import { DEFAULT_FORM, type MatchForm, matchOrder } from "./matchOrder";
+import { DEFAULT_OWN_FORM, OWN_LIMITS, type OwnMatchForm, ownMatchOrder } from "./ownMatchOrder";
 
-/** Puts games between two bots into the queue (E71, E85). */
-export function EnqueueForm({ bots }: { bots: Bot[] }) {
+/** Games of an own verified bot against any verified bot, with the coder limits (E98). */
+export function OwnMatchForm({ own, opponents }: { own: Bot[]; opponents: Bot[] }) {
   const { t } = useTranslation();
   const { pending, error, submit } = useSubmit();
   const [queued, setQueued] = useState<number | undefined>(undefined);
-  const [form, setForm] = useState<MatchForm>({
-    ...DEFAULT_FORM,
-    white: bots[0]?.id ?? "",
-    black: bots[1]?.id ?? bots[0]?.id ?? "",
+  const [form, setForm] = useState<OwnMatchForm>({
+    ...DEFAULT_OWN_FORM,
+    own: own[0]?.id ?? "",
+    opponent: opponents.find((bot) => bot.builtin)?.id ?? opponents[0]?.id ?? "",
   });
 
-  function set<K extends keyof MatchForm>(field: K, value: MatchForm[K]) {
+  if (own.length === 0) return <p className="muted">{t("ownBots.noVerified")}</p>;
+
+  function set<K extends keyof OwnMatchForm>(field: K, value: OwnMatchForm[K]) {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
@@ -29,30 +31,42 @@ export function EnqueueForm({ bots }: { bots: Bot[] }) {
     event.preventDefault();
     setQueued(undefined);
     void submit(async () => {
-      const ids = await enqueueMatches(matchOrder(form));
+      const ids = await enqueueOwnMatches(ownMatchOrder(form));
       setQueued(ids.length);
     });
   }
-
-  const botOptions = bots.map((bot) => (
-    <option key={bot.id} value={bot.id}>
-      {botLabel(bot)}
-    </option>
-  ));
 
   return (
     <form className="form" onSubmit={onSubmit}>
       <div className="form-row">
         <label>
-          {t("viewer.white")}
-          <select value={form.white} onChange={(event) => set("white", event.target.value)}>
-            {botOptions}
+          {t("ownBots.ownBot")}
+          <select value={form.own} onChange={(event) => set("own", event.target.value)}>
+            {own.map((bot) => (
+              <option key={bot.id} value={bot.id}>
+                {botLabel(bot)}
+              </option>
+            ))}
           </select>
         </label>
         <label>
-          {t("viewer.black")}
-          <select value={form.black} onChange={(event) => set("black", event.target.value)}>
-            {botOptions}
+          {t("ownBots.opponent")}
+          <select value={form.opponent} onChange={(event) => set("opponent", event.target.value)}>
+            {opponents.map((bot) => (
+              <option key={bot.id} value={bot.id}>
+                {botLabel(bot)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          {t("ownBots.ownColor")}
+          <select
+            value={form.ownColor}
+            onChange={(event) => set("ownColor", event.target.value as OwnMatchForm["ownColor"])}
+          >
+            <option value="white">{t("viewer.white")}</option>
+            <option value="black">{t("viewer.black")}</option>
           </select>
         </label>
       </div>
@@ -61,28 +75,23 @@ export function EnqueueForm({ bots }: { bots: Bot[] }) {
           label={t("admin.initialSeconds")}
           value={form.initialSeconds}
           step="any"
+          min={1}
+          max={OWN_LIMITS.initialSeconds}
           onChange={(value) => set("initialSeconds", value)}
         />
         <NumberField
           label={t("admin.incrementSeconds")}
           value={form.incrementSeconds}
           step="any"
+          max={OWN_LIMITS.incrementSeconds}
           onChange={(value) => set("incrementSeconds", value)}
         />
         <NumberField
           label={t("admin.games")}
           value={form.games}
+          min={1}
+          max={OWN_LIMITS.games}
           onChange={(value) => set("games", value)}
-        />
-        <NumberField
-          label={t("admin.priority")}
-          value={form.priority}
-          onChange={(value) => set("priority", value)}
-        />
-        <NumberField
-          label={t("admin.maxMoves")}
-          value={form.maxMoves}
-          onChange={(value) => set("maxMoves", value)}
         />
       </div>
       <label className="checkbox">
@@ -93,21 +102,14 @@ export function EnqueueForm({ bots }: { bots: Bot[] }) {
         />
         {t("admin.alternate")}
       </label>
-      <label>
-        {t("admin.startFen")}
-        <input
-          value={form.startFen}
-          placeholder={t("admin.startFenHint")}
-          onChange={(event) => set("startFen", event.target.value)}
-        />
-      </label>
-      <FormError error={error} />
+      <p className="hint">{t("ownBots.limits")}</p>
+      <FormError error={error} rules="ownMatchError" />
       {queued !== undefined && (
         <p role="status">
           {t("admin.queued", { count: queued })} <Link to="/queue">{t("nav.queue")}</Link>
         </p>
       )}
-      <button type="submit" className="primary" disabled={pending || bots.length === 0}>
+      <button type="submit" className="primary" disabled={pending || opponents.length === 0}>
         {t("admin.enqueue")}
       </button>
     </form>

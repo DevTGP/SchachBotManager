@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import type { QueueEntry } from "../api/types";
+import { playersLabel } from "../format/botLabel";
 import { formatTime } from "../format/dateTime";
 import { formatTimeControl } from "../format/timeControl";
 import { useLocale } from "../hooks/useLocale";
@@ -27,9 +28,7 @@ export function QueueTable({ entries, running }: { entries: QueueEntry[]; runnin
             <tr key={match.id}>
               {!running && <td className="number">{position}</td>}
               <td>
-                <Link to={`/matches/${match.id}`}>
-                  {match.white.name} – {match.black.name}
-                </Link>
+                <Link to={`/matches/${match.id}`}>{playersLabel(match)}</Link>
               </td>
               <td>{formatTimeControl(match.discipline)}</td>
               <td>{formatTime(estimated_start, locale)}</td>

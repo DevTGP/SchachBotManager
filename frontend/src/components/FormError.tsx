@@ -4,16 +4,23 @@ import type { ApiError } from "../api/client";
 
 /**
  * A failed change: for an invalid field the rule of that field, otherwise the error code. A
- * broken upload rule also shows the API's message and the file to blame.
+ * broken upload rule also shows the API's message and the file to blame. A form with its own
+ * rules names them under `rules`; fields missing there fall back to fieldError.
  */
-export function FormError({ error }: { error: ApiError | string | undefined }) {
+export function FormError({
+  error,
+  rules = "fieldError",
+}: {
+  error: ApiError | string | undefined;
+  rules?: string;
+}) {
   const { t } = useTranslation();
   if (error === undefined) return null;
   let text: string;
   let detail: string | undefined;
   if (typeof error === "string") text = t(error);
   else if (error.code === "invalid_parameter" && error.field)
-    text = t(`fieldError.${error.field}`, { defaultValue: t("error.invalid_parameter") });
+    text = t([`${rules}.${error.field}`, `fieldError.${error.field}`, "error.invalid_parameter"]);
   else text = t(`error.${error.code}`);
   if (typeof error !== "string" && error.code === "invalid_upload") {
     detail = error.path ? `${error.path}: ${error.message}` : error.message;

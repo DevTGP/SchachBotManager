@@ -7,9 +7,13 @@ import { ApiContent } from "../../components/ApiContent";
 import { botLabel } from "../../format/botLabel";
 import { useApi } from "../../hooks/useApi";
 import { POLL_VERIFY_MS } from "../../hooks/polling";
+import { useSession } from "../../session/sessionContext";
+import { BotDescription } from "./BotDescription";
 import { BotFiles } from "./BotFiles";
+import { BotOwnerSwitch } from "./BotOwnerSwitch";
 import { BotStatusSwitch } from "./BotStatusSwitch";
 import { BotSummary } from "./BotSummary";
+import { BotVersions } from "./BotVersions";
 import { ReportView } from "./ReportView";
 
 /** Its verification is still running (E92); only then the page asks again. */
@@ -17,10 +21,11 @@ function isVerifying(bot: BotDetail | undefined): boolean {
   return bot?.status === "uploaded" || bot?.status === "analyzing" || bot?.status === "testing";
 }
 
-/** One bot; owner and admins also see its files and the verification report. */
+/** One bot with its versions; owner and admins also see its files and the verification report. */
 export function BotPage() {
   const { t } = useTranslation();
   const { id = "" } = useParams();
+  const { user } = useSession();
   const bot = useApi(
     (signal) => fetchBot(id, signal),
     `bot:${id}`,
@@ -28,23 +33,31 @@ export function BotPage() {
   );
   return (
     <ApiContent state={bot}>
-      {(data) => (
-        <>
-          <h1>{botLabel(data)}</h1>
-          <BotSummary bot={data} />
-          {isVerifying(data) && (
-            <p role="status" className="hint">
-              {t("bot.verifying")}
+      {(data) => {
+        const isOwner = !!user && !data.builtin && data.details?.owner === user.username;
+        return (
+          <>
+            <h1>{botLabel(data)}</h1>
+            <BotDescription key={data.id} bot={data} isOwner={isOwner} onChange={bot.reload} />
+            <BotSummary bot={data} />
+            {isVerifying(data) && (
+              <p role="status" className="hint">
+                {t("bot.verifying")}
+              </p>
+            )}
+            {isOwner && <BotOwnerSwitch bot={data} onChange={bot.reload} />}
+            <BotStatusSwitch bot={data} onChange={bot.reload} />
+            <p>
+              <Link to={`/matches?bot=${data.id}`}>{t("bot.matches")}</Link>
             </p>
-          )}
-          <BotStatusSwitch bot={data} onChange={bot.reload} />
-          <p>
-            <Link to={`/matches?bot=${data.id}`}>{t("bot.matches")}</Link>
-          </p>
-          {data.details && data.details.files.length > 0 && <BotFiles files={data.details.files} />}
-          {data.details?.report && <ReportView report={data.details.report} />}
-        </>
-      )}
+            <BotVersions versions={data.versions} current={data.id} />
+            {data.details && data.details.files.length > 0 && (
+              <BotFiles key={data.id} botId={data.id} files={data.details.files} />
+            )}
+            {data.details?.report && <ReportView report={data.details.report} />}
+          </>
+        );
+      }}
     </ApiContent>
   );
 }

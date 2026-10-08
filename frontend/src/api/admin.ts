@@ -50,7 +50,7 @@ export async function setQueuePaused(paused: boolean): Promise<boolean> {
   return result.paused;
 }
 
-/** Only verified and disabled bots can be switched (E93). */
+/** Disables a verified or retired bot, or enables a disabled one (E93, E96). */
 export function setBotStatus(id: string, status: BotUpdate["status"]): Promise<BotDetail> {
   return sendJson("PATCH", `/admin/bots/${encodeURIComponent(id)}`, { status });
 }

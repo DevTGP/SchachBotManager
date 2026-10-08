@@ -1,0 +1,17 @@
+.description {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  max-width: 48rem;
+}
+
+.source-view {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  margin: 0.5rem 0;
+  max-height: 32rem;
+  overflow: auto;
+}

@@ -41,6 +41,21 @@ export async function getJson<T>(path: string, query?: Query, signal?: AbortSign
   return (await readBody(response)) as T;
 }
 
+/** The raw bytes of a download; a failure still answers with a JSON error. */
+export async function getBytes(
+  path: string,
+  query?: Query,
+  signal?: AbortSignal,
+): Promise<ArrayBuffer> {
+  const response = await request(
+    apiUrl(path, query),
+    { signal, headers: { Accept: "*/*" } },
+    signal,
+  );
+  if (!response.ok) await readBody(response);
+  return response.arrayBuffer();
+}
+
 /** A change; answers without content (204) give undefined. */
 export async function sendJson<T = undefined>(
   method: "POST" | "PUT" | "PATCH" | "DELETE",

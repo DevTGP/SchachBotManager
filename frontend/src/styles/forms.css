@@ -1,4 +1,5 @@
-input:not([type="checkbox"]) {
+input:not([type="checkbox"]),
+textarea {
   font: inherit;
   color: var(--text);
   background: var(--surface);
@@ -6,6 +7,10 @@ input:not([type="checkbox"]) {
   border-radius: var(--radius);
   padding: 0.3rem 0.5rem;
   width: 100%;
+}
+
+textarea {
+  resize: vertical;
 }
 
 button.primary {

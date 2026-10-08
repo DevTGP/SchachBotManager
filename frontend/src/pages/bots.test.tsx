@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
@@ -15,6 +15,7 @@ const OWN: Bot[] = [
     language: "python",
     status: "verified",
     builtin: false,
+    description: "",
     created_at: "2026-05-01T10:00:00.000Z",
   },
 ];
@@ -33,9 +34,9 @@ describe("upload page", () => {
     });
     const { router } = renderRoute("/bots/new");
 
-    expect(await screen.findByRole("link", { name: "Sharp" })).toHaveAttribute(
+    expect(await screen.findByRole("link", { name: "All your bots and versions" })).toHaveAttribute(
       "href",
-      "/bots/665f0000000000000000000d",
+      "/account/bots",
     );
     const folder = screen.getByLabelText("Folder");
     expect(folder).toHaveAttribute("webkitdirectory");
@@ -47,7 +48,8 @@ describe("upload page", () => {
     expect(screen.getByText("Not uploaded: .vscode/launch.json, README.md")).toBeVisible();
     expect(screen.getByRole("combobox", { name: "Entry file" })).toHaveValue("bot.py");
     await user.type(screen.getByLabelText(/^Name/), "sharp");
-    expect(screen.getByLabelText(/^Version/)).toHaveValue("1.0.5");
+    await waitFor(() => expect(screen.getByLabelText(/^Version/)).toHaveValue("1.0.5"));
+    await user.type(screen.getByLabelText(/^Description/), "Plays e4.{Enter}Never resigns.");
     await user.click(screen.getByRole("button", { name: "Upload" }));
 
     expect(await screen.findByRole("heading", { name: "Sharp 1.0.0" })).toBeVisible();
@@ -61,6 +63,7 @@ describe("upload page", () => {
       "1.0.5",
       "bot.py",
     ]);
+    expect(form?.get("description")).toBe("Plays e4.\nNever resigns.");
     expect(form?.getAll("paths")).toEqual(["bot.py", "data/book.txt", "lib/eval.py"]);
     expect(form?.getAll("files")).toHaveLength(3);
   });
@@ -70,7 +73,7 @@ describe("upload page", () => {
     const api = mockApi({ "/session": { user: CODER }, "/account/bots": { items: [] } });
     renderRoute("/bots/new");
 
-    expect(await screen.findByText("You have not uploaded a bot yet.")).toBeVisible();
+    await screen.findByRole("link", { name: "All your bots and versions" });
     await user.type(screen.getByLabelText(/^Name/), "Sharp");
     expect(screen.getByLabelText(/^Version/)).toHaveValue("1.0.0");
     await user.click(screen.getByRole("button", { name: "Upload" }));
