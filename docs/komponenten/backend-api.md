@@ -132,6 +132,7 @@ Ein vergebener Name ergibt 409 `name_taken` mit `field` `name`. Zusammenfassunge
 | Rolle | Darf |
 |-------|------|
 | Gast | Alles lesen: Partien, Tabellen, Bot-Profile, Queue (E10); gegen Bots spielen (E11). Kein Zugriff auf Quellcode, Reports, Logs |
+| Spieler (ab M7, E103) | Angemeldet gegen Bots spielen und dabei gewertet werden; sonst wie Gast |
 | Coder | Eigene Bots hochladen, bearbeiten (Metadaten), an-/abmelden, eigene Reports/Logs sehen, Einzelspiele eigener Bots ansetzen, API-Tokens verwalten |
 | Admin | Alles: Nutzer/Invites, sämtliche Bots, Disziplinen, Ligen, Turniere, Jobs, Neuprüfungen, Overrides |
 

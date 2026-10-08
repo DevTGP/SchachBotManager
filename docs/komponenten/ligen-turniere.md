@@ -112,12 +112,22 @@ Zu beachten:
 
 Vom Admin oder Besitzer angesetzt (z. B. Version gegen Version), ungewertet oder nur fürs Rating.
 
-Seit E100 wählt man eine Disziplin oder freie Zeiten. Nur Partien mit Disziplin aus der Grundstellung sind `rated` und zählen später fürs Rating (O21); freie Zeiten und andere Startstellungen nicht. Für Coder gilt die Grenze von 5 min + 5 s nur bei freien Zeiten (E98).
+Seit E100 wählt man eine Disziplin oder freie Zeiten. Nur Partien mit Disziplin aus der Grundstellung sind `rated` und zählen fürs Rating (E103); freie Zeiten und andere Startstellungen nicht. Für Coder gilt die Grenze von 5 min + 5 s nur bei freien Zeiten (E98).
 
 ## Rating
 
-- Pro Bot und Disziplin ein Rating (Elo oder Glicko-2) als Statistik; kein Einfluss auf Auf-/Abstieg.
-- Ungewertete Spiele (Mensch, Remote, Tests) und kampflose Siege ändern es nicht.
+Regel laut E103:
+
+- Ein Punktestand je Bot über alle Disziplinen, Start 2500; jede Version beginnt neu. Ab M7 haben auch angemeldete Konten einen Stand.
+- Abstand d der Stände vor der Partie, s = ⌊d / 20⌋. Sieg des Stärkeren: max(1, 50 − s). Sieg des Schwächeren: min(100, 50 + s). Remis: Der Schwächere bekommt min(50, s). Der Gegner verliert genau so viel.
+- Es zählen nur Partien mit `rated` (Disziplin und Grundstellung). Freie Zeiten, andere Startstellungen, Remote-Partien, Partien gegen Gäste, kampflose Siege und abgebrochene Partien ändern nichts.
+- Nur Statistik, kein Einfluss auf Auf- und Abstieg (E7).
+
+| Stand vorher | Sieg A | Sieg B | Remis |
+|--------------|--------|--------|-------|
+| A 2500, B 2500 | 2550 / 2450 | 2450 / 2550 | unverändert |
+| A 2800, B 2400 | 2830 / 2370 | 2730 / 2470 | 2780 / 2420 |
+| A 3600, B 2500 | 3601 / 2499 | 3500 / 2600 | 3550 / 2550 |
 
 ## Spiel-Queue (E20)
 
