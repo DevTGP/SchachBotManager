@@ -78,17 +78,19 @@ Ohne VS Code gilt dieselbe Reihenfolge: erst die Arena mit `tcp` im Terminal, da
 
 ## Lokaler Bot gegen die Web-API
 
-1. Nutzer erzeugt im Web ein API-Token.
-2. Start des Bots mit Transport `remote`, Token, gewünschtem Gegner-Bot und Disziplin.
-3. Das SDK öffnet eine WebSocket-Verbindung; der Server legt ein ungewertetes Spiel an (A9) und startet den Gegner in der Sandbox.
-4. Nachrichten sind dieselben wie im `stdio`-Protokoll.
+Umgesetzt für Python (E116):
+
+1. Ein Coder legt auf der Kontoseite ein API-Token an.
+2. Start des Bots: `SBM_TOKEN=sbm_… python bot.py --remote https://schachbotmanager.example.org --opponent Material [--color white|black|random] [--discipline NAME | --time 60+1]`.
+3. Das SDK fragt `POST /api/v1/remote/matches` an, öffnet die WebSocket-Verbindung zum Gateway und nimmt seinen Sitz ein; der Play-Runner startet den Gegner in der Sandbox.
+4. Danach sind die Nachrichten dieselben wie im `stdio`-Protokoll. Die Partie ist nie gewertet und nicht öffentlich.
 
 Zu beachten:
 
-- **Zeitmessung** enthält Netzwerklatenz; die Uhr läuft auf dem Server. Optionen: Latenzausgleich pro Zug oder großzügigere Zeitkontrolle für Remote-Spiele.
+- **Zeitmessung** enthält Netzwerklatenz; die Uhr läuft auf dem Server. Es gibt keinen Ausgleich (E116); bei langsamer Verbindung hilft eine Zeitkontrolle mit Inkrement.
 - **Kein Einfrieren möglich:** Ein lokaler Bot kann in gegnerischer Zeit rechnen und unterliegt keinen Ressourcenlimits. Remote-Spiele sind daher nicht mit Liga-Ergebnissen vergleichbar und bleiben ungewertet.
-- **Missbrauchsschutz:** Begrenzung gleichzeitiger und täglicher Remote-Spiele pro Token, Leerlauf-Timeout, niedrige Priorität.
-- **Verbindungsabbruch:** Frist zur Wiederverbindung, danach Abbruch ohne Wertung.
+- **Missbrauchsschutz:** Grenzen gleichzeitiger und täglicher Partien je Adresse, Konto und Token (E115); die Partien laufen im Play-Runner neben der Queue.
+- **Verbindungsabbruch:** Nach 60 s ohne Verbindung bricht der Play-Runner die Partie ohne Ergebnis ab (E113).
 
 ## Setup je Sprache
 

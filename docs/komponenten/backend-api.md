@@ -141,12 +141,26 @@ Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 
 |-------|---------|
 | `DELETE /admin/bots/{id}` | Löscht die Version mit Dateien, Prüfbericht und allen ihren Partien (`routes/admin_bots.py`, `sbm_store.bot_deletion`); 204. Audit `bot.delete` mit Name, Version und Zahl der Partien. 409 `builtin_bot`, `bot_verifying` oder `bot_playing`, wenn sie nicht gelöscht werden darf |
 
+### Stand M7 (E113–E116)
+
+| Datei | Aufgabe |
+|-------|---------|
+| `routes/play.py`, `play_request.py` | `POST /play`: Partie eines Gastes oder Kontos gegen einen geprüften Bot (E114) |
+| `routes/remote.py`, `remote_request.py`, `token_auth.py` | `POST /remote/matches` mit API-Token; Gegner und Disziplin per Name (E116) |
+| `play_limits.py`, `play_view.py` | Plätze gesamt, gleichzeitige und tägliche Partien je Adresse (als Hash), Konto und Token; Antwort mit Sitz-Token und `socket_path` (E115) |
+| `routes/admin_play.py` | `GET`/`PUT /admin/play-settings`, Audit `play.settings` |
+| `routes/account_tokens.py`, `token_view.py` | `GET`/`POST /account/tokens`, `DELETE /account/tokens/{id}` für Coder (E116) |
+
+- Partien der Typen `human` und `remote` erscheinen in keiner Liste und haben keine Detailseite und kein PGN (E115).
+- `require_coder` schützt Upload, eigene Bots, eigene Partien und Tokens; die Rolle `player` bekommt dort 403.
+- Neue Fehlercodes: `no_capacity` (503), `too_many_games` (429).
+
 ## Rollen und Rechte
 
 | Rolle | Darf |
 |-------|------|
 | Gast | Alles lesen: Partien, Tabellen, Bot-Profile, Queue (E10); gegen Bots spielen (E11). Kein Zugriff auf Quellcode, Reports, Logs |
-| Spieler (ab M7, E103) | Angemeldet gegen Bots spielen und dabei gewertet werden; sonst wie Gast |
+| Spieler (ab M7, E103, E115) | Angemeldet gegen Bots spielen (gewertet erst mit Ratings für Konten, O23); sonst wie Gast, ohne eigene Bots und Tokens |
 | Coder | Eigene Bots hochladen, bearbeiten (Metadaten), an-/abmelden, eigene Reports/Logs sehen, Einzelspiele eigener Bots ansetzen, API-Tokens verwalten |
 | Admin | Alles: Nutzer/Invites, sämtliche Bots, Disziplinen, Ligen, Turniere, Jobs, Neuprüfungen, Overrides |
 
@@ -157,7 +171,7 @@ Jede Route prüft Rolle **und** Besitz (eigene Ressource vs. fremde).
 | Client | Verfahren |
 |--------|-----------|
 | SPA | Server-Session per HttpOnly-/Secure-/SameSite-Cookie, CSRF-Schutz für schreibende Requests |
-| Lokaler Bot | Persönliches API-Token (nur gehasht gespeichert, widerrufbar, eingeschränkt auf `remote`-Endpunkte) |
+| Lokaler Bot | Persönliches API-Token als `Authorization: Bearer sbm_…` (nur gehasht gespeichert, widerrufbar, nur für `POST /remote/matches`, E116) |
 
 - Konto aus Nutzername und Passwort, ohne E-Mail (E83).
 - Invite: einmalig, mit Ablaufdatum, legt Rolle fest; nur der Hash wird gespeichert (E83).

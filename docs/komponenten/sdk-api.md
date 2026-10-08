@@ -55,6 +55,7 @@ Zustand in Objektfeldern (Transpositionstabelle, Suchbaum) bleibt zwischen den Z
 | `--tcp [PORT]` | `SBM_TRANSPORT=tcp`, `SBM_PORT` | Verbindet zu `127.0.0.1` (Standardport 7470) statt stdin/stdout zu nutzen |
 | `--log-level LEVEL` | `SBM_LOG_LEVEL` | Startstufe: `trace`, `debug`, `info`, `warn`, `error`, `off` |
 | `--log-file PATH` | `SBM_LOG_FILE` | Schreibt das Log zusätzlich in eine Datei (nur lokal) |
+| `--remote URL` | `SBM_TRANSPORT=remote`, `SBM_REMOTE_URL` | Spielt gegen einen Bot auf dem Server (E116); dazu `SBM_TOKEN` (oder `--token`), `--opponent`/`SBM_OPPONENT`, `--color`/`SBM_COLOR`, `--discipline`/`SBM_DISCIPLINE` oder `--time`/`SBM_TIME`. Bisher nur im Python-SDK |
 
 Argumente schlagen Umgebung; ohne beides gelten `stdio` und `INFO`. Andere Argumente bleiben dem Bot.
 

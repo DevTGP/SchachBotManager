@@ -118,11 +118,18 @@ Lädt `/disciplines` nicht, bieten die Formulare nur freie Zeiten an.
 |-----|--------|
 | `src/pages/bot/BotDelete.tsx` | Knopf „Endgültig löschen“ für Admins auf der Bot-Seite (nicht bei Referenzbots und während der Verifikation), mit Rückfrage; danach weiter zu einer anderen Version des Namens oder zu `/bots` |
 
-## Mensch gegen Bot
+## Mensch gegen Bot (Stand M7, E114–E116)
 
-- Zugeingabe per Drag-and-drop/Klick; legale Züge kommen vom Server oder aus einer Client-Schachbibliothek (nur Komfort – der Server prüft immer).
-- Umwandlungsdialog, Aufgabe, Anzeige der Bot-Bedenkzeit.
-- Verbindungsabbruch: Wiederaufnahme innerhalb einer Frist, danach Abbruch.
+| Datei | Inhalt |
+|-------|--------|
+| `src/pages/play/PlaySetupPage.tsx` | `/play`: Bot, Farbe, Disziplin oder freie Zeiten (bis 30 min + 30 s), dann `POST /play` |
+| `src/pages/play/GamePage.tsx`, `PlayBoard.tsx`, `GameClock.tsx`, `PromotionChoice.tsx` | `/play/:id`: Brett mit Ziehen und Anklicken, nur Züge aus `legal_moves` des Servers (keine eigenen Regeln), Umwandlungsauswahl, laufende Uhren, Zugliste, Aufgabe mit Rückfrage |
+| `src/play/usePlayGame.ts`, `protocol.ts`, `seats.ts` | WebSocket zum Gateway (gateway-v1, dann play-v1), Neuverbindung mit wachsendem Abstand bis 55 s, Sitz-Token im `localStorage` |
+| `src/pages/admin/AdminPlayPage.tsx` | `/admin/play`: Grenzen interaktiver Partien (E115) |
+| `src/pages/account/ApiTokens.tsx` | Kontoseite für Coder: API-Tokens anlegen (einmal sichtbar), auflisten, widerrufen (E116) |
+
+- Die Rolle `player` sieht weder „Meine Bots“ noch Tokens; `RequireRole role="coder"` schützt die Coder-Seiten.
+- Der Vite-Entwicklungsserver reicht `/api/v1/play/socket` an `SBM_GATEWAY_URL` weiter (Standard `ws://127.0.0.1:8001`).
 
 ## Zu beachten
 

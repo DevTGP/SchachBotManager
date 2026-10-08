@@ -119,6 +119,13 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 - `sbm_store.bot_deletion` entfernt eine Version mit Dateien (`bot_files`), Prüfberichten, Verifikationsjobs und allen ihren Partien samt deren Jobs; der Bot-Eintrag geht zuletzt.
 - `settings` mit `_id` `ratings` hält `recount_request` (eine frische `ObjectId` je Anforderung, sonst `null`) und `requested_at`. `sbm_store.rating_recount` entfernt `rating` von allen Partien und Bots und verbucht neu; die Anforderung wird nur gelöscht, wenn keine neue dazukam.
 
+## Stand M7 (E113–E116)
+
+- Interaktive Partien: Typ `human` oder `remote`, `queue` ist `null`, `rated` vorerst immer `false` (O23). Eine Seite ohne Bot hat `kind` `human` oder `remote`, `bot_id` `null`, `user_id` (bei Gästen `null`), `name` und `seat_hash` (SHA-256 des Sitz-Tokens; der Token selbst wird nie gespeichert). `origin` hält `ip_key` (Hash der Adresse), `user_id` und `token_id` für die Grenzen; dünn besetzte Indizes darauf (Migration `0110_play_origin`). Ihr Job hat die Art `play` (`sbm_store.play`).
+- `settings`: Dokument `play` mit `max_games`, `games_per_client`, `games_per_day` (`sbm_store.play_settings`, E115).
+- `api_tokens`: `user_id`, `name`, `token_hash` (eindeutig), `created_at`, `last_used_at`, `revoked_at` (`sbm_store.api_tokens`, Migration `0111_api_tokens`, E116).
+- `users.role` kennt zusätzlich `player` (E103, E115).
+
 ## Zu beachten
 
 - **Tabellen sind abgeleitete Daten.** Sie müssen jederzeit aus `matches` neu berechenbar sein (Reparaturwerkzeug für Admins).
@@ -127,5 +134,4 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 - **Schema-Versionierung:** Feld `schema_version` pro Dokument und Migrationsskripte im Repo.
 - **Löschen:** Nutzer und Bots werden deaktiviert statt gelöscht, damit die Spielhistorie konsistent bleibt; personenbezogene Felder müssen separat entfernbar sein.
 - **Backups:** siehe [deployment.md](deployment.md).
-- Interaktive Partien (M7, E113): Typ `human` oder `remote`, `queue` ist `null`. Eine Seite ohne Bot hat `kind` `human` oder `remote`, `bot_id` `null`, `user_id` (bei Gästen `null`), `name` und `seat_hash` (SHA-256 des Sitz-Tokens, der Token selbst wird nie gespeichert). `rated` folgt E103: nur Menschen mit Konto unter einer Disziplin aus der Grundstellung. Ihr Job hat die Art `play` (`sbm_store.play`).
 

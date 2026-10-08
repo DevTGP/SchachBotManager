@@ -119,6 +119,7 @@ if __name__ == "__main__":
 | `--tcp [PORT]` | `SBM_TRANSPORT=tcp`, `SBM_PORT` | Verbindet zu einer wartenden Arena auf `127.0.0.1` (Standardport 7470) statt stdin/stdout |
 | `--log-level LEVEL` | `SBM_LOG_LEVEL` | Startstufe: `trace`, `debug`, `info`, `warn`, `error`, `off` |
 | `--log-file PATH` | `SBM_LOG_FILE` | Log zusätzlich an eine Datei anhängen (nur lokal sinnvoll) |
+| `--remote URL` | `SBM_TRANSPORT=remote`, `SBM_REMOTE_URL` | Spielt mit API-Token gegen einen Bot auf dem Server, siehe [remote.md](remote.md) |
 
 - Argumente schlagen Umgebungsvariablen; ohne beides gelten `stdio` und `INFO`.
 - Andere Argumente bleiben unberührt in `sys.argv` und gehören dem Bot.

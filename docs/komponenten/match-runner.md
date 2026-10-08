@@ -94,6 +94,7 @@ Jedes Ende bekommt einen maschinenlesbaren `termination`-Code (Liste in [bot-pro
 
 - Mit `SBM_RUNNER_ROLE=play` ist `sbm-runner` der Play-Runner: Er nimmt nur Jobs der Art `play` und spielt bis `SBM_PLAY_SLOTS` (Standard 2) interaktive Partien gleichzeitig, jede in einem eigenen Thread mit eigenem Heartbeat (`play/`). Mit der Rolle `queue` (Standard) bleibt alles wie bisher; der Queue-Runner nimmt nie Jobs der Art `play`.
 - Bots laufen wie in der Queue in der Sandbox. Jede Seite mit Sitz bekommt eine Relay-Verbindung zum Gateway (`SBM_RELAY_ADDRESS`, Standard `127.0.0.1:9000`); vor dem Start wartet der Play-Runner bis 30 s, bis alle Sitze eingenommen sind.
-- Eine Remote-Seite ist ein `RelayPlayer`: Ihre Zeilen gehen unverändert an den Referee und werden wie die eines Bots geprüft. Seiten der Art `human` bricht der Play-Runner ab, bis Schritt 2 sie spielen lässt.
+- Eine Remote-Seite ist ein `RelayPlayer`: Ihre Zeilen gehen unverändert an den Referee und werden wie die eines Bots geprüft. Eine Seite der Art `human` ist ein `HumanPlayer` (E114), der zwischen Referee und Browser (play-v1) übersetzt und über `on_move` jeden Zug sieht.
+- Die Plätze kommen aus den Einstellungen auf `/admin/play` (`max_games`), höchstens `SBM_PLAY_SLOTS` (E115).
 - Kein Neustart: Infrastrukturfehler, verlorene Leases, ein nicht eingenommener Sitz, ein Client, der länger als 60 s fehlt, und SIGTERM brechen die Partie ab (`aborted`), Einzelheiten in [gateway.md](gateway.md).
 

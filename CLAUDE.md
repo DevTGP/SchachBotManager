@@ -85,13 +85,14 @@ Build-, Test- und Lint-Befehle hier eintragen, sobald sie entstehen.
 | Tests Store/Runner/Gateway/API | `pytest services/store`, `pytest services/runner`, `pytest services/gateway` bzw. `pytest backend` (je Paket einzeln aufrufen; die API-Tests prüfen jede Antwort gegen `spec/web/openapi.json`) |
 | Lint/Format Store/Runner/Gateway/API | `ruff check services/store services/runner services/gateway backend` und `ruff format --check services/store services/runner services/gateway backend` |
 | Interaktive Partien lokal | `sbm-gateway`, dann `SBM_RUNNER_ROLE=play SBM_SANDBOX=none sbm-runner` (Relay auf `127.0.0.1:9000`, WebSocket auf `ws://127.0.0.1:8001/api/v1/play/socket`, E111–E113) |
+| Remote-Partie mit dem SDK | `SBM_TOKEN=sbm_… python bot.py --remote URL --opponent NAME [--color …] [--discipline NAME \| --time 60+1]` (Token von der Kontoseite eines Coders, E116); lokal mit API, Gateway, Play-Runner und `npm run dev` als URL `http://localhost:5173` |
 | Datenbank migrieren | `sbm-migrate` (liest `SBM_MONGO_URI`, `SBM_MONGO_DB`) |
 | Web-API lokal | `flask --app sbm_api.wsgi run` mit `SBM_MONGO_URI` (und optional `SBM_MONGO_DB`, `SBM_PUBLIC_URL`); auf dem Server gunicorn mit `sbm_api.wsgi:app` (E76) |
 | Einladung anlegen | `sbm-invite --role admin` (Standard `coder`, `--valid-days` 1 bis 30, Standard 7) gibt einen Einladungslink aus; auf dem Server `docker compose -f deploy/compose.yaml run --rm api sbm-invite --role admin` (E83) |
 | Partien einreihen und spielen | `sbm-enqueue Random Material --games 2 --alternate`, dann `sbm-runner` (E75); außerhalb des Runner-Images ohne Sandbox (`SBM_SANDBOX=none`, nur Referenzbots, E86) |
 | Negativ-Suite der Sandbox | `bash services/runner/tests/sandbox/run-in-docker.sh` (baut das Runner-Image; braucht Linux mit cgroup v2, also nicht Docker Desktop unter WSL2; `SBM_RUNNER_IMAGE=…` nimmt ein vorhandenes Image, E88) |
 | Frontend einrichten | `npm ci` in `frontend/` (Node ab 22.12) |
-| Frontend lokal | `npm run dev` in `frontend/`; reicht `/api` an `SBM_API_URL` weiter (Standard `http://127.0.0.1:5000`) |
+| Frontend lokal | `npm run dev` in `frontend/`; reicht `/api` an `SBM_API_URL` weiter (Standard `http://127.0.0.1:5000`) und `/api/v1/play/socket` an `SBM_GATEWAY_URL` (Standard `ws://127.0.0.1:8001`) |
 | Tests Frontend | `npm test` in `frontend/` |
 | Lint/Format/Typen Frontend | `npm run lint`, `npm run format:check` und `npm run build` (tsc und Vite) in `frontend/` |
 | API-Typen erzeugen | `npm run api-types` in `frontend/` nach Änderungen an `spec/web/openapi.json`; `npm run api-types:check` prüft |

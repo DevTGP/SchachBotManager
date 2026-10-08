@@ -1,6 +1,6 @@
 # Gateway und Play-Runner (interaktive Partien)
 
-Partien gegen Menschen im Browser und gegen Bots auf dem Rechner eines Nutzers (M7). Beide laufen an der Queue vorbei (E24) über einen eigenen Runner und einen WebSocket-Gateway (E111, E112). Umgesetzt ist Schritt 1, die gemeinsame Basis; Mensch gegen Bot und Remote-Bot folgen (E111).
+Partien gegen Menschen im Browser und gegen Bots auf dem Rechner eines Nutzers (M7). Beide laufen an der Queue vorbei (E24) über einen eigenen Runner und einen WebSocket-Gateway (E111, E112). Umgesetzt sind alle drei Schritte (E111): die gemeinsame Basis, Mensch gegen Bot (E114) und Remote-Bots (E116).
 
 ## Aufbau
 
@@ -14,7 +14,7 @@ Browser / lokaler Bot ──WebSocket──► frontend (nginx) ──► gatewa
 |------|-----|---------|
 | `gateway` | `services/gateway` (Paket `sbm-gateway`, Befehl `sbm-gateway`) | Nimmt WebSockets an, paart sie mit dem Sitz einer Partie, reicht Nachrichten unverändert weiter. Ohne Rechte, ohne Datenbankzugang |
 | `runner-play` | `services/runner` mit `SBM_RUNNER_ROLE=play` | Holt Jobs der Art `play`, spielt bis `SBM_PLAY_SLOTS` Partien gleichzeitig, startet Bots in nsjail wie der Queue-Runner, verbindet jeden Sitz über das Relay mit dem Gateway |
-| Web-API | `backend` | Legt interaktive Partien an und gibt den Sitz-Token einmal aus (Schritte 2 und 3) |
+| Web-API | `backend` | Legt interaktive Partien an (`POST /play`, `POST /remote/matches`), prüft die Grenzen und gibt den Sitz-Token einmal aus (E114–E116) |
 
 ## Sitze
 
@@ -30,7 +30,7 @@ Eine Seite, die kein Bot ist, hat einen Sitz (E113):
 |-----------|---------|---------------|
 | gateway-v1 | Client ↔ Gateway, Eröffnung der WebSocket-Verbindung | `spec/protocol/gateway-v1/`: `join`, dann `joined` oder `refused` |
 | relay-v1 | Play-Runner ↔ Gateway, JSON-Zeilen über TCP | `spec/protocol/relay-v1/`: `attach`, `line` in beide Richtungen, `present`, `absent`, `refused` |
-| Spielprotokoll | Nach `joined`, je WebSocket-Nachricht eine Zeile | Remote-Bot: Bot-Protokoll v1 (`spec/protocol/v1/`); Browser: eigenes Protokoll (E111, Schritt 2) |
+| Spielprotokoll | Nach `joined`, je WebSocket-Nachricht eine Zeile | Remote-Bot: Bot-Protokoll v1 (`spec/protocol/v1/`), Seite als `RelayPlayer`; Browser: play-v1 (`spec/protocol/play-v1/`), Seite als `HumanPlayer` (E114) |
 
 Ablauf einer Verbindung:
 
@@ -52,7 +52,7 @@ Ablauf einer Verbindung:
 
 | Grenze | Wert |
 |--------|------|
-| Partien gleichzeitig (Play-Runner) | `PLAY_SLOTS`, Standard 2 |
+| Partien gleichzeitig (Play-Runner) | `max_games` auf `/admin/play` (Standard 2), höchstens `PLAY_SLOTS` des Containers |
 | Sitzungen im Gateway | 32 |
 | WebSocket-Verbindungen | 128 |
 | Zeit bis `join` bzw. `attach` | 10 s |
@@ -62,7 +62,21 @@ Ablauf einer Verbindung:
 | Aufgehobene Zeilen je abwesendem Client | 256 |
 | Ping | alle 20 s, Antwort binnen 20 s |
 
-Grenzen pro IP und pro Konto sowie Tageslimits setzt die Web-API beim Anlegen der Partie (Schritte 2 und 3).
+Grenzen je Adresse, Konto und Token (gleichzeitig und pro Tag) und die Plätze insgesamt setzt die Web-API beim Anlegen der Partie nach den Einstellungen auf `/admin/play` (E115); der Play-Runner nimmt höchstens `min(PLAY_SLOTS, max_games)` Partien.
+
+## Mensch gegen Bot (E114)
+
+| Schritt | Ablauf |
+|---------|--------|
+| Anlegen | `/play` in der SPA: Bot, Farbe, Disziplin oder freie Zeiten; `POST /play` gibt Partie und Sitz-Token; die SPA hält den Token im `localStorage` |
+| Verbinden | `/play/:id` öffnet die WebSocket-Verbindung, nimmt den Sitz ein und erhält nach `joined` den Stand als `state` |
+| Ziehen | Die SPA bietet nur die Züge aus `legal_moves` an (Ziehen oder Anklicken, Umwandlung per Auswahl) und sendet `move`; ein abgewiesener Zug kommt als `error` zurück |
+| Aufgeben | `resign`, mit Rückfrage; während der Bot rechnet, wirkt es zu Beginn des nächsten eigenen Zuges |
+| Neuladen | Die SPA verbindet sich neu und nimmt den Sitz wieder ein; der `HumanPlayer` sendet den ganzen Stand erneut |
+
+## Remote-Bots (E116)
+
+Ein Coder legt auf der Kontoseite ein API-Token an und startet seinen Bot mit `--remote URL --opponent NAME` (Token in `SBM_TOKEN`). Das Python-SDK fragt `POST /remote/matches` an, nimmt den Sitz über den Gateway ein und spricht danach das Bot-Protokoll v1. Die Netzlaufzeit zählt zur Bedenkzeit; es gibt keinen Ausgleich.
 
 ## Fehlerfälle (E113)
 

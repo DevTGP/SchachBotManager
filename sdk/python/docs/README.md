@@ -21,6 +21,7 @@ Die Konzeptseite dazu ist [docs/komponenten/sdk-api.md](../../../docs/komponente
 | 11 | [debugging.md](debugging.md) | Bot im Debugger, Stellungen nachspielen |
 | 12 | [upload.md](upload.md) | Regeln für Bot-Code, `sbm-check`, Hochladen |
 | 13 | [beispiel-suche.md](beispiel-suche.md) | Vollständiger Bot mit iterativer Vertiefung und Zeitgrenze |
+| 14 | [remote.md](remote.md) | Mit API-Token gegen Bots auf dem Server spielen (`--remote`) |
 
 ## Auf einen Blick
 
