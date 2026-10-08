@@ -2,9 +2,11 @@ from dataclasses import replace
 
 from bson import ObjectId
 from conftest import QUICK
-from sbm_store import bots, jobs, matches, queue_settings, ratings
+from sbm_store import bots, jobs, matches, queue_settings, rating_recount, ratings
 from sbm_store.names import BOTS, JOBS, MATCHES
 from sbm_store.rating_rule import START, white_gain
+
+from sbm_runner.worker import utc_now
 
 
 def job_of(db, match_id: ObjectId) -> dict:
@@ -104,3 +106,18 @@ def test_a_rated_match_moves_the_ratings_of_both_bots(db, worker, reference_bots
     }
     assert ratings.current(bots.get(db, random["_id"])) == {"value": START + gain, "games": 1}
     assert ratings.current(bots.get(db, material["_id"])) == {"value": START - gain, "games": 1}
+
+
+def test_ratings_are_counted_again_on_request_even_when_paused(db, worker, reference_bots, enqueue):
+    random, material = reference_bots
+    rated = enqueue(random, material, replace(QUICK, discipline_id=ObjectId()))
+    assert worker.step()
+    db[MATCHES].delete_one({"_id": rated})
+    rating_recount.request(db, utc_now())
+    queue_settings.set_paused(db, True)
+
+    assert not worker.step()
+
+    assert not rating_recount.is_requested(db)
+    assert ratings.current(bots.get(db, random["_id"])) == {"value": START, "games": 0}
+    assert ratings.current(bots.get(db, material["_id"])) == {"value": START, "games": 0}
