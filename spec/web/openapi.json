@@ -3,7 +3,7 @@
   "info": {
     "title": "SchachBotManager web API",
     "version": "1",
-    "description": "Web API of SchachBotManager (backend-api.md, E73): public reading of matches, bots and the game queue; sessions, accounts and administration for invited users (E83, E84, E85); uploading bots and their verification (E91, E92, E93). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32). Requests other than GET need the header X-SBM-CSRF: 1 (E84).",
+    "description": "Web API of SchachBotManager (backend-api.md, E73): public reading of matches, bots and the game queue; sessions, accounts and administration for invited users (E83, E84, E85); uploading bots and their verification (E91, E92, E93); own bots with their versions and source, and single games set by their owners (E95, E96, E97, E98). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32). Requests other than GET need the header X-SBM-CSRF: 1 (E84).",
     "license": { "name": "MIT-0", "identifier": "MIT-0" }
   },
   "servers": [{ "url": "/api/v1" }],
@@ -51,6 +51,30 @@
             }
           },
           "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      },
+      "post": {
+        "operationId": "enqueue_own_matches",
+        "security": [{ "session": [] }],
+        "summary": "Puts single games between two verified bots into the queue, at least one of them the account's own (E98). At most 20 games a day per account; they start after the matches of admins.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/OwnMatchRequest" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The new matches in the order they were queued.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/EnqueuedMatches" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/TooManyAttempts" }
         }
       }
     },
@@ -140,7 +164,7 @@
       ],
       "get": {
         "operationId": "get_bot",
-        "summary": "One bot. Verified and disabled bots are public; the owner and admins also see the others, and they alone get the details with the verification report (E15).",
+        "summary": "One bot with the versions of its name. Verified, disabled and retired bots are public; the owner and admins also see the others, and they alone get the details with the verification report (E15, E95).",
         "responses": {
           "200": {
             "description": "The bot.",
@@ -149,6 +173,101 @@
             }
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "patch": {
+        "operationId": "update_own_bot",
+        "security": [{ "session": [] }],
+        "summary": "Changes the description of an own bot, or retires a verified one and makes it verified again (owner, E95, E96). A bot disabled by an admin stays disabled.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/OwnBotUpdate" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The changed bot.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BotDetail" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/bots/{bot_id}/file": {
+      "parameters": [
+        {
+          "name": "bot_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "get": {
+        "operationId": "get_bot_file",
+        "security": [{ "session": [] }],
+        "summary": "One file of an uploaded bot as a download (owner and admins, E97). Bots that are not public are not found for others.",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "required": true,
+            "description": "The path as listed in the details.",
+            "schema": { "type": "string", "maxLength": 200 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The bytes of the file as uploaded.",
+            "headers": {
+              "Content-Disposition": {
+                "description": "Always attachment, with the file name.",
+                "schema": { "type": "string" }
+              }
+            },
+            "content": { "application/octet-stream": {} }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/bots/{bot_id}/source": {
+      "parameters": [
+        {
+          "name": "bot_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "get": {
+        "operationId": "get_bot_source",
+        "security": [{ "session": [] }],
+        "summary": "All files of an uploaded bot as a ZIP file named Name-Version.zip, in a folder Name-Version (owner and admins, E97).",
+        "responses": {
+          "200": {
+            "description": "The ZIP file.",
+            "headers": {
+              "Content-Disposition": {
+                "description": "Always attachment, with the file name.",
+                "schema": { "type": "string" }
+              }
+            },
+            "content": { "application/zip": {} }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
           "404": { "$ref": "#/components/responses/NotFound" }
         }
       }
@@ -419,7 +538,7 @@
       "patch": {
         "operationId": "update_bot",
         "security": [{ "session": [] }],
-        "summary": "Disables a verified bot or enables a disabled one again (admin, E93); queued matches of a disabled bot are aborted when their turn comes.",
+        "summary": "Disables a verified or retired bot, or makes a disabled one verified again (admin, E93, E96); queued matches of a disabled bot are aborted when their turn comes.",
         "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
         "requestBody": {
           "required": true,
@@ -697,9 +816,13 @@
           "bot_id": { "$ref": "#/components/schemas/Id" },
           "name": { "type": "string" },
           "sdk": { "type": ["string", "null"] },
-          "lang": { "type": ["string", "null"] }
+          "lang": { "type": ["string", "null"] },
+          "version": {
+            "description": "Version of the bot; null for matches queued before versions were kept (E95).",
+            "type": ["string", "null"]
+          }
         },
-        "required": ["kind", "bot_id", "name", "sdk", "lang"],
+        "required": ["kind", "bot_id", "name", "sdk", "lang", "version"],
         "additionalProperties": false
       },
       "MatchFields": {
@@ -792,8 +915,8 @@
         "additionalProperties": false
       },
       "BotStatus": {
-        "description": "uploaded, analyzing, testing: in the verification; verified: plays; rejected: failed the verification; disabled: stopped by an admin (verifikation.md).",
-        "enum": ["uploaded", "analyzing", "testing", "verified", "rejected", "disabled"]
+        "description": "uploaded, analyzing, testing: in the verification; verified: plays; rejected: failed the verification; disabled: stopped by an admin; retired: withdrawn by its owner (verifikation.md, E96).",
+        "enum": ["uploaded", "analyzing", "testing", "verified", "rejected", "disabled", "retired"]
       },
       "BotName": {
         "description": "3 to 32 letters, digits, _ . or -, starting with a letter or digit; regardless of case the name of one owner's bots (E91).",
@@ -818,9 +941,23 @@
             "description": "A reference bot shipped with the SDK (E68, E72).",
             "type": "boolean"
           },
+          "description": {
+            "description": "Plain text by the owner, at most 500 characters; line breaks but no other control characters (E95).",
+            "type": "string",
+            "maxLength": 500
+          },
           "created_at": { "$ref": "#/components/schemas/Timestamp" }
         },
-        "required": ["id", "name", "version", "language", "status", "builtin", "created_at"]
+        "required": [
+          "id",
+          "name",
+          "version",
+          "language",
+          "status",
+          "builtin",
+          "description",
+          "created_at"
+        ]
       },
       "Bot": {
         "allOf": [{ "$ref": "#/components/schemas/BotFields" }],
@@ -833,9 +970,15 @@
           "details": {
             "description": "Only for the owner and admins; null for everyone else.",
             "oneOf": [{ "$ref": "#/components/schemas/BotDetails" }, { "type": "null" }]
+          },
+          "versions": {
+            "description": "The versions of the name the viewer may see, this one included, newest first (E95).",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Bot" },
+            "minItems": 1
           }
         },
-        "required": ["details"],
+        "required": ["details", "versions"],
         "unevaluatedProperties": false
       },
       "BotFile": {
@@ -1009,6 +1152,12 @@
             "maxLength": 200,
             "default": "bot.py"
           },
+          "description": {
+            "description": "Plain text by the owner, at most 500 characters; line breaks but no other control characters (E95).",
+            "type": "string",
+            "maxLength": 500,
+            "default": ""
+          },
           "paths": {
             "description": "The path of each file, in the order of files.",
             "type": "array",
@@ -1030,6 +1179,22 @@
         "type": "object",
         "properties": { "status": { "enum": ["verified", "disabled"] } },
         "required": ["status"],
+        "additionalProperties": false
+      },
+      "OwnBotUpdate": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "description": "Plain text by the owner, at most 500 characters; line breaks but no other control characters (E95).",
+            "type": "string",
+            "maxLength": 500
+          },
+          "status": {
+            "description": "retired withdraws a verified bot, verified brings it back (E96).",
+            "enum": ["verified", "retired"]
+          }
+        },
+        "minProperties": 1,
         "additionalProperties": false
       },
       "BotList": {
@@ -1285,6 +1450,24 @@
             "description": "Start position; null or missing for the standard position.",
             "type": ["string", "null"],
             "maxLength": 100
+          }
+        },
+        "required": ["white_bot_id", "black_bot_id", "initial_time_ms"],
+        "additionalProperties": false
+      },
+      "OwnMatchRequest": {
+        "description": "Like EnqueueRequest with tighter limits: from the standard position with the default move limit, at most 5 min + 5 s and 10 games (E98).",
+        "type": "object",
+        "properties": {
+          "white_bot_id": { "$ref": "#/components/schemas/Id" },
+          "black_bot_id": { "$ref": "#/components/schemas/Id" },
+          "initial_time_ms": { "type": "integer", "minimum": 1000, "maximum": 300000 },
+          "increment_ms": { "type": "integer", "minimum": 0, "maximum": 5000, "default": 0 },
+          "games": { "type": "integer", "minimum": 1, "maximum": 10, "default": 1 },
+          "alternate": {
+            "description": "Swap colours after every game.",
+            "type": "boolean",
+            "default": false
           }
         },
         "required": ["white_bot_id", "black_bot_id", "initial_time_ms"],
