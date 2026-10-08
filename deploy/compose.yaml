@@ -125,7 +125,7 @@ services:
   # container with a few capabilities: SYS_ADMIN for namespaces, mounts and the cgroup tree,
   # SETUID and SETGID for the bots' user mapping. The container's seccomp and AppArmor profiles
   # forbid exactly these steps; nsjail puts its own seccomp policy on every bot instead.
-  runner:
+  runner: &runner
     <<: [*python, *hardening]
     image: sbm-runner
     build:
@@ -153,6 +153,50 @@ services:
     command: ["sbm-runner"]
     # SIGTERM hands the running game back to the queue (E75).
     stop_grace_period: 30s
+
+  # The play runner: the same image and rights, but it plays only the interactive games against
+  # people and remote bots, up to PLAY_SLOTS at once beside the queue (E24, E111). It reaches
+  # the gateway on the relay network, which nothing else joins (E112).
+  runner-play:
+    <<: *runner
+    networks:
+      - internal
+      - relay
+    environment:
+      SBM_MONGO_URI: mongodb://sbm_runner:${MONGO_RUNNER_PASSWORD:?}@mongo:27017/?authSource=${SBM_MONGO_DB:-sbm}
+      SBM_MONGO_DB: ${SBM_MONGO_DB:-sbm}
+      SBM_WORKER_ID: runner-play-1
+      SBM_RUNNER_ROLE: play
+      SBM_RELAY_ADDRESS: sbm-relay:9000
+      SBM_PLAY_SLOTS: ${PLAY_SLOTS:-2}
+    # SIGTERM aborts the running interactive games; they cannot start over (E113).
+
+  # WebSockets of browsers and remote bots (gateway.md, E112). No database access: the play
+  # runner attaches each seat over the relay network, where the gateway listens only on its
+  # address there, so the frontend cannot reach the relay port.
+  gateway:
+    <<: [*python, *hardening]
+    restart: unless-stopped
+    networks:
+      internal:
+        aliases:
+          - sbm-gateway
+      relay:
+        aliases:
+          - sbm-relay
+    environment:
+      SBM_RELAY_HOST: sbm-relay
+    command: ["sbm-gateway"]
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import socket; socket.create_connection(('127.0.0.1', 8001), 4).close()
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   frontend:
     <<: *hardening
@@ -184,6 +228,9 @@ volumes:
 networks:
   # No way out: bots, runner and api reach nothing but each other and the database.
   internal:
+    internal: true
+  # Only the play runner and the gateway (E112).
+  relay:
     internal: true
   local-web:
     external: true

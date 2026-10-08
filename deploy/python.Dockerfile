@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Images for the Python services; the build context is the repository root.
-# Target services: migrate and api. Target runner: adds nsjail, the sandbox configuration and the
+# Target services: migrate, api and gateway. Target runner (also the play runner): adds nsjail, the sandbox configuration and the
 # runtime directory the bots run in (sandbox.md).
 
 FROM python:3.12-slim AS build
@@ -14,8 +14,10 @@ COPY sdk/python sdk/python
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /wheels ./sdk/python
 COPY services/store services/store
 COPY services/runner services/runner
+COPY services/gateway services/gateway
 COPY backend backend
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /wheels ./services/store ./services/runner ./backend
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /wheels \
+    ./services/store ./services/runner ./services/gateway ./backend
 
 # nsjail from a fixed commit of its release 3.6 (E86).
 FROM python:3.12-slim AS nsjail

@@ -5,7 +5,7 @@
 set -euo pipefail
 
 # Everything the images and deploy.sh are made of, see the Dockerfiles and compose.yaml.
-paths=(deploy sandbox sdk/core sdk/python services/store services/runner backend frontend)
+paths=(deploy sandbox sdk/core sdk/python services/store services/runner services/gateway backend frontend)
 
 last=$(cat deploy/.deployed-commit 2>/dev/null || true)
 if [ -z "$last" ] || ! git cat-file -e "$last^{commit}" 2>/dev/null; then

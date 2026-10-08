@@ -4,6 +4,7 @@
 !sdk/python/
 !services/store/
 !services/runner/
+!services/gateway/
 !backend/
 !sandbox/
 **/build/

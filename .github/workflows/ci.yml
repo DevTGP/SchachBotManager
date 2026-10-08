@@ -192,18 +192,22 @@ jobs:
 
       - name: Install the SDK and the services
         run: >-
-          pip install ./sdk/python ./services/store "./services/runner[dev]" "./backend[dev]"
+          pip install ./sdk/python ./services/store "./services/runner[dev]"
+          "./services/gateway[dev]" "./backend[dev]"
           pytest-github-actions-annotate-failures==0.4.2
 
       - name: Lint
         run: |
-          ruff check services/store services/runner backend
-          ruff format --check services/store services/runner backend
+          ruff check services/store services/runner services/gateway backend
+          ruff format --check services/store services/runner services/gateway backend
 
       - name: Test store
         run: pytest services/store
 
-      - name: Test runner (real games between the reference bots)
+      - name: Test gateway
+        run: pytest services/gateway
+
+      - name: Test runner (real games between the reference bots, interactive games via the gateway)
         run: pytest services/runner
 
       - name: Test web API (responses checked against spec/web/openapi.json)
