@@ -13,6 +13,8 @@ from sbm_api import csrf, current_user
 from sbm_api.errors import register_error_handlers
 from sbm_api.routes import (
     account,
+    account_bots,
+    admin_bots,
     admin_invites,
     admin_matches,
     admin_queue,
@@ -38,8 +40,10 @@ BLUEPRINTS = (
     invites,
     password_resets,
     account,
+    account_bots,
     admin_users,
     admin_invites,
+    admin_bots,
     admin_matches,
     admin_queue,
 )

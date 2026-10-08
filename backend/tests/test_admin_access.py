@@ -13,6 +13,7 @@ ADMIN_ROUTES = [
     ("post", "/api/v1/admin/invites", {"role": "coder"}),
     ("delete", f"/api/v1/admin/invites/{USER}", None),
     ("post", "/api/v1/admin/matches", {}),
+    ("patch", f"/api/v1/admin/bots/{USER}", {"status": "disabled"}),
     ("patch", "/api/v1/admin/queue", {"paused": True}),
 ]
 

@@ -1,4 +1,6 @@
-"""The error format of the API: {code, message, field?}; the frontend translates the code (E32)."""
+"""The error format of the API: {code, message, field?, path?}; the frontend translates the code
+(E32).
+"""
 
 import logging
 import math
@@ -21,6 +23,10 @@ INVALID_CREDENTIALS = "invalid_credentials"
 INVALID_TOKEN = "invalid_token"
 USERNAME_TAKEN = "username_taken"
 TOO_MANY_ATTEMPTS = "too_many_attempts"
+NAME_TAKEN = "name_taken"
+UPLOAD_CONFLICT = "upload_conflict"
+INVALID_UPLOAD = "invalid_upload"
+TOO_LARGE = "too_large"
 
 
 class ApiError(Exception):
@@ -31,6 +37,8 @@ class ApiError(Exception):
         message: str,
         field: str | None = None,
         headers: dict[str, str] | None = None,
+        *,
+        path: str | None = None,
     ) -> None:
         super().__init__(message)
         self.status = status
@@ -38,6 +46,7 @@ class ApiError(Exception):
         self.message = message
         self.field = field
         self.headers = headers or {}
+        self.path = path
 
 
 def invalid_parameter(field: str, message: str) -> ApiError:
@@ -74,22 +83,35 @@ def too_many_attempts(now: datetime, retry_at: datetime) -> ApiError:
     )
 
 
-def body(code: str, message: str, field: str | None = None) -> dict:
+def invalid_upload(message: str, path: str | None) -> ApiError:
+    """The files break an upload rule; the message is the detail the frontend shows."""
+    return ApiError(400, INVALID_UPLOAD, message, path=path)
+
+
+def body(code: str, message: str, field: str | None = None, path: str | None = None) -> dict:
     error = {"code": code, "message": message}
     if field is not None:
         error["field"] = field
+    if path is not None:
+        error["path"] = path
     return error
 
 
 def register_error_handlers(app: Flask) -> None:
     @app.errorhandler(ApiError)
     def api_error(error: ApiError):
-        return body(error.code, error.message, error.field), error.status, error.headers
+        error_body = body(error.code, error.message, error.field, error.path)
+        return error_body, error.status, error.headers
 
     @app.errorhandler(HTTPException)
     def http_error(error: HTTPException):
-        # Unknown paths and methods; the API has no other client errors yet.
-        code = NOT_FOUND if error.code in (404, 405) else INVALID_PARAMETER
+        # Unknown paths and methods, and uploads beyond their limit.
+        if error.code in (404, 405):
+            code = NOT_FOUND
+        elif error.code == 413:
+            code = TOO_LARGE
+        else:
+            code = INVALID_PARAMETER
         return body(code, error.description or error.name), error.code
 
     @app.errorhandler(ConnectionFailure)

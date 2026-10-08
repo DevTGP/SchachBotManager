@@ -1,16 +1,57 @@
-"""Bots as the API shows them (schema Bot); source and owner stay hidden (E15)."""
+"""Bots as the API shows them (schemas Bot and BotDetail); source and owner stay hidden (E15).
 
-from sbm_store import bots
+Owner and admins also get the details: files, versions and the verification report.
+"""
 
-from sbm_api.timestamps import timestamp
+from sbm_store import bots, users, verification_reports
+
+from sbm_api import context
+from sbm_api.report_view import report_view
+from sbm_api.timestamps import optional_timestamp, timestamp
 
 
 def bot_view(bot: dict) -> dict:
     return {
         "id": str(bot["_id"]),
         "name": bot["name"],
+        "version": bot["version"],
         "language": bot["language"],
         "status": bot["status"],
         "builtin": bots.is_builtin(bot),
         "created_at": timestamp(bot["created_at"]),
+    }
+
+
+def may_see_details(bot: dict, viewer: dict | None) -> bool:
+    if viewer is None:
+        return False
+    return viewer["role"] == users.ADMIN or bot.get("owner_id") == viewer["_id"]
+
+
+def bot_detail_view(bot: dict, viewer: dict | None) -> dict:
+    details = _details(bot) if may_see_details(bot, viewer) else None
+    return {**bot_view(bot), "details": details}
+
+
+def _details(bot: dict) -> dict:
+    db = context.db()
+    # Reference bots have no owner, no files and no report (E72).
+    owner = users.get(db, bot["owner_id"]) if bot.get("owner_id") else None
+    report = verification_reports.get(db, bot["report_id"]) if bot.get("report_id") else None
+    rejection = bot.get("rejection")
+    return {
+        "owner": owner["username"] if owner else None,
+        "entry": bot.get("entry"),
+        "files": [
+            {"path": file["path"], "kind": file["kind"], "size": file["size"]}
+            for file in bot.get("files", [])
+        ],
+        "sdk_version": bot.get("sdk_version"),
+        "runtime_version": bot.get("runtime_version"),
+        "verified_at": optional_timestamp(bot.get("verified_at")),
+        "rejected_at": optional_timestamp(bot.get("rejected_at")),
+        "rejection": (
+            {"stage": rejection["stage"], "reason": rejection["reason"]} if rejection else None
+        ),
+        "report": report_view(report) if report else None,
     }

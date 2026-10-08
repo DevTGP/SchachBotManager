@@ -40,4 +40,4 @@ select = ["E", "F", "W", "I", "B", "UP", "SIM"]
 
 [tool.ruff.lint.isort]
 # Test helpers, importable through pytest's pythonpath.
-known-local-folder = ["accounts", "stored_games"]
+known-local-folder = ["accounts", "bot_uploads", "stored_games"]
