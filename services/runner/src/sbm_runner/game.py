@@ -36,7 +36,7 @@ def run_job(
         matches.requeue(db, match_id)
 
     try:
-        white, black = (_player(db, match[color], players) for color in COLORS)
+        white, black = (bot_player(db, match[color], players) for color in COLORS)
     except UnsupportedBot as error:
         log.error("match %s cannot be played: %s", match_id, error)
         matches.abort(db, match_id, str(error), now())
@@ -51,12 +51,12 @@ def run_job(
     record = Match(
         white, black, match_settings(match), on_move=Recorder(db, match_id).on_move
     ).play()
-    _store_result(db, match_id, record, now())
+    store_result(db, match_id, record, now())
     jobs.complete(db, job["_id"], job["worker_id"], now())
     log.info("match %s: %s (%s)", match_id, record.outcome.result, record.outcome.termination)
 
 
-def _player(db: Database, side: dict, players: PlayerFactory) -> Player:
+def bot_player(db: Database, side: dict, players: PlayerFactory) -> Player:
     bot = bots.get(db, side["bot_id"])
     if bot is None:
         raise UnsupportedBot(f"bot {side['bot_id']} does not exist")
@@ -66,7 +66,7 @@ def _player(db: Database, side: dict, players: PlayerFactory) -> Player:
     return players(bot)
 
 
-def _store_result(db: Database, match_id, record: MatchRecord, now: datetime) -> None:
+def store_result(db: Database, match_id, record: MatchRecord, now: datetime) -> None:
     outcome = record.outcome
     sides = {
         color: {"sdk": side.sdk, "lang": side.lang}
