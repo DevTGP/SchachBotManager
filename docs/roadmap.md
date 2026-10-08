@@ -85,7 +85,7 @@ Abnahme: Mehrere in die Queue gestellte Partien laufen direkt hintereinander, li
 
 Reihenfolge in vier Schritten, jeder für sich ausgerollt (E80): (1) Auth und Admin-Seite zum Ansetzen von Partien – umgesetzt (E83–E85); (2) nsjail im Runner und Negativ-Suite – umgesetzt und auf dem Server geprüft (E86–E88); (3) Analyzer, Verifikation und Upload für Python – umgesetzt (E89–E94); (4) „Mein Bereich“, Versionen und Reports – umgesetzt (E95–E98).
 
-Abnahme: Ein eingeladener Nutzer lädt einen Python-Bot hoch; bösartige Testbots werden abgelehnt oder in der Sandbox folgenlos beendet. Der Admin stellt auf dem Server über die Website mehrere Partien ein, die direkt hintereinander laufen und im Browser abspielbar sind (aus M2 verschoben, E71).
+Abnahme: Ein eingeladener Nutzer lädt einen Python-Bot hoch; bösartige Testbots werden abgelehnt oder in der Sandbox folgenlos beendet. Der Admin stellt auf dem Server über die Website mehrere Partien ein, die direkt hintereinander laufen und im Browser abspielbar sind (aus M2 verschoben, E71). Abgenommen auf dem Server am 8. Oktober 2026.
 
 ### M4 – Ligen und Saisons (P1)
 
