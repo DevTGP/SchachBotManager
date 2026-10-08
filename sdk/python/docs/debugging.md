@@ -57,7 +57,7 @@ from bot import MyBot
 board = sbm.Board.from_fen("r1bqkbnr/pppp1ppp/2n5/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 2 4")
 clock = sbm.Clock(remaining_ms=60_000, opponent_remaining_ms=60_000, increment_ms=0)
 move = MyBot().choose_move(board, clock)
-print(board.san(move))            # Qxf7#
+print(board.san(move))  # Qxf7#
 ```
 
 `sbm.Clock` ist hier direkt erzeugbar; `report` funktioniert ebenfalls, wird aber nicht gesendet. Solche Tests gehören nicht in den Upload oder werden mit `sbm-check --exclude 'tests/*'` ausgenommen, weil `pytest` und Ähnliches dort nicht erlaubt sind.

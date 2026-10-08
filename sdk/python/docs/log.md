@@ -15,7 +15,7 @@ Stufen: `TRACE < DEBUG < INFO < WARN < ERROR < OFF`, Startstufe `INFO`.
 sbm.Log.info(f"depth {depth} score {score} nodes {self.nodes}")
 
 if sbm.Log.is_enabled(sbm.DEBUG):
-    sbm.Log.debug(board.to_text())     # teure Meldung nur bauen, wenn sie erscheint
+    sbm.Log.debug(board.to_text())  # teure Meldung nur bauen, wenn sie erscheint
 ```
 
 ## Format und Ziel

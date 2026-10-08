@@ -31,8 +31,7 @@ run(MyBot)
 ## `choose_move`
 
 ```python
-def choose_move(self, board: sbm.Board, clock: sbm.Clock) -> sbm.Move:
-    ...
+def choose_move(self, board: sbm.Board, clock: sbm.Clock) -> sbm.Move: ...
 ```
 
 | Parameter | Inhalt |

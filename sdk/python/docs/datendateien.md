@@ -56,7 +56,7 @@ Ohne `struct` (nicht freigegeben) lassen sich Binärdaten mit `array` oder `int.
 ```python
 import array
 
-table = array.array("h")              # 16 Bit mit Vorzeichen
+table = array.array("h")  # 16 Bit mit Vorzeichen
 table.frombytes(sbm.load_data("pst.bin"))
 ```
 
