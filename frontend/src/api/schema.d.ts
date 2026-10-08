@@ -414,7 +414,8 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /** Deletes this version of a bot for good with its files, report and every match it played (admin, E105); the runner then counts all ratings again. The name is free once no version is left. */
+        delete: operations["delete_bot"];
         options?: never;
         head?: never;
         /** Disables a verified or retired bot, or makes a disabled one verified again (admin, E93, E96); queued matches of a disabled bot are aborted when their turn comes. */
@@ -501,7 +502,7 @@ export interface components {
         Timestamp: string;
         Error: {
             /** @enum {unknown} */
-            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large";
+            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large" | "builtin_bot" | "bot_verifying" | "bot_playing";
             /** @description English text for logs; not shown to users, except as the detail of invalid_upload. */
             message: string;
             /** @description The invalid parameter, for invalid_parameter. */
@@ -1085,6 +1086,15 @@ export interface components {
         };
         /** @description Another discipline has the name, also in another case (code name_taken). */
         DisciplineNameTaken: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description A reference bot (code builtin_bot), a bot still being verified (code bot_verifying) or a bot in a running match (code bot_playing) cannot be deleted. */
+        BotNotDeletable: {
             headers: {
                 [name: string]: unknown;
             };
@@ -1824,6 +1834,34 @@ export interface operations {
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+        };
+    };
+    delete_bot: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The bot and its matches are gone. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["BotNotDeletable"];
         };
     };
     update_bot: {
