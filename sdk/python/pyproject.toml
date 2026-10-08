@@ -17,6 +17,7 @@ Source = "https://github.com/DevTGP/SchachBotManager/tree/master/sdk/python"
 
 [project.scripts]
 sbm-arena = "sbm.arena.cli:main"
+sbm-check = "sbm.analysis.cli:main"
 
 [project.optional-dependencies]
 dev = ["jsonschema>=4.23", "pytest>=8", "ruff>=0.6"]
