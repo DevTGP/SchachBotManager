@@ -119,7 +119,7 @@ Lädt `/disciplines` nicht, bieten die Formulare nur freie Zeiten an.
 |-----|--------|
 | `src/pages/bot/BotDelete.tsx` | Knopf „Endgültig löschen“ für Admins auf der Bot-Seite (nicht bei Referenzbots und während der Verifikation), mit Rückfrage; danach weiter zu einer anderen Version des Namens oder zu `/bots` |
 
-## Mensch gegen Bot (Stand M7, E114–E116)
+## Mensch gegen Bot (Stand M7, E114–E119)
 
 | Datei | Inhalt |
 |-------|--------|
@@ -129,7 +129,9 @@ Lädt `/disciplines` nicht, bieten die Formulare nur freie Zeiten an.
 | `src/pages/admin/AdminPlayPage.tsx` | `/admin/play`: Grenzen interaktiver Partien (E115) |
 | `src/pages/account/OwnRating.tsx` | Kontoseite, jede Rolle: eigenes Rating und gewertete Partien (`GET /account/rating`, E117) |
 | `src/pages/account/ApiTokens.tsx` | Kontoseite für Coder: API-Tokens anlegen (einmal sichtbar), auflisten, widerrufen (E116) |
+| `src/pages/MatchesPage.tsx` | Zusätzlicher Filter „Art“ (Alle Partien, Bot gegen Bot, Mit Spielern) in der URL (`kind`), Standard alle (E119) |
 
+- Partien mit Spielern stehen in Partienliste, Queue (nur laufende) und Viewer wie Botpartien; eine Seite ohne Bot erscheint mit ihrem Namen (Nutzername oder „Guest“, unübersetzt wie im PGN) ohne Version (E119).
 - Die Rolle `player` sieht weder „Meine Bots“ noch Tokens; `RequireRole role="coder"` schützt die Coder-Seiten.
 - Der Vite-Entwicklungsserver reicht `/api/v1/play/socket` an `SBM_GATEWAY_URL` weiter (Standard `ws://127.0.0.1:8001`).
 

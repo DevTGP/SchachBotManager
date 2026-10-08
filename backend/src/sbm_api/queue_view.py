@@ -1,9 +1,10 @@
-"""The queue as the API shows it (schema Queue): match jobs joined with their matches."""
+"""The queue as the API shows it (schema Queue): match jobs joined with their matches, and the
+interactive games under way (E119)."""
 
 from datetime import datetime
 
 from pymongo.database import Database
-from sbm_store import jobs, matches, queue_settings
+from sbm_store import jobs, matches, play, queue_settings
 
 from sbm_api.match_view import match_summary
 from sbm_api.queue_estimate import RecentDurations, schedule
@@ -26,17 +27,20 @@ def queue_view(db: Database, now: datetime) -> dict:
         for job in waiting_jobs
         if _has_match(job, found)
     ]
+    duration = RecentDurations(db)
     running_times, waiting_times = schedule(
-        running,
-        waiting,
-        slots=settings.parallelism,
-        now=now,
-        duration=RecentDurations(db),
+        running, waiting, slots=settings.parallelism, now=now, duration=duration
     )
+    # Interactive games have their own runner: they are shown but take no slot (E119).
+    interactive = play.running_summaries(db)
+    interactive_times, _ = schedule(interactive, [], slots=0, now=now, duration=duration)
     return {
         "paused": settings.paused,
         "running": [
-            _entry(match, 0, times) for match, times in zip(running, running_times, strict=True)
+            _entry(match, 0, times)
+            for match, times in zip(
+                running + interactive, running_times + interactive_times, strict=True
+            )
         ],
         "waiting": [
             _entry(match, position, times)

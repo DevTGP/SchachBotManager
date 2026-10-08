@@ -12,6 +12,11 @@ from sbm_api.pgn import match_pgn
 blueprint = Blueprint("matches", __name__)
 
 PGN_MIMETYPE = "application/x-chess-pgn"
+# Games of people and remote bots are public like those of bots and can be filtered (E119).
+KINDS = {
+    "bots": {"type": "single"},
+    "players": {"type": {"$in": list(play.MATCH_TYPES)}},
+}
 
 
 @blueprint.get("/matches")
@@ -20,7 +25,10 @@ def list_matches():
     query = matches.match_filter(
         status=optional_choice(args, "status", matches.STATUSES),
         bot_id=optional_object_id(args, "bot_id"),
-    ) | {"type": {"$nin": list(play.MATCH_TYPES)}}
+    )
+    kind = optional_choice(args, "kind", tuple(KINDS))
+    if kind is not None:
+        query |= KINDS[kind]
     items, total = matches.page(
         context.db(),
         query,
@@ -46,8 +54,7 @@ def get_match_pgn(match_id: str):
 
 
 def _match(match_id: str) -> dict:
-    """Games against people and remote bots are not public (E115)."""
     match = matches.get(context.db(), object_id(match_id, "match_id"))
-    if match is None or match["type"] in play.MATCH_TYPES:
+    if match is None:
         raise not_found("no such match")
     return match

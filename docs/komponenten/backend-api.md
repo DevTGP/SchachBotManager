@@ -143,7 +143,7 @@ Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 
 |-------|---------|
 | `DELETE /admin/bots/{id}` | Löscht die Version mit Dateien, Prüfbericht und allen ihren Partien (`routes/admin_bots.py`, `sbm_store.bot_deletion`); 204. Audit `bot.delete` mit Name, Version und Zahl der Partien. 409 `builtin_bot`, `bot_verifying` oder `bot_playing`, wenn sie nicht gelöscht werden darf |
 
-### Stand M7 (E113–E118)
+### Stand M7 (E113–E119)
 
 | Datei | Aufgabe |
 |-------|---------|
@@ -155,7 +155,8 @@ Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 
 | `routes/ratings.py` | zusätzlich `GET /ratings/players`, die Rangliste der Spieler (E118) |
 | `routes/account_tokens.py`, `token_view.py` | `GET`/`POST /account/tokens`, `DELETE /account/tokens/{id}` für Coder (E116) |
 
-- Partien der Typen `human` und `remote` erscheinen in keiner Liste und haben keine Detailseite und kein PGN (E115).
+- Partien der Typen `human` und `remote` sind öffentlich wie Botpartien: Liste, Detail, PGN (E119, vorher E115). `GET /matches?kind=bots` liefert nur Botpartien (`single`), `kind=players` nur die mit Spielern; ohne `kind` alle (`routes/matches.py`). Eine Seite ohne Bot zeigt `kind`, `bot_id` `null` und den Namen (Nutzername oder `Guest`); `match_view.side` gibt Konto, Sitz-Hash und Herkunft nie heraus.
+- `GET /queue` hängt laufende interaktive Partien mit geschätztem Ende an `running` an (`queue_view.py`, `sbm_store.play.running_summaries`); sie belegen keinen Platz der Queue und ändern deren Schätzung nicht (E119).
 - `require_coder` schützt Upload, eigene Bots, eigene Partien und Tokens; die Rolle `player` bekommt dort 403.
 - Neue Fehlercodes: `no_capacity` (503), `too_many_games` (429).
 

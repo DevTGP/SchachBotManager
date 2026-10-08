@@ -60,6 +60,10 @@
     "allStatuses": "All",
     "bot": "Bot",
     "allBots": "All bots",
+    "kind": "Kind",
+    "allKinds": "All games",
+    "kindBots": "Bot against bot",
+    "kindPlayers": "With players",
     "empty": "No games found."
   },
   "matchTable": {
@@ -362,7 +366,7 @@
     "rating": "Rating",
     "ratingValue_one": "{{value}} after {{count}} rated game",
     "ratingValue_other": "{{value}} after {{count}} rated games",
-    "ratingHint": "Your games against bots under a discipline from the standard position are rated. After the first rated game, your name and rating appear in the public ranking; your games stay private."
+    "ratingHint": "Your games against bots under a discipline from the standard position are rated. After the first rated game, your name and rating appear in the public ranking. Like all games, yours are public."
   },
   "role": {
     "coder": "Coder",
@@ -438,7 +442,7 @@
   },
   "play": {
     "title": "Play against a bot",
-    "intro": "Choose a bot and a time control. You play in the browser; the server checks every move. Games against people are not shown in the public lists.",
+    "intro": "Choose a bot and a time control. You play in the browser; the server checks every move. Like all games, the game is public; as a guest you appear as “Guest”.",
     "noBots": "There is no verified bot to play against yet.",
     "opponent": "Bot",
     "color": "Your color",
@@ -495,7 +499,7 @@
   },
   "tokens": {
     "title": "API tokens",
-    "intro": "With a token your bot plays on your machine against bots on the server: python bot.py --remote URL --opponent NAME, with the token in SBM_TOKEN. Such games are not rated and not public.",
+    "intro": "With a token your bot plays on your machine against bots on the server: python bot.py --remote URL --opponent NAME, with the token in SBM_TOKEN. Such games are not rated but public.",
     "token": "Token",
     "copy": "Copy token",
     "created": "New token “{{name}}”",

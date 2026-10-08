@@ -76,7 +76,7 @@ Grenzen je Adresse, Konto und Token (gleichzeitig und pro Tag) und die Plätze i
 
 ## Wertung (E117)
 
-Spielt ein Mensch mit Konto unter einer gespeicherten Disziplin aus der Grundstellung, ist die Partie `rated`; Gäste, freie Zeiten und Remote-Partien nicht. Der Play-Runner verbucht nach jeder Partie sofort (`sbm_store.ratings.count_pending`), außer während eine Neuberechnung ansteht (E105); ein Datenbankfehler dabei wird nur protokolliert, der nächste Lauf holt es nach. Das Rating des Kontos steht auf der Kontoseite und mit Namen in der Rangliste der Spieler (E118); die Partien bleiben privat.
+Spielt ein Mensch mit Konto unter einer gespeicherten Disziplin aus der Grundstellung, ist die Partie `rated`; Gäste, freie Zeiten und Remote-Partien nicht. Der Play-Runner verbucht nach jeder Partie sofort (`sbm_store.ratings.count_pending`), außer während eine Neuberechnung ansteht (E105); ein Datenbankfehler dabei wird nur protokolliert, der nächste Lauf holt es nach. Das Rating des Kontos steht auf der Kontoseite und mit Namen in der Rangliste der Spieler (E118). Interaktive Partien sind öffentlich wie Botpartien und stehen, solange sie laufen, in der Queue unter den laufenden Spielen (E119).
 
 ## Remote-Bots (E116)
 

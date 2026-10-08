@@ -1,9 +1,10 @@
 from datetime import timedelta
 
-from sbm_store import jobs, queue_settings
+from sbm.referee import STANDARD_FEN
+from sbm_store import jobs, matches, play, queue_settings
 from sbm_store.names import JOBS
 
-from stored_games import NOW, finish_by_resignation, start_with_opening
+from stored_games import BLITZ, NOW, finish_by_resignation, start_with_opening
 
 # Blitz without history: 2 * 10 s startup + 180 s + 80 * 2 s increment.
 FALLBACK = timedelta(seconds=360)
@@ -92,3 +93,26 @@ def test_skips_jobs_without_match(client, db, enqueue):
     queue = client.get("/api/v1/queue").json
     assert queue["waiting"] == []
     assert queue["waiting_total"] == 1
+
+
+def test_games_of_people_run_beside_the_queue(client, db, reference_bots, enqueue):
+    waiting = enqueue(now=NOW - timedelta(minutes=2))
+    person = play.seat_side(play.HUMAN, "Guest", user_id=None, seat_hash="hash")
+    game = play.create(
+        db,
+        play.HUMAN,
+        person,
+        matches.side(reference_bots[0]),
+        BLITZ,
+        start_fen=STANDARD_FEN,
+        now=NOW - timedelta(minutes=3),
+    )
+    matches.start(db, game, NOW - timedelta(minutes=1))
+
+    queue = client.get("/api/v1/queue").json
+
+    assert [entry["match"]["id"] for entry in queue["running"]] == [str(game)]
+    assert queue["running"][0]["match"]["type"] == "human"
+    assert queue["running"][0]["estimated_end"] == "2026-05-01T12:05:00.000Z"
+    assert queue["waiting"][0]["match"]["id"] == str(waiting)
+    assert queue["waiting"][0]["estimated_start"] == "2026-05-01T12:00:00.000Z"

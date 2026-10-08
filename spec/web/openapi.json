@@ -3,7 +3,7 @@
   "info": {
     "title": "SchachBotManager web API",
     "version": "1",
-    "description": "Web API of SchachBotManager (backend-api.md, E73): public reading of matches, bots and the game queue; sessions, accounts and administration for invited users (E83, E84, E85); uploading bots and their verification (E91, E92, E93); own bots with their versions and source, and single games set by their owners (E95, E96, E97, E98); disciplines (E100); ratings of bots (E103). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32). Requests other than GET need the header X-SBM-CSRF: 1 (E84).",
+    "description": "Web API of SchachBotManager (backend-api.md, E73): public reading of matches, bots and the game queue; sessions, accounts and administration for invited users (E83, E84, E85); uploading bots and their verification (E91, E92, E93); own bots with their versions and source, and single games set by their owners (E95, E96, E97, E98); disciplines (E100); ratings of bots (E103); games of people and remote bots in the lists like those of bots (E119). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32). Requests other than GET need the header X-SBM-CSRF: 1 (E84).",
     "license": { "name": "MIT-0", "identifier": "MIT-0" }
   },
   "servers": [{ "url": "/api/v1" }],
@@ -39,6 +39,12 @@
             "in": "query",
             "description": "Only matches in which this bot plays either colour.",
             "schema": { "$ref": "#/components/schemas/Id" }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "description": "bots: only matches between two bots (type single); players: only games of people in the browser and of remote bots (types human and remote, E119).",
+            "schema": { "enum": ["bots", "players"] }
           },
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Offset" }
@@ -303,7 +309,7 @@
     "/ratings/players": {
       "get": {
         "operationId": "list_player_ratings",
-        "summary": "Active accounts with at least one rated game against bots, highest rating first, then by name (E118). Their games stay private (E115).",
+        "summary": "Active accounts with at least one rated game against bots, highest rating first, then by name (E118). Their games are public like all others (E119).",
         "responses": {
           "200": {
             "description": "The ranking of players.",
@@ -348,7 +354,7 @@
     "/play": {
       "post": {
         "operationId": "start_game",
-        "summary": "A game of the person against a verified bot, as guest or with the session's account (E11, E114). The answer names the seat to join over the WebSocket at socket_path (gateway-v1); the game itself speaks play-v1. Games against people are not public: they appear in no list (E115).",
+        "summary": "A game of the person against a verified bot, as guest or with the session's account (E11, E114). The answer names the seat to join over the WebSocket at socket_path (gateway-v1); the game itself speaks play-v1. The game is public like every match: in the lists, the queue and with its moves (E119).",
         "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
         "requestBody": {
           "required": true,
@@ -549,7 +555,7 @@
       "post": {
         "operationId": "start_remote_match",
         "security": [{ "token": [] }],
-        "summary": "A game of the token owner's local bot against a verified bot (coders, E116). The local bot joins its seat over the WebSocket at socket_path (gateway-v1) and then speaks the bot protocol v1. Never rated, not public, within the play limits for the address, the account and the token (E115).",
+        "summary": "A game of the token owner's local bot against a verified bot (coders, E116). The local bot joins its seat over the WebSocket at socket_path (gateway-v1) and then speaks the bot protocol v1. Never rated, public like every match (E119), within the play limits for the address, the account and the token (E115).",
         "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
         "requestBody": {
           "required": true,
@@ -1248,12 +1254,18 @@
         "additionalProperties": false
       },
       "Side": {
-        "description": "One side of a match. sdk and lang are filled once the bot reported ready.",
+        "description": "One side of a match: a bot, a person in the browser (human) or a coder's bot on their own machine (remote, E116). sdk and lang are filled once the bot reported ready; a person has neither.",
         "type": "object",
         "properties": {
-          "kind": { "const": "bot" },
-          "bot_id": { "$ref": "#/components/schemas/Id" },
-          "name": { "type": "string" },
+          "kind": { "enum": ["bot", "human", "remote"] },
+          "bot_id": {
+            "description": "null for people and remote bots.",
+            "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }]
+          },
+          "name": {
+            "description": "The bot's name; for people and remote bots the username, or Guest for a person without an account (E119).",
+            "type": "string"
+          },
           "sdk": { "type": ["string", "null"] },
           "lang": { "type": ["string", "null"] },
           "version": {
@@ -1261,7 +1273,7 @@
             "type": ["string", "null"]
           },
           "rating": {
-            "description": "The bot's rating before and after the match; null until a rated match is counted, and for unrated matches (E103).",
+            "description": "The rating of the bot or the account before and after the match; null until a rated match is counted, and for unrated matches (E103, E117).",
             "oneOf": [{ "$ref": "#/components/schemas/RatingChange" }, { "type": "null" }]
           }
         },
@@ -1292,13 +1304,16 @@
         "type": "object",
         "properties": {
           "id": { "$ref": "#/components/schemas/Id" },
-          "type": { "const": "single" },
+          "type": {
+            "description": "single: two bots from the queue; human: a person in the browser against a bot (E114); remote: a coder's bot on their own machine against a bot (E116).",
+            "enum": ["single", "human", "remote"]
+          },
           "status": { "$ref": "#/components/schemas/MatchStatus" },
           "white": { "$ref": "#/components/schemas/Side" },
           "black": { "$ref": "#/components/schemas/Side" },
           "discipline": { "$ref": "#/components/schemas/Discipline" },
           "rated": {
-            "description": "Played under a stored discipline from the standard position between two different bots; only such matches count for the rating (E100, E103).",
+            "description": "Played under a stored discipline from the standard position between two different bots, or by a person with an account against a bot; only such matches count for the rating (E100, E103, E117).",
             "type": "boolean"
           },
           "result": {
@@ -1717,7 +1732,11 @@
             "description": "No new matches start while the queue is paused.",
             "type": "boolean"
           },
-          "running": { "type": "array", "items": { "$ref": "#/components/schemas/QueueEntry" } },
+          "running": {
+            "description": "Matches from the queue, then games of people and remote bots (E119); these have their own runner and leave the estimates of the waiting matches alone.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/QueueEntry" }
+          },
           "waiting": {
             "description": "In start order; at most 200 entries.",
             "type": "array",

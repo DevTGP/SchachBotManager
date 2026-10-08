@@ -51,12 +51,16 @@ def match_detail(match: dict) -> dict:
 
 
 def side(match: dict, color: str) -> dict:
-    """The rating change is there once the runner has counted the match (E103)."""
+    """The rating change is there once the runner has counted the match (E103).
+
+    People and remote bots have no bot_id; their account and seat stay internal (E119).
+    """
     side = match[color]
     rating = match.get("rating")
+    bot_id = side["bot_id"]
     return {
         "kind": side["kind"],
-        "bot_id": str(side["bot_id"]),
+        "bot_id": None if bot_id is None else str(bot_id),
         "name": side["name"],
         # Matches queued before E95 do not keep the version.
         "version": side.get("version"),

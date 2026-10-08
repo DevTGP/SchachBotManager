@@ -2,6 +2,7 @@ import { apiUrl, getJson } from "./client";
 import type {
   Bot,
   Match,
+  MatchKind,
   MatchPage,
   MatchStatus,
   PlayerRating,
@@ -11,14 +12,15 @@ import type {
 
 export interface MatchQuery {
   status?: MatchStatus;
+  kind?: MatchKind;
   botId?: string;
   limit?: number;
   offset?: number;
 }
 
 export function fetchMatches(query: MatchQuery, signal?: AbortSignal): Promise<MatchPage> {
-  const { status, botId, limit, offset } = query;
-  return getJson("/matches", { status, bot_id: botId, limit, offset }, signal);
+  const { status, kind, botId, limit, offset } = query;
+  return getJson("/matches", { status, kind, bot_id: botId, limit, offset }, signal);
 }
 
 export function fetchMatch(id: string, signal?: AbortSignal): Promise<Match> {

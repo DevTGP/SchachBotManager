@@ -8,8 +8,8 @@ import { RANKING_FILTERS, loadRanking, type RankingRow } from "./ranking";
 
 /**
  * Bots and players with at least one counted game, highest rating first (E103, E118). The
- * filter lives in the URL (show), so every view can be linked. Players have no link: their
- * games are not public (E115).
+ * filter lives in the URL (show), so every view can be linked. Players have no link: there is
+ * no page of a player.
  */
 export function RatingsPage() {
   const { t } = useTranslation();

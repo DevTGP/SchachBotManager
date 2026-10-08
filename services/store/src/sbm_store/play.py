@@ -163,3 +163,15 @@ def active_count(db: Database) -> int:
     return db[JOBS].count_documents(
         {"type": PLAY_JOB, "status": {"$in": [jobs.QUEUED, jobs.RUNNING]}}
     )
+
+
+def running_summaries(db: Database) -> list[dict]:
+    """Interactive games under way as list summaries, earliest start first (E119)."""
+    return list(
+        db[MATCHES]
+        .find(
+            {"type": {"$in": list(MATCH_TYPES)}, "status": matches.RUNNING},
+            matches.SUMMARY_PROJECTION,
+        )
+        .sort([("started_at", 1), ("_id", 1)])
+    )

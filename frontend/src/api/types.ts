@@ -1,6 +1,7 @@
-import type { components } from "./schema";
+import type { components, operations } from "./schema";
 
 type Schemas = components["schemas"];
+type Query<Name extends keyof operations> = NonNullable<operations[Name]["parameters"]["query"]>;
 
 export type ApiToken = Schemas["ApiToken"];
 export type CreatedApiToken = Schemas["CreatedApiToken"];
@@ -21,6 +22,7 @@ export type Finding = Schemas["Finding"];
 export type ErrorCode = Schemas["Error"]["code"];
 export type Invite = Schemas["Invite"];
 export type Match = Schemas["Match"];
+export type MatchKind = NonNullable<Query<"list_matches">["kind"]>;
 export type MatchPage = Schemas["MatchPage"];
 export type MatchStatus = Schemas["MatchStatus"];
 export type MatchSummary = Schemas["MatchSummary"];

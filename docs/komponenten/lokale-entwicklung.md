@@ -83,7 +83,7 @@ Umgesetzt für Python (E116):
 1. Ein Coder legt auf der Kontoseite ein API-Token an.
 2. Start des Bots: `SBM_TOKEN=sbm_… python bot.py --remote https://schachbotmanager.example.org --opponent Material [--color white|black|random] [--discipline NAME | --time 60+1]`.
 3. Das SDK fragt `POST /api/v1/remote/matches` an, öffnet die WebSocket-Verbindung zum Gateway und nimmt seinen Sitz ein; der Play-Runner startet den Gegner in der Sandbox.
-4. Danach sind die Nachrichten dieselben wie im `stdio`-Protokoll. Die Partie ist nie gewertet und nicht öffentlich.
+4. Danach sind die Nachrichten dieselben wie im `stdio`-Protokoll. Die Partie ist nie gewertet, aber öffentlich (E119).
 
 Zu beachten:
 

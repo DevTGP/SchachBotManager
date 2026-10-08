@@ -1,4 +1,4 @@
-"""POST /play and the limits of interactive games (E114, E115)."""
+"""POST /play, the limits of interactive games and their public lists (E114, E115, E119)."""
 
 from datetime import timedelta
 
@@ -119,16 +119,30 @@ def test_games_per_day_are_limited_and_refusals_cost_nothing(client, db, referen
     assert start(client, reference_bots[0]).status_code == 201
 
 
-def test_games_against_people_are_not_public(client, db, reference_bots, enqueue):
-    queued = enqueue()
+def test_games_against_people_are_public_and_can_be_filtered(client, reference_bots, enqueue):
+    queued = str(enqueue())
     match_id = start(client, reference_bots[0]).json["match_id"]
 
-    listed = client.get("/api/v1/matches").json
-    assert [item["id"] for item in listed["items"]] == [str(queued)]
-    by_bot = client.get(f"/api/v1/matches?bot_id={reference_bots[0]['_id']}").json
-    assert match_id not in [item["id"] for item in by_bot["items"]]
-    assert client.get(f"/api/v1/matches/{match_id}").status_code == 404
-    assert client.get(f"/api/v1/matches/{match_id}/pgn").status_code == 404
+    def listed(query: str = "") -> list[str]:
+        return [item["id"] for item in client.get(f"/api/v1/matches{query}").json["items"]]
+
+    assert listed() == [match_id, queued]
+    assert listed("?kind=players") == [match_id]
+    assert listed("?kind=bots") == [queued]
+    assert match_id in listed(f"?bot_id={reference_bots[0]['_id']}")
+    match = client.get(f"/api/v1/matches/{match_id}").json
+    assert match["type"] == "human"
+    assert match["white"] == {
+        "kind": "human",
+        "bot_id": None,
+        "name": "Guest",
+        "version": None,
+        "sdk": None,
+        "lang": None,
+        "rating": None,
+    }
+    assert '[White "Guest"]' in client.get(f"/api/v1/matches/{match_id}/pgn").text
+    assert client.get("/api/v1/matches?kind=people").status_code == 400
 
 
 def test_admins_read_and_set_the_limits(admin, db):

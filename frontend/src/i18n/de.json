@@ -60,6 +60,10 @@
     "allStatuses": "Alle",
     "bot": "Bot",
     "allBots": "Alle Bots",
+    "kind": "Art",
+    "allKinds": "Alle Partien",
+    "kindBots": "Bot gegen Bot",
+    "kindPlayers": "Mit Spielern",
     "empty": "Keine Partien gefunden."
   },
   "matchTable": {
@@ -362,7 +366,7 @@
     "rating": "Rating",
     "ratingValue_one": "{{value}} nach {{count}} gewerteten Partie",
     "ratingValue_other": "{{value}} nach {{count}} gewerteten Partien",
-    "ratingHint": "Gewertet werden deine Partien gegen Bots unter einer Disziplin aus der Grundstellung. Ab der ersten gewerteten Partie stehen dein Name und dein Rating in der öffentlichen Rangliste; deine Partien bleiben privat."
+    "ratingHint": "Gewertet werden deine Partien gegen Bots unter einer Disziplin aus der Grundstellung. Ab der ersten gewerteten Partie stehen dein Name und dein Rating in der öffentlichen Rangliste. Deine Partien sind wie alle Partien öffentlich ansehbar."
   },
   "role": {
     "coder": "Coder",
@@ -438,7 +442,7 @@
   },
   "play": {
     "title": "Gegen einen Bot spielen",
-    "intro": "Bot und Bedenkzeit wählen. Gespielt wird im Browser; der Server prüft jeden Zug. Partien gegen Menschen erscheinen nicht in den öffentlichen Listen.",
+    "intro": "Bot und Bedenkzeit wählen. Gespielt wird im Browser; der Server prüft jeden Zug. Die Partie ist wie alle Partien öffentlich ansehbar; als Gast erscheinst du als „Guest“.",
     "noBots": "Es gibt noch keinen geprüften Bot als Gegner.",
     "opponent": "Bot",
     "color": "Deine Farbe",
@@ -495,7 +499,7 @@
   },
   "tokens": {
     "title": "API-Tokens",
-    "intro": "Mit einem Token spielt dein Bot auf deinem Rechner gegen Bots auf dem Server: python bot.py --remote URL --opponent NAME, mit dem Token in SBM_TOKEN. Solche Partien werden nicht gewertet und sind nicht öffentlich.",
+    "intro": "Mit einem Token spielt dein Bot auf deinem Rechner gegen Bots auf dem Server: python bot.py --remote URL --opponent NAME, mit dem Token in SBM_TOKEN. Solche Partien werden nicht gewertet, sind aber öffentlich ansehbar.",
     "token": "Token",
     "copy": "Token kopieren",
     "created": "Neues Token „{{name}}“",

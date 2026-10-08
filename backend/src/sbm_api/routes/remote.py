@@ -1,7 +1,7 @@
 """POST /remote/matches: a coder's local bot against a verified bot, with an API token (E116).
 
 The local bot then joins its seat over the gateway and speaks the bot protocol v1; its moves
-count like those of any bot, but the game is never rated and not public (E103, E115).
+count like those of any bot; the game is never rated but public (E103, E115, E119).
 """
 
 from flask import Blueprint

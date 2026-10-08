@@ -121,7 +121,7 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 
 ## Stand M7 (E113–E116)
 
-- Interaktive Partien: Typ `human` oder `remote`, `queue` ist `null`, `rated` nur für einen Menschen mit Konto unter einer gespeicherten Disziplin aus der Grundstellung (E117). Eine Seite ohne Bot hat `kind` `human` oder `remote`, `bot_id` `null`, `user_id` (bei Gästen `null`), `name` und `seat_hash` (SHA-256 des Sitz-Tokens; der Token selbst wird nie gespeichert). `origin` hält `ip_key` (Hash der Adresse), `user_id` und `token_id` für die Grenzen; dünn besetzte Indizes darauf (Migration `0110_play_origin`). Ihr Job hat die Art `play` (`sbm_store.play`).
+- Interaktive Partien: Typ `human` oder `remote`, `queue` ist `null`, `rated` nur für einen Menschen mit Konto unter einer gespeicherten Disziplin aus der Grundstellung (E117). Eine Seite ohne Bot hat `kind` `human` oder `remote`, `bot_id` `null`, `user_id` (bei Gästen `null`), `name` und `seat_hash` (SHA-256 des Sitz-Tokens; der Token selbst wird nie gespeichert). `origin` hält `ip_key` (Hash der Adresse), `user_id` und `token_id` für die Grenzen; dünn besetzte Indizes darauf (Migration `0110_play_origin`). Ihr Job hat die Art `play` (`sbm_store.play`). Öffentlich sind sie wie Botpartien (E119); die Liste der laufenden nutzt den vorhandenen Index auf `status`.
 - `settings`: Dokument `play` mit `max_games`, `games_per_client`, `games_per_day` (`sbm_store.play_settings`, E115).
 - `api_tokens`: `user_id`, `name`, `token_hash` (eindeutig), `created_at`, `last_used_at`, `revoked_at` (`sbm_store.api_tokens`, Migration `0111_api_tokens`, E116).
 - `users.role` kennt zusätzlich `player` (E103, E115).

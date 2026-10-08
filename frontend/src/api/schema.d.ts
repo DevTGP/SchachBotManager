@@ -194,7 +194,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Active accounts with at least one rated game against bots, highest rating first, then by name (E118). Their games stay private (E115). */
+        /** Active accounts with at least one rated game against bots, highest rating first, then by name (E118). Their games are public like all others (E119). */
         get: operations["list_player_ratings"];
         put?: never;
         post?: never;
@@ -249,7 +249,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** A game of the person against a verified bot, as guest or with the session's account (E11, E114). The answer names the seat to join over the WebSocket at socket_path (gateway-v1); the game itself speaks play-v1. Games against people are not public: they appear in no list (E115). */
+        /** A game of the person against a verified bot, as guest or with the session's account (E11, E114). The answer names the seat to join over the WebSocket at socket_path (gateway-v1); the game itself speaks play-v1. The game is public like every match: in the lists, the queue and with its moves (E119). */
         post: operations["start_game"];
         delete?: never;
         options?: never;
@@ -390,7 +390,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** A game of the token owner's local bot against a verified bot (coders, E116). The local bot joins its seat over the WebSocket at socket_path (gateway-v1) and then speaks the bot protocol v1. Never rated, not public, within the play limits for the address, the account and the token (E115). */
+        /** A game of the token owner's local bot against a verified bot (coders, E116). The local bot joins its seat over the WebSocket at socket_path (gateway-v1) and then speaks the bot protocol v1. Never rated, public like every match (E119), within the play limits for the address, the account and the token (E115). */
         post: operations["start_remote_match"];
         delete?: never;
         options?: never;
@@ -704,17 +704,19 @@ export interface components {
             max_moves?: number;
             archived?: boolean;
         };
-        /** @description One side of a match. sdk and lang are filled once the bot reported ready. */
+        /** @description One side of a match: a bot, a person in the browser (human) or a coder's bot on their own machine (remote, E116). sdk and lang are filled once the bot reported ready; a person has neither. */
         Side: {
-            /** @constant */
-            kind: "bot";
-            bot_id: components["schemas"]["Id"];
+            /** @enum {unknown} */
+            kind: "bot" | "human" | "remote";
+            /** @description null for people and remote bots. */
+            bot_id: components["schemas"]["Id"] | null;
+            /** @description The bot's name; for people and remote bots the username, or Guest for a person without an account (E119). */
             name: string;
             sdk: string | null;
             lang: string | null;
             /** @description Version of the bot; null for matches queued before versions were kept (E95). */
             version: string | null;
-            /** @description The bot's rating before and after the match; null until a rated match is counted, and for unrated matches (E103). */
+            /** @description The rating of the bot or the account before and after the match; null until a rated match is counted, and for unrated matches (E103, E117). */
             rating: components["schemas"]["RatingChange"] | null;
         };
         RatingChange: {
@@ -730,13 +732,16 @@ export interface components {
         /** @description The fields of MatchSummary, open for extension by Match. */
         MatchFields: {
             id: components["schemas"]["Id"];
-            /** @constant */
-            type: "single";
+            /**
+             * @description single: two bots from the queue; human: a person in the browser against a bot (E114); remote: a coder's bot on their own machine against a bot (E116).
+             * @enum {unknown}
+             */
+            type: "single" | "human" | "remote";
             status: components["schemas"]["MatchStatus"];
             white: components["schemas"]["Side"];
             black: components["schemas"]["Side"];
             discipline: components["schemas"]["Discipline"];
-            /** @description Played under a stored discipline from the standard position between two different bots; only such matches count for the rating (E100, E103). */
+            /** @description Played under a stored discipline from the standard position between two different bots, or by a person with an account against a bot; only such matches count for the rating (E100, E103, E117). */
             rated: boolean;
             /** @description null until the match ends. */
             result: components["schemas"]["result"] | null;
@@ -947,6 +952,7 @@ export interface components {
         Queue: {
             /** @description No new matches start while the queue is paused. */
             paused: boolean;
+            /** @description Matches from the queue, then games of people and remote bots (E119); these have their own runner and leave the estimates of the waiting matches alone. */
             running: components["schemas"]["QueueEntry"][];
             /** @description In start order; at most 200 entries. */
             waiting: components["schemas"]["QueueEntry"][];
@@ -1379,6 +1385,8 @@ export interface operations {
                 status?: components["schemas"]["MatchStatus"];
                 /** @description Only matches in which this bot plays either colour. */
                 bot_id?: components["schemas"]["Id"];
+                /** @description bots: only matches between two bots (type single); players: only games of people in the browser and of remote bots (types human and remote, E119). */
+                kind?: "bots" | "players";
                 /** @description Page size. */
                 limit?: components["parameters"]["Limit"];
                 /** @description Number of items to skip. */

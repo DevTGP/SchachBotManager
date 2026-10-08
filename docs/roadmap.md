@@ -145,7 +145,7 @@ Nach M7 (E110).
 Vor M6 und parallel zu M4 (E110). Drei Schritte (E111):
 
 1. Gemeinsame Basis – umgesetzt: Gateway für WebSockets (E112), Play-Runner als eigener Container, Jobs der Art `play`, Sitze und Abbruchregeln (E113), Protokolle gateway-v1 und relay-v1 ([gateway.md](komponenten/gateway.md)).
-2. Mensch gegen Bot – umgesetzt: Browser-Protokoll play-v1, `HumanPlayer`, Seiten `/play` und `/play/:id`, Gäste gegen jeden geprüften Bot (E114), Grenzen je Adresse, Konto und Token auf `/admin/play`, interaktive Partien nicht öffentlich, Rolle `player` (E115). Gewertet werden Partien angemeldeter Konten unter einer Disziplin (E117); das Rating steht auf der Kontoseite und in der Rangliste, filterbar nach Bots und Spielern (E118).
+2. Mensch gegen Bot – umgesetzt: Browser-Protokoll play-v1, `HumanPlayer`, Seiten `/play` und `/play/:id`, Gäste gegen jeden geprüften Bot (E114), Grenzen je Adresse, Konto und Token auf `/admin/play`, Rolle `player` (E115). Interaktive Partien sind öffentlich, in `/matches` filterbar und laufend in der Queue (E119, vorher nicht öffentlich). Gewertet werden Partien angemeldeter Konten unter einer Disziplin (E117); das Rating steht auf der Kontoseite und in der Rangliste, filterbar nach Bots und Spielern (E118).
 3. Remote-Bot – umgesetzt: API-Tokens für Coder, `POST /remote/matches`, Transport `remote` im Python-SDK (E116); die übrigen Sprachen folgen mit M5.
 
 Offen ist die Abnahme auf dem Server.

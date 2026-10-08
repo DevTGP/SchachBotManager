@@ -59,6 +59,32 @@ describe("matches page", () => {
       offset: "25",
     });
   });
+
+  it("filters games with players", async () => {
+    const user = userEvent.setup();
+    const guest = {
+      kind: "human" as const,
+      bot_id: null,
+      name: "Guest",
+      version: null,
+      sdk: null,
+      lang: null,
+      rating: null,
+    };
+    const api = mockApi({
+      "/matches": { items: [summary({ type: "human", white: guest })], total: 1 },
+      "/bots": { items: BOTS },
+    });
+    const { router } = renderRoute("/matches");
+
+    expect(await screen.findByRole("link", { name: "Guest – Material 1.0.0" })).toBeVisible();
+    expect(screen.getByRole("combobox", { name: "Kind" })).toHaveValue("");
+    await user.selectOptions(screen.getByRole("combobox", { name: "Kind" }), "With players");
+    expect(router.state.location.search).toBe("?kind=players");
+    await screen.findByRole("link", { name: "Guest – Material 1.0.0" });
+    const last = api.requests.filter((url) => url.pathname === "/api/v1/matches").at(-1);
+    expect(last?.searchParams.get("kind")).toBe("players");
+  });
 });
 
 describe("bots page", () => {

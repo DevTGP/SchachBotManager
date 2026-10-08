@@ -120,6 +120,32 @@ def test_active_games_are_counted_per_origin(db, reference_bots):
     assert play.active_by(db, "ip_key", "k1") == 0
 
 
+def test_running_games_are_listed_by_start(db, reference_bots):
+    def human_game(name: str) -> ObjectId:
+        _token, hashed = play.new_seat()
+        side = play.seat_side(play.HUMAN, name, user_id=None, seat_hash=hashed)
+        return play.create(
+            db,
+            play.HUMAN,
+            side,
+            matches.side(reference_bots[0]),
+            BLITZ,
+            start_fen=START_FEN,
+            now=T0,
+        )
+
+    later, earlier, waiting = human_game("a"), human_game("b"), human_game("c")
+    matches.start(db, later, T0 + timedelta(minutes=2))
+    matches.start(db, earlier, T0 + timedelta(minutes=1))
+
+    running = play.running_summaries(db)
+
+    assert [match["_id"] for match in running] == [earlier, later]
+    assert waiting not in [match["_id"] for match in running]
+    assert running[0]["type"] == play.HUMAN
+    assert "moves" not in running[0]
+
+
 def test_play_settings_have_defaults_and_can_be_saved(db):
     assert play_settings.get(db) == play_settings.PlaySettings(2, 1, 50)
     play_settings.save(db, play_settings.PlaySettings(max_games=3, games_per_day=10))
