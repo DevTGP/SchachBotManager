@@ -119,7 +119,7 @@ def test_a_number_taken_by_another_runner_is_not_used_twice(db):
 
     assert not ratings._count(db, first, 1)
     assert ratings.count_pending(db) == 1
-    assert matches.get(db, first)["rating"]["seq"] == 2
+    assert matches.get(db, first_id)["rating"]["seq"] == 2
 
 
 def test_a_bot_against_itself_is_never_rated(db):
