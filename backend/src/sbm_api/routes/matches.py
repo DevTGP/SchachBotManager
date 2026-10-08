@@ -1,7 +1,7 @@
 """GET /matches, /matches/{match_id} and /matches/{match_id}/pgn."""
 
 from flask import Blueprint, Response, request
-from sbm_store import matches
+from sbm_store import matches, play
 
 from sbm_api import context
 from sbm_api.errors import not_found
@@ -20,7 +20,7 @@ def list_matches():
     query = matches.match_filter(
         status=optional_choice(args, "status", matches.STATUSES),
         bot_id=optional_object_id(args, "bot_id"),
-    )
+    ) | {"type": {"$nin": list(play.MATCH_TYPES)}}
     items, total = matches.page(
         context.db(),
         query,
@@ -46,7 +46,8 @@ def get_match_pgn(match_id: str):
 
 
 def _match(match_id: str) -> dict:
+    """Games against people and remote bots are not public (E115)."""
     match = matches.get(context.db(), object_id(match_id, "match_id"))
-    if match is None:
+    if match is None or match["type"] in play.MATCH_TYPES:
         raise not_found("no such match")
     return match

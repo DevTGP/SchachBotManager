@@ -317,6 +317,31 @@
         }
       }
     },
+    "/play": {
+      "post": {
+        "operationId": "start_game",
+        "summary": "A game of the person against a verified bot, as guest or with the session's account (E11, E114). The answer names the seat to join over the WebSocket at socket_path (gateway-v1); the game itself speaks play-v1. Games against people are not public: they appear in no list (E115).",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/PlayRequest" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The game waits for the person to join.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PlaySeat" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/PlayLimit" },
+          "503": { "$ref": "#/components/responses/NoCapacity" }
+        }
+      }
+    },
     "/session": {
       "get": {
         "operationId": "get_session",
@@ -425,7 +450,8 @@
               "application/json": { "schema": { "$ref": "#/components/schemas/BotList" } }
             }
           },
-          "401": { "$ref": "#/components/responses/Unauthenticated" }
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
         }
       }
     },
@@ -672,6 +698,46 @@
         }
       }
     },
+    "/admin/play-settings": {
+      "get": {
+        "operationId": "get_play_settings",
+        "security": [{ "session": [] }],
+        "summary": "The limits of interactive games (admin, E115).",
+        "responses": {
+          "200": {
+            "description": "The limits now in force.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PlaySettings" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "put": {
+        "operationId": "update_play_settings",
+        "security": [{ "session": [] }],
+        "summary": "Sets all limits of interactive games at once (admin, E115); they apply to games asked for from now on.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/PlaySettings" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The limits now in force.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PlaySettings" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
     "/admin/queue": {
       "patch": {
         "operationId": "update_queue",
@@ -823,6 +889,20 @@
         "description": "The request is larger than 3 MiB (code too_large).",
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
       },
+      "PlayLimit": {
+        "description": "The address, account or token already plays a game (code too_many_games), or reached its games for the day (code too_many_attempts, with Retry-After) (E115).",
+        "headers": {
+          "Retry-After": {
+            "description": "Seconds until the daily limit allows the next game; only with too_many_attempts.",
+            "schema": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "NoCapacity": {
+        "description": "Every place for interactive games is taken; try again soon (code no_capacity, E115).",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
       "Session": {
         "description": "The session after the request.",
         "content": {
@@ -856,7 +936,9 @@
               "name_taken",
               "upload_conflict",
               "invalid_upload",
-              "too_large"
+              "too_large",
+              "no_capacity",
+              "too_many_games"
             ]
           },
           "message": {
@@ -1459,8 +1541,8 @@
         "pattern": "^[A-Za-z0-9_-]{43}(?!\\n)$"
       },
       "Role": {
-        "description": "coder: own bots; admin: everything (backend-api.md).",
-        "enum": ["coder", "admin"]
+        "description": "player: plays against bots with an account (E103); coder: own bots; admin: everything (backend-api.md).",
+        "enum": ["player", "coder", "admin"]
       },
       "CurrentUser": {
         "type": "object",
@@ -1691,6 +1773,48 @@
           }
         },
         "required": ["match_ids"],
+        "additionalProperties": false
+      },
+      "PlayRequest": {
+        "description": "A game against a verified bot from the standard position: a discipline in use, or free times up to 30 min + 30 s (E115).",
+        "type": "object",
+        "properties": {
+          "bot_id": { "$ref": "#/components/schemas/Id" },
+          "color": {
+            "description": "The person's color; random draws one.",
+            "enum": ["white", "black", "random"]
+          },
+          "discipline_id": {
+            "description": "A discipline that is not archived; null or missing for free times.",
+            "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }]
+          },
+          "initial_time_ms": { "type": "integer", "minimum": 10000, "maximum": 1800000 },
+          "increment_ms": { "type": "integer", "minimum": 0, "maximum": 30000, "default": 0 }
+        },
+        "required": ["bot_id", "color"],
+        "additionalProperties": false
+      },
+      "PlaySeat": {
+        "description": "Where to join a new interactive game. The seat is shown only here; it stands for the side in the game (E113).",
+        "type": "object",
+        "properties": {
+          "match_id": { "$ref": "#/components/schemas/Id" },
+          "seat": { "type": "string", "pattern": "^[A-Za-z0-9_-]{43}(?!\\n)$" },
+          "color": { "enum": ["white", "black"] },
+          "socket_path": { "const": "/api/v1/play/socket" }
+        },
+        "required": ["match_id", "seat", "color", "socket_path"],
+        "additionalProperties": false
+      },
+      "PlaySettings": {
+        "description": "Limits of interactive games (E115): max_games at once in total; games_per_client at once and games_per_day for each address, account and API token on its own.",
+        "type": "object",
+        "properties": {
+          "max_games": { "type": "integer", "minimum": 1, "maximum": 16 },
+          "games_per_client": { "type": "integer", "minimum": 1, "maximum": 4 },
+          "games_per_day": { "type": "integer", "minimum": 1, "maximum": 1000 }
+        },
+        "required": ["max_games", "games_per_client", "games_per_day"],
         "additionalProperties": false
       },
       "QueueUpdate": {

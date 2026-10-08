@@ -36,6 +36,14 @@ def require_user() -> dict:
     return user
 
 
+def require_coder() -> dict:
+    """Coders and admins: own bots, their games and API tokens; players only play (E103)."""
+    user = require_user()
+    if user["role"] not in (users.CODER, users.ADMIN):
+        raise forbidden("only coders may do this")
+    return user
+
+
 def require_admin() -> dict:
     user = require_user()
     if user["role"] != users.ADMIN:

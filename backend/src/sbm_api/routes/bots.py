@@ -7,7 +7,7 @@ from sbm_store import bot_files, bots, jobs, versions
 from sbm_api import context, rate_limit
 from sbm_api.bot_access import visible_bot
 from sbm_api.bot_view import bot_detail_view, bot_view
-from sbm_api.current_user import current_user, require_user
+from sbm_api.current_user import current_user, require_coder
 from sbm_api.errors import (
     NAME_TAKEN,
     UPLOAD_CONFLICT,
@@ -36,7 +36,7 @@ def get_bot(bot_id: str):
 @blueprint.post("/bots")
 def upload_bot():
     """A new bot, or a new version of an own one; the runner verifies it (E92)."""
-    user = require_user()
+    user = require_coder()
     upload = parse_upload()
     db, now = context.db(), context.now()
     previous = bots.latest(db, upload.name)

@@ -27,6 +27,9 @@ NAME_TAKEN = "name_taken"
 UPLOAD_CONFLICT = "upload_conflict"
 INVALID_UPLOAD = "invalid_upload"
 TOO_LARGE = "too_large"
+# Interactive games (E115).
+NO_CAPACITY = "no_capacity"
+TOO_MANY_GAMES = "too_many_games"
 
 
 class ApiError(Exception):
@@ -81,6 +84,14 @@ def too_many_attempts(now: datetime, retry_at: datetime) -> ApiError:
         "too many attempts, try again later",
         headers={"Retry-After": str(seconds)},
     )
+
+
+def no_capacity() -> ApiError:
+    return ApiError(503, NO_CAPACITY, "all places for interactive games are taken, try again soon")
+
+
+def too_many_games() -> ApiError:
+    return ApiError(429, TOO_MANY_GAMES, "finish your running game before you start another")
 
 
 def invalid_upload(message: str, path: str | None) -> ApiError:

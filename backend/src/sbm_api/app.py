@@ -18,6 +18,7 @@ from sbm_api.routes import (
     admin_disciplines,
     admin_invites,
     admin_matches,
+    admin_play,
     admin_queue,
     admin_users,
     bot_source,
@@ -29,6 +30,7 @@ from sbm_api.routes import (
     own_bot,
     own_matches,
     password_resets,
+    play,
     queue,
     session,
 )
@@ -40,6 +42,7 @@ BLUEPRINTS = (
     health,
     matches,
     own_matches,
+    play,
     bots,
     own_bot,
     bot_source,
@@ -55,6 +58,7 @@ BLUEPRINTS = (
     admin_bots,
     admin_disciplines,
     admin_matches,
+    admin_play,
     admin_queue,
 )
 
