@@ -39,7 +39,8 @@ flowchart LR
 | MongoDB | Persistenz aller Stammdaten, Partien, Tabellen, Jobs | [datenmodell.md](../komponenten/datenmodell.md) |
 | Artefakt-Speicher | Quellcode-Uploads, Build-Ergebnisse, Bot-Logs in GridFS (E82) | [verifikation.md](../komponenten/verifikation.md) |
 | Scheduler | Erzeugt Saisons, Turniere, Paarungen und Match-Jobs nach Konfiguration | [ligen-turniere.md](../komponenten/ligen-turniere.md) |
-| Match-Runner | Referee: autoritativer Spielzustand, Uhren, Start/Stopp der Bot-Prozesse; führt auch die Verifikation aus (E81) | [match-runner.md](../komponenten/match-runner.md) |
+| Match-Runner | Referee: autoritativer Spielzustand, Uhren, Start/Stopp der Bot-Prozesse; führt auch die Verifikation aus (E81). Als Play-Runner (eigener Container) spielt er die interaktiven Partien (E111) | [match-runner.md](../komponenten/match-runner.md) |
+| Gateway | WebSockets von Browsern und lokalen Bots; paart sie über ein eigenes Relay-Netz mit dem Play-Runner, ohne Datenbankzugang (E112) | [gateway.md](../komponenten/gateway.md) |
 | Verifikation (im Runner) | Statische Analyse, Build, Mindesttests für hochgeladene Bots | [verifikation.md](../komponenten/verifikation.md), [statische-analyse.md](../komponenten/statische-analyse.md) |
 | Sandbox (nsjail) | Isolierte Ausführung je Bot-Prozess | [sandbox.md](../komponenten/sandbox.md) |
 | Schachkern (C++) | Einzige Regelimplementierung; genutzt von Referee, Arena und allen SDKs | [sdk-api.md](../komponenten/sdk-api.md), [kern-c-schnittstelle.md](../komponenten/kern-c-schnittstelle.md) |
@@ -50,7 +51,7 @@ flowchart LR
 
 | Zone | Enthält | Regel |
 |------|---------|-------|
-| Öffentlich | SPA, Web-API | Kann keine Prozesse starten, kein Bot-Code |
+| Öffentlich | SPA, Web-API, Gateway | Kann keine Prozesse starten, kein Bot-Code; der Gateway hat keinen Datenbankzugang |
 | Intern vertrauenswürdig | Scheduler, Runner, DB | Nicht von außen erreichbar; nur der Runner darf Sandbox-Prozesse starten |
 | Nicht vertrauenswürdig | Bot-Code (auch beim **Kompilieren**), Uploads, Eingaben lokaler Bots | Nur in der Sandbox; jede Ausgabe wird als feindliche Eingabe behandelt |
 
@@ -58,7 +59,7 @@ Kernprinzipien:
 
 - **Referee ist autoritativ.** Jeder Zug wird serverseitig geprüft; ein manipuliertes SDK im Bot-Prozess bringt keinen Vorteil.
 - **Bots kommunizieren nie direkt.** Die Sprachunabhängigkeit entsteht ausschließlich über das [Bot-Protokoll](../komponenten/bot-protokoll.md).
-- **Ein Spieler-Interface, mehrere Adapter.** Der Referee kennt nur „Spieler“: Sandbox-Bot, Remote-Bot (Web-API), Mensch (Browser). Damit teilen sich Liga-Spiele, Remote-Spiele und Mensch-gegen-Bot dieselbe Spiellogik.
+- **Ein Spieler-Interface, mehrere Adapter.** Der Referee kennt nur „Spieler“: Sandbox-Bot, Remote-Bot und Mensch (beide über den Gateway, E112). Damit teilen sich Liga-Spiele, Remote-Spiele und Mensch-gegen-Bot dieselbe Spiellogik.
 - **Alles Konfigurierbare liegt in der DB** (Disziplinen, Ligen, Turniere, Queue, Limits) und ist über die Website einstellbar (E13).
 - **Eine Regelimplementierung.** Referee, Arena und alle SDKs nutzen denselben C++-Kern.
 
@@ -72,7 +73,8 @@ SchachBotManager/
 ├── frontend/                SPA
 ├── services/
 │   ├── store/               Gemeinsamer Datenbankzugriff, Migrationen (sbm-store, E75)
-│   ├── runner/              Match-Runner (Job-Consumer, Sandbox-Adapter); Referee-Kern aus sdk/python (E65, E75)
+│   ├── runner/              Match-Runner (Job-Consumer, Sandbox-Adapter), auch als Play-Runner (E111); Referee-Kern aus sdk/python (E65, E75)
+│   ├── gateway/             WebSocket-Gateway für interaktive Partien (sbm-gateway, E112)
 │   ├── verifier/            Pipeline + Analyzer je Sprache, ausgeführt vom Runner (E81)
 │   └── scheduler/
 ├── sdk/

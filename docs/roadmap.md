@@ -29,6 +29,8 @@ flowchart TD
   M5 --> M8
 ```
 
+Reihenfolge (E110): M4 und M7 laufen parallel, M6 folgt nach M7. M5 ist zurückgestellt; wie M8 ohne M5 geschnitten wird, ist offen (O22).
+
 ## Meilensteine
 
 ### M0 – Spezifikation und Gerüst (P0)
@@ -106,6 +108,8 @@ Abnahme: Zwei aufeinanderfolgende Saisons laufen ohne manuellen Eingriff durch, 
 
 ### M5 – Weitere Sprachen (P2)
 
+Zurückgestellt (E110). Mit jeder Sprache kommt auch ihr Transport `remote` für M7 (E111).
+
 Pro Sprache: Binding auf den Kern, Paket mit eingebetteten Binaries, API- und Protokolltests, Laufzeitverzeichnis + seccomp-Whitelist, Analyzer mit Bibliotheks-Whitelist, Vorlagenprojekt, Aufnahme in den Kreuztest. Die Schachregeln selbst müssen nicht erneut implementiert werden.
 
 | Reihenfolge | Sprache | Begründung der Position |
@@ -120,6 +124,8 @@ Die Reihenfolge ist nach Aufwand und Abhängigkeiten sortiert und frei änderbar
 Abnahme je Sprache: Alle API-Vektoren bestanden, Bot der Sprache spielt regulär gegen Bots aller bereits unterstützten Sprachen, Negativ-Suite bestanden, Setup auf frischem Rechner mit einem Paketbefehl.
 
 ### M6 – Turniere, voller Adminbereich (P2)
+
+Nach M7 (E110).
 
 | Inhalt | Ergebnis |
 |--------|----------|
@@ -136,7 +142,13 @@ Abnahme je Sprache: Alle API-Vektoren bestanden, Bot der Sprache spielt regulär
 | `RemoteBotPlayer`-Adapter, `remote`-Transport in den Bindings, API-Tokens | Lokaler Bot spielt gegen Server-Bot |
 | Kapazitäts- und Missbrauchsgrenzen (pro IP, gesamt), einstellbar | Schutz der Queue |
 
-Kann vor M6 gezogen werden; hängt nur von M2/M3 ab.
+Vor M6 und parallel zu M4 (E110). Drei Schritte (E111):
+
+1. Gemeinsame Basis – umgesetzt: Gateway für WebSockets (E112), Play-Runner als eigener Container, Jobs der Art `play`, Sitze und Abbruchregeln (E113), Protokolle gateway-v1 und relay-v1 ([gateway.md](komponenten/gateway.md)).
+2. Mensch gegen Bot: Browser-Protokoll, `HumanPlayer`, Spielseite, Gäste, Rolle `player` und Wertung von Konten (E103), Grenzen pro IP und Konto.
+3. Remote-Bot: API-Tokens, Transport `remote` im Python-SDK; die übrigen Sprachen folgen mit M5.
+
+Abnahme (Vorschlag): Ein Gast spielt im Browser eine vollständige Partie gegen einen hochgeladenen Bot; ein lokaler Python-Bot spielt mit Token gegen einen Bot auf dem Server; Abbrüche (Verbindung weg, Sitz nicht eingenommen, Runner gestoppt) enden als `aborted`, ohne die Queue zu verzögern.
 
 ### M8 – Härtung und Betrieb (P3)
 

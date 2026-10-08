@@ -59,15 +59,16 @@ Details: [match-runner.md](../komponenten/match-runner.md), [bot-protokoll.md](.
 
 ## 5. Mensch gegen Bot
 
-1. Ein beliebiger Besucher (auch ohne Account, E11) fordert ein Spiel gegen Bot X an → API legt `match` (Typ `human`) und Job an.
-2. Runner startet nur den Bot-Prozess; Gegenseite ist der `HumanPlayer`-Adapter.
-3. Züge des Menschen laufen SPA → API → Runner; der Bot ist währenddessen eingefroren.
-4. Leerlauf-Timeout und Begrenzung gleichzeitiger Spiele (pro IP und gesamt) schützen die Kapazität.
+1. Ein beliebiger Besucher (auch ohne Account, E11) fordert ein Spiel gegen Bot X an → API legt `match` (Typ `human`) und einen Job der Art `play` an und gibt den Sitz-Token einmal aus (E113).
+2. Die SPA öffnet die WebSocket-Verbindung zum Gateway und nimmt mit dem Token ihren Sitz ein (gateway-v1, E112).
+3. Der Play-Runner (`runner-play`) holt den Job, startet nur den Bot-Prozess in der Sandbox und verbindet den Sitz über das Relay; Gegenseite ist der `HumanPlayer`-Adapter (M7 Schritt 2).
+4. Züge des Menschen laufen SPA → Gateway → Play-Runner; der Bot ist währenddessen eingefroren.
+5. Grenzen gleichzeitiger Spiele (pro IP und gesamt) und Abbruch bei langer Abwesenheit schützen die Kapazität ([gateway.md](../komponenten/gateway.md)).
 
 ## 6. Lokaler Bot gegen Web-API
 
-1. Lokaler Bot startet mit Transport `remote` und API-Token.
-2. API legt `match` (Typ `remote`) an; Runner startet den Server-Gegner in der Sandbox.
-3. Der lokale Bot wird über den `RemoteBotPlayer`-Adapter angebunden; der Server prüft jeden Zug wie üblich.
+1. Lokaler Bot startet mit Transport `remote` und API-Token; das SDK legt über die API `match` (Typ `remote`) an und erhält den Sitz-Token.
+2. Das SDK verbindet sich per WebSocket mit dem Gateway und spricht nach `joined` das Bot-Protokoll v1.
+3. Der Play-Runner startet den Server-Gegner in der Sandbox und bindet den lokalen Bot als `RelayPlayer` an; der Referee prüft jeden Zug wie üblich (E112, E113).
 
 Details: [lokale-entwicklung.md](../komponenten/lokale-entwicklung.md).

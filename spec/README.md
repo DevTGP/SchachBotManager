@@ -11,6 +11,7 @@ Quelle der Wahrheit für Referee, SDKs und Doku. Änderungen erfolgen hier zuers
 | `protocol/v<N>/bot_message.schema.json`, `referee_message.schema.json` | Jede Nachricht einer Richtung; der Referee prüft jede Zeile eines Bots gegen `bot_message` | E36 |
 | `protocol/v<N>/examples/valid/<type>.<fall>.json` | Gültige Beispielnachrichten | E36 |
 | `protocol/v<N>/examples/invalid/<type>.<fall>.json` | Nachrichten, die gegen das Schema verstoßen; je Datei genau ein Verstoß | E36 |
+| `protocol/gateway-v1/`, `protocol/relay-v1/` | Eröffnung der WebSocket-Verbindung zum Gateway (`join`, `joined`, `refused`) und Zeilen zwischen Play-Runner und Gateway (`attach`, `line`, `present`, `absent`, `refused`); Aufbau wie `protocol/v<N>/` mit `examples/` | E112 |
 | `api/api.schema.json` | Schema der API-Dateien | E39 |
 | `api/<modul>.json` | Kanonische, sprachneutrale Bot-API, je Thema eine Datei (Grundtypen, Typen, Konstanten, Fehler, `Move`, `Board` in Gruppen, `Clock`, `Bot`, `Log`, Laufzeit) | E21, E39, E45–E49 |
 | `testvectors/perft.schema.json`, `calls.schema.json` | Schemas der Vektordateien: Perft-Zählungen und Funktionsaufrufe | E37, E55 |

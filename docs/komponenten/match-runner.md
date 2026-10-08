@@ -11,7 +11,7 @@ Der Referee-Kern (Uhr, Zugprüfung, Endbedingungen, Ablauf eines Spiels) liegt a
 | Job-Consumer | Holt `match`-Jobs atomar aus der Queue, hält Heartbeat |
 | Referee | Autoritative Stellung, Zugprüfung, Endbedingungen; eigene Brett-Instanz auf dem gemeinsamen C++-Kern, getrennt vom Brett im Bot-Prozess |
 | Uhr | Bedenkzeit je Seite, Inkrement, Startbudget |
-| Spieler-Adapter | `SandboxBotPlayer`, `RemoteBotPlayer`, `HumanPlayer` – gleiche Schnittstelle `sbm.referee.Player` |
+| Spieler-Adapter | `JailPlayer` (Bot in nsjail), `RelayPlayer` (Sitz über den Gateway, E112), `HumanPlayer` (M7 Schritt 2) – gleiche Schnittstelle `sbm.referee.Player` |
 | Sandbox-Treiber | Bot-Prozesse über nsjail starten, einfrieren/fortsetzen, überwachen, beenden |
 | Recorder | Schreibt Züge, Zeiten, Ereignisse fortlaufend in die DB |
 
@@ -84,3 +84,11 @@ Jedes Ende bekommt einen maschinenlesbaren `termination`-Code (Liste in [bot-pro
 ## Aufgezeichnete Daten pro Zug
 
 `uci`, `san`, FEN nach dem Zug, verbrauchte Zeit, Restzeit, optionale `info` des Bots. Siehe [datenmodell.md](datenmodell.md).
+
+### Stand M7 Schritt 1 (E111–E113)
+
+- Mit `SBM_RUNNER_ROLE=play` ist `sbm-runner` der Play-Runner: Er nimmt nur Jobs der Art `play` und spielt bis `SBM_PLAY_SLOTS` (Standard 2) interaktive Partien gleichzeitig, jede in einem eigenen Thread mit eigenem Heartbeat (`play/`). Mit der Rolle `queue` (Standard) bleibt alles wie bisher; der Queue-Runner nimmt nie Jobs der Art `play`.
+- Bots laufen wie in der Queue in der Sandbox. Jede Seite mit Sitz bekommt eine Relay-Verbindung zum Gateway (`SBM_RELAY_ADDRESS`, Standard `127.0.0.1:9000`); vor dem Start wartet der Play-Runner bis 30 s, bis alle Sitze eingenommen sind.
+- Eine Remote-Seite ist ein `RelayPlayer`: Ihre Zeilen gehen unverändert an den Referee und werden wie die eines Bots geprüft. Seiten der Art `human` bricht der Play-Runner ab, bis Schritt 2 sie spielen lässt.
+- Kein Neustart: Infrastrukturfehler, verlorene Leases, ein nicht eingenommener Sitz, ein Client, der länger als 60 s fehlt, und SIGTERM brechen die Partie ab (`aborted`), Einzelheiten in [gateway.md](gateway.md).
+

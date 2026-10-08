@@ -13,7 +13,7 @@ Reine API (E5). Liefert kein HTML, führt keinen Bot-Code aus und kann keine San
 | `tournaments` | Turniere, Runden, Bracket |
 | `registrations` | Bot an-/abmelden |
 | `play` | Mensch gegen Bot: Spiel anlegen, Zug senden, aufgeben |
-| `remote` | Lokaler Bot gegen Server: Spiel anlegen, WebSocket-Endpunkt |
+| `remote` | Lokaler Bot gegen Server: Spiel anlegen; die WebSocket-Verbindung endet am Gateway, nicht an der API (E112) |
 | `queue` | Öffentliche Sicht auf wartende Spiele mit geschätzten Startzeiten |
 | `admin` | Nutzer, Invites, Disziplinen, Ligen, Turniere, Bots, Queue (pausieren, umsortieren, Parallelität), Systemeinstellungen, Audit-Log |
 | `live` | WebSocket/SSE für Live-Updates |
@@ -155,7 +155,7 @@ Jede Route prüft Rolle **und** Besitz (eigene Ressource vs. fremde).
 
 | Option | Eigenschaft |
 |--------|-------------|
-| WebSocket (z. B. Flask-SocketIO) | Bidirektional; nötig für Mensch-gegen-Bot und Remote-Bots; braucht asynchronen Worker-Typ |
+| WebSocket | Bidirektional; für Mensch-gegen-Bot und Remote-Bots im eigenen Dienst `gateway` umgesetzt (E112, [gateway.md](gateway.md)), die API bleibt synchron |
 | Server-Sent Events | Einfach, nur Server → Client; reicht für Zuschauen und Tabellen |
 
 Quelle der Ereignisse (Runner → API):
@@ -166,7 +166,7 @@ Quelle der Ereignisse (Runner → API):
 | Pub/Sub-Broker (z. B. Redis) | Zusätzlicher Dienst; entkoppelt, geringe Latenz |
 | Polling der DB | Einfachste Variante, höhere Latenz und Last |
 
-Züge von Menschen/Remote-Bots nehmen den umgekehrten Weg: API schreibt den Zug als Ereignis für den Runner, der ihn wie jeden anderen prüft.
+Züge von Menschen und Remote-Bots laufen nicht über die API: Der Gateway reicht sie über das Relay an den Play-Runner, der sie wie jeden anderen Zug prüft (E112). Die API legt interaktive Partien nur an und gibt den Sitz-Token aus (E113).
 
 ## Upload
 

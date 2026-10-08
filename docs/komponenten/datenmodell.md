@@ -34,7 +34,7 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
   "type": "league | tournament | single | human | remote | verification",
   "context": { "season_id": "...", "tier": 3, "round": 4 },
   "discipline_snapshot": { "...": "..." },
-  "white": { "kind": "bot | human | remote", "bot_id": "...", "user_id": null },
+  "white": { "kind": "bot | human | remote", "bot_id": "...", "user_id": null, "seat_hash": "…" },
   "black": { "kind": "bot", "bot_id": "..." },
   "status": "queued | running | finished | forfeited | aborted",
   "queue": { "priority": 100, "position": 7, "estimated_start": "..." },
@@ -116,3 +116,5 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 - **Schema-Versionierung:** Feld `schema_version` pro Dokument und Migrationsskripte im Repo.
 - **Löschen:** Nutzer und Bots werden deaktiviert statt gelöscht, damit die Spielhistorie konsistent bleibt; personenbezogene Felder müssen separat entfernbar sein.
 - **Backups:** siehe [deployment.md](deployment.md).
+- Interaktive Partien (M7, E113): Typ `human` oder `remote`, `queue` ist `null`. Eine Seite ohne Bot hat `kind` `human` oder `remote`, `bot_id` `null`, `user_id` (bei Gästen `null`), `name` und `seat_hash` (SHA-256 des Sitz-Tokens, der Token selbst wird nie gespeichert). `rated` folgt E103: nur Menschen mit Konto unter einer Disziplin aus der Grundstellung. Ihr Job hat die Art `play` (`sbm_store.play`).
+

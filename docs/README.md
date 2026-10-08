@@ -27,4 +27,5 @@ Stand: 2026-10-05, Revision 4 · Status: Konzept, vor Implementierungsbeginn · 
 | [komponenten/backend-api.md](komponenten/backend-api.md) | Flask-API, Auth, Rollen, Live-Kanal |
 | [komponenten/frontend.md](komponenten/frontend.md) | SPA: Viewer, Tabellen, Admin, Mensch-gegen-Bot |
 | [komponenten/lokale-entwicklung.md](komponenten/lokale-entwicklung.md) | Lokale Arena, Debugging, lokaler Bot gegen Web-API |
+| [komponenten/gateway.md](komponenten/gateway.md) | WebSocket-Gateway und Play-Runner für interaktive Partien |
 | [komponenten/deployment.md](komponenten/deployment.md) | GitHub Actions, Docker Compose, Betrieb |
