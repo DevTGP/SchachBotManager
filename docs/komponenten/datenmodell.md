@@ -114,6 +114,11 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 - `0006_ratings` legt den eindeutigen Teilindex auf `rating.seq`, einen Index für die offenen Partien (`status`, `rated`, `finished_at`) und einen auf `rating.value` der Bots an.
 - Eine Partie eines Bots gegen sich selbst ist nie `rated`.
 
+## Endgültiges Löschen (E105)
+
+- `sbm_store.bot_deletion` entfernt eine Version mit Dateien (`bot_files`), Prüfberichten, Verifikationsjobs und allen ihren Partien samt deren Jobs; der Bot-Eintrag geht zuletzt.
+- `settings` mit `_id` `ratings` hält `recount_request` (eine frische `ObjectId` je Anforderung, sonst `null`) und `requested_at`. `sbm_store.rating_recount` entfernt `rating` von allen Partien und Bots und verbucht neu; die Anforderung wird nur gelöscht, wenn keine neue dazukam.
+
 ## Zu beachten
 
 - **Tabellen sind abgeleitete Daten.** Sie müssen jederzeit aus `matches` neu berechenbar sein (Reparaturwerkzeug für Admins).

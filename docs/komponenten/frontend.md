@@ -112,6 +112,12 @@ Lädt `/disciplines` nicht, bieten die Formulare nur freie Zeiten an.
 | `src/pages/BotsPage.tsx`, `src/pages/bot/BotSummary.tsx` | Spalte bzw. Zeilen „Rating“ und „Gewertete Partien“ |
 | `src/viewer/MatchDetails.tsx`, `src/format/rating.ts` | Zeilen „Rating Weiß“ und „Rating Schwarz“ als „2500 → 2550 (+50)“, sobald die Partie verbucht ist |
 
+## Endgültiges Löschen (E105)
+
+| Ort | Inhalt |
+|-----|--------|
+| `src/pages/bot/BotDelete.tsx` | Knopf „Endgültig löschen“ für Admins auf der Bot-Seite (nicht bei Referenzbots und während der Verifikation), mit Rückfrage; danach weiter zu einer anderen Version des Namens oder zu `/bots` |
+
 ## Mensch gegen Bot
 
 - Zugeingabe per Drag-and-drop/Klick; legale Züge kommen vom Server oder aus einer Client-Schachbibliothek (nur Komfort – der Server prüft immer).

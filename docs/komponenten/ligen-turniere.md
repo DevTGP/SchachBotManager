@@ -123,6 +123,7 @@ Regel laut E103:
 - Es zählen nur Partien mit `rated` (Disziplin und Grundstellung). Freie Zeiten, andere Startstellungen, Remote-Partien, Partien gegen Gäste, kampflose Siege und abgebrochene Partien ändern nichts.
 - Nur Statistik, kein Einfluss auf Auf- und Abstieg (E7).
 - Der Runner verbucht die Partien in der Reihenfolge ihres Endes (E104); die Rangliste steht unter `/ratings`.
+- Löscht ein Admin einen Bot mit verbuchten Partien, verbucht der Runner alle Ratings neu aus den verbliebenen Partien (E105).
 
 | Stand vorher | Sieg A | Sieg B | Remis |
 |--------------|--------|--------|-------|

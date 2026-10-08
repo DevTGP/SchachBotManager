@@ -84,6 +84,7 @@ Jedes Ende bekommt einen maschinenlesbaren `termination`-Code (Liste in [bot-pro
 ### Stand M4 Schritt 2 (E103, E104)
 
 - Nach jedem Partie-Job verbucht der Worker alle beendeten, gewerteten und noch offenen Partien in der Reihenfolge ihres Endes (`sbm_store.ratings.count_pending`). Ein Datenbankfehler dabei wird nur protokolliert; die nächste Partie holt das nach.
+- Liegt eine Anforderung zum Neuberechnen vor (E105, nach dem Löschen eines Bots), verbucht der Worker vor seinem nächsten Job alle Ratings neu (`sbm_store.rating_recount`), auch bei pausierter Queue. Das setzt einen einzigen Worker voraus, wie bisher.
 
 ## Aufgezeichnete Daten pro Zug
 
