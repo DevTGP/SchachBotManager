@@ -8,11 +8,25 @@ from sbm.constants import INFO
 from sbm.log import LEVEL_NAMES
 
 DEFAULT_PORT = 7470
-TRANSPORTS = ("stdio", "tcp")
+TRANSPORTS = ("stdio", "tcp", "remote")
+COLORS = ("white", "black", "random")
+DEFAULT_TIME = "60+1"
 
 
 class OptionsError(ValueError):
     """An argument or environment variable has an invalid value."""
+
+
+@dataclass(frozen=True)
+class RemoteOptions:
+    """A game against a bot on the server (E116); time is SECONDS+INCREMENT."""
+
+    url: str
+    token: str
+    opponent: str
+    color: str = "random"
+    discipline: str | None = None
+    time: str = DEFAULT_TIME
 
 
 @dataclass(frozen=True)
@@ -21,6 +35,7 @@ class Options:
     port: int = DEFAULT_PORT
     log_level: int = INFO
     log_file: str | None = None
+    remote: RemoteOptions | None = None
 
 
 def _port(text: str) -> int:
@@ -42,6 +57,8 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--tcp", nargs="?", const="", default=None)
     parser.add_argument("--log-level")
     parser.add_argument("--log-file")
+    for name in ("--remote", "--token", "--opponent", "--color", "--discipline", "--time"):
+        parser.add_argument(name)
     return parser
 
 
@@ -73,4 +90,36 @@ def parse_options(argv: Sequence[str], environ: Mapping[str, str]) -> Options:
         options = replace(options, log_level=_level(arguments.log_level))
     if arguments.log_file is not None:
         options = replace(options, log_file=arguments.log_file or None)
+    if arguments.remote is not None:
+        options = replace(options, transport="remote")
+    if options.transport == "remote":
+        options = replace(options, remote=_remote(arguments, environ))
     return options
+
+
+def _remote(arguments: argparse.Namespace, environ: Mapping[str, str]) -> RemoteOptions:
+    """The remote options; the SDK reads them only for this transport, so a bot may use the
+    same argument names for itself otherwise.
+    """
+
+    def value(name: str, variable: str) -> str | None:
+        given = getattr(arguments, name)
+        return given if given is not None else (environ.get(variable) or None)
+
+    url = value("remote", "SBM_REMOTE_URL")
+    token = value("token", "SBM_TOKEN")
+    opponent = value("opponent", "SBM_OPPONENT")
+    for found, what in ((url, "--remote URL"), (token, "SBM_TOKEN"), (opponent, "--opponent")):
+        if not found:
+            raise OptionsError(f"a remote game needs {what}")
+    color = (value("color", "SBM_COLOR") or "random").lower()
+    if color not in COLORS:
+        raise OptionsError(f"invalid color {color!r}, expected one of {', '.join(COLORS)}")
+    return RemoteOptions(
+        url=url,
+        token=token,
+        opponent=opponent,
+        color=color,
+        discipline=value("discipline", "SBM_DISCIPLINE"),
+        time=value("time", "SBM_TIME") or DEFAULT_TIME,
+    )

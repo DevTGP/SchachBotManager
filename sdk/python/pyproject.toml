@@ -20,7 +20,8 @@ sbm-arena = "sbm.arena.cli:main"
 sbm-check = "sbm.analysis.cli:main"
 
 [project.optional-dependencies]
-dev = ["jsonschema>=4.23", "pytest>=8", "ruff>=0.6"]
+# websockets only plays the gateway in the tests of the remote transport.
+dev = ["jsonschema>=4.23", "pytest>=8", "ruff>=0.6", "websockets>=15"]
 
 [tool.scikit-build]
 minimum-version = "build-system.requires"
