@@ -452,6 +452,22 @@
         }
       }
     },
+    "/account/rating": {
+      "get": {
+        "operationId": "get_own_rating",
+        "security": [{ "session": [] }],
+        "summary": "The rating of the logged-in account from its rated games against bots (E117); not listed publicly.",
+        "responses": {
+          "200": {
+            "description": "The rating; an account without rated games stands at the start.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Rating" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" }
+        }
+      }
+    },
     "/account/tokens": {
       "get": {
         "operationId": "list_tokens",
@@ -1248,7 +1264,7 @@
         "additionalProperties": false
       },
       "Rating": {
-        "description": "Every bot version starts at 2500; rated matches move it by the rule of E103.",
+        "description": "Every bot version and every account starts at 2500; rated matches move it by the rule of E103.",
         "type": "object",
         "properties": {
           "value": { "type": "integer" },

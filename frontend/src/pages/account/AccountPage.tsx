@@ -8,8 +8,12 @@ import { PasswordFields } from "../../components/PasswordFields";
 import { useSubmit } from "../../hooks/useSubmit";
 import { useSession } from "../../session/sessionContext";
 import { ApiTokens } from "./ApiTokens";
+import { OwnRating } from "./OwnRating";
 
-/** The own account: who is logged in, a new password, logging out (E83), API tokens (E116). */
+/**
+ * The own account: who is logged in, the own rating (E117), a new password, logging out (E83),
+ * API tokens (E116).
+ */
 export function AccountPage() {
   const { t } = useTranslation();
   const { user, setUser } = useSession();
@@ -59,6 +63,7 @@ export function AccountPage() {
         </button>
       </p>
       <FormError error={leave.error} />
+      <OwnRating />
 
       <h2>{t("account.changePassword")}</h2>
       <form className="form" onSubmit={onChange}>

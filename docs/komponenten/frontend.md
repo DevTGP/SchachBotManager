@@ -122,10 +122,11 @@ Lädt `/disciplines` nicht, bieten die Formulare nur freie Zeiten an.
 
 | Datei | Inhalt |
 |-------|--------|
-| `src/pages/play/PlaySetupPage.tsx` | `/play`: Bot, Farbe, Disziplin oder freie Zeiten (bis 30 min + 30 s), dann `POST /play` |
+| `src/pages/play/PlaySetupPage.tsx` | `/play`: Bot, Farbe, Disziplin oder freie Zeiten (bis 30 min + 30 s), dann `POST /play`; Hinweis, wann die Partie gewertet wird (E117) |
 | `src/pages/play/GamePage.tsx`, `PlayBoard.tsx`, `GameClock.tsx`, `PromotionChoice.tsx` | `/play/:id`: Brett mit Ziehen und Anklicken, nur Züge aus `legal_moves` des Servers (keine eigenen Regeln), Umwandlungsauswahl, laufende Uhren, Zugliste, Aufgabe mit Rückfrage |
 | `src/play/usePlayGame.ts`, `protocol.ts`, `seats.ts` | WebSocket zum Gateway (gateway-v1, dann play-v1), Neuverbindung mit wachsendem Abstand bis 55 s, Sitz-Token im `localStorage` |
 | `src/pages/admin/AdminPlayPage.tsx` | `/admin/play`: Grenzen interaktiver Partien (E115) |
+| `src/pages/account/OwnRating.tsx` | Kontoseite, jede Rolle: eigenes Rating und gewertete Partien (`GET /account/rating`, E117) |
 | `src/pages/account/ApiTokens.tsx` | Kontoseite für Coder: API-Tokens anlegen (einmal sichtbar), auflisten, widerrufen (E116) |
 
 - Die Rolle `player` sieht weder „Meine Bots“ noch Tokens; `RequireRole role="coder"` schützt die Coder-Seiten.

@@ -352,7 +352,11 @@
     "logout": "Abmelden",
     "changePassword": "Passwort ändern",
     "savePassword": "Passwort speichern",
-    "passwordChanged": "Das Passwort ist geändert. Andere Anmeldungen sind beendet."
+    "passwordChanged": "Das Passwort ist geändert. Andere Anmeldungen sind beendet.",
+    "rating": "Rating",
+    "ratingValue_one": "{{value}} nach {{count}} gewerteten Partie",
+    "ratingValue_other": "{{value}} nach {{count}} gewerteten Partien",
+    "ratingHint": "Gewertet werden deine Partien gegen Bots unter einer Disziplin aus der Grundstellung. Das Rating erscheint in keiner öffentlichen Liste."
   },
   "role": {
     "coder": "Coder",
@@ -466,7 +470,8 @@
       "replaced": "Die Partie wurde in einem anderen Fenster geöffnet.",
       "no_game": "Die Partie wartet nicht mehr auf dich.",
       "other": "Etwas ist schiefgegangen; bitte noch einmal versuchen."
-    }
+    },
+    "ratedHint": "Angemeldet und mit einer Disziplin zählt die Partie für dein Rating auf der Kontoseite; als Gast oder mit freien Zeiten ist sie ungewertet."
   },
   "playError": {
     "bot_id": "Bitte einen geprüften Bot wählen.",

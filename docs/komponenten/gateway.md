@@ -74,6 +74,10 @@ Grenzen je Adresse, Konto und Token (gleichzeitig und pro Tag) und die Plätze i
 | Aufgeben | `resign`, mit Rückfrage; während der Bot rechnet, wirkt es zu Beginn des nächsten eigenen Zuges |
 | Neuladen | Die SPA verbindet sich neu und nimmt den Sitz wieder ein; der `HumanPlayer` sendet den ganzen Stand erneut |
 
+## Wertung (E117)
+
+Spielt ein Mensch mit Konto unter einer gespeicherten Disziplin aus der Grundstellung, ist die Partie `rated`; Gäste, freie Zeiten und Remote-Partien nicht. Der Play-Runner verbucht nach jeder Partie sofort (`sbm_store.ratings.count_pending`), außer während eine Neuberechnung ansteht (E105); ein Datenbankfehler dabei wird nur protokolliert, der nächste Lauf holt es nach. Das Rating des Kontos sieht nur sein Inhaber auf der Kontoseite.
+
 ## Remote-Bots (E116)
 
 Ein Coder legt auf der Kontoseite ein API-Token an und startet seinen Bot mit `--remote URL --opponent NAME` (Token in `SBM_TOKEN`). Das Python-SDK fragt `POST /remote/matches` an, nimmt den Sitz über den Gateway ein und spricht danach das Bot-Protokoll v1. Die Netzlaufzeit zählt zur Bedenkzeit; es gibt keinen Ausgleich.

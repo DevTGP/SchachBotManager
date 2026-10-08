@@ -1,7 +1,9 @@
 import time
+from dataclasses import replace
 
-from conftest import Person
-from sbm_store import jobs, matches, play
+from bson import ObjectId
+from conftest import QUICK, Person
+from sbm_store import bots, jobs, matches, play, ratings
 from sbm_store.names import JOBS
 
 
@@ -16,9 +18,9 @@ def finished(db, match_id) -> bool:
     return matches.get(db, match_id)["status"] in (matches.FINISHED, matches.ABORTED)
 
 
-def play_out(db, gateway, play_worker, create_remote, **person_options):
-    match_id, seat = create_remote(play.HUMAN)
-    person = Person(gateway.url, match_id, seat, **person_options)
+def play_out(db, gateway, play_worker, create_remote, *, user_id=None, discipline=QUICK, **options):
+    match_id, seat = create_remote(play.HUMAN, user_id=user_id, discipline=discipline)
+    person = Person(gateway.url, match_id, seat, **options)
     person.start()
     assert play_worker.step()
     wait_for(lambda: finished(db, match_id))
@@ -84,3 +86,18 @@ def test_a_reload_gets_the_whole_game_again(db, gateway, play_worker, create_rem
 
     assert second.states[0]["moves"].startswith(first.states[-1]["moves"])
     assert matches.get(db, match_id)["termination"] == "max_moves"
+
+
+def test_a_rated_game_of_an_account_is_counted_at_once(db, gateway, play_worker, create_remote):
+    user_id = ObjectId()
+    db["users"].insert_one({"_id": user_id, "username": "alice"})
+    stored = replace(QUICK, discipline_id=ObjectId())
+
+    match, _person = play_out(
+        db, gateway, play_worker, create_remote, user_id=user_id, discipline=stored, resign_after=1
+    )
+
+    wait_for(lambda: "rating" in matches.get(db, match["_id"]))
+    assert match["rated"] is True
+    assert ratings.current(db["users"].find_one({"_id": user_id})) == {"value": 2450, "games": 1}
+    assert ratings.current(bots.get(db, match["black"]["bot_id"]))["value"] == 2550

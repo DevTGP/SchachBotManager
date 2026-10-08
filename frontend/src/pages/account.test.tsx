@@ -160,6 +160,17 @@ describe("account page", () => {
     expect(screen.getByLabelText("Current password")).toHaveValue("");
   });
 
+  it("shows the own rating", async () => {
+    mockApi({
+      "/session": { user: { ...CODER, role: "player" } },
+      "/account/rating": { value: 2547, games: 1 },
+    });
+    renderRoute("/account");
+
+    expect(await screen.findByText("2547 after 1 rated game")).toBeVisible();
+    expect(screen.queryByRole("heading", { name: "API tokens" })).toBeNull();
+  });
+
   it("logs out to the start page", async () => {
     const user = userEvent.setup();
     const api = mockApi({

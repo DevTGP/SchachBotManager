@@ -127,6 +127,7 @@ function SetupForm({ bots, disciplines }: { bots: Bot[]; disciplines: StoredDisc
         )}
       </div>
       <p className="hint">{t("play.limits")}</p>
+      <p className="hint">{t("play.ratedHint")}</p>
       <FormError error={error} rules="playError" />
       <button type="submit" className="primary" disabled={pending}>
         {t("play.start")}

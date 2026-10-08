@@ -200,15 +200,15 @@ def play_worker(db, play_config) -> PlayWorker:
 def create_remote(db, reference_bots):
     """A remote side with white against Random; returns match id and seat."""
 
-    def create(kind: str = play.REMOTE) -> tuple:
+    def create(kind: str = play.REMOTE, *, user_id=None, discipline=QUICK) -> tuple:
         seat, seat_hash = play.new_seat()
-        side = play.seat_side(kind, "alice", user_id=None, seat_hash=seat_hash)
+        side = play.seat_side(kind, "alice", user_id=user_id, seat_hash=seat_hash)
         match_id = play.create(
             db,
             kind,
             side,
             matches.side(reference_bots[0]),
-            QUICK,
+            discipline,
             start_fen=STANDARD_FEN,
             now=utc_now() - timedelta(minutes=1),
         )

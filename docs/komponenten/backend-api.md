@@ -46,6 +46,7 @@ Dazu kommen Anmeldung, Konten und die Admin-Routen. Alle ändernden Anfragen bra
 | `POST /invites/redeem` | Einladung einlösen: Konto anlegen und anmelden |
 | `POST /password-resets/redeem` | Neues Passwort über den Link des Admins, beendet alle Sitzungen |
 | `PUT /account/password` | Eigenes Passwort ändern, beendet die anderen Sitzungen |
+| `GET /account/rating` | Eigenes Rating (`value`, `games`) aus gewerteten Partien gegen Bots; nur für den Inhaber, jede Rolle (E117) |
 | `GET /admin/users`, `PATCH /admin/users/{id}` | Nutzer auflisten, Rolle oder Aktiv-Status ändern |
 | `POST /admin/users/{id}/password-reset` | Einmal-Link für ein neues Passwort |
 | `GET/POST /admin/invites`, `DELETE /admin/invites/{id}` | Offene Einladungen, neue Einladung, Einladung zurückziehen |
@@ -149,6 +150,7 @@ Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 
 | `routes/remote.py`, `remote_request.py`, `token_auth.py` | `POST /remote/matches` mit API-Token; Gegner und Disziplin per Name (E116) |
 | `play_limits.py`, `play_view.py` | Plätze gesamt, gleichzeitige und tägliche Partien je Adresse (als Hash), Konto und Token; Antwort mit Sitz-Token und `socket_path` (E115) |
 | `routes/admin_play.py` | `GET`/`PUT /admin/play-settings`, Audit `play.settings` |
+| `routes/account_rating.py` | `GET /account/rating` (E117) |
 | `routes/account_tokens.py`, `token_view.py` | `GET`/`POST /account/tokens`, `DELETE /account/tokens/{id}` für Coder (E116) |
 
 - Partien der Typen `human` und `remote` erscheinen in keiner Liste und haben keine Detailseite und kein PGN (E115).
@@ -160,7 +162,7 @@ Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 
 | Rolle | Darf |
 |-------|------|
 | Gast | Alles lesen: Partien, Tabellen, Bot-Profile, Queue (E10); gegen Bots spielen (E11). Kein Zugriff auf Quellcode, Reports, Logs |
-| Spieler (ab M7, E103, E115) | Angemeldet gegen Bots spielen (gewertet erst mit Ratings für Konten, O23); sonst wie Gast, ohne eigene Bots und Tokens |
+| Spieler (ab M7, E103, E115) | Angemeldet gegen Bots spielen (gewertet mit Disziplin, eigenes Rating auf der Kontoseite, E117); sonst wie Gast, ohne eigene Bots und Tokens |
 | Coder | Eigene Bots hochladen, bearbeiten (Metadaten), an-/abmelden, eigene Reports/Logs sehen, Einzelspiele eigener Bots ansetzen, API-Tokens verwalten |
 | Admin | Alles: Nutzer/Invites, sämtliche Bots, Disziplinen, Ligen, Turniere, Jobs, Neuprüfungen, Overrides |
 

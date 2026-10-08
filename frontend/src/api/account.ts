@@ -1,5 +1,5 @@
 import { getJson, sendJson } from "./client";
-import type { ApiToken, CreatedApiToken, CurrentUser, SessionState } from "./types";
+import type { ApiToken, CreatedApiToken, CurrentUser, Rating, SessionState } from "./types";
 
 export async function fetchSession(signal?: AbortSignal): Promise<CurrentUser | null> {
   const state = await getJson<SessionState>("/session", undefined, signal);
@@ -41,6 +41,11 @@ export function changePassword(currentPassword: string, newPassword: string): Pr
     current_password: currentPassword,
     new_password: newPassword,
   });
+}
+
+/** The own rating from rated games against bots; not listed publicly (E117). */
+export function fetchOwnRating(signal?: AbortSignal): Promise<Rating> {
+  return getJson<Rating>("/account/rating", undefined, signal);
 }
 
 export async function fetchTokens(signal?: AbortSignal): Promise<ApiToken[]> {

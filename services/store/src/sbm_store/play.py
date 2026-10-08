@@ -2,9 +2,9 @@
 (M7, E111, E113).
 
 They bypass the queue (E24): their job has the type play, which only the play runner takes.
-They are not rated until accounts have ratings (E103, O23). Each side that is not a bot holds
-a seat: a secret token the web API hands out once; the match keeps only its hash, which the
-runner gives to the gateway.
+A game of a person with an account counts for the ratings (E103, E117). Each side that is not
+a bot holds a seat: a secret token the web API hands out once; the match keeps only its hash,
+which the runner gives to the gateway.
 """
 
 from datetime import datetime
@@ -13,7 +13,7 @@ from bson import ObjectId
 from pymongo.database import Database
 
 from sbm_store import jobs, matches, tokens
-from sbm_store.discipline import Discipline
+from sbm_store.discipline import Discipline, is_rated
 from sbm_store.names import JOBS, MATCHES
 
 PLAY_JOB = "play"
@@ -61,12 +61,13 @@ def origin(*, ip_key: str | None, user_id: ObjectId | None, token_id: ObjectId |
 def rated(
     match_type: str, sides: tuple[dict, dict], discipline: Discipline, start_fen: str
 ) -> bool:
-    """Never, for now: E103 rates people with an account, but ratings exist only for bots (E104).
+    """A person with an account against a bot, with a discipline from the start position (E103).
 
-    Counting such a game would start the person at 2500 every time and move the bot's rating by
-    that. Until accounts have ratings (O23), interactive games stay unrated.
+    Guests and remote bots are never rated: a guest has no rating, a remote bot is not verified.
     """
-    return False
+    if match_type != HUMAN or not is_rated(discipline, start_fen):
+        return False
+    return any(side["kind"] == HUMAN and side["user_id"] is not None for side in sides)
 
 
 def new_play_match(

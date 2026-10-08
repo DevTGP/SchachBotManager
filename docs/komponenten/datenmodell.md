@@ -109,7 +109,7 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 
 ## Stand M4, Schritt 2 (E103, E104)
 
-- Keine eigene Sammlung für Ratings. Ein Bot hält `rating` mit `value`, `games` und `seq` der zuletzt übernommenen Partie; ohne das Feld steht er bei 2500 und 0 Partien. Ab M7 bekommen Konten dasselbe Feld.
+- Keine eigene Sammlung für Ratings. Ein Bot hält `rating` mit `value`, `games` und `seq` der zuletzt übernommenen Partie; ohne das Feld steht er bei 2500 und 0 Partien. Konten (`users`) halten dasselbe Feld für ihre gewerteten Partien gegen Bots (E117).
 - Eine verbuchte Partie hält `rating` mit `seq` und je Seite `before`, `after` und `games`; darin steckt der Verlauf (`sbm_store.ratings`, Regel in `sbm_store.rating_rule`).
 - `0006_ratings` legt den eindeutigen Teilindex auf `rating.seq`, einen Index für die offenen Partien (`status`, `rated`, `finished_at`) und einen auf `rating.value` der Bots an.
 - Eine Partie eines Bots gegen sich selbst ist nie `rated`.
@@ -117,11 +117,11 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 ## Endgültiges Löschen (E105)
 
 - `sbm_store.bot_deletion` entfernt eine Version mit Dateien (`bot_files`), Prüfberichten, Verifikationsjobs und allen ihren Partien samt deren Jobs; der Bot-Eintrag geht zuletzt.
-- `settings` mit `_id` `ratings` hält `recount_request` (eine frische `ObjectId` je Anforderung, sonst `null`) und `requested_at`. `sbm_store.rating_recount` entfernt `rating` von allen Partien und Bots und verbucht neu; die Anforderung wird nur gelöscht, wenn keine neue dazukam.
+- `settings` mit `_id` `ratings` hält `recount_request` (eine frische `ObjectId` je Anforderung, sonst `null`) und `requested_at`. `sbm_store.rating_recount` entfernt `rating` von allen Partien, Bots und Konten und verbucht neu; die Anforderung wird nur gelöscht, wenn keine neue dazukam.
 
 ## Stand M7 (E113–E116)
 
-- Interaktive Partien: Typ `human` oder `remote`, `queue` ist `null`, `rated` vorerst immer `false` (O23). Eine Seite ohne Bot hat `kind` `human` oder `remote`, `bot_id` `null`, `user_id` (bei Gästen `null`), `name` und `seat_hash` (SHA-256 des Sitz-Tokens; der Token selbst wird nie gespeichert). `origin` hält `ip_key` (Hash der Adresse), `user_id` und `token_id` für die Grenzen; dünn besetzte Indizes darauf (Migration `0110_play_origin`). Ihr Job hat die Art `play` (`sbm_store.play`).
+- Interaktive Partien: Typ `human` oder `remote`, `queue` ist `null`, `rated` nur für einen Menschen mit Konto unter einer gespeicherten Disziplin aus der Grundstellung (E117). Eine Seite ohne Bot hat `kind` `human` oder `remote`, `bot_id` `null`, `user_id` (bei Gästen `null`), `name` und `seat_hash` (SHA-256 des Sitz-Tokens; der Token selbst wird nie gespeichert). `origin` hält `ip_key` (Hash der Adresse), `user_id` und `token_id` für die Grenzen; dünn besetzte Indizes darauf (Migration `0110_play_origin`). Ihr Job hat die Art `play` (`sbm_store.play`).
 - `settings`: Dokument `play` mit `max_games`, `games_per_client`, `games_per_day` (`sbm_store.play_settings`, E115).
 - `api_tokens`: `user_id`, `name`, `token_hash` (eindeutig), `created_at`, `last_used_at`, `revoked_at` (`sbm_store.api_tokens`, Migration `0111_api_tokens`, E116).
 - `users.role` kennt zusätzlich `player` (E103, E115).

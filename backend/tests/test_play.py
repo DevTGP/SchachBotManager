@@ -56,8 +56,8 @@ def test_an_account_plays_under_its_name_and_a_discipline_is_kept(login, db, ref
     match = matches.get(db, ObjectId(response.json["match_id"]))
     assert (match["black"]["name"], match["black"]["user_id"]) == ("alice", user["_id"])
     assert match["discipline_snapshot"]["name"] == "Rapid"
-    # Accounts have no rating yet (O23), so no interactive game counts.
-    assert match["rated"] is False
+    # A person with an account under a stored discipline plays for the rating (E117).
+    assert match["rated"] is True
     assert match["origin"]["user_id"] == user["_id"]
 
 

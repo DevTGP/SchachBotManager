@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 
 from pymongo.database import Database
 from pymongo.errors import PyMongoError
-from sbm_store import jobs, matches, play, play_settings
+from sbm_store import jobs, matches, play, play_settings, rating_recount, ratings
 
 from sbm_runner.heartbeat import Heartbeat
 from sbm_runner.play.config import PlayConfig
@@ -126,10 +126,30 @@ class PlayWorker:
             log.exception("interactive match %s failed", game.match_id)
             matches.abort(self._db, game.match_id, "internal error of the play runner", self._now())
             jobs.fail(self._db, job["_id"], self._now())
+        else:
+            count_ratings(self._db)
 
     def _reap(self) -> None:
         for thread in [thread for thread in self._games if not thread.is_alive()]:
             del self._games[thread]
+
+
+def count_ratings(db: Database) -> None:
+    """Counts the game of a person with an account (E117) and anything else still pending.
+
+    Games of other threads may count at the same time; the numbering lets only one take each
+    match (ratings). A recount after a deletion is left to the queue runner (E105).
+    """
+    try:
+        if rating_recount.is_requested(db):
+            return
+        counted = ratings.count_pending(db)
+    except PyMongoError as error:
+        # The result is stored; the next finished game counts this one too.
+        log.warning("ratings not counted: %s", error)
+        return
+    if counted:
+        log.info("ratings: %d match(es) counted", counted)
 
 
 def recover_expired_play(db: Database, now: datetime) -> int:

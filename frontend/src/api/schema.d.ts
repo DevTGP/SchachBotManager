@@ -310,6 +310,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/account/rating": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The rating of the logged-in account from its rated games against bots (E117); not listed publicly. */
+        get: operations["get_own_rating"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/account/tokens": {
         parameters: {
             query?: never;
@@ -687,7 +704,7 @@ export interface components {
             before: number;
             after: number;
         };
-        /** @description Every bot version starts at 2500; rated matches move it by the rule of E103. */
+        /** @description Every bot version and every account starts at 2500; rated matches move it by the rule of E103. */
         Rating: {
             value: number;
             /** @description Rated matches counted so far. */
@@ -1852,6 +1869,27 @@ export interface operations {
             401: components["responses"]["InvalidCredentials"];
             403: components["responses"]["Forbidden"];
             429: components["responses"]["TooManyAttempts"];
+        };
+    };
+    get_own_rating: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The rating; an account without rated games stands at the start. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Rating"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
         };
     };
     list_tokens: {

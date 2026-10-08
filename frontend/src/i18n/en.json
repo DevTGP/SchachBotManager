@@ -352,7 +352,11 @@
     "logout": "Log out",
     "changePassword": "Change password",
     "savePassword": "Save password",
-    "passwordChanged": "The password is changed. Other logins have ended."
+    "passwordChanged": "The password is changed. Other logins have ended.",
+    "rating": "Rating",
+    "ratingValue_one": "{{value}} after {{count}} rated game",
+    "ratingValue_other": "{{value}} after {{count}} rated games",
+    "ratingHint": "Your games against bots under a discipline from the standard position are rated. The rating appears in no public list."
   },
   "role": {
     "coder": "Coder",
@@ -466,7 +470,8 @@
       "replaced": "The game was opened in another window.",
       "no_game": "The game is no longer waiting for you.",
       "other": "Something went wrong; please try again."
-    }
+    },
+    "ratedHint": "Logged in and under a discipline, the game counts for your rating on the account page; as a guest or with free times it is unrated."
   },
   "playError": {
     "bot_id": "Choose a verified bot.",

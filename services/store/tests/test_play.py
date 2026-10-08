@@ -76,12 +76,26 @@ def test_unknown_kinds_are_rejected():
         play.seat_side("bot", "x", user_id=None, seat_hash="0" * 64)
 
 
-def test_interactive_games_are_not_rated_until_accounts_have_ratings(reference_bots):
+STORED = Discipline("Blitz", 60_000, discipline_id=ObjectId())
+
+
+@pytest.mark.parametrize(
+    ("match_type", "user_id", "discipline", "start_fen", "rated"),
+    [
+        (play.HUMAN, ObjectId(), STORED, START_FEN, True),
+        (play.HUMAN, None, STORED, START_FEN, False),
+        (play.HUMAN, ObjectId(), BLITZ, START_FEN, False),
+        (play.HUMAN, ObjectId(), STORED, "8/8/8/8/8/8/k7/K7 w - - 0 1", False),
+        (play.REMOTE, ObjectId(), STORED, START_FEN, False),
+    ],
+)
+def test_only_a_person_with_an_account_under_a_discipline_is_rated(
+    reference_bots, match_type, user_id, discipline, start_fen, rated
+):
     bot = matches.side(reference_bots[0])
-    stored = Discipline("Blitz", 60_000, discipline_id=ObjectId())
-    seat = play.seat_side(play.HUMAN, "x", user_id=ObjectId(), seat_hash="0" * 64)
-    match = play.new_play_match(play.HUMAN, seat, bot, stored, start_fen=START_FEN, now=T0)
-    assert match["rated"] is False
+    seat = play.seat_side(match_type, "x", user_id=user_id, seat_hash="0" * 64)
+    match = play.new_play_match(match_type, seat, bot, discipline, start_fen=start_fen, now=T0)
+    assert match["rated"] is rated
 
 
 def test_active_games_are_counted_per_origin(db, reference_bots):

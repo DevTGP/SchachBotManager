@@ -138,17 +138,17 @@ Nach M7 (E110).
 | Inhalt | Ergebnis |
 |--------|----------|
 | `HumanPlayer`-Adapter, Spiel-UI für Gäste ohne Account | Partie im Browser gegen gewählten Bot |
-| Rolle `player` (nur spielen), Rating angemeldeter Konten (E103) | Menschen in der Wertung (zurückgestellt, O23) |
+| Rolle `player` (nur spielen), Rating angemeldeter Konten (E103) | Menschen in der Wertung, sichtbar nur auf der eigenen Kontoseite (E117) |
 | `RemoteBotPlayer`-Adapter, `remote`-Transport in den Bindings, API-Tokens | Lokaler Bot spielt gegen Server-Bot |
 | Kapazitäts- und Missbrauchsgrenzen (pro IP, gesamt), einstellbar | Schutz der Queue |
 
 Vor M6 und parallel zu M4 (E110). Drei Schritte (E111):
 
 1. Gemeinsame Basis – umgesetzt: Gateway für WebSockets (E112), Play-Runner als eigener Container, Jobs der Art `play`, Sitze und Abbruchregeln (E113), Protokolle gateway-v1 und relay-v1 ([gateway.md](komponenten/gateway.md)).
-2. Mensch gegen Bot – umgesetzt: Browser-Protokoll play-v1, `HumanPlayer`, Seiten `/play` und `/play/:id`, Gäste gegen jeden geprüften Bot (E114), Grenzen je Adresse, Konto und Token auf `/admin/play`, interaktive Partien nicht öffentlich, Rolle `player` (E115). Die Wertung von Konten wartet auf Ratings für Konten (O23).
+2. Mensch gegen Bot – umgesetzt: Browser-Protokoll play-v1, `HumanPlayer`, Seiten `/play` und `/play/:id`, Gäste gegen jeden geprüften Bot (E114), Grenzen je Adresse, Konto und Token auf `/admin/play`, interaktive Partien nicht öffentlich, Rolle `player` (E115). Gewertet werden Partien angemeldeter Konten unter einer Disziplin; das Rating sieht nur der Inhaber (E117).
 3. Remote-Bot – umgesetzt: API-Tokens für Coder, `POST /remote/matches`, Transport `remote` im Python-SDK (E116); die übrigen Sprachen folgen mit M5.
 
-Offen sind die Wertung von Konten (O23) und die Abnahme auf dem Server.
+Offen ist die Abnahme auf dem Server.
 
 Abnahme (Vorschlag): Ein Gast spielt im Browser eine vollständige Partie gegen einen hochgeladenen Bot; ein lokaler Python-Bot spielt mit Token gegen einen Bot auf dem Server; Abbrüche (Verbindung weg, Sitz nicht eingenommen, Runner gestoppt) enden als `aborted`, ohne die Queue zu verzögern.
 
