@@ -193,6 +193,8 @@ def recent_durations_ms(db: Database, discipline_name: str, limit: int) -> list[
                 "status": FINISHED,
                 "discipline_snapshot.name": discipline_name,
                 "started_at": {"$ne": None},
+                # Interactive games bypass the queue and say nothing about its times.
+                "type": {"$nin": ["human", "remote"]},
             },
             {"started_at": 1, "finished_at": 1},
         )

@@ -16,7 +16,9 @@ from sbm_store.names import USERS
 SCHEMA_VERSION = 1
 CODER = "coder"
 ADMIN = "admin"
-ROLES = (CODER, ADMIN)
+# Plays against bots with an account and is rated, nothing else (E103, M7).
+PLAYER = "player"
+ROLES = (PLAYER, CODER, ADMIN)
 
 
 def username_key(username: str) -> str:

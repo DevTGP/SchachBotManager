@@ -4,7 +4,7 @@ import pytest
 from bson import ObjectId
 from conftest import BLITZ, START_FEN, T0
 
-from sbm_store import jobs, matches, play, tokens
+from sbm_store import jobs, matches, play, play_settings, tokens
 from sbm_store.discipline import Discipline
 from sbm_store.names import JOBS
 
@@ -89,3 +89,31 @@ def test_only_people_with_an_account_are_rated(reference_bots):
     assert not match(play.REMOTE, ObjectId())["rated"]
     assert not match(play.HUMAN, ObjectId(), discipline=BLITZ)["rated"]
     assert not match(play.HUMAN, ObjectId(), start_fen="8/8/8/4k3/8/8/4P3/4K3 w - - 0 1")["rated"]
+
+
+def test_active_games_are_counted_per_origin(db, reference_bots):
+    user_id = ObjectId()
+    requested = play.origin(ip_key="k1", user_id=user_id, token_id=None)
+    _token, hashed = play.new_seat()
+    side = play.seat_side(play.HUMAN, "alice", user_id=user_id, seat_hash=hashed)
+    match_id = play.create(
+        db,
+        play.HUMAN,
+        side,
+        matches.side(reference_bots[0]),
+        BLITZ,
+        start_fen=START_FEN,
+        now=T0,
+        requested_by=requested,
+    )
+    assert play.active_by(db, "ip_key", "k1") == 1
+    assert play.active_by(db, "user_id", user_id) == 1
+    assert play.active_by(db, "ip_key", "k2") == 0
+    matches.abort(db, match_id, "test", T0)
+    assert play.active_by(db, "ip_key", "k1") == 0
+
+
+def test_play_settings_have_defaults_and_can_be_saved(db):
+    assert play_settings.get(db) == play_settings.PlaySettings(2, 1, 50)
+    play_settings.save(db, play_settings.PlaySettings(max_games=3, games_per_day=10))
+    assert play_settings.get(db) == play_settings.PlaySettings(3, 1, 10)

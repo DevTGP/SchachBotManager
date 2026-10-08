@@ -14,7 +14,7 @@ from pymongo.database import Database
 
 from sbm_store import jobs, matches, tokens
 from sbm_store.discipline import Discipline, is_rated
-from sbm_store.names import JOBS
+from sbm_store.names import JOBS, MATCHES
 
 PLAY_JOB = "play"
 HUMAN = "human"
@@ -60,6 +60,14 @@ def rated(
     return all(side["user_id"] is not None for side in people) and is_rated(discipline, start_fen)
 
 
+def origin(*, ip_key: str | None, user_id: ObjectId | None, token_id: ObjectId | None) -> dict:
+    """Who asked for the game, for the limits per address, account and token (E115).
+
+    ip_key is a hash of the address; the address itself is not stored.
+    """
+    return {"ip_key": ip_key, "user_id": user_id, "token_id": token_id}
+
+
 def new_play_match(
     match_type: str,
     white: dict,
@@ -68,8 +76,11 @@ def new_play_match(
     *,
     start_fen: str,
     now: datetime,
+    requested_by: dict | None = None,
 ) -> dict:
-    """white and black are sides: matches.side(bot) or seat_side(...)."""
+    """white and black are sides: matches.side(bot) or seat_side(...); requested_by is an
+    origin(...).
+    """
     if match_type not in MATCH_TYPES:
         raise ValueError(f"unknown interactive match type {match_type!r}")
     if not any(is_seat(side) for side in (white, black)):
@@ -92,6 +103,7 @@ def new_play_match(
         "created_at": now,
         "started_at": None,
         "finished_at": None,
+        "origin": requested_by or origin(ip_key=None, user_id=None, token_id=None),
     }
 
 
@@ -110,16 +122,38 @@ def create(
     *,
     start_fen: str,
     now: datetime,
+    requested_by: dict | None = None,
 ) -> ObjectId:
     """Stores the match and its play job; the match id is returned.
 
     Without transactions a crash in between leaves a queued match without a job; the play
     runner never starts it.
     """
-    match = new_play_match(match_type, white, black, discipline, start_fen=start_fen, now=now)
+    match = new_play_match(
+        match_type,
+        white,
+        black,
+        discipline,
+        start_fen=start_fen,
+        now=now,
+        requested_by=requested_by,
+    )
     matches.insert(db, match)
     jobs.insert(db, new_play_job(match["_id"], now=now))
     return match["_id"]
+
+
+def active_by(db: Database, field: str, value: object) -> int:
+    """Interactive games not yet over that this address, account or token asked for."""
+    if field not in ("ip_key", "user_id", "token_id"):
+        raise ValueError(f"unknown origin field {field!r}")
+    return db[MATCHES].count_documents(
+        {
+            f"origin.{field}": value,
+            "type": {"$in": list(MATCH_TYPES)},
+            "status": {"$in": [matches.QUEUED, matches.RUNNING]},
+        }
+    )
 
 
 def active_count(db: Database) -> int:
