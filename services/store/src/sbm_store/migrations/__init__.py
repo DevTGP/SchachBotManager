@@ -6,6 +6,7 @@ from sbm_store.migrations import (
     m0003_accounts,
     m0004_uploads,
     m0005_disciplines,
+    m0006_ratings,
 )
 
 MIGRATIONS = [
@@ -14,4 +15,5 @@ MIGRATIONS = [
     ("0003_accounts", m0003_accounts.apply),
     ("0004_uploads", m0004_uploads.apply),
     ("0005_disciplines", m0005_disciplines.apply),
+    ("0006_ratings", m0006_ratings.apply),
 ]
