@@ -132,4 +132,5 @@ if __name__ == "__main__":
 | Partie regulär beendet | `run` kehrt zurück, Exit-Code 0 |
 | Ausnahme in einem Callback oder unbrauchbarer Rückgabewert | Log auf Stufe ERROR mit Traceback, Exit-Code 1, Wertung `crash` |
 | Arena bei `--tcp` nicht erreichbar | Log-Meldung, Exit-Code 1 |
+| Remote-Partie kommt nicht zustande (Token, Grenzen, Server, siehe [remote.md](remote.md#fehlermeldungen)) | Log-Meldung, Exit-Code 1 |
 | Ungültige Startoption | Meldung auf stderr, Prozess endet |
