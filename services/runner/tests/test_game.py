@@ -1,6 +1,10 @@
+from dataclasses import replace
+
 from bson import ObjectId
-from sbm_store import bots, jobs, matches, queue_settings
+from conftest import QUICK
+from sbm_store import bots, jobs, matches, queue_settings, ratings
 from sbm_store.names import BOTS, JOBS, MATCHES
+from sbm_store.rating_rule import START, white_gain
 
 
 def job_of(db, match_id: ObjectId) -> dict:
@@ -79,3 +83,24 @@ def test_finished_match_only_closes_its_job(db, worker, reference_bots, enqueue)
 
     assert matches.get(db, match_id)["moves"] == []
     assert job_of(db, match_id)["status"] == jobs.DONE
+
+
+def test_a_rated_match_moves_the_ratings_of_both_bots(db, worker, reference_bots, enqueue):
+    random, material = reference_bots
+    unrated = enqueue(random, material)
+    rated = enqueue(random, material, replace(QUICK, discipline_id=ObjectId()))
+
+    assert worker.step()
+    assert worker.step()
+
+    assert "rating" not in matches.get(db, unrated)
+    match = matches.get(db, rated)
+    # Usually a draw after six plies; a quick mate by Random's blunders moves 50 points.
+    gain = white_gain(START, START, match["result"])
+    assert match["rating"] == {
+        "seq": 1,
+        "white": {"before": START, "after": START + gain, "games": 1},
+        "black": {"before": START, "after": START - gain, "games": 1},
+    }
+    assert ratings.current(bots.get(db, random["_id"])) == {"value": START + gain, "games": 1}
+    assert ratings.current(bots.get(db, material["_id"])) == {"value": START - gain, "games": 1}

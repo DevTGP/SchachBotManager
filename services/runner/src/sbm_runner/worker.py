@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 
 from pymongo.database import Database
 from pymongo.errors import PyMongoError
-from sbm_store import jobs, matches, queue_settings
+from sbm_store import jobs, matches, queue_settings, ratings
 
 from sbm_runner.config import RunnerConfig
 from sbm_runner.game import run_job
@@ -130,3 +130,16 @@ class Worker:
             log.exception("job %s failed (attempt %d)", job["_id"], job["attempts"])
             detail = f"infrastructure error: {type(error).__name__}: {error}"
             retry_or_abort(self._db, job, detail, self._config, self._now())
+        else:
+            self._count_ratings()
+
+    def _count_ratings(self) -> None:
+        """Counts every finished rated match not counted yet (E103), older ones included."""
+        try:
+            counted = ratings.count_pending(self._db)
+        except PyMongoError as error:
+            # The result is stored; the next finished match counts this one too.
+            log.warning("ratings not counted: %s", error)
+            return
+        if counted:
+            log.info("ratings: %d match(es) counted", counted)
