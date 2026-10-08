@@ -169,4 +169,4 @@ Jeder Aufruf aus Python/Java/C#/JS in den Kern kostet einen festen Betrag, unabh
 - **Zeitüberschreitung in `choose_move`:** Der Server beendet den Prozess hart; es läuft kein Bot-Code mehr.
 - **Kein Threading in der API**, solange A4 gilt.
 
-Lokales Setup je Sprache: [lokale-entwicklung.md](lokale-entwicklung.md).
+Lokales Setup je Sprache: [lokale-entwicklung.md](lokale-entwicklung.md). Anleitung für Bot-Autoren in Python: [sdk/python/docs/](../../sdk/python/docs/README.md).

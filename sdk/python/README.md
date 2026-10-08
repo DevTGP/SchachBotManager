@@ -30,3 +30,7 @@ sbm-arena my_bot.py material --games 10 --pgn games.pgn
 ```
 
 `random` und `material` sind die mitgelieferten Referenzbots; `sbm-arena --help` zeigt alle Optionen. Ein Vorlagenprojekt mit Eröffnungsbuch und Debug-Konfiguration für VS Code liegt unter [`templates/python`](https://github.com/DevTGP/SchachBotManager/tree/master/templates/python).
+
+## Anleitung
+
+Die vollständige Anleitung für Bot-Autoren – Partieablauf, Brett- und Zug-API, Uhr, Log, Datendateien, Arena, Debugging und Upload – liegt unter [`sdk/python/docs`](https://github.com/DevTGP/SchachBotManager/tree/master/sdk/python/docs).
