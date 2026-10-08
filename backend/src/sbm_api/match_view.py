@@ -45,6 +45,8 @@ def side(side: dict) -> dict:
         "kind": side["kind"],
         "bot_id": str(side["bot_id"]),
         "name": side["name"],
+        # Matches queued before E95 do not keep the version.
+        "version": side.get("version"),
         "sdk": side["sdk"],
         "lang": side["lang"],
     }

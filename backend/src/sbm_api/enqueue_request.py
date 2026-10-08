@@ -1,13 +1,18 @@
-"""The body of POST /admin/matches: which games to queue, checked as the referee would (E85)."""
+"""The body of POST /admin/matches: which games to queue, checked as the referee would (E85).
+
+enqueue puts the games of a parsed request into the queue, also for POST /matches (E98).
+"""
 
 from dataclasses import dataclass
+from datetime import datetime
 
+from bson import ObjectId
 from pymongo.database import Database
 from sbm.arena.time_control import format_time_control
 from sbm.referee import STANDARD_FEN, MatchSettings
 from sbm_store import bots
 from sbm_store.discipline import DEFAULT_MAX_MOVES, Discipline
-from sbm_store.enqueue import DEFAULT_PRIORITY
+from sbm_store.enqueue import DEFAULT_PRIORITY, enqueue_match
 
 from sbm_api import body
 from sbm_api.errors import invalid_parameter
@@ -38,8 +43,8 @@ class EnqueueRequest:
 
 def parse(db: Database) -> EnqueueRequest:
     data = body.json_object(FIELDS)
-    white = _verified_bot(db, data, "white_bot_id")
-    black = _verified_bot(db, data, "black_bot_id")
+    white = verified_bot(db, data, "white_bot_id")
+    black = verified_bot(db, data, "black_bot_id")
     initial_ms = body.integer(data, "initial_time_ms", low=1000, high=86_400_000)
     increment_ms = body.integer(data, "increment_ms", low=0, high=3_600_000, default=0)
     discipline = Discipline(
@@ -61,7 +66,28 @@ def parse(db: Database) -> EnqueueRequest:
     )
 
 
-def _verified_bot(db: Database, data: dict, field: str) -> dict:
+def enqueue(db: Database, order: EnqueueRequest, *, now: datetime) -> list[ObjectId]:
+    """Queues the games in order; the colours swap after each game if asked."""
+    white, black = order.white, order.black
+    ids = []
+    for _ in range(order.games):
+        ids.append(
+            enqueue_match(
+                db,
+                white,
+                black,
+                order.discipline,
+                start_fen=order.start_fen,
+                now=now,
+                priority=order.priority,
+            )
+        )
+        if order.alternate:
+            white, black = black, white
+    return ids
+
+
+def verified_bot(db: Database, data: dict, field: str) -> dict:
     bot = bots.get(db, body.identifier(data, field))
     if bot is None or bot["status"] != bots.VERIFIED:
         raise invalid_parameter(field, f"{field} is not a verified bot")

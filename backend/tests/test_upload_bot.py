@@ -21,7 +21,7 @@ def test_the_upload_waits_for_its_verification(login, db):
     assert response.status_code == 201
     view = response.json
     assert (view["name"], view["version"], view["status"]) == ("Sharp", "1.0.0", "uploaded")
-    assert view["builtin"] is False
+    assert (view["builtin"], view["description"]) == (False, "")
     assert view["details"]["owner"] == "coder"
     assert view["details"]["entry"] == "bot.py"
     assert view["details"]["files"] == [
@@ -35,6 +35,15 @@ def test_the_upload_waits_for_its_verification(login, db):
     assert {entry["path"]: bot_files.read_file(db, entry) for entry in bot["files"]} == FILES
     job = db[JOBS].find_one()
     assert (job["type"], job["payload"]["bot_id"]) == (jobs.VERIFICATION, bot["_id"])
+
+
+def test_the_description_keeps_line_breaks_as_lf(login):
+    coder, _ = login()
+
+    response = post_upload(coder, description="Plays e4.\r\nNever resigns.")
+
+    assert response.status_code == 201
+    assert response.json["description"] == "Plays e4.\nNever resigns."
 
 
 def test_the_same_name_makes_a_new_version(login, db, clock):
@@ -122,6 +131,8 @@ def test_too_much_data_is_against_the_rules(login):
         ({"version": "01.0.0"}, "version"),
         ({"language": "cpp"}, "language"),
         ({"comment": "hi"}, "comment"),
+        ({"description": "x" * 501}, "description"),
+        ({"description": "bell\a"}, "description"),
     ],
 )
 def test_invalid_fields(login, fields, field):

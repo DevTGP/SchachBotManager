@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from bson import ObjectId
 from sbm_store import matches
+from sbm_store.names import MATCHES
 
 from stored_games import NOW, finish_by_resignation, start_with_opening
 
@@ -60,10 +61,17 @@ def test_shows_a_finished_match_with_moves(client, db, enqueue):
     match = client.get(f"/api/v1/matches/{match_id}").json
     assert match["result"] == "1-0"
     assert match["termination"] == "resignation"
-    assert match["white"]["sdk"] == "python-0.1.0"
+    assert (match["white"]["sdk"], match["white"]["version"]) == ("python-0.1.0", "1.0.0")
     assert [move["san"] for move in match["moves"]] == ["e4", "e5"]
     assert match["moves"][0]["info"] == {"depth": 3, "score_cp": 20}
     assert "termination_detail" not in match
+
+
+def test_matches_from_before_versions_show_none(client, db, enqueue):
+    match_id = enqueue()
+    db[MATCHES].update_one({"_id": match_id}, {"$unset": {"white.version": ""}})
+    match = client.get(f"/api/v1/matches/{match_id}").json
+    assert (match["white"]["version"], match["black"]["version"]) == (None, "1.0.0")
 
 
 def test_aborted_match_hides_its_detail(client, db, enqueue):

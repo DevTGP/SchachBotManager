@@ -1,4 +1,4 @@
-"""Admin: disable a verified bot or enable a disabled one again (E93, E85)."""
+"""Admin: disable a verified or retired bot, or enable a disabled one again (E93, E96, E85)."""
 
 from flask import Blueprint
 from sbm_store import bots
@@ -23,6 +23,6 @@ def update_bot(bot_id: str):
     if bot is None:
         if bots.get(db, target) is None:
             raise not_found("no such bot")
-        raise invalid_parameter("status", "only verified and disabled bots can be switched")
+        raise invalid_parameter("status", f"the bot cannot switch to {status}")
     admin_audit.record(admin, "bot.update", target, {"status": status})
     return bot_detail_view(bot, admin)

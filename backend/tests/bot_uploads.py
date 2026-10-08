@@ -39,10 +39,18 @@ def post_upload(client, files: dict[str, bytes] = FILES, **fields):
     )
 
 
-def store_bot(db, owner_id, *, name: str = "Sharp", version: str = "1.0.0", now=NOW) -> dict:
+def store_bot(
+    db,
+    owner_id,
+    *,
+    name: str = "Sharp",
+    version: str = "1.0.0",
+    now=NOW,
+    files: tuple[tuple[str, str, bytes], ...] = (("bot.py", "source", BOT),),
+) -> dict:
     """An uploaded bot written through the store, as POST /bots leaves it."""
     bot_id = ObjectId()
-    entries = bot_files.store_files(db, bot_id, [("bot.py", "source", BOT)])
+    entries = bot_files.store_files(db, bot_id, files)
     bot = bots.new_uploaded_bot(
         bot_id=bot_id,
         name=name,

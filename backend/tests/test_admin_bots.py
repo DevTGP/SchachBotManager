@@ -28,6 +28,20 @@ def test_disable_and_enable_a_bot_and_record_it(admin, db):
     assert response.json["status"] == bots.VERIFIED
 
 
+def test_a_retired_bot_can_be_disabled_but_not_enabled(admin, db):
+    bot = verify(db, store_bot(db, ObjectId()))
+    bots.change_by_owner(db, bot["_id"], retired=True)
+    url = f"/api/v1/admin/bots/{bot['_id']}"
+
+    response = admin.patch(url, json={"status": "verified"}, headers=CSRF)
+
+    assert response.status_code == 400
+    assert response.json["message"] == "the bot cannot switch to verified"
+    assert admin.patch(url, json={"status": "disabled"}, headers=CSRF).status_code == 200
+    response = admin.patch(url, json={"status": "verified"}, headers=CSRF)
+    assert response.json["status"] == bots.VERIFIED
+
+
 def test_a_bot_in_verification_cannot_be_switched(admin, db):
     bot = store_bot(db, ObjectId())
 

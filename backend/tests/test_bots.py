@@ -1,7 +1,10 @@
+from datetime import timedelta
+
 from bson import ObjectId
 from sbm_store import bots
 
 from bot_uploads import store_bot, verify
+from stored_games import NOW
 
 
 def test_lists_verified_bots_by_name(client, db, reference_bots):
@@ -33,6 +36,8 @@ def test_shows_one_bot(client, reference_bots):
     assert response.json["version"] == "1.0.0"
     assert response.json["status"] == bots.VERIFIED
     assert response.json["details"] is None
+    assert response.json["description"] == ""
+    assert [bot["id"] for bot in response.json["versions"]] == [str(random_bot["_id"])]
     assert "source_ref" not in response.json
 
 
@@ -82,6 +87,34 @@ def test_a_disabled_bot_stays_public(client, db):
     assert response.status_code == 200
     assert (response.json["status"], response.json["details"]) == (bots.DISABLED, None)
     assert client.get("/api/v1/bots").json["items"] == []
+
+
+def test_a_retired_bot_stays_public(client, db):
+    bot = verify(db, store_bot(db, ObjectId()))
+    bots.change_by_owner(db, bot["_id"], retired=True, description="Old.")
+
+    response = client.get(f"/api/v1/bots/{bot['_id']}")
+
+    assert response.status_code == 200
+    assert (response.json["status"], response.json["description"]) == (bots.RETIRED, "Old.")
+    assert client.get("/api/v1/bots").json["items"] == []
+
+
+def test_versions_show_what_the_viewer_may_see(client, db, login):
+    owner, user = login()
+    other, _ = login("other")
+    first = verify(db, store_bot(db, user["_id"], version="1.0.0"))
+    second = verify(db, store_bot(db, user["_id"], version="1.1.0"), passed=False)
+    third = store_bot(db, user["_id"], version="1.2.0", now=NOW + timedelta(minutes=1))
+    url = f"/api/v1/bots/{first['_id']}"
+
+    public = [bot["version"] for bot in other.get(url).json["versions"]]
+    own = [bot["version"] for bot in owner.get(url).json["versions"]]
+
+    assert public == ["1.0.0"]
+    assert own == ["1.2.0", "1.1.0", "1.0.0"]
+    assert client.get(url).json["versions"][0]["id"] == str(first["_id"])
+    assert (second["status"], third["status"]) == (bots.REJECTED, bots.UPLOADED)
 
 
 def test_unknown_bot_is_not_found(client, reference_bots):

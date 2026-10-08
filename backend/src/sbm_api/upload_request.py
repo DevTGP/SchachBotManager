@@ -13,6 +13,7 @@ from sbm.analysis.upload import DEFAULT_ENTRY, MAX_PATH_LENGTH, UploadError, che
 from sbm_store import versions
 from werkzeug.datastructures import MultiDict
 
+from sbm_api import bot_description
 from sbm_api.errors import invalid_parameter, invalid_upload
 
 # The files may hold 2 MiB (verifikation.md); the rest is room for the multipart framing.
@@ -20,7 +21,7 @@ MAX_REQUEST_BYTES = 3 * 1024 * 1024
 MAX_FILES = 200
 LANGUAGES = ("python",)
 NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{2,31}")
-TEXT_FIELDS = ("name", "version", "language", "entry", "paths")
+TEXT_FIELDS = ("name", "version", "language", "entry", "description", "paths")
 FILES = "files"
 
 
@@ -30,6 +31,7 @@ class Upload:
     version: str
     language: str
     entry: str
+    description: str
     # (path, kind, content), in the order of the request.
     files: list[tuple[str, str, bytes]]
 
@@ -56,8 +58,10 @@ def parse_upload() -> Upload:
     entry = _single(form, "entry", DEFAULT_ENTRY)
     if len(entry) > MAX_PATH_LENGTH:
         raise invalid_parameter("entry", f"entry must be at most {MAX_PATH_LENGTH} characters")
+    description = bot_description.check(_single(form, "description", ""))
     contents = [part.read() for part in uploaded.getlist(FILES)]
-    return Upload(name, version, language, entry, _files(form.getlist("paths"), contents, entry))
+    files = _files(form.getlist("paths"), contents, entry)
+    return Upload(name, version, language, entry, description, files)
 
 
 def _single(form: MultiDict, field: str, default: str | None = None) -> str:

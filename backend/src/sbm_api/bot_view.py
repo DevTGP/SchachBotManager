@@ -1,6 +1,7 @@
 """Bots as the API shows them (schemas Bot and BotDetail); source and owner stay hidden (E15).
 
-Owner and admins also get the details: files, versions and the verification report.
+The detail lists the versions of the name the viewer may see (E95). Owner and admins also get
+the details: files, runtime versions and the verification report.
 """
 
 from sbm_store import bots, users, verification_reports
@@ -18,6 +19,8 @@ def bot_view(bot: dict) -> dict:
         "language": bot["language"],
         "status": bot["status"],
         "builtin": bots.is_builtin(bot),
+        # Reference bots and bots from before E95 have none.
+        "description": bot.get("description") or "",
         "created_at": timestamp(bot["created_at"]),
     }
 
@@ -28,9 +31,18 @@ def may_see_details(bot: dict, viewer: dict | None) -> bool:
     return viewer["role"] == users.ADMIN or bot.get("owner_id") == viewer["_id"]
 
 
+def may_see(bot: dict, viewer: dict | None) -> bool:
+    return bot["status"] in bots.PUBLIC or may_see_details(bot, viewer)
+
+
 def bot_detail_view(bot: dict, viewer: dict | None) -> dict:
     details = _details(bot) if may_see_details(bot, viewer) else None
-    return {**bot_view(bot), "details": details}
+    versions = [
+        bot_view(version)
+        for version in bots.versions_of(context.db(), bot["name"])
+        if may_see(version, viewer)
+    ]
+    return {**bot_view(bot), "versions": versions, "details": details}
 
 
 def _details(bot: dict) -> dict:

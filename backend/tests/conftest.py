@@ -20,9 +20,13 @@ SPEC = Path(__file__).resolve().parents[2] / "spec" / "web" / "openapi.json"
 
 @pytest.fixture(scope="session")
 def openapi() -> OpenAPI:
-    # openapi-core only decodes the media types it knows; PGN is text.
-    pgn_as_text = {"application/x-chess-pgn": lambda data: data.decode("utf-8")}
-    config = Config(extra_media_type_deserializers=pgn_as_text)
+    # openapi-core only decodes the media types it knows; PGN is text, files stay bytes.
+    deserializers = {
+        "application/x-chess-pgn": lambda data: data.decode("utf-8"),
+        "application/octet-stream": lambda data: data,
+        "application/zip": lambda data: data,
+    }
+    config = Config(extra_media_type_deserializers=deserializers)
     return OpenAPI.from_file_path(str(SPEC), config=config)
 
 

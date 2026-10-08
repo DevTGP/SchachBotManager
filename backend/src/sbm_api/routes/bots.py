@@ -1,18 +1,18 @@
-"""GET /bots and /bots/{bot_id}: verified bots for everyone (E15); POST /bots: upload (E91)."""
+"""GET /bots and /bots/{bot_id}: public bots for everyone (E15, E96); POST /bots (E91)."""
 
 from bson import ObjectId
 from flask import Blueprint
 from sbm_store import bot_files, bots, jobs, versions
 
 from sbm_api import context, rate_limit
-from sbm_api.bot_view import bot_detail_view, bot_view, may_see_details
+from sbm_api.bot_access import visible_bot
+from sbm_api.bot_view import bot_detail_view, bot_view
 from sbm_api.current_user import current_user, require_user
 from sbm_api.errors import (
     NAME_TAKEN,
     UPLOAD_CONFLICT,
     ApiError,
     invalid_parameter,
-    not_found,
 )
 from sbm_api.params import object_id
 from sbm_api.upload_request import parse_upload
@@ -28,10 +28,8 @@ def list_bots():
 
 @blueprint.get("/bots/<bot_id>")
 def get_bot(bot_id: str):
-    bot = bots.get(context.db(), object_id(bot_id, "bot_id"))
     viewer = current_user()
-    if bot is None or (bot["status"] not in bots.PUBLIC and not may_see_details(bot, viewer)):
-        raise not_found("no such bot")
+    bot = visible_bot(bots.get(context.db(), object_id(bot_id, "bot_id")), viewer)
     return bot_detail_view(bot, viewer)
 
 
@@ -57,6 +55,7 @@ def upload_bot():
         version=upload.version,
         language=upload.language,
         entry=upload.entry,
+        description=upload.description,
         files=entries,
         source_hash=bot_files.source_hash(entries),
         owner_id=user["_id"],
