@@ -45,7 +45,15 @@ export const OPENING: Move[] = [
 ];
 
 export function side(name: string, botId: string, version: string | null = "1.0.0") {
-  return { kind: "bot" as const, bot_id: botId, name, version, sdk: "python", lang: "python" };
+  return {
+    kind: "bot" as const,
+    bot_id: botId,
+    name,
+    version,
+    sdk: "python",
+    lang: "python",
+    rating: null,
+  };
 }
 
 export function summary(overrides: Partial<MatchSummary> = {}): MatchSummary {
@@ -80,6 +88,7 @@ export const BOTS: Bot[] = [
     status: "verified",
     builtin: true,
     description: "",
+    rating: { value: 2500, games: 0 },
     created_at: "2026-05-01T10:00:00.000Z",
   },
   {
@@ -90,6 +99,7 @@ export const BOTS: Bot[] = [
     status: "verified",
     builtin: true,
     description: "",
+    rating: { value: 2500, games: 0 },
     created_at: "2026-05-01T10:00:00.000Z",
   },
 ];
@@ -147,6 +157,7 @@ export function botDetail(overrides: Partial<BotDetail> = {}): BotDetail {
     status: "rejected",
     builtin: false,
     description: "",
+    rating: { value: 2500, games: 0 },
     created_at: "2026-05-01T10:00:00.000Z",
   };
   const { details, versions, ...fields } = overrides;

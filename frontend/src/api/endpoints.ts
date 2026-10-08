@@ -26,6 +26,12 @@ export async function fetchBots(signal?: AbortSignal): Promise<Bot[]> {
   return list.items;
 }
 
+/** Public bots with at least one counted match, highest rating first (E103). */
+export async function fetchRatings(signal?: AbortSignal): Promise<Bot[]> {
+  const list = await getJson<{ items: Bot[] }>("/ratings", undefined, signal);
+  return list.items;
+}
+
 export function fetchQueue(signal?: AbortSignal): Promise<Queue> {
   return getJson("/queue", undefined, signal);
 }

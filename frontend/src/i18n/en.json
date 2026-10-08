@@ -8,6 +8,7 @@
     "matches": "Games",
     "queue": "Queue",
     "bots": "Bots",
+    "ratings": "Ranking",
     "upload": "Upload bot",
     "login": "Log in",
     "account": "Account",
@@ -96,8 +97,17 @@
     "builtin": "Reference bot",
     "uploaded": "Uploaded",
     "created": "Since",
+    "rating": "Rating",
+    "ratedGames": "Rated games",
     "matches": "Games",
     "empty": "No bots yet."
+  },
+  "ratings": {
+    "title": "Ranking",
+    "hint": "Bots with at least one rated game. Every version starts at 2500.",
+    "empty": "No rated game yet.",
+    "rank": "Rank",
+    "bot": "Bot"
   },
   "botStatus": {
     "uploaded": "Waiting for verification",
@@ -269,6 +279,8 @@
     "rated": "Rated",
     "ratedYes": "Yes",
     "ratedNo": "No",
+    "ratingWhite": "Rating White",
+    "ratingBlack": "Rating Black",
     "started": "Started",
     "finished": "Finished",
     "info": "Bot info",

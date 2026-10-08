@@ -9,6 +9,7 @@ const NAV = [
   { to: "/matches", key: "nav.matches", end: false },
   { to: "/queue", key: "nav.queue", end: false },
   { to: "/bots", key: "nav.bots", end: false },
+  { to: "/ratings", key: "nav.ratings", end: false },
 ] as const;
 
 export function Layout() {

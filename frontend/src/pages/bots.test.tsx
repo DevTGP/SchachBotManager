@@ -16,6 +16,7 @@ const OWN: Bot[] = [
     status: "verified",
     builtin: false,
     description: "",
+    rating: { value: 2500, games: 0 },
     created_at: "2026-05-01T10:00:00.000Z",
   },
 ];
