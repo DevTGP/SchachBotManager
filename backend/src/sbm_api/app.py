@@ -30,6 +30,7 @@ from sbm_api.routes import (
     own_matches,
     password_resets,
     queue,
+    ratings,
     session,
 )
 
@@ -45,6 +46,7 @@ BLUEPRINTS = (
     bot_source,
     queue,
     disciplines,
+    ratings,
     session,
     invites,
     password_resets,
