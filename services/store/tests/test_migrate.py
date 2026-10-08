@@ -3,7 +3,7 @@ import pytest
 from sbm_store import bots
 from sbm_store.migrate import migrate
 from sbm_store.migrations import MIGRATIONS
-from sbm_store.names import BOTS, MATCHES, SESSIONS, USERS
+from sbm_store.names import BOTS, DISCIPLINES, MATCHES, SESSIONS, USERS
 
 
 def test_all_migrations_run_once(db):
@@ -46,3 +46,9 @@ def test_upload_indexes_exist(db):
 
     assert db[BOTS].index_information()["name_key_1_version_no_1"]["unique"]
     assert db["bot_files.chunks"].index_information()["files_id_1_n_1"]["unique"]
+
+
+def test_discipline_names_are_unique(db):
+    migrate(db)
+
+    assert db[DISCIPLINES].index_information()["name_key_1"]["unique"]

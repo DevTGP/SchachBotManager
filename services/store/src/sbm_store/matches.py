@@ -10,7 +10,7 @@ from bson import ObjectId
 from pymongo import DESCENDING
 from pymongo.database import Database
 
-from sbm_store.discipline import Discipline
+from sbm_store.discipline import Discipline, is_rated
 from sbm_store.names import MATCHES
 
 SCHEMA_VERSION = 1
@@ -27,6 +27,7 @@ SUMMARY_FIELDS = (
     "white",
     "black",
     "discipline_snapshot",
+    "rated",
     "queue",
     "result",
     "termination",
@@ -69,7 +70,7 @@ def new_match(
         "black": side(black),
         "status": QUEUED,
         "queue": {"priority": priority},
-        "rated": False,
+        "rated": is_rated(discipline, start_fen),
         "start_fen": start_fen,
         "moves": [],
         "result": None,
