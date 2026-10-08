@@ -3,7 +3,7 @@
   "info": {
     "title": "SchachBotManager web API",
     "version": "1",
-    "description": "Web API of SchachBotManager (backend-api.md, E73): public reading of matches, bots and the game queue; sessions, accounts and administration for invited users (E83, E84, E85); uploading bots and their verification (E91, E92, E93); own bots with their versions and source, and single games set by their owners (E95, E96, E97, E98); disciplines (E100). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32). Requests other than GET need the header X-SBM-CSRF: 1 (E84).",
+    "description": "Web API of SchachBotManager (backend-api.md, E73): public reading of matches, bots and the game queue; sessions, accounts and administration for invited users (E83, E84, E85); uploading bots and their verification (E91, E92, E93); own bots with their versions and source, and single games set by their owners (E95, E96, E97, E98); disciplines (E100); ratings of bots (E103). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32). Requests other than GET need the header X-SBM-CSRF: 1 (E84).",
     "license": { "name": "MIT-0", "identifier": "MIT-0" }
   },
   "servers": [{ "url": "/api/v1" }],
@@ -281,6 +281,20 @@
             "description": "The queue.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/Queue" } }
+            }
+          }
+        }
+      }
+    },
+    "/ratings": {
+      "get": {
+        "operationId": "list_ratings",
+        "summary": "Public bots with at least one rated match, highest rating first, then by name and version (E103).",
+        "responses": {
+          "200": {
+            "description": "The ranking.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BotList" } }
             }
           }
         }
@@ -707,6 +721,20 @@
           "403": { "$ref": "#/components/responses/Forbidden" },
           "404": { "$ref": "#/components/responses/NotFound" }
         }
+      },
+      "delete": {
+        "operationId": "delete_bot",
+        "security": [{ "session": [] }],
+        "summary": "Deletes this version of a bot for good with its files, report and every match it played (admin, E105); the runner then counts all ratings again. The name is free once no version is left.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "responses": {
+          "204": { "description": "The bot and its matches are gone." },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/BotNotDeletable" }
+        }
       }
     },
     "/admin/disciplines": {
@@ -982,6 +1010,10 @@
         "description": "Another discipline has the name, also in another case (code name_taken).",
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
       },
+      "BotNotDeletable": {
+        "description": "A reference bot (code builtin_bot), a bot still being verified (code bot_verifying) or a bot in a running match (code bot_playing) cannot be deleted.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
       "TooLarge": {
         "description": "The request is larger than 3 MiB (code too_large).",
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
@@ -1034,6 +1066,9 @@
               "upload_conflict",
               "invalid_upload",
               "too_large",
+              "builtin_bot",
+              "bot_verifying",
+              "bot_playing",
               "no_capacity",
               "too_many_games"
             ]
@@ -1194,9 +1229,32 @@
           "version": {
             "description": "Version of the bot; null for matches queued before versions were kept (E95).",
             "type": ["string", "null"]
+          },
+          "rating": {
+            "description": "The bot's rating before and after the match; null until a rated match is counted, and for unrated matches (E103).",
+            "oneOf": [{ "$ref": "#/components/schemas/RatingChange" }, { "type": "null" }]
           }
         },
-        "required": ["kind", "bot_id", "name", "sdk", "lang", "version"],
+        "required": ["kind", "bot_id", "name", "sdk", "lang", "version", "rating"],
+        "additionalProperties": false
+      },
+      "RatingChange": {
+        "type": "object",
+        "properties": {
+          "before": { "type": "integer" },
+          "after": { "type": "integer" }
+        },
+        "required": ["before", "after"],
+        "additionalProperties": false
+      },
+      "Rating": {
+        "description": "Every bot version starts at 2500; rated matches move it by the rule of E103.",
+        "type": "object",
+        "properties": {
+          "value": { "type": "integer" },
+          "games": { "description": "Rated matches counted so far.", "type": "integer", "minimum": 0 }
+        },
+        "required": ["value", "games"],
         "additionalProperties": false
       },
       "MatchFields": {
@@ -1210,7 +1268,7 @@
           "black": { "$ref": "#/components/schemas/Side" },
           "discipline": { "$ref": "#/components/schemas/Discipline" },
           "rated": {
-            "description": "Played under a stored discipline from the standard position; only such matches will count for the rating (E100).",
+            "description": "Played under a stored discipline from the standard position between two different bots; only such matches count for the rating (E100, E103).",
             "type": "boolean"
           },
           "result": {
@@ -1325,6 +1383,7 @@
             "type": "string",
             "maxLength": 500
           },
+          "rating": { "$ref": "#/components/schemas/Rating" },
           "created_at": { "$ref": "#/components/schemas/Timestamp" }
         },
         "required": [
@@ -1335,6 +1394,7 @@
           "status",
           "builtin",
           "description",
+          "rating",
           "created_at"
         ]
       },

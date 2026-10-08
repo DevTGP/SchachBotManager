@@ -4,7 +4,7 @@ The detail lists the versions of the name the viewer may see (E95). Owner and ad
 the details: files, runtime versions and the verification report.
 """
 
-from sbm_store import bots, users, verification_reports
+from sbm_store import bots, ratings, users, verification_reports
 
 from sbm_api import context
 from sbm_api.report_view import report_view
@@ -21,6 +21,8 @@ def bot_view(bot: dict) -> dict:
         "builtin": bots.is_builtin(bot),
         # Reference bots and bots from before E95 have none.
         "description": bot.get("description") or "",
+        # Bots without a counted match have no rating stored yet (E103).
+        "rating": ratings.current(bot),
         "created_at": timestamp(bot["created_at"]),
     }
 

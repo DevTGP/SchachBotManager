@@ -8,6 +8,7 @@
     "matches": "Games",
     "queue": "Queue",
     "bots": "Bots",
+    "ratings": "Ranking",
     "upload": "Upload bot",
     "login": "Log in",
     "account": "Account",
@@ -39,6 +40,9 @@
     "upload_conflict": "Another upload got there first. Please try again.",
     "invalid_upload": "The upload breaks a rule.",
     "too_large": "The upload is too large.",
+    "builtin_bot": "Reference bots cannot be deleted.",
+    "bot_verifying": "The bot is being verified. Please wait until that is done.",
+    "bot_playing": "The bot is playing a game. Please try again once it has ended.",
     "no_capacity": "All places for games are taken. Please try again in a few minutes.",
     "too_many_games": "Finish your running game first."
   },
@@ -99,8 +103,17 @@
     "builtin": "Reference bot",
     "uploaded": "Uploaded",
     "created": "Since",
+    "rating": "Rating",
+    "ratedGames": "Rated games",
     "matches": "Games",
     "empty": "No bots yet."
+  },
+  "ratings": {
+    "title": "Ranking",
+    "hint": "Bots with at least one rated game. Every version starts at 2500.",
+    "empty": "No rated game yet.",
+    "rank": "Rank",
+    "bot": "Bot"
   },
   "botStatus": {
     "uploaded": "Waiting for verification",
@@ -143,6 +156,10 @@
     "outcome": "Outcome",
     "disable": "Disable",
     "enable": "Enable",
+    "delete": "Delete for good",
+    "deleteWarning": "This version is deleted with its files, its verification report and all its games; the ratings are counted again afterwards. This cannot be undone.",
+    "deleteConfirm": "Yes, delete for good",
+    "deleteCancel": "Cancel",
     "stage": {
       "analysis": "Static analysis",
       "tests": "Minimum tests",
@@ -272,6 +289,8 @@
     "rated": "Rated",
     "ratedYes": "Yes",
     "ratedNo": "No",
+    "ratingWhite": "Rating White",
+    "ratingBlack": "Rating Black",
     "started": "Started",
     "finished": "Finished",
     "info": "Bot info",

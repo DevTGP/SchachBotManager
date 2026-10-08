@@ -14,6 +14,7 @@ const OLDER: Bot = {
   status: "retired",
   builtin: false,
   description: "",
+  rating: { value: 2500, games: 0 },
   created_at: "2026-04-01T10:00:00.000Z",
 };
 

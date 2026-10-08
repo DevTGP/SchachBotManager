@@ -68,10 +68,41 @@ describe("bots page", () => {
     const row = (await screen.findByRole("cell", { name: "Material" })).closest("tr");
     expect(row).not.toBeNull();
     expect(within(row!).getByText("Reference bot")).toBeVisible();
+    expect(within(row!).getByText("2500")).toBeVisible();
     expect(within(row!).getByRole("link", { name: "Games" })).toHaveAttribute(
       "href",
       "/matches?bot=665f0000000000000000000b",
     );
+  });
+});
+
+describe("ratings page", () => {
+  it("ranks the bots by rating", async () => {
+    const [random, material] = BOTS;
+    mockApi({
+      "/ratings": {
+        items: [
+          { ...material!, rating: { value: 2550, games: 3 } },
+          { ...random!, rating: { value: 2450, games: 3 } },
+        ],
+      },
+    });
+    renderRoute("/ratings");
+    const rows = (await screen.findAllByRole("row")).slice(1);
+    expect(rows.map((row) => row.textContent)).toEqual([
+      "1MaterialPython25503",
+      "2RandomPython24503",
+    ]);
+    expect(within(rows[0]!).getByRole("link", { name: "Material" })).toHaveAttribute(
+      "href",
+      "/bots/665f0000000000000000000b",
+    );
+  });
+
+  it("explains an empty ranking", async () => {
+    mockApi({ "/ratings": { items: [] } });
+    renderRoute("/ratings");
+    expect(await screen.findByText("No rated game yet.")).toBeVisible();
   });
 });
 

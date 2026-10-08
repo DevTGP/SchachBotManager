@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { playersLabel, sideLabel } from "./botLabel";
 import { formatClock, formatSpent } from "./clock";
+import { formatRatingChange } from "./rating";
 import { formatResult } from "./result";
 import { formatScore } from "./score";
 import { formatTimeControl } from "./timeControl";
@@ -78,9 +79,33 @@ describe("sideLabel and playersLabel", () => {
     expect(sideLabel({ name: "Sharp", version: null })).toBe("Sharp");
     expect(
       playersLabel({
-        white: { kind: "bot", bot_id: "a", name: "Sharp", version: "1.2.0", sdk: null, lang: null },
-        black: { kind: "bot", bot_id: "b", name: "Random", version: null, sdk: null, lang: null },
+        white: {
+          kind: "bot",
+          bot_id: "a",
+          name: "Sharp",
+          version: "1.2.0",
+          sdk: null,
+          lang: null,
+          rating: null,
+        },
+        black: {
+          kind: "bot",
+          bot_id: "b",
+          name: "Random",
+          version: null,
+          sdk: null,
+          lang: null,
+          rating: null,
+        },
       }),
     ).toBe("Sharp 1.2.0 – Random");
+  });
+});
+
+describe("formatRatingChange", () => {
+  it("shows the rating before and after with the difference", () => {
+    expect(formatRatingChange({ before: 2800, after: 2830 })).toBe("2800 → 2830 (+30)");
+    expect(formatRatingChange({ before: 2400, after: 2370 })).toBe("2400 → 2370 (−30)");
+    expect(formatRatingChange({ before: 2500, after: 2500 })).toBe("2500 → 2500 (±0)");
   });
 });

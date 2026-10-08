@@ -11,6 +11,8 @@ export function BotSummary({ bot }: { bot: BotDetail }) {
     [t("bots.status"), t(`botStatus.${bot.status}`)],
     [t("bots.language"), t(`language.${bot.language}`)],
     [t("bots.kind"), bot.builtin ? t("bots.builtin") : t("bots.uploaded")],
+    [t("bots.rating"), String(bot.rating.value)],
+    [t("bots.ratedGames"), String(bot.rating.games)],
     [t("bots.created"), formatDateTime(bot.created_at, locale)],
   ];
   const details = bot.details;

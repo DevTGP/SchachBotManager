@@ -20,6 +20,7 @@ import { OwnBotsPage } from "./pages/ownBots/OwnBotsPage";
 import { GamePage } from "./pages/play/GamePage";
 import { PlaySetupPage } from "./pages/play/PlaySetupPage";
 import { QueuePage } from "./pages/QueuePage";
+import { RatingsPage } from "./pages/RatingsPage";
 import { StartPage } from "./pages/StartPage";
 import { UploadPage } from "./pages/upload/UploadPage";
 import { RequireRole } from "./session/RequireRole";
@@ -49,6 +50,7 @@ export const routes: RouteObject[] = [
         ),
       },
       { path: "bots/:id", element: <BotPage /> },
+      { path: "ratings", element: <RatingsPage /> },
       { path: "login", element: <LoginPage /> },
       { path: "invite", element: <InvitePage /> },
       { path: "reset-password", element: <ResetPasswordPage /> },

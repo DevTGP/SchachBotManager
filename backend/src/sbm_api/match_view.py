@@ -20,8 +20,8 @@ def match_summary(match: dict) -> dict:
         "id": str(match["_id"]),
         "type": match["type"],
         "status": match["status"],
-        "white": side(match["white"]),
-        "black": side(match["black"]),
+        "white": side(match, "white"),
+        "black": side(match, "black"),
         "discipline": discipline(match["discipline_snapshot"]),
         # Matches queued before E100 were never rated.
         "rated": match.get("rated", False),
@@ -50,7 +50,10 @@ def match_detail(match: dict) -> dict:
     }
 
 
-def side(side: dict) -> dict:
+def side(match: dict, color: str) -> dict:
+    """The rating change is there once the runner has counted the match (E103)."""
+    side = match[color]
+    rating = match.get("rating")
     return {
         "kind": side["kind"],
         "bot_id": str(side["bot_id"]),
@@ -59,4 +62,9 @@ def side(side: dict) -> dict:
         "version": side.get("version"),
         "sdk": side["sdk"],
         "lang": side["lang"],
+        "rating": (
+            None
+            if rating is None
+            else {"before": rating[color]["before"], "after": rating[color]["after"]}
+        ),
     }

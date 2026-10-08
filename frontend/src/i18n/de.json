@@ -8,6 +8,7 @@
     "matches": "Partien",
     "queue": "Queue",
     "bots": "Bots",
+    "ratings": "Rangliste",
     "upload": "Bot hochladen",
     "login": "Anmelden",
     "account": "Konto",
@@ -39,6 +40,9 @@
     "upload_conflict": "Ein anderer Upload war schneller. Bitte erneut versuchen.",
     "invalid_upload": "Der Upload verstößt gegen eine Regel.",
     "too_large": "Der Upload ist zu groß.",
+    "builtin_bot": "Referenzbots lassen sich nicht löschen.",
+    "bot_verifying": "Der Bot wird gerade geprüft. Bitte warten, bis die Prüfung fertig ist.",
+    "bot_playing": "Der Bot spielt gerade eine Partie. Bitte nach ihrem Ende erneut versuchen.",
     "no_capacity": "Alle Plätze für Partien sind belegt. Bitte in ein paar Minuten noch einmal versuchen.",
     "too_many_games": "Bitte erst die laufende Partie beenden."
   },
@@ -99,8 +103,17 @@
     "builtin": "Referenzbot",
     "uploaded": "Hochgeladen",
     "created": "Seit",
+    "rating": "Rating",
+    "ratedGames": "Gewertete Partien",
     "matches": "Partien",
     "empty": "Noch keine Bots."
+  },
+  "ratings": {
+    "title": "Rangliste",
+    "hint": "Bots mit mindestens einer gewerteten Partie. Jede Version beginnt bei 2500.",
+    "empty": "Noch keine gewertete Partie.",
+    "rank": "Platz",
+    "bot": "Bot"
   },
   "botStatus": {
     "uploaded": "Wartet auf Prüfung",
@@ -143,6 +156,10 @@
     "outcome": "Ausgang",
     "disable": "Sperren",
     "enable": "Freigeben",
+    "delete": "Endgültig löschen",
+    "deleteWarning": "Diese Version wird mit ihren Dateien, ihrem Prüfbericht und allen ihren Partien gelöscht; die Ratings werden danach neu berechnet. Das lässt sich nicht rückgängig machen.",
+    "deleteConfirm": "Ja, endgültig löschen",
+    "deleteCancel": "Abbrechen",
     "stage": {
       "analysis": "Statische Analyse",
       "tests": "Mindesttests",
@@ -272,6 +289,8 @@
     "rated": "Gewertet",
     "ratedYes": "Ja",
     "ratedNo": "Nein",
+    "ratingWhite": "Rating Weiß",
+    "ratingBlack": "Rating Schwarz",
     "started": "Gestartet",
     "finished": "Beendet",
     "info": "Bot-Info",

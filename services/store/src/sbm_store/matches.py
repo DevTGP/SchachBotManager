@@ -28,6 +28,7 @@ SUMMARY_FIELDS = (
     "black",
     "discipline_snapshot",
     "rated",
+    "rating",
     "queue",
     "result",
     "termination",
@@ -60,7 +61,7 @@ def new_match(
     priority: int,
     now: datetime,
 ) -> dict:
-    """A queued single game between two bot documents."""
+    """A queued single game between two bot documents; a bot against itself is never rated."""
     return {
         "_id": ObjectId(),
         "schema_version": SCHEMA_VERSION,
@@ -70,7 +71,7 @@ def new_match(
         "black": side(black),
         "status": QUEUED,
         "queue": {"priority": priority},
-        "rated": is_rated(discipline, start_fen),
+        "rated": is_rated(discipline, start_fen) and white["_id"] != black["_id"],
         "start_fen": start_fen,
         "moves": [],
         "result": None,

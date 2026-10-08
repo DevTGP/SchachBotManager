@@ -46,6 +46,23 @@ describe("viewer", () => {
       `/api/v1/matches/${ID}/pgn`,
     );
     expect(screen.queryByRole("button", { name: /follow live/i })).toBeNull();
+    expect(screen.queryByText("Rating White")).toBeNull();
+  });
+
+  it("shows how a counted match moved the ratings", async () => {
+    const white = { ...match().white, rating: { before: 2400, after: 2470 } };
+    const black = { ...match().black, rating: { before: 2800, after: 2730 } };
+    mockApi({ [`/matches/${ID}`]: match({ rated: true, white, black }) });
+    renderRoute(`/matches/${ID}`);
+
+    expect(await screen.findByText("Rating White")).toBeVisible();
+    expect(screen.getByText("Rated").nextElementSibling).toHaveTextContent("Yes");
+    expect(screen.getByText("Rating White").nextElementSibling).toHaveTextContent(
+      "2400 → 2470 (+70)",
+    );
+    expect(screen.getByText("Rating Black").nextElementSibling).toHaveTextContent(
+      "2800 → 2730 (−70)",
+    );
   });
 
   it("opens the move from the link and steps with buttons, list and keys", async () => {

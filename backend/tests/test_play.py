@@ -40,7 +40,7 @@ def test_a_guest_starts_a_game_and_gets_a_seat(client, db, reference_bots):
     assert db[JOBS].find_one({"payload.match_id": match["_id"]})["type"] == play.PLAY_JOB
 
 
-def test_an_account_plays_under_its_name_and_a_discipline_is_rated(login, db, reference_bots):
+def test_an_account_plays_under_its_name_and_a_discipline_is_kept(login, db, reference_bots):
     client, user = login("alice", "player")
     discipline = store_discipline(db, "Rapid", initial_time_ms=600_000)
 
@@ -55,7 +55,9 @@ def test_an_account_plays_under_its_name_and_a_discipline_is_rated(login, db, re
     assert response.status_code == 201, response.json
     match = matches.get(db, ObjectId(response.json["match_id"]))
     assert (match["black"]["name"], match["black"]["user_id"]) == ("alice", user["_id"])
-    assert match["rated"] is True
+    assert match["discipline_snapshot"]["name"] == "Rapid"
+    # Accounts have no rating yet (O23), so no interactive game counts.
+    assert match["rated"] is False
     assert match["origin"]["user_id"] == user["_id"]
 
 

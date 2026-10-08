@@ -2,9 +2,9 @@
 (M7, E111, E113).
 
 They bypass the queue (E24): their job has the type play, which only the play runner takes.
-Only a person with an account is rated, under the rule of E100 (E103); guests and remote bots
-on the person's machine are not. Each side that is not a bot holds a seat: a secret token the web
-API hands out once; the match keeps only its hash, which the runner gives to the gateway.
+They are not rated until accounts have ratings (E103, O23). Each side that is not a bot holds
+a seat: a secret token the web API hands out once; the match keeps only its hash, which the
+runner gives to the gateway.
 """
 
 from datetime import datetime
@@ -13,7 +13,7 @@ from bson import ObjectId
 from pymongo.database import Database
 
 from sbm_store import jobs, matches, tokens
-from sbm_store.discipline import Discipline, is_rated
+from sbm_store.discipline import Discipline
 from sbm_store.names import JOBS, MATCHES
 
 PLAY_JOB = "play"
@@ -50,22 +50,23 @@ def is_seat(side: dict) -> bool:
     return side["kind"] in SEAT_KINDS
 
 
-def rated(
-    match_type: str, sides: tuple[dict, dict], discipline: Discipline, start_fen: str
-) -> bool:
-    """A person with an account against a bot counts like a single game (E103)."""
-    if match_type != HUMAN:
-        return False
-    people = [side for side in sides if is_seat(side)]
-    return all(side["user_id"] is not None for side in people) and is_rated(discipline, start_fen)
-
-
 def origin(*, ip_key: str | None, user_id: ObjectId | None, token_id: ObjectId | None) -> dict:
     """Who asked for the game, for the limits per address, account and token (E115).
 
     ip_key is a hash of the address; the address itself is not stored.
     """
     return {"ip_key": ip_key, "user_id": user_id, "token_id": token_id}
+
+
+def rated(
+    match_type: str, sides: tuple[dict, dict], discipline: Discipline, start_fen: str
+) -> bool:
+    """Never, for now: E103 rates people with an account, but ratings exist only for bots (E104).
+
+    Counting such a game would start the person at 2500 every time and move the bot's rating by
+    that. Until accounts have ratings (O23), interactive games stay unrated.
+    """
+    return False
 
 
 def new_play_match(

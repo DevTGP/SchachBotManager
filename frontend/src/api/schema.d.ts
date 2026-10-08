@@ -170,6 +170,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ratings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public bots with at least one rated match, highest rating first, then by name and version (E103). */
+        get: operations["list_ratings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/disciplines": {
         parameters: {
             query?: never;
@@ -468,7 +485,8 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /** Deletes this version of a bot for good with its files, report and every match it played (admin, E105); the runner then counts all ratings again. The name is free once no version is left. */
+        delete: operations["delete_bot"];
         options?: never;
         head?: never;
         /** Disables a verified or retired bot, or makes a disabled one verified again (admin, E93, E96); queued matches of a disabled bot are aborted when their turn comes. */
@@ -573,7 +591,7 @@ export interface components {
         Timestamp: string;
         Error: {
             /** @enum {unknown} */
-            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large" | "no_capacity" | "too_many_games";
+            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large" | "builtin_bot" | "bot_verifying" | "bot_playing" | "no_capacity" | "too_many_games";
             /** @description English text for logs; not shown to users, except as the detail of invalid_upload. */
             message: string;
             /** @description The invalid parameter, for invalid_parameter. */
@@ -662,6 +680,18 @@ export interface components {
             lang: string | null;
             /** @description Version of the bot; null for matches queued before versions were kept (E95). */
             version: string | null;
+            /** @description The bot's rating before and after the match; null until a rated match is counted, and for unrated matches (E103). */
+            rating: components["schemas"]["RatingChange"] | null;
+        };
+        RatingChange: {
+            before: number;
+            after: number;
+        };
+        /** @description Every bot version starts at 2500; rated matches move it by the rule of E103. */
+        Rating: {
+            value: number;
+            /** @description Rated matches counted so far. */
+            games: number;
         };
         /** @description The fields of MatchSummary, open for extension by Match. */
         MatchFields: {
@@ -672,7 +702,7 @@ export interface components {
             white: components["schemas"]["Side"];
             black: components["schemas"]["Side"];
             discipline: components["schemas"]["Discipline"];
-            /** @description Played under a stored discipline from the standard position; only such matches will count for the rating (E100). */
+            /** @description Played under a stored discipline from the standard position between two different bots; only such matches count for the rating (E100, E103). */
             rated: boolean;
             /** @description null until the match ends. */
             result: components["schemas"]["result"] | null;
@@ -728,6 +758,7 @@ export interface components {
             builtin: boolean;
             /** @description Plain text by the owner, at most 500 characters; line breaks but no other control characters (E95). */
             description: string;
+            rating: components["schemas"]["Rating"];
             created_at: components["schemas"]["Timestamp"];
         };
         Bot: components["schemas"]["BotFields"];
@@ -1213,6 +1244,15 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
+        /** @description A reference bot (code builtin_bot), a bot still being verified (code bot_verifying) or a bot in a running match (code bot_playing) cannot be deleted. */
+        BotNotDeletable: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
         /** @description The request is larger than 3 MiB (code too_large). */
         TooLarge: {
             headers: {
@@ -1584,6 +1624,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Queue"];
+                };
+            };
+        };
+    };
+    list_ratings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The ranking. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotList"];
                 };
             };
         };
@@ -2088,6 +2148,34 @@ export interface operations {
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+        };
+    };
+    delete_bot: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The bot and its matches are gone. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["BotNotDeletable"];
         };
     };
     update_bot: {

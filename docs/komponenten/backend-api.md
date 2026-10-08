@@ -127,6 +127,20 @@ Ein vergebener Name ergibt 409 `name_taken` mit `field` `name`. Zusammenfassunge
 | `discipline_view.py` | Darstellung einer Disziplin |
 | `routes/disciplines.py`, `routes/admin_disciplines.py` | Öffentliche und Admin-Routen |
 
+### Stand M4, Schritt 2 (E103, E104)
+
+| Route | Aufgabe |
+|-------|---------|
+| `GET /ratings` | Öffentlich: Bots mit mindestens einer verbuchten Partie, höchstes Rating zuerst, dann nach Name und Version (`routes/ratings.py`) |
+
+Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 und 0). Jede Seite einer Partie enthält `rating` mit `before` und `after`, solange die Partie nicht verbucht ist `null`.
+
+### Endgültiges Löschen (E105)
+
+| Route | Aufgabe |
+|-------|---------|
+| `DELETE /admin/bots/{id}` | Löscht die Version mit Dateien, Prüfbericht und allen ihren Partien (`routes/admin_bots.py`, `sbm_store.bot_deletion`); 204. Audit `bot.delete` mit Name, Version und Zahl der Partien. 409 `builtin_bot`, `bot_verifying` oder `bot_playing`, wenn sie nicht gelöscht werden darf |
+
 ## Rollen und Rechte
 
 | Rolle | Darf |

@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 
 from pymongo.database import Database
 from pymongo.errors import PyMongoError
-from sbm_store import jobs, matches, queue_settings
+from sbm_store import jobs, matches, queue_settings, rating_recount, ratings
 
 from sbm_runner.config import RunnerConfig
 from sbm_runner.game import run_job
@@ -62,6 +62,7 @@ class Worker:
     def step(self) -> bool:
         """Does one round of work; False if there was nothing to do."""
         recover_expired(self._db, self._config, self._now())
+        self._recount_ratings()
         if queue_settings.get(self._db).paused:
             return False
         job = self._claim()
@@ -130,3 +131,22 @@ class Worker:
             log.exception("job %s failed (attempt %d)", job["_id"], job["attempts"])
             detail = f"infrastructure error: {type(error).__name__}: {error}"
             retry_or_abort(self._db, job, detail, self._config, self._now())
+        else:
+            self._count_ratings()
+
+    def _recount_ratings(self) -> None:
+        """Counts all ratings again after an admin deleted counted matches (E105)."""
+        counted = rating_recount.run_if_requested(self._db)
+        if counted is not None:
+            log.info("ratings: counted again from %d match(es)", counted)
+
+    def _count_ratings(self) -> None:
+        """Counts every finished rated match not counted yet (E103), older ones included."""
+        try:
+            counted = ratings.count_pending(self._db)
+        except PyMongoError as error:
+            # The result is stored; the next finished match counts this one too.
+            log.warning("ratings not counted: %s", error)
+            return
+        if counted:
+            log.info("ratings: %d match(es) counted", counted)
