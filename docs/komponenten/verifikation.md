@@ -70,10 +70,11 @@ Ein Test scheitert, wenn der Bot durch Zeit, illegalen Zug, Protokollverstoß, A
 uploaded → analyzing → building → testing → verified
                  ↘         ↘          ↘
                           rejected
-verified → disabled (Admin oder Besitzer)   verified → retired (Besitzer)
+verified ↔ retired (Besitzer)
+verified, retired → disabled (Admin)   disabled → verified (Admin)
 ```
 
-Bei Python fehlt `building`. Umgesetzt ist bisher das Sperren und Freigeben durch Admins (E93); Besitzer können ihre Bots noch nicht selbst deaktivieren oder zurückziehen. Kann der Server einen Bot dreimal nicht prüfen (Infrastrukturfehler), wird er mit der Stufe `internal` abgelehnt (E89).
+Bei Python fehlt `building`. Admins sperren und geben frei (E93, E96); der Besitzer zieht einen geprüften Bot zurück und aktiviert ihn wieder, eine Sperre kann er nicht aufheben (E96). Kann der Server einen Bot dreimal nicht prüfen (Infrastrukturfehler), wird er mit der Stufe `internal` abgelehnt (E89).
 
 - Der Report (Stufe, Regel, Datei/Zeile, Build-Ausgabe gekürzt, Testprotokoll) ist für Besitzer und Admin einsehbar. Er liegt in `verification_reports` mit Regelsatz und den Versionen von Python und SDK; der Bot verweist über `report_id` darauf und hält Stufe und Grund einer Ablehnung in `rejection`.
 - Der Quellcode ist ausschließlich für Besitzer und Admin abrufbar (E15).

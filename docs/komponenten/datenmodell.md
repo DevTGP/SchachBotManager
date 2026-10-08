@@ -95,6 +95,13 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 - `0004_uploads` setzt bei vorhandenen Bots `name_key` und `version` `1.0.0`, legt die Indizes von `bots` und `verification_reports` an und die von GridFS für `bot_files`, weil die API sie nicht anlegen darf.
 - Die Versionsnummern prüft und vergleicht `sbm_store.versions`.
 
+## Stand M3, Schritt 4 (E95–E98)
+
+- Ein Bot hat `description` (reiner Text, höchstens 500 Zeichen; bei älteren Bots fehlt das Feld und gilt als leer) und kann den Status `retired` haben (E96).
+- Eine Seite einer Partie hält `version` des Bots (E95); ältere Partien haben dort nichts, die API liefert `null`.
+- `rate_limits` zählt Partien durch Coder unter `matches:{user_id}` je Tag (E98); `sbm_store.rate_limits.hit` zählt dafür mehrere auf einmal, `give_back` nimmt eine abgelehnte Anfrage zurück.
+- Keine Migration nötig: Die neuen Felder sind optional.
+
 ## Zu beachten
 
 - **Tabellen sind abgeleitete Daten.** Sie müssen jederzeit aus `matches` neu berechenbar sein (Reparaturwerkzeug für Admins).

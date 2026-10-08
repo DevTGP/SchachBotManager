@@ -75,6 +75,12 @@ Jedes Ende bekommt einen maschinenlesbaren `termination`-Code (Liste in [bot-pro
 - Die Verifikation (`verification/`) setzt den Bot auf `analyzing`, führt die Analyse aus, dann auf `testing` und die Mindesttests, schreibt den Report und setzt `verified` oder `rejected` ([verifikation.md](verifikation.md)).
 - Infrastrukturfehler und verlorene Leases behandelt er wie bei Partien: nach 30 s neu, nach drei Versuchen wird der Bot mit der Stufe `internal` abgelehnt (`verification/rejection.py`).
 
+### Stand M3 Schritt 4 (E95, E96, E98)
+
+- Eingereihte Partien eines zurückgezogenen Bots (`retired`) bricht er ab wie bei einer Sperre (E96).
+- Partien durch Coder haben Priorität 50 und kommen damit nach denen der Admins (E98); sonst behandelt er sie gleich.
+- Die Seiten einer Partie halten die Version des Bots (E95).
+
 ## Aufgezeichnete Daten pro Zug
 
 `uci`, `san`, FEN nach dem Zug, verbrauchte Zeit, Restzeit, optionale `info` des Bots. Siehe [datenmodell.md](datenmodell.md).

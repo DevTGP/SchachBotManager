@@ -86,6 +86,30 @@ Upload und Bot-Seite für Python:
 
 Neue Fehlercodes: `invalid_upload` (400, mit `path` der betroffenen Datei), `too_large` (413, über 3 MiB), `name_taken` und `upload_conflict` (409). Gültige Uploads zählen je Konto unter `upload:{user_id}`, höchstens 20 am Tag (429 `too_many_attempts`). Die API prüft nur Form und Grenzen, den Inhalt nie; sie startet keine Prozesse (E81).
 
+### Stand M3, Schritt 4 (E95–E98)
+
+„Mein Bereich“, Versionen, Quellcode und Partien durch Coder:
+
+| Route | Aufgabe |
+|-------|---------|
+| `GET /bots/{id}` | Zusätzlich `description` und `versions` (alle Versionen des Namens, die der Betrachter sehen darf, neueste zuerst); öffentlich sind jetzt `verified`, `disabled` und `retired` (E96) |
+| `POST /bots` | Optionales Feld `description` (E95) |
+| `PATCH /bots/{id}` | Nur der Besitzer: `description` ändern und/oder `status` zwischen `verified` und `retired` schalten (E95, E96); andere Übergänge ergeben 400 `invalid_parameter` mit `field` `status` |
+| `GET /bots/{id}/file?path=…` | Eine Datei als Download, nur Besitzer und Admins (E97) |
+| `GET /bots/{id}/source` | Alle Dateien als ZIP `Name-Version.zip`, nur Besitzer und Admins (E97) |
+| `POST /matches` | Partien eines eigenen `verified` Bots gegen jeden `verified` Bot: 1–10 Partien, bis 5 min + 5 s, Priorität 50; 20 Partien je Konto und Tag unter `matches:{user_id}` (E98) |
+| `PATCH /admin/bots/{id}` | Sperrt jetzt auch `retired` Bots; Freigeben setzt `verified` (E96) |
+
+| Datei | Aufgabe |
+|-------|---------|
+| `bot_access.py` | Sichtbarkeit, Besitz und Zugriff auf Dateien eines Bots |
+| `bot_description.py` | Prüfung der Beschreibung (reiner Text, 500 Zeichen) |
+| `routes/own_bot.py` | `PATCH /bots/{id}` |
+| `routes/bot_source.py` | Datei und ZIP; immer `Content-Disposition: attachment`, `nosniff` und `no-store` |
+| `routes/own_matches.py`, `own_match_request.py` | `POST /matches` mit den Grenzen für Coder |
+
+Partien halten zu jeder Seite `version` (bei älteren Partien `null`). Eine Anfrage über dem Tageslimit zählt nicht.
+
 ## Rollen und Rechte
 
 | Rolle | Darf |
