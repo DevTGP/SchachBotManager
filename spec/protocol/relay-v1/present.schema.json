@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "present (gateway to runner)",
+  "description": "A client has taken the seat, for the first time or again after a disconnect. Lines the gateway kept meanwhile reach it right after joined.",
+  "type": "object",
+  "properties": { "type": { "const": "present" } },
+  "required": ["type"],
+  "additionalProperties": false
+}

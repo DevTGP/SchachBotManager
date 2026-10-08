@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Common definitions of the gateway and relay protocols, version 1",
+  "description": "Shared by gateway-v1 (client to gateway over WebSocket) and relay-v1 (runner to gateway over TCP), see docs/komponenten/gateway.md.",
+  "$defs": {
+    "version": {
+      "description": "Version of the gateway and relay protocols, carried by the opening messages.",
+      "const": 1
+    },
+    "match_id": {
+      "description": "Id of the match as the web API shows it.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{24}(?!\\n)$"
+    },
+    "seat": {
+      "description": "Secret of one side of an interactive match: 32 random bytes in base64url without padding. The web API hands it out once; only its hash is stored.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{43}(?!\\n)$"
+    },
+    "seat_hash": {
+      "description": "SHA-256 of the seat's text in lower-case hex.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}(?!\\n)$"
+    },
+    "line": {
+      "description": "One message of the game protocol as text, without line end: the bot protocol v1 for remote bots. At most 65536 characters; the referee also limits it to 65536 bytes.",
+      "type": "string",
+      "maxLength": 65536
+    }
+  }
+}

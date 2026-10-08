@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "refused (gateway to client)",
+  "description": "The gateway ends the connection: the seat is not taken (any more). It closes the WebSocket right after this message.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "refused" },
+    "v": { "$ref": "common.schema.json#/$defs/version" },
+    "code": {
+      "description": "invalid_message: the first message is not a valid join. no_game: no runner attached this seat in time. replaced: a newer connection took the seat. busy: too many connections. shutdown: the gateway stops.",
+      "enum": ["invalid_message", "no_game", "replaced", "busy", "shutdown"]
+    },
+    "message": { "type": "string", "maxLength": 256 }
+  },
+  "required": ["type", "v", "code", "message"],
+  "additionalProperties": false
+}

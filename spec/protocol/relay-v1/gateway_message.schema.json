@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Any line from gateway to runner",
+  "oneOf": [
+    { "$ref": "line.schema.json" },
+    { "$ref": "present.schema.json" },
+    { "$ref": "absent.schema.json" },
+    { "$ref": "refused.schema.json" }
+  ]
+}

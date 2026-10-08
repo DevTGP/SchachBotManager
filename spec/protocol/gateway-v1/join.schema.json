@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "join (client to gateway)",
+  "description": "First message on a new WebSocket connection: takes the seat of one side of a match. The gateway answers joined once the runner has attached the same seat, or refused.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "join" },
+    "v": { "$ref": "common.schema.json#/$defs/version" },
+    "match_id": { "$ref": "common.schema.json#/$defs/match_id" },
+    "seat": { "$ref": "common.schema.json#/$defs/seat" }
+  },
+  "required": ["type", "v", "match_id", "seat"],
+  "additionalProperties": false
+}

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "joined (gateway to client)",
+  "description": "The seat is taken. Every later message on the connection belongs to the game protocol of the match and passes the gateway unchanged.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "joined" },
+    "v": { "$ref": "common.schema.json#/$defs/version" },
+    "match_id": { "$ref": "common.schema.json#/$defs/match_id" }
+  },
+  "required": ["type", "v", "match_id"],
+  "additionalProperties": false
+}

@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Any message from gateway to client",
+  "description": "Messages of the gateway itself; after joined the connection carries the game protocol.",
+  "oneOf": [{ "$ref": "joined.schema.json" }, { "$ref": "refused.schema.json" }]
+}

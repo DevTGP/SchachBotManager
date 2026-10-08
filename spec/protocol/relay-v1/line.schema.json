@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "line (both directions)",
+  "description": "One message of the game protocol: from the runner to the client, or from the client to the runner. The gateway passes data on unchanged as one WebSocket text message.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "line" },
+    "data": { "$ref": "../gateway-v1/common.schema.json#/$defs/line" }
+  },
+  "required": ["type", "data"],
+  "additionalProperties": false
+}

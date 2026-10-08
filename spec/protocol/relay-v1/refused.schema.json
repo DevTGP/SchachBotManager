@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "refused (gateway to runner)",
+  "description": "The gateway does not take the attach and closes the connection.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "refused" },
+    "code": {
+      "description": "invalid_message: the first line is not a valid attach. attached: another relay connection holds this seat. busy: too many games. shutdown: the gateway stops.",
+      "enum": ["invalid_message", "attached", "busy", "shutdown"]
+    },
+    "message": { "type": "string", "maxLength": 256 }
+  },
+  "required": ["type", "code", "message"],
+  "additionalProperties": false
+}

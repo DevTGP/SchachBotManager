@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "absent (gateway to runner)",
+  "description": "The client of the seat disconnected. The runner decides how long it waits for it to come back.",
+  "type": "object",
+  "properties": { "type": { "const": "absent" } },
+  "required": ["type"],
+  "additionalProperties": false
+}

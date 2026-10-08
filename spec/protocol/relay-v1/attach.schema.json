@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "attach (runner to gateway)",
+  "description": "First line on a new relay connection: the runner holds the game of this seat. The gateway pairs it with the client that joins with the seat whose hash matches; until then and whenever the client is gone it keeps the lines for the client.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "attach" },
+    "v": { "$ref": "../gateway-v1/common.schema.json#/$defs/version" },
+    "match_id": { "$ref": "../gateway-v1/common.schema.json#/$defs/match_id" },
+    "seat_hash": { "$ref": "../gateway-v1/common.schema.json#/$defs/seat_hash" }
+  },
+  "required": ["type", "v", "match_id", "seat_hash"],
+  "additionalProperties": false
+}
