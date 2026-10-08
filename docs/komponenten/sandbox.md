@@ -97,3 +97,10 @@ Umgesetzt für Python; die übrigen Sprachen folgen mit ihren SDKs nach demselbe
 **Lokal:** Unter Windows und ohne Runner-Image gilt `SBM_SANDBOX=none`; dann spielen nur die Referenzbots als gewöhnliche Prozesse. Die Negativ-Suite braucht einen Linux-Host mit cgroup v2 (`bash services/runner/tests/sandbox/run-in-docker.sh`); Docker Desktop unter WSL2 bietet nur cgroup v1.
 
 **Offen:** Fester Kern und CPU-Gewichtung (siehe [match-runner.md](match-runner.md)) sind noch nicht umgesetzt; der Bot läuft mit derselben Priorität wie der Runner.
+
+## Stand M3 Schritt 3 (E90, E92, E94)
+
+- **Dateien eines Uploads:** `checkout.py` schreibt sie für jede Analyse, jeden Test und jede Partie in ein neues Verzeichnis unter `/tmp/sbm-bots` (Verzeichnisse 0755, Dateien 0644), prüft dabei Pfad, Art und SHA-256 erneut und löscht es danach. nsjail hängt es als `/bot` ein (read-only, `noexec`); der Bot startet mit `python /bot/<entry>`.
+- **Analyse in der Sandbox:** `sandbox/run_once.py` startet einen Befehl, der bis zu seinem Ende läuft, in derselben Umgebung wie einen Bot: die Selbstprüfung und `python -I -m sbm.analysis --json --entry … /bot` (höchstens 60 s, Ausgabe höchstens 1 MiB).
+- **Selbstprüfung:** Sie meldet die Versionen von Python und SDK als JSON; der Runner trägt sie in Report und Bot ein.
+- **stderr:** Zusätzlich zu den letzten 4 KiB zählt der Runner die Gesamtmenge; über 1 MiB scheitert ein Mindesttest (E92).

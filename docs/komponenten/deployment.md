@@ -53,15 +53,15 @@ Pfadfilter im Monorepo, damit eine Änderung am Frontend nicht alle SDK-Tests au
 
 ## Stand M2
 
-Umgesetzt unter `deploy/` und `.github/workflows/deploy.yml` (E78). Es laufen `mongo`, `api`, `runner` und `frontend`; `scheduler` und das Replica Set (E75) folgen später. Seit M3 Schritt 2 startet der Runner jeden Bot in nsjail (E86, E87). Einen eigenen `verifier` gibt es nicht (E81).
+Umgesetzt unter `deploy/` und `.github/workflows/deploy.yml` (E78). Es laufen `mongo`, `api`, `runner` und `frontend`; `scheduler` und das Replica Set (E75) folgen später. Seit M3 Schritt 2 startet der Runner jeden Bot in nsjail (E86, E87). Einen eigenen `verifier` gibt es nicht (E81); seit Schritt 3 verifiziert der Runner hochgeladene Bots (E89, E92).
 
 | Datei | Inhalt |
 |-------|--------|
 | `deploy/compose.yaml` | Stack `sbm`: Dienste, internes Netz ohne Ausgang (API dort mit Alias `sbm-api`), `local-web` nur für `frontend` (Alias `sbm-frontend`), Volume `mongo-data`, Härtung, Log-Rotation; Profil `setup` für die Einmal-Dienste `mongo-users` und `migrate` |
 | `deploy/python.Dockerfile` | Ziel `services`, Image `sbm-python` für `migrate` und `api`: baut die Wheels von SDK (mit Kern), Store, Runner und API, Laufzeit ohne Compiler als Nutzer `sbm`. Ziel `runner`, Image `sbm-runner`: zusätzlich nsjail, das Laufzeitverzeichnis der Python-Bots (Python 3.14.8 mit SDK) und `sandbox/`, läuft als root mit den Rechten aus `compose.yaml` (E87) |
 | `deploy/frontend.Dockerfile` | Image `sbm-frontend`: Vite-Build, ausgeliefert von nginx ohne Root auf Port 8080 |
-| `deploy/nginx.conf` | SPA mit Rückfall auf `index.html`, `/api/` an `sbm-api:8000` (Alias der API nur im internen Netz, weil `api` an `local-web` einen fremden Container treffen kann), lange Cache-Zeit nur für `/assets/`, Sicherheits-Header |
-| `deploy/mongo/users.js` | Legt die Rolle `sbm_api_writes` (E85) und die Nutzer der Dienste an oder setzt Rechte und Passwörter neu |
+| `deploy/nginx.conf` | SPA mit Rückfall auf `index.html`, `/api/` an `sbm-api:8000` (Alias der API nur im internen Netz, weil `api` an `local-web` einen fremden Container treffen kann), lange Cache-Zeit nur für `/assets/`, Sicherheits-Header, Anfragen an `/api/` bis 4 MB für Uploads (E92) |
+| `deploy/mongo/users.js` | Legt die Rolle `sbm_api_writes` (E85; seit E94 auch `bots` und der Bucket `bot_files`) und die Nutzer der Dienste an oder setzt Rechte und Passwörter neu |
 | `deploy/deploy.sh` | Ablauf auf dem Server, aus dem Repo-Wurzelverzeichnis; hält am Ende den ausgerollten Commit in `deploy/.deployed-commit` fest |
 | `deploy/needs-deploy.sh` | Sagt, ob sich seit dem ausgerollten Commit etwas geändert hat, woraus der Stack gebaut wird (E79) |
 | `deploy/.env.example` | Alle Werte der Umgebungsdatei mit Erklärung |

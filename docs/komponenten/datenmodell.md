@@ -10,8 +10,8 @@
 | `password_resets` | Links für ein neues Passwort (E83) | `token_hash`, `user_id`, `created_by`, `created_at`, `expires_at` |
 | `rate_limits` | Zähler für Anmeldeversuche je Client-Adresse (E84) | `_id` = Schlüssel, `count`, `expires_at` |
 | `api_tokens` | Tokens für Remote-Bots | `user_id`, `token_hash`, `name`, `last_used_at`, `revoked` |
-| `bots` | Ein Dokument je Bot-Version (E6) | `owner_id`, `name`, `language`, `lineage_id`, `parent_bot_id`, `version_no`, `status`, `sdk_version`, `runtime_version`, `source_ref`, `artifact_ref`, `source_hash`, `sizes`, `created_at` |
-| `verification_reports` | Ergebnis der Pipeline | `bot_id`, `stages[]` (Status, Meldungen, Dauer), `ruleset_version` |
+| `bots` | Ein Dokument je Bot-Version (E6) | `owner_id`, `name`, `name_key`, `version`, `language`, `lineage_id`, `parent_bot_id`, `version_no`, `status`, `sdk_version`, `runtime_version`, `source_ref`, `artifact_ref`, `entry`, `files[]`, `source_hash`, `sizes`, `report_id`, `rejection`, `created_at`, `verified_at`, `rejected_at` |
+| `verification_reports` | Ergebnis der Pipeline | `bot_id`, `job_id`, `result`, `stages[]` (Status, Befunde bzw. Testpartien, Dauer), `ruleset`, `runtime` (Versionen von Python und SDK), `started_at`, `finished_at` |
 | `disciplines` | Disziplin-Konfiguration | siehe [ligen-turniere.md](ligen-turniere.md) |
 | `settings` | Systemweite Einstellungen (E13) | Queue-Parallelität, Pausen/Zeitfenster, Standardprioritäten, Kapazitätsgrenzen für Mensch-/Remote-Spiele |
 | `leagues` | Liga-Konfiguration | `discipline_id`, `tiers[]`, `promotion`, `relegation`, `recurrence`, `tiebreaks[]` |
@@ -63,7 +63,8 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 | `matches` | `white.bot_id + finished_at`, `black.bot_id + finished_at` | Bot-Historie |
 | `matches` | `context.season_id + context.round`, `status + queue.priority` | Spielpläne, laufende Spiele, Queue-Ansicht |
 | `standings` | `season_id + tier + group + points` (unique auf `season_id + bot_id`) | Tabellen |
-| `bots` | `owner_id`, `lineage_id + version_no`, `status` | Verwaltung, Versionslisten |
+| `bots` | unique `name_key + version_no`, `owner_id + created_at`, `lineage_id + version_no`, `status` | Namen und Versionen (E91), eigene Bots, Versionslisten |
+| `verification_reports` | `bot_id` | Reports eines Bots |
 | `jobs` | `status + priority + not_before`, `lease_until` | Queue-Abruf, Wiederaufnahme |
 | `registrations` | unique `bot_id + target_type + target_id` | Keine Doppelanmeldung |
 | `users` | unique `username_key` | Login, Namen ohne Rücksicht auf Groß- und Kleinschreibung eindeutig |
@@ -84,6 +85,15 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 - `0003_accounts` legt ihre Indizes an, darunter die TTL-Indizes, die abgelaufene Sitzungen, Links und Zähler löschen.
 - Ein Konto hat genau eine Rolle (`coder` oder `admin`) statt einer Liste und kein E-Mail-Feld (E83).
 - `settings` bekommt das Dokument `queue` beim ersten Pausieren über die Website, falls es fehlt.
+
+## Stand M3, Schritt 3 (E89–E94)
+
+- Ein hochgeladener Bot hat `name_key` (Name in Kleinbuchstaben), `version` (`X.Y.Z` des Besitzers, E91), `entry`, `files[]` (`path`, `kind` `source` oder `data`, `size`, `sha256`, `file_id`), `source_hash` und `sizes` je Art. `source_ref` ist `gridfs`; die Dateien liegen im Bucket `bot_files` (`sbm_store.bot_files`, E94).
+- Nach der Verifikation verweist `report_id` auf den Report, `rejection` hält Stufe und Grund einer Ablehnung; `sdk_version` und `runtime_version` kommen aus der Selbstprüfung des Runners.
+- `verification_reports` (`sbm_store.verification_reports`) mit `result` `passed` oder `failed`; je Stufe die Befunde der Analyse oder die Testpartien.
+- Ein Job hat `type` `match` (`payload.match_id`) oder `verification` (`payload.bot_id`, E89).
+- `0004_uploads` setzt bei vorhandenen Bots `name_key` und `version` `1.0.0`, legt die Indizes von `bots` und `verification_reports` an und die von GridFS für `bot_files`, weil die API sie nicht anlegen darf.
+- Die Versionsnummern prüft und vergleicht `sbm_store.versions`.
 
 ## Zu beachten
 

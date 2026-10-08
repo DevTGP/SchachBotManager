@@ -20,6 +20,22 @@ Die Analyse erfasst alle Quelldateien eines Uploads; Importe sind nur auf Whitel
 
 Die Regeln liegen als versionierte Konfiguration pro Sprache vor (Whitelist + Verbotsliste), nicht fest im Analyzer-Code. Der Report nennt Regel, Datei und Zeile.
 
+## Python (umgesetzt, E90)
+
+| Teil | Umsetzung |
+|------|-----------|
+| Paket | `sbm.analysis` im Python-SDK; Regeln in `python_rules.json`, Regelsatz `python-1` im Report |
+| Eingabe | Alle Quelldateien des Uploads als AST, nichts wird importiert; Dateien müssen UTF-8 sein |
+| Importe | Whitelist (unten, ohne numpy) plus `sbm`, `__future__`, `collections.abc` und die eigenen Module; `sitecustomize` und `usercustomize` sind als eigene Module verboten |
+| Verbotene Builtins | `eval`, `exec`, `compile`, `__import__`, `open`, `getattr`, `setattr`, `delattr`, `globals`, `locals`, `vars`, `breakpoint`, `input`, `help`, `exit`, `quit` |
+| Dunder | Verboten bis auf `__name__` (lesen), `__all__` und `__slots__` (zuweisen), `.__init__` und den Text `"__main__"`; auch in Zeichenketten gemeldet |
+| Private Attribute | `_x` nur an `self`, `cls`, `super()` und eigenen Modulen |
+| Umwege | Frame-, Code- und Traceback-Attribute (`f_globals`, `gi_frame`, `tb_frame` …), `attrgetter`, `methodcaller`, `get_type_hints`, `ForwardRef` |
+| Module | Kein Modul als Wert (etwa als Argument); Attribute, die zu Modulen außerhalb der Whitelist führen (`random._os`, `dataclasses.sys`), werden über Importe, Stern-Importe und eigene Module verfolgt |
+| Report | Regel, Datei, Zeile, Meldung; höchstens 100 Befunde, danach `truncated` |
+| Lokal | `sbm-check [ordner] [--entry bot.py] [--exclude GLOB] [--json]`; wählt die Dateien wie die Upload-Seite, Exit-Code 0 ohne Befund, 1 mit Befunden, 2 bei falschen Argumenten |
+| Auf dem Server | Der Runner startet `python -I -m sbm.analysis --json --entry … /bot` in der Sandbox mit höchstens 60 s und prüft die Ausgabe, bevor sie in den Report kommt ([verifikation.md](verifikation.md)) |
+
 ## Pro Sprache
 
 | Sprache | Analyseebene | Spezifische Verbote | Grenzen |
@@ -34,7 +50,7 @@ Die Regeln liegen als versionierte Konfiguration pro Sprache vor (Whitelist + Ve
 
 | Sprache | Standardbibliothek | Zusätzlich |
 |---------|--------------------|------------|
-| Python | `math`, `random`, `itertools`, `functools`, `collections`, `heapq`, `bisect`, `dataclasses`, `enum`, `typing`, `array`, `operator`, `copy`, `time` | `numpy` |
+| Python | `math`, `random`, `itertools`, `functools`, `collections`, `heapq`, `bisect`, `dataclasses`, `enum`, `typing`, `array`, `operator`, `copy`, `time` | `numpy` (noch nicht in der Laufzeit, O20) |
 | C++ | `<vector>`, `<array>`, `<algorithm>`, `<bit>`, `<cstdint>`, `<unordered_map>`, `<map>`, `<string>`, `<string_view>`, `<optional>`, `<random>`, `<chrono>`, `<numeric>`, `<limits>`, `<memory>` (nur Smart Pointer), `<bitset>`, `<cmath>`, `<span>`, `<tuple>` | – |
 | Java | `java.util`, `java.util.function`, `java.util.stream`; aus `java.lang` nur `Math`, `Long`, `Integer`, `String`, `StringBuilder`, `System.nanoTime` und die Basistypen | – |
 | C# | `System.Collections.Generic`, `System.Linq`, `System.Numerics` (`BitOperations`), `System.Text`; aus `System.Diagnostics` nur `Stopwatch` | – |
@@ -53,6 +69,6 @@ Die Liste liegt als versionierte Konfiguration vor und ist erweiterbar; jede Erw
 ## Zu beachten
 
 - **Fehlablehnungen** sind bei strikten Regeln unvermeidbar. Der Report muss so konkret sein, dass Autoren den Code anpassen können; ein Admin-Override pro Upload ist als Option vorzusehen.
-- **Lokale Prüfung:** Derselbe Analyzer wird als CLI im SDK/Tooling ausgeliefert, damit Autoren vor dem Upload prüfen können.
+- **Lokale Prüfung:** Derselbe Analyzer wird als CLI im SDK/Tooling ausgeliefert, damit Autoren vor dem Upload prüfen können; für Python ist das `sbm-check`.
 - **Regeländerungen** betreffen nur neue Uploads; verifizierte Bots behalten ihren Status, bis ein Admin eine Neuprüfung auslöst.
 - **Aufwand:** Fünf Analyzer sind neben den fünf SDK-Kernen der größte Einzelposten des Projekts; C++ ist am aufwendigsten.

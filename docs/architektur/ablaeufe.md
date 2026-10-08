@@ -8,16 +8,17 @@ sequenceDiagram
   Coder->>SPA: Quellcode + Metadaten
   SPA->>API: POST /bots
   API->>Store: Quellcode ablegen (GridFS, E82)
-  API->>DB: bot (status=uploaded), job(verify)
-  Runner->>DB: Job holen (Partien haben Vorrang, E81)
-  Runner->>Runner: Statische Analyse
+  API->>DB: bot (status=uploaded), job(verification)
+  Runner->>DB: Job holen (Partien haben Vorrang, nach 15 min Wartezeit nicht mehr, E89)
+  Runner->>Sandbox: Dateien als /bot (E94)
+  Runner->>Sandbox: Statische Analyse (E90)
   Runner->>Sandbox: Build (ohne Netz)
   Runner->>Sandbox: Mindesttests
   Runner->>DB: Report, status=verified | rejected
   API-->>SPA: Status + Report
 ```
 
-Erst `verified` erlaubt die Anmeldung zu Ligen und Turnieren. Details: [verifikation.md](../komponenten/verifikation.md).
+Den Build gibt es bei Python nicht. Erst `verified` erlaubt die Anmeldung zu Ligen und Turnieren. Details: [verifikation.md](../komponenten/verifikation.md).
 
 ## 2. Ein Match
 

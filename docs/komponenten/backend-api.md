@@ -67,6 +67,25 @@ Dazu kommen Anmeldung, Konten und die Admin-Routen. Alle ändernden Anfragen bra
 
 Die API schreibt nur über `sbm-store` und mit der MongoDB-Rolle `sbm_api_writes` (E85). Die Tests decken die Rechte-Matrix ab (jede Admin-Route mit Gast und Coder).
 
+### Stand M3, Schritt 3 (E91–E94)
+
+Upload und Bot-Seite für Python:
+
+| Route | Aufgabe |
+|-------|---------|
+| `POST /bots` | Upload als `multipart/form-data`, angemeldet und mit CSRF-Header; legt Dateien, Bot (`uploaded`) und Verifikationsjob an, Antwort 201 mit dem Bot |
+| `GET /bots/{id}` | Ein Bot; Besitzer und Admins bekommen in `details` zusätzlich Dateiliste und Report, andere sehen nur Bots in `verified` und `disabled` |
+| `GET /account/bots` | Alle eigenen Bots in jedem Status, neueste zuerst |
+| `PATCH /admin/bots/{id}` | Bot sperren oder wieder freigeben (`verified` ↔ `disabled`, E93), mit Audit-Eintrag `bot.update` |
+
+| Datei | Aufgabe |
+|-------|---------|
+| `upload_request.py` | Felder und Dateien des Uploads, Größe der Anfrage, Regeln aus `sbm.analysis.upload` |
+| `routes/bots.py`, `routes/account_bots.py`, `routes/admin_bots.py` | Upload und Detail, eigene Bots, Sperre |
+| `bot_view.py`, `report_view.py` | Ausgabeform von Bot, Dateien und Report |
+
+Neue Fehlercodes: `invalid_upload` (400, mit `path` der betroffenen Datei), `too_large` (413, über 3 MiB), `name_taken` und `upload_conflict` (409). Gültige Uploads zählen je Konto unter `upload:{user_id}`, höchstens 20 am Tag (429 `too_many_attempts`). Die API prüft nur Form und Grenzen, den Inhalt nie; sie startet keine Prozesse (E81).
+
 ## Rollen und Rechte
 
 | Rolle | Darf |
@@ -109,9 +128,10 @@ Züge von Menschen/Remote-Bots nehmen den umgekehrten Weg: API schreibt den Zug 
 
 ## Upload
 
-- Größen- und Typprüfung vor dem Speichern, Streaming statt Laden in den Speicher.
-- Archive werden nie von der API entpackt, sondern erst bei der Verifikation im Runner in der Sandbox (E81); die Dateien liegen in GridFS (E82).
-- Upload erzeugt `bot` + `verify`-Job; Antwort enthält die Bot-ID zur Statusabfrage.
+- Größen- und Typprüfung vor dem Speichern; die Anfrage ist auf 3 MiB begrenzt (E92).
+- Hochgeladen werden einzelne Dateien statt Archiven, die API entpackt nichts; die Dateien liegen in GridFS (E82, E94).
+- Upload erzeugt `bot` + Verifikationsjob; die Antwort enthält den Bot samt ID zur Statusabfrage.
+- Scheitert das Einreihen des Jobs nach dem Speichern des Bots, bleibt der Bot in `uploaded` (bekannte Lücke ohne Transaktionen, siehe Replica Set in [datenmodell.md](datenmodell.md)).
 
 ## Zu beachten
 

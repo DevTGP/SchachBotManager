@@ -70,6 +70,18 @@ Anmeldung, eigenes Konto und die ersten Admin-Seiten:
 
 Einmal-Links zeigt die Seite nur direkt nach dem Erstellen; die Liste der Einladungen kennt sie nicht mehr (E83). Feldfehler der API (`field`) erscheinen am passenden Eingabefeld.
 
+## Stand M3, Schritt 3 (E91–E93)
+
+| Ort | Inhalt |
+|-----|--------|
+| `src/pages/upload/` | Seite `/bots/new` (nur angemeldet): Ordner oder einzelne `.py`-Dateien wählen, Auswahl der Dateien mit Liste des Weggelassenen, Einstiegsdatei, Name mit Vorschlägen aus den eigenen Bots, Version mit Vorschlag der nächsten Patch-Version; darunter die eigenen Bots |
+| `src/upload/` | Auswahl und Prüfung der Dateien nach den Regeln aus E92 vor dem Senden, Muster für Name und Version |
+| `src/pages/bot/` | Seite `/bots/:id`: Status, Sprache, Version, Link zu den Partien; für Besitzer und Admins Dateien und Report mit Befunden und Testpartien; Admins können sperren und freigeben. Während der Verifikation fragt sie alle 3 s nach |
+| `src/api/bots.ts` | Upload als `FormData`, Bot, eigene Bots, Sperre |
+| `src/format/botLabel.ts` | „Name Version“ als Anzeige eines Bots |
+
+Die Bot-Liste zeigt die Version und verlinkt jeden Bot; die Kontonavigation führt zum Upload. Fehler `invalid_upload` nennen die betroffene Datei.
+
 ## Mensch gegen Bot
 
 - Zugeingabe per Drag-and-drop/Klick; legale Züge kommen vom Server oder aus einer Client-Schachbibliothek (nur Komfort – der Server prüft immer).

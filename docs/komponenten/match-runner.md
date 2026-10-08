@@ -68,6 +68,13 @@ Jedes Ende bekommt einen maschinenlesbaren `termination`-Code (Liste in [bot-pro
 - Konfiguration über Umgebungsvariablen: `SBM_MONGO_URI`, `SBM_MONGO_DB` (Standard `sbm`), `SBM_WORKER_ID` (Standard Rechnername und PID), `SBM_LOG_LEVEL`, `SBM_SANDBOX` (`nsjail` oder `none`).
 - `sbm-enqueue WEISS SCHWARZ [--time 60+1] [--games N] [--alternate] [--fen …] [--max-moves N] [--startup-ms N] [--priority N] [--discipline NAME]` reiht Partien zwischen Bots nach Namen ein (Entwicklungswerkzeug bis M3, E71).
 
+### Stand M3 Schritt 3 (E89, E92–E94)
+
+- Der Runner spielt auch hochgeladene Bots, aber nur in `verified`; eingereihte Partien anderer Bots bricht er ab, sobald sie an der Reihe sind (E93).
+- Neben Partien holt er Verifikationsjobs: zuerst einen, der seit mindestens 15 min wartet, sonst die nächste Partie, sonst den ältesten Verifikationsjob (E89). Mit `SBM_SANDBOX=none` nimmt er nur Partien.
+- Die Verifikation (`verification/`) setzt den Bot auf `analyzing`, führt die Analyse aus, dann auf `testing` und die Mindesttests, schreibt den Report und setzt `verified` oder `rejected` ([verifikation.md](verifikation.md)).
+- Infrastrukturfehler und verlorene Leases behandelt er wie bei Partien: nach 30 s neu, nach drei Versuchen wird der Bot mit der Stufe `internal` abgelehnt (`verification/rejection.py`).
+
 ## Aufgezeichnete Daten pro Zug
 
 `uci`, `san`, FEN nach dem Zug, verbrauchte Zeit, Restzeit, optionale `info` des Bots. Siehe [datenmodell.md](datenmodell.md).
