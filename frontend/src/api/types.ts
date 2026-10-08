@@ -32,6 +32,7 @@ export type OwnMatchRequest = Schemas["OwnMatchRequest"];
 export type PlayRequest = Schemas["PlayRequest"];
 export type PlaySeat = Schemas["PlaySeat"];
 export type PlaySettings = Schemas["PlaySettings"];
+export type PlayerRating = Schemas["PlayerRating"];
 export type Queue = Schemas["Queue"];
 export type QueueEntry = Schemas["QueueEntry"];
 export type Rating = Schemas["Rating"];

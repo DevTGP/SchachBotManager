@@ -138,14 +138,14 @@ Nach M7 (E110).
 | Inhalt | Ergebnis |
 |--------|----------|
 | `HumanPlayer`-Adapter, Spiel-UI für Gäste ohne Account | Partie im Browser gegen gewählten Bot |
-| Rolle `player` (nur spielen), Rating angemeldeter Konten (E103) | Menschen in der Wertung, sichtbar nur auf der eigenen Kontoseite (E117) |
+| Rolle `player` (nur spielen), Rating angemeldeter Konten (E103) | Menschen in der Wertung, auf der Kontoseite (E117) und in der Rangliste mit Filter (E118) |
 | `RemoteBotPlayer`-Adapter, `remote`-Transport in den Bindings, API-Tokens | Lokaler Bot spielt gegen Server-Bot |
 | Kapazitäts- und Missbrauchsgrenzen (pro IP, gesamt), einstellbar | Schutz der Queue |
 
 Vor M6 und parallel zu M4 (E110). Drei Schritte (E111):
 
 1. Gemeinsame Basis – umgesetzt: Gateway für WebSockets (E112), Play-Runner als eigener Container, Jobs der Art `play`, Sitze und Abbruchregeln (E113), Protokolle gateway-v1 und relay-v1 ([gateway.md](komponenten/gateway.md)).
-2. Mensch gegen Bot – umgesetzt: Browser-Protokoll play-v1, `HumanPlayer`, Seiten `/play` und `/play/:id`, Gäste gegen jeden geprüften Bot (E114), Grenzen je Adresse, Konto und Token auf `/admin/play`, interaktive Partien nicht öffentlich, Rolle `player` (E115). Gewertet werden Partien angemeldeter Konten unter einer Disziplin; das Rating sieht nur der Inhaber (E117).
+2. Mensch gegen Bot – umgesetzt: Browser-Protokoll play-v1, `HumanPlayer`, Seiten `/play` und `/play/:id`, Gäste gegen jeden geprüften Bot (E114), Grenzen je Adresse, Konto und Token auf `/admin/play`, interaktive Partien nicht öffentlich, Rolle `player` (E115). Gewertet werden Partien angemeldeter Konten unter einer Disziplin (E117); das Rating steht auf der Kontoseite und in der Rangliste, filterbar nach Bots und Spielern (E118).
 3. Remote-Bot – umgesetzt: API-Tokens für Coder, `POST /remote/matches`, Transport `remote` im Python-SDK (E116); die übrigen Sprachen folgen mit M5.
 
 Offen ist die Abnahme auf dem Server.

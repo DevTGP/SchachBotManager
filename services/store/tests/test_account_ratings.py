@@ -85,3 +85,17 @@ def test_a_recount_starts_accounts_over_as_well(db):
 
     assert value(db, users.get, alice["_id"]) == {"value": 2450, "games": 1}
     assert value(db, bots.get, b["_id"]) == {"value": 2550, "games": 1}
+
+
+def test_the_player_ranking_holds_active_accounts_with_counted_games(db):
+    migrate(db)
+    alice, bob, carol = add_user(db, "alice"), add_user(db, "Bob"), add_user(db, "carol")
+    add_user(db, "idle")
+    bot = add_bot(db, "A")
+    person_plays(db, alice["_id"], bot, "0-1", minute=1)
+    person_plays(db, bob["_id"], bot, "1-0", minute=2)
+    person_plays(db, carol["_id"], bot, "1-0", minute=3)
+    ratings.count_pending(db)
+    users.update(db, carol["_id"], {"active": False})
+
+    assert [user["username"] for user in ratings.player_ranking(db)] == ["Bob", "alice"]

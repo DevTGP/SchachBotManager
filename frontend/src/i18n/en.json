@@ -110,10 +110,16 @@
   },
   "ratings": {
     "title": "Ranking",
-    "hint": "Bots with at least one rated game. Every version starts at 2500.",
+    "hint": "Bots and players with at least one rated game. Every bot version and every account starts at 2500.",
     "empty": "No rated game yet.",
+    "show": "Show",
+    "all": "All",
+    "bots": "Bots only",
+    "players": "Players only",
     "rank": "Rank",
-    "bot": "Bot"
+    "name": "Name",
+    "type": "Type",
+    "player": "Player"
   },
   "botStatus": {
     "uploaded": "Waiting for verification",
@@ -356,7 +362,7 @@
     "rating": "Rating",
     "ratingValue_one": "{{value}} after {{count}} rated game",
     "ratingValue_other": "{{value}} after {{count}} rated games",
-    "ratingHint": "Your games against bots under a discipline from the standard position are rated. The rating appears in no public list."
+    "ratingHint": "Your games against bots under a discipline from the standard position are rated. After the first rated game, your name and rating appear in the public ranking; your games stay private."
   },
   "role": {
     "coder": "Coder",
@@ -471,7 +477,7 @@
       "no_game": "The game is no longer waiting for you.",
       "other": "Something went wrong; please try again."
     },
-    "ratedHint": "Logged in and under a discipline, the game counts for your rating on the account page; as a guest or with free times it is unrated."
+    "ratedHint": "Logged in and under a discipline, the game counts for your rating (account page and ranking); as a guest or with free times it is unrated."
   },
   "playError": {
     "bot_id": "Choose a verified bot.",

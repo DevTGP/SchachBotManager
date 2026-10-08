@@ -77,30 +77,51 @@ describe("bots page", () => {
 });
 
 describe("ratings page", () => {
-  it("ranks the bots by rating", async () => {
-    const [random, material] = BOTS;
-    mockApi({
-      "/ratings": {
-        items: [
-          { ...material!, rating: { value: 2550, games: 3 } },
-          { ...random!, rating: { value: 2450, games: 3 } },
-        ],
-      },
-    });
+  const [random, material] = BOTS;
+  const ranking = {
+    "/ratings": {
+      items: [
+        { ...material!, rating: { value: 2550, games: 3 } },
+        { ...random!, rating: { value: 2450, games: 3 } },
+      ],
+    },
+    "/ratings/players": { items: [{ username: "anna", rating: { value: 2500, games: 2 } }] },
+  };
+
+  it("ranks bots and players by rating", async () => {
+    mockApi(ranking);
     renderRoute("/ratings");
     const rows = (await screen.findAllByRole("row")).slice(1);
     expect(rows.map((row) => row.textContent)).toEqual([
       "1MaterialPython25503",
-      "2RandomPython24503",
+      "2annaPlayer25002",
+      "3RandomPython24503",
     ]);
     expect(within(rows[0]!).getByRole("link", { name: "Material" })).toHaveAttribute(
       "href",
       "/bots/665f0000000000000000000b",
     );
+    expect(within(rows[1]!).queryByRole("link")).toBeNull();
+  });
+
+  it("filters bots or players through the URL", async () => {
+    const user = userEvent.setup();
+    const api = mockApi(ranking);
+    const { router } = renderRoute("/ratings?show=players");
+    expect(await screen.findByText("anna")).toBeVisible();
+    expect(screen.queryByText("Material")).toBeNull();
+    const paths = api.requests.map((url) => url.pathname);
+    expect(paths).toContain("/api/v1/ratings/players");
+    expect(paths).not.toContain("/api/v1/ratings");
+
+    await user.selectOptions(screen.getByLabelText("Show"), "Bots only");
+    expect(await screen.findByText("Material")).toBeVisible();
+    expect(screen.queryByText("anna")).toBeNull();
+    expect(router.state.location.search).toBe("?show=bots");
   });
 
   it("explains an empty ranking", async () => {
-    mockApi({ "/ratings": { items: [] } });
+    mockApi({ "/ratings": { items: [] }, "/ratings/players": { items: [] } });
     renderRoute("/ratings");
     expect(await screen.findByText("No rated game yet.")).toBeVisible();
   });

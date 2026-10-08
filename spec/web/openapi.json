@@ -300,6 +300,20 @@
         }
       }
     },
+    "/ratings/players": {
+      "get": {
+        "operationId": "list_player_ratings",
+        "summary": "Active accounts with at least one rated game against bots, highest rating first, then by name (E118). Their games stay private (E115).",
+        "responses": {
+          "200": {
+            "description": "The ranking of players.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PlayerRatingList" } }
+            }
+          }
+        }
+      }
+    },
     "/disciplines": {
       "get": {
         "operationId": "list_disciplines",
@@ -456,7 +470,7 @@
       "get": {
         "operationId": "get_own_rating",
         "security": [{ "session": [] }],
-        "summary": "The rating of the logged-in account from its rated games against bots (E117); not listed publicly.",
+        "summary": "The rating of the logged-in account from its rated games against bots (E117); public in /ratings/players once it has a rated game (E118).",
         "responses": {
           "200": {
             "description": "The rating; an account without rated games stands at the start.",
@@ -1656,6 +1670,24 @@
         "type": "object",
         "properties": {
           "items": { "type": "array", "items": { "$ref": "#/components/schemas/Bot" } }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "PlayerRating": {
+        "description": "An account in the ranking of players (E118): its name and rating, nothing else.",
+        "type": "object",
+        "properties": {
+          "username": { "$ref": "#/components/schemas/Username" },
+          "rating": { "$ref": "#/components/schemas/Rating" }
+        },
+        "required": ["username", "rating"],
+        "additionalProperties": false
+      },
+      "PlayerRatingList": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/PlayerRating" } }
         },
         "required": ["items"],
         "additionalProperties": false

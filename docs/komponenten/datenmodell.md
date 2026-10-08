@@ -109,7 +109,7 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 
 ## Stand M4, Schritt 2 (E103, E104)
 
-- Keine eigene Sammlung für Ratings. Ein Bot hält `rating` mit `value`, `games` und `seq` der zuletzt übernommenen Partie; ohne das Feld steht er bei 2500 und 0 Partien. Konten (`users`) halten dasselbe Feld für ihre gewerteten Partien gegen Bots (E117).
+- Keine eigene Sammlung für Ratings. Ein Bot hält `rating` mit `value`, `games` und `seq` der zuletzt übernommenen Partie; ohne das Feld steht er bei 2500 und 0 Partien. Konten (`users`) halten dasselbe Feld für ihre gewerteten Partien gegen Bots (E117); die Rangliste der Spieler liest es ohne eigenen Index, weil es nur wenige Konten gibt (E118).
 - Eine verbuchte Partie hält `rating` mit `seq` und je Seite `before`, `after` und `games`; darin steckt der Verlauf (`sbm_store.ratings`, Regel in `sbm_store.rating_rule`).
 - `0006_ratings` legt den eindeutigen Teilindex auf `rating.seq`, einen Index für die offenen Partien (`status`, `rated`, `finished_at`) und einen auf `rating.value` der Bots an.
 - Eine Partie eines Bots gegen sich selbst ist nie `rated`.

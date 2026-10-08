@@ -4,7 +4,7 @@ import { fetchOwnRating } from "../../api/account";
 import { ApiContent } from "../../components/ApiContent";
 import { useApi } from "../../hooks/useApi";
 
-/** The rating of the logged-in account; only its owner sees it (E117). */
+/** The rating of the logged-in account (E117); the public ranking shows it too (E118). */
 export function OwnRating() {
   const { t } = useTranslation();
   const rating = useApi((signal) => fetchOwnRating(signal), "own-rating");

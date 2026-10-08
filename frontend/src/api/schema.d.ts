@@ -187,6 +187,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ratings/players": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active accounts with at least one rated game against bots, highest rating first, then by name (E118). Their games stay private (E115). */
+        get: operations["list_player_ratings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/disciplines": {
         parameters: {
             query?: never;
@@ -317,7 +334,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The rating of the logged-in account from its rated games against bots (E117); not listed publicly. */
+        /** The rating of the logged-in account from its rated games against bots (E117); public in /ratings/players once it has a rated game (E118). */
         get: operations["get_own_rating"];
         put?: never;
         post?: never;
@@ -910,6 +927,14 @@ export interface components {
         };
         BotList: {
             items: components["schemas"]["Bot"][];
+        };
+        /** @description An account in the ranking of players (E118): its name and rating, nothing else. */
+        PlayerRating: {
+            username: components["schemas"]["Username"];
+            rating: components["schemas"]["Rating"];
+        };
+        PlayerRatingList: {
+            items: components["schemas"]["PlayerRating"][];
         };
         QueueEntry: {
             match: components["schemas"]["MatchSummary"];
@@ -1661,6 +1686,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BotList"];
+                };
+            };
+        };
+    };
+    list_player_ratings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The ranking of players. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayerRatingList"];
                 };
             };
         };

@@ -108,7 +108,8 @@ Lädt `/disciplines` nicht, bieten die Formulare nur freie Zeiten an.
 
 | Ort | Inhalt |
 |-----|--------|
-| `src/pages/RatingsPage.tsx` | Seite `/ratings` („Rangliste“) in der Hauptnavigation: Platz, Bot, Sprache, Rating, gewertete Partien |
+| `src/pages/RatingsPage.tsx` | Seite `/ratings` („Rangliste“) in der Hauptnavigation: Platz, Name, Art (Sprache des Bots oder „Spieler“), Rating, gewertete Partien; Filter Alle/Bots/Spieler in der URL (`show`), Spieler ohne Link (E118) |
+| `src/pages/ranking.ts` | Lädt `/ratings` und `/ratings/players` je nach Filter und sortiert sie gemeinsam nach Rating (E118) |
 | `src/pages/BotsPage.tsx`, `src/pages/bot/BotSummary.tsx` | Spalte bzw. Zeilen „Rating“ und „Gewertete Partien“ |
 | `src/viewer/MatchDetails.tsx`, `src/format/rating.ts` | Zeilen „Rating Weiß“ und „Rating Schwarz“ als „2500 → 2550 (+50)“, sobald die Partie verbucht ist |
 

@@ -43,7 +43,7 @@ export function changePassword(currentPassword: string, newPassword: string): Pr
   });
 }
 
-/** The own rating from rated games against bots; not listed publicly (E117). */
+/** The own rating from rated games against bots (E117); also in the public ranking (E118). */
 export function fetchOwnRating(signal?: AbortSignal): Promise<Rating> {
   return getJson<Rating>("/account/rating", undefined, signal);
 }

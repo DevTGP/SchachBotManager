@@ -54,6 +54,15 @@ def ranking(db: Database) -> list[dict]:
     )
 
 
+def player_ranking(db: Database) -> list[dict]:
+    """Active accounts with at least one counted game against bots, highest rating first (E118)."""
+    return list(
+        db[USERS]
+        .find({"active": True, "rating.games": {"$gte": 1}})
+        .sort([("rating.value", DESCENDING), ("username_key", ASCENDING)])
+    )
+
+
 def _settle_last(db: Database) -> int:
     """Applies the last counted match to its bots again; returns its number, 0 if none."""
     last = db[MATCHES].find_one({"rating.seq": {"$exists": True}}, sort=[("rating.seq", -1)])

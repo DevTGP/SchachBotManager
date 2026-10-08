@@ -1,5 +1,13 @@
 import { apiUrl, getJson } from "./client";
-import type { Bot, Match, MatchPage, MatchStatus, Queue, StoredDiscipline } from "./types";
+import type {
+  Bot,
+  Match,
+  MatchPage,
+  MatchStatus,
+  PlayerRating,
+  Queue,
+  StoredDiscipline,
+} from "./types";
 
 export interface MatchQuery {
   status?: MatchStatus;
@@ -29,6 +37,12 @@ export async function fetchBots(signal?: AbortSignal): Promise<Bot[]> {
 /** Public bots with at least one counted match, highest rating first (E103). */
 export async function fetchRatings(signal?: AbortSignal): Promise<Bot[]> {
   const list = await getJson<{ items: Bot[] }>("/ratings", undefined, signal);
+  return list.items;
+}
+
+/** Active accounts with at least one counted game against bots, highest rating first (E118). */
+export async function fetchPlayerRatings(signal?: AbortSignal): Promise<PlayerRating[]> {
+  const list = await getJson<{ items: PlayerRating[] }>("/ratings/players", undefined, signal);
   return list.items;
 }
 

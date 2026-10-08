@@ -133,6 +133,7 @@ Ein vergebener Name ergibt 409 `name_taken` mit `field` `name`. Zusammenfassunge
 | Route | Aufgabe |
 |-------|---------|
 | `GET /ratings` | Öffentlich: Bots mit mindestens einer verbuchten Partie, höchstes Rating zuerst, dann nach Name und Version (`routes/ratings.py`) |
+| `GET /ratings/players` | Öffentlich: aktive Konten mit mindestens einer verbuchten Partie gegen Bots, nur `username` und `rating`, höchstes Rating zuerst, dann nach Namen (`routes/ratings.py`, E118) |
 
 Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 und 0). Jede Seite einer Partie enthält `rating` mit `before` und `after`, solange die Partie nicht verbucht ist `null`.
 
@@ -142,7 +143,7 @@ Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 
 |-------|---------|
 | `DELETE /admin/bots/{id}` | Löscht die Version mit Dateien, Prüfbericht und allen ihren Partien (`routes/admin_bots.py`, `sbm_store.bot_deletion`); 204. Audit `bot.delete` mit Name, Version und Zahl der Partien. 409 `builtin_bot`, `bot_verifying` oder `bot_playing`, wenn sie nicht gelöscht werden darf |
 
-### Stand M7 (E113–E116)
+### Stand M7 (E113–E118)
 
 | Datei | Aufgabe |
 |-------|---------|
@@ -151,6 +152,7 @@ Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 
 | `play_limits.py`, `play_view.py` | Plätze gesamt, gleichzeitige und tägliche Partien je Adresse (als Hash), Konto und Token; Antwort mit Sitz-Token und `socket_path` (E115) |
 | `routes/admin_play.py` | `GET`/`PUT /admin/play-settings`, Audit `play.settings` |
 | `routes/account_rating.py` | `GET /account/rating` (E117) |
+| `routes/ratings.py` | zusätzlich `GET /ratings/players`, die Rangliste der Spieler (E118) |
 | `routes/account_tokens.py`, `token_view.py` | `GET`/`POST /account/tokens`, `DELETE /account/tokens/{id}` für Coder (E116) |
 
 - Partien der Typen `human` und `remote` erscheinen in keiner Liste und haben keine Detailseite und kein PGN (E115).
@@ -162,7 +164,7 @@ Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 
 | Rolle | Darf |
 |-------|------|
 | Gast | Alles lesen: Partien, Tabellen, Bot-Profile, Queue (E10); gegen Bots spielen (E11). Kein Zugriff auf Quellcode, Reports, Logs |
-| Spieler (ab M7, E103, E115) | Angemeldet gegen Bots spielen (gewertet mit Disziplin, eigenes Rating auf der Kontoseite, E117); sonst wie Gast, ohne eigene Bots und Tokens |
+| Spieler (ab M7, E103, E115) | Angemeldet gegen Bots spielen (gewertet mit Disziplin, eigenes Rating auf der Kontoseite und in der Rangliste, E117, E118); sonst wie Gast, ohne eigene Bots und Tokens |
 | Coder | Eigene Bots hochladen, bearbeiten (Metadaten), an-/abmelden, eigene Reports/Logs sehen, Einzelspiele eigener Bots ansetzen, API-Tokens verwalten |
 | Admin | Alles: Nutzer/Invites, sämtliche Bots, Disziplinen, Ligen, Turniere, Jobs, Neuprüfungen, Overrides |
 

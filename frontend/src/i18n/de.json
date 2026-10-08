@@ -110,10 +110,16 @@
   },
   "ratings": {
     "title": "Rangliste",
-    "hint": "Bots mit mindestens einer gewerteten Partie. Jede Version beginnt bei 2500.",
+    "hint": "Bots und Spieler mit mindestens einer gewerteten Partie. Jede Bot-Version und jedes Konto beginnt bei 2500.",
     "empty": "Noch keine gewertete Partie.",
+    "show": "Anzeigen",
+    "all": "Alle",
+    "bots": "Nur Bots",
+    "players": "Nur Spieler",
     "rank": "Platz",
-    "bot": "Bot"
+    "name": "Name",
+    "type": "Art",
+    "player": "Spieler"
   },
   "botStatus": {
     "uploaded": "Wartet auf Prüfung",
@@ -356,7 +362,7 @@
     "rating": "Rating",
     "ratingValue_one": "{{value}} nach {{count}} gewerteten Partie",
     "ratingValue_other": "{{value}} nach {{count}} gewerteten Partien",
-    "ratingHint": "Gewertet werden deine Partien gegen Bots unter einer Disziplin aus der Grundstellung. Das Rating erscheint in keiner öffentlichen Liste."
+    "ratingHint": "Gewertet werden deine Partien gegen Bots unter einer Disziplin aus der Grundstellung. Ab der ersten gewerteten Partie stehen dein Name und dein Rating in der öffentlichen Rangliste; deine Partien bleiben privat."
   },
   "role": {
     "coder": "Coder",
@@ -471,7 +477,7 @@
       "no_game": "Die Partie wartet nicht mehr auf dich.",
       "other": "Etwas ist schiefgegangen; bitte noch einmal versuchen."
     },
-    "ratedHint": "Angemeldet und mit einer Disziplin zählt die Partie für dein Rating auf der Kontoseite; als Gast oder mit freien Zeiten ist sie ungewertet."
+    "ratedHint": "Angemeldet und mit einer Disziplin zählt die Partie für dein Rating (Kontoseite und Rangliste); als Gast oder mit freien Zeiten ist sie ungewertet."
   },
   "playError": {
     "bot_id": "Bitte einen geprüften Bot wählen.",
