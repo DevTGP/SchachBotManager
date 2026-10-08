@@ -20,7 +20,7 @@
 | `tournaments` | Turnier inkl. Konfiguration und Zustand | `format`, `discipline_snapshot`, `status`, `rounds[]`, `bracket`, `recurrence_id` |
 | `registrations` | Anmeldung Bot ↔ Liga/Turnier | `bot_id`, `target_type`, `target_id`, `status`, `created_at` |
 | `matches` | Eine Partie | siehe unten |
-| `ratings` | Rating je Bot und Disziplin | `bot_id`, `discipline_id`, `value`, `deviation`, `games`, `history[]` (gekürzt) |
+| `ratings` | Punktestand je Bot, ab M7 auch je Konto (E103) | `bot_id` bzw. `user_id`, `value`, `games`, Verlauf über die Partien |
 | `jobs` | Queue (A8) | `type`, `payload`, `priority`, `status`, `not_before`, `lease_until`, `worker_id`, `attempts` |
 | `audit_log` | Admin- und sicherheitsrelevante Aktionen | `actor_id`, `action`, `target`, `at`, `details` |
 

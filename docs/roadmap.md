@@ -95,12 +95,12 @@ Abnahme: Ein eingeladener Nutzer lädt einen Python-Bot hoch; bösartige Testbot
 | Liga-Konfiguration, Saisons, Round-Robin, Tabellen, Tiebreaks, Auf-/Abstieg | Vollständiger Saisonzyklus |
 | Queue-Logik: Prioritäten, Wechsel zwischen Wettbewerben, Pausieren, Neuansetzen, Laufzeitschätzung | Mehrere Wettbewerbe teilen sich die Queue |
 | Rückzug eines Bots (kampflose Siege, markiert; weniger Absteiger; Nachrücker) | Regel E17 umgesetzt |
-| Rating | Je Bot und Disziplin |
+| Rating (E103) | Je Bot, über alle Disziplinen |
 | UI: Ligen, Tabellen, Spielplan, Bot-Profil mit voller Historie | Einsehbar |
 | Live-Kanal für laufende Spiele | Viewer aktualisiert sich |
 | Adminbereich Teil 1 (Disziplinen, Ligen, Queue-Steuerung, Bot sperren) | Betrieb ohne DB-Zugriff |
 
-Reihenfolge in vier Schritten (E99): (1) Disziplinen mit Admin-Seite und Auswahl bei Einzelspielen – umgesetzt (E100); (2) Ligen, Saisons, Anmeldung, Tabellen und Queue-Logik (E101); (3) Liga-Seiten der Website; (4) Live-Kanal (E102). Das Rating wartet auf seine Ausgestaltung (O21).
+Reihenfolge in fünf Schritten (E99): (1) Disziplinen mit Admin-Seite und Auswahl bei Einzelspielen – umgesetzt (E100); (2) Rating der Bots (E103); (3) Ligen, Saisons, Anmeldung, Tabellen und Queue-Logik (E101); (4) Liga-Seiten der Website; (5) Live-Kanal (E102).
 
 Abnahme: Zwei aufeinanderfolgende Saisons laufen ohne manuellen Eingriff durch, inklusive Auf-/Abstieg, neu einsteigendem Bot und einem während der Saison zurückgezogenen Bot.
 
@@ -132,6 +132,7 @@ Abnahme je Sprache: Alle API-Vektoren bestanden, Bot der Sprache spielt regulär
 | Inhalt | Ergebnis |
 |--------|----------|
 | `HumanPlayer`-Adapter, Spiel-UI für Gäste ohne Account | Partie im Browser gegen gewählten Bot |
+| Rolle `player` (nur spielen), Rating angemeldeter Konten (E103) | Menschen in der Wertung |
 | `RemoteBotPlayer`-Adapter, `remote`-Transport in den Bindings, API-Tokens | Lokaler Bot spielt gegen Server-Bot |
 | Kapazitäts- und Missbrauchsgrenzen (pro IP, gesamt), einstellbar | Schutz der Queue |
 
