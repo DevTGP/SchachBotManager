@@ -438,6 +438,98 @@
         }
       }
     },
+    "/account/tokens": {
+      "get": {
+        "operationId": "list_tokens",
+        "security": [{ "session": [] }],
+        "summary": "The account's API tokens that are not revoked, newest first (coders, E116).",
+        "responses": {
+          "200": {
+            "description": "The tokens, without the tokens themselves.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiTokenList" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      },
+      "post": {
+        "operationId": "create_token",
+        "security": [{ "session": [] }],
+        "summary": "Makes an API token for remote bots (coders, E116); at most 10 per account. The token is in this answer only.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ApiTokenRequest" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The new token.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/CreatedApiToken" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/account/tokens/{token_id}": {
+      "parameters": [
+        {
+          "name": "token_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "delete": {
+        "operationId": "revoke_token",
+        "security": [{ "session": [] }],
+        "summary": "Revokes an own API token (coders, E116).",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "responses": {
+          "204": { "description": "The token no longer works." },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/remote/matches": {
+      "post": {
+        "operationId": "start_remote_match",
+        "security": [{ "token": [] }],
+        "summary": "A game of the token owner's local bot against a verified bot (coders, E116). The local bot joins its seat over the WebSocket at socket_path (gateway-v1) and then speaks the bot protocol v1. Never rated, not public, within the play limits for the address, the account and the token (E115).",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RemoteMatchRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The game waits for the local bot to join.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PlaySeat" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "429": { "$ref": "#/components/responses/PlayLimit" },
+          "503": { "$ref": "#/components/responses/NoCapacity" }
+        }
+      }
+    },
     "/account/bots": {
       "get": {
         "operationId": "list_own_bots",
@@ -771,6 +863,11 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "sbm_session"
+      },
+      "token": {
+        "description": "A personal API token from POST /account/tokens as Authorization: Bearer sbm_…; only for remote matches (E116).",
+        "type": "http",
+        "scheme": "bearer"
       }
     },
     "parameters": {
@@ -1815,6 +1912,74 @@
           "games_per_day": { "type": "integer", "minimum": 1, "maximum": 1000 }
         },
         "required": ["max_games", "games_per_client", "games_per_day"],
+        "additionalProperties": false
+      },
+      "ApiToken": {
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Id" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" },
+          "last_used_at": {
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          }
+        },
+        "required": ["id", "name", "created_at", "last_used_at"],
+        "additionalProperties": false
+      },
+      "ApiTokenList": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/ApiToken" } }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "ApiTokenRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "What the token is for, e.g. the machine; 1 to 40 characters.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40
+          }
+        },
+        "required": ["name"],
+        "additionalProperties": false
+      },
+      "CreatedApiToken": {
+        "description": "A new token; token appears only here, the server keeps its hash.",
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Id" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 40 },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" },
+          "last_used_at": { "type": "null" },
+          "token": { "type": "string", "pattern": "^sbm_[A-Za-z0-9_-]{43}(?!\\n)$" }
+        },
+        "required": ["id", "name", "created_at", "last_used_at", "token"],
+        "additionalProperties": false
+      },
+      "RemoteMatchRequest": {
+        "description": "The opponent and a discipline by name as on the website; without a discipline free times up to 30 min + 30 s (E115, E116).",
+        "type": "object",
+        "properties": {
+          "opponent": {
+            "description": "Name of a bot; its newest verified version plays.",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "color": { "enum": ["white", "black", "random"] },
+          "discipline": {
+            "description": "Name of a discipline that is not archived; null or missing for free times.",
+            "oneOf": [{ "type": "string", "minLength": 1, "maxLength": 40 }, { "type": "null" }]
+          },
+          "initial_time_ms": { "type": "integer", "minimum": 10000, "maximum": 1800000 },
+          "increment_ms": { "type": "integer", "minimum": 0, "maximum": 30000, "default": 0 }
+        },
+        "required": ["opponent", "color"],
         "additionalProperties": false
       },
       "QueueUpdate": {
