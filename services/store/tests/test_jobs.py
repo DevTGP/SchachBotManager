@@ -94,3 +94,32 @@ def test_expired_job_fails_once(db):
     assert jobs.fail_expired(db, stale, T0)
     assert not jobs.fail_expired(db, stale, T0)
     assert jobs.running(db, jobs.MATCH) == []
+
+
+def test_verification_jobs_are_their_own_type(db):
+    bot_id = ObjectId()
+    jobs.insert(db, jobs.new_verification_job(bot_id, now=T0))
+    queued_job(db)
+
+    claimed = jobs.claim(db, jobs.VERIFICATION, "w1", now=T0, lease=LEASE)
+
+    assert claimed["payload"] == {"bot_id": bot_id}
+    assert jobs.claim(db, jobs.VERIFICATION, "w1", now=T0, lease=LEASE) is None
+    assert jobs.waiting(db, jobs.MATCH, 10)[1] == 1
+
+
+def test_claim_can_take_only_jobs_queued_before_a_time(db):
+    old = jobs.new_verification_job(ObjectId(), now=T0)
+    jobs.insert(db, jobs.new_verification_job(ObjectId(), now=T0 + LEASE))
+    jobs.insert(db, old)
+    later = T0 + 3 * LEASE
+
+    claimed = jobs.claim(
+        db, jobs.VERIFICATION, "w1", now=later, lease=LEASE, created_before=T0 + LEASE
+    )
+
+    assert claimed["_id"] == old["_id"]
+    assert (
+        jobs.claim(db, jobs.VERIFICATION, "w1", now=later, lease=LEASE, created_before=T0 + LEASE)
+        is None
+    )

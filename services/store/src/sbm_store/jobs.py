@@ -14,6 +14,9 @@ from sbm_store.names import JOBS
 
 SCHEMA_VERSION = 1
 MATCH = "match"
+# Checks an uploaded bot (E92); matches go first unless it waited too long (E89).
+VERIFICATION = "verification"
+VERIFICATION_PRIORITY = 0
 QUEUED = "queued"
 RUNNING = "running"
 DONE = "done"
@@ -40,16 +43,34 @@ def new_match_job(match_id: ObjectId, *, priority: int, now: datetime) -> dict:
     }
 
 
+def new_verification_job(bot_id: ObjectId, *, now: datetime) -> dict:
+    job = new_match_job(bot_id, priority=VERIFICATION_PRIORITY, now=now)
+    job.update(type=VERIFICATION, payload={"bot_id": bot_id})
+    return job
+
+
 def insert(db: Database, job: dict) -> None:
     db[JOBS].insert_one(job)
 
 
 def claim(
-    db: Database, job_type: str, worker_id: str, *, now: datetime, lease: timedelta
+    db: Database,
+    job_type: str,
+    worker_id: str,
+    *,
+    now: datetime,
+    lease: timedelta,
+    created_before: datetime | None = None,
 ) -> dict | None:
-    """Takes the next due job of a type, or returns None if there is none."""
+    """Takes the next due job of a type, or returns None if there is none.
+
+    With created_before only jobs queued before that time count.
+    """
+    query = {"type": job_type, "status": QUEUED, "not_before": {"$lte": now}}
+    if created_before is not None:
+        query["created_at"] = {"$lt": created_before}
     return db[JOBS].find_one_and_update(
-        {"type": job_type, "status": QUEUED, "not_before": {"$lte": now}},
+        query,
         {
             "$set": {"status": RUNNING, "worker_id": worker_id, "lease_until": now + lease},
             "$inc": {"attempts": 1},

@@ -39,3 +39,10 @@ def test_a_failed_migration_runs_again_next_time(db):
         with pytest.raises(RuntimeError):
             migrate(db, [("0001_broken", broken)])
     assert len(calls) == 2
+
+
+def test_upload_indexes_exist(db):
+    migrate(db)
+
+    assert db[BOTS].index_information()["name_key_1_version_no_1"]["unique"]
+    assert db["bot_files.chunks"].index_information()["files_id_1_n_1"]["unique"]
