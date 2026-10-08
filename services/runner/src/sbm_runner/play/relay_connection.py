@@ -18,6 +18,8 @@ VERSION = 1
 LINE_LIMIT = 6 * 65_536 + 1024
 # Waiting without a deadline wakes up this often to look at the client's presence.
 WAKE_SECONDS = 0.25
+# Closing waits this long for the gateway to take the last lines and end its side.
+CLOSE_SECONDS = 2.0
 
 
 class RelayClosed(Exception):
@@ -42,6 +44,7 @@ class RelayConnection:
         self._absent_since: float | None = None
         self._closed_reason: str | None = None
         self._lock = threading.Lock()
+        self._reader: threading.Thread | None = None
 
     def open(self, timeout: float) -> None:
         """Connects and attaches the seat; raises OSError if the gateway is unreachable."""
@@ -56,8 +59,10 @@ class RelayConnection:
                 "seat_hash": self._seat_hash,
             }
         )
-        reader = threading.Thread(target=self._read, name=f"relay {self._match_id}", daemon=True)
-        reader.start()
+        self._reader = threading.Thread(
+            target=self._read, name=f"relay {self._match_id}", daemon=True
+        )
+        self._reader.start()
 
     def wait_present(self, timeout: float) -> bool:
         """Whether a client took the seat within timeout seconds."""
@@ -87,8 +92,15 @@ class RelayConnection:
             return item
 
     def close(self) -> None:
+        """Ends the own side first and reads until the gateway ends its side, so the last
+        lines (game_over) are not lost to a reset; then closes. Safe to call twice.
+        """
         if self._socket is None:
             return
+        with contextlib.suppress(OSError):
+            self._socket.shutdown(socket.SHUT_WR)
+        if self._reader is not None and self._reader is not threading.current_thread():
+            self._reader.join(CLOSE_SECONDS)
         with contextlib.suppress(OSError):
             self._socket.shutdown(socket.SHUT_RDWR)
         self._socket.close()
