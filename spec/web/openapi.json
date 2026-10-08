@@ -3,7 +3,7 @@
   "info": {
     "title": "SchachBotManager web API",
     "version": "1",
-    "description": "Web API of SchachBotManager (backend-api.md, E73): public reading of matches, bots and the game queue; sessions, accounts and administration for invited users (E83, E84, E85). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32). Requests other than GET need the header X-SBM-CSRF: 1 (E84).",
+    "description": "Web API of SchachBotManager (backend-api.md, E73): public reading of matches, bots and the game queue; sessions, accounts and administration for invited users (E83, E84, E85); uploading bots and their verification (E91, E92, E93). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32). Requests other than GET need the header X-SBM-CSRF: 1 (E84).",
     "license": { "name": "MIT-0", "identifier": "MIT-0" }
   },
   "servers": [{ "url": "/api/v1" }],
@@ -89,7 +89,7 @@
     "/bots": {
       "get": {
         "operationId": "list_bots",
-        "summary": "All bots, ordered by name.",
+        "summary": "All verified bots, ordered by name and version.",
         "responses": {
           "200": {
             "description": "The bots.",
@@ -97,6 +97,35 @@
               "application/json": { "schema": { "$ref": "#/components/schemas/BotList" } }
             }
           }
+        }
+      },
+      "post": {
+        "operationId": "upload_bot",
+        "security": [{ "session": [] }],
+        "summary": "Uploads a bot as source files; the runner then verifies it (E91, E92). The same name as an own bot makes a new version of it, with a higher version number.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": { "$ref": "#/components/schemas/BotUpload" },
+              "encoding": { "files": { "contentType": "application/octet-stream" } }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The new bot, waiting for its verification.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BotDetail" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadUpload" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "409": { "$ref": "#/components/responses/NameTaken" },
+          "413": { "$ref": "#/components/responses/TooLarge" },
+          "429": { "$ref": "#/components/responses/TooManyAttempts" }
         }
       }
     },
@@ -111,12 +140,12 @@
       ],
       "get": {
         "operationId": "get_bot",
-        "summary": "One bot.",
+        "summary": "One bot. Verified and disabled bots are public; the owner and admins also see the others, and they alone get the details with the verification report (E15).",
         "responses": {
           "200": {
             "description": "The bot.",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/Bot" } }
+              "application/json": { "schema": { "$ref": "#/components/schemas/BotDetail" } }
             }
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
@@ -231,6 +260,22 @@
           "401": { "$ref": "#/components/responses/InvalidCredentials" },
           "403": { "$ref": "#/components/responses/Forbidden" },
           "429": { "$ref": "#/components/responses/TooManyAttempts" }
+        }
+      }
+    },
+    "/account/bots": {
+      "get": {
+        "operationId": "list_own_bots",
+        "security": [{ "session": [] }],
+        "summary": "The bots of the logged-in account in every status, newest first.",
+        "responses": {
+          "200": {
+            "description": "The bots.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BotList" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" }
         }
       }
     },
@@ -355,6 +400,40 @@
         "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
         "responses": {
           "204": { "description": "The invite no longer works." },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/admin/bots/{bot_id}": {
+      "parameters": [
+        {
+          "name": "bot_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "patch": {
+        "operationId": "update_bot",
+        "security": [{ "session": [] }],
+        "summary": "Disables a verified bot or enables a disabled one again (admin, E93); queued matches of a disabled bot are aborted when their turn comes.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/BotUpdate" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The changed bot.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BotDetail" } }
+            }
+          },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthenticated" },
           "403": { "$ref": "#/components/responses/Forbidden" },
@@ -516,6 +595,18 @@
           "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
         }
       },
+      "BadUpload": {
+        "description": "A field is invalid (code invalid_parameter), or the files break the upload rules (code invalid_upload, with the file to blame in path, if there is one).",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "NameTaken": {
+        "description": "The name belongs to a bot of another account or to a reference bot (code name_taken), or another upload of the name came first (code upload_conflict).",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "TooLarge": {
+        "description": "The request is larger than 3 MiB (code too_large).",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
       "Session": {
         "description": "The session after the request.",
         "content": {
@@ -545,11 +636,22 @@
               "invalid_credentials",
               "invalid_token",
               "username_taken",
-              "too_many_attempts"
+              "too_many_attempts",
+              "name_taken",
+              "upload_conflict",
+              "invalid_upload",
+              "too_large"
             ]
           },
-          "message": { "description": "English text for logs; not shown to users.", "type": "string" },
-          "field": { "description": "The invalid parameter, for invalid_parameter.", "type": "string" }
+          "message": {
+            "description": "English text for logs; not shown to users, except as the detail of invalid_upload.",
+            "type": "string"
+          },
+          "field": {
+            "description": "The invalid parameter, for invalid_parameter.",
+            "type": "string"
+          },
+          "path": { "description": "The file to blame, for invalid_upload.", "type": "string" }
         },
         "required": ["code", "message"],
         "additionalProperties": false
@@ -689,20 +791,245 @@
         "required": ["items", "total"],
         "additionalProperties": false
       },
-      "Bot": {
+      "BotStatus": {
+        "description": "uploaded, analyzing, testing: in the verification; verified: plays; rejected: failed the verification; disabled: stopped by an admin (verifikation.md).",
+        "enum": ["uploaded", "analyzing", "testing", "verified", "rejected", "disabled"]
+      },
+      "BotName": {
+        "description": "3 to 32 letters, digits, _ . or -, starting with a letter or digit; regardless of case the name of one owner's bots (E91).",
+        "type": "string",
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{2,31}(?!\\n)$"
+      },
+      "BotVersion": {
+        "description": "X.Y.Z, each part 0 to 999 without leading zeros (E91).",
+        "type": "string",
+        "pattern": "^(0|[1-9][0-9]{0,2})\\.(0|[1-9][0-9]{0,2})\\.(0|[1-9][0-9]{0,2})(?!\\n)$"
+      },
+      "BotFields": {
+        "description": "The fields of Bot, open for extension by BotDetail.",
         "type": "object",
         "properties": {
           "id": { "$ref": "#/components/schemas/Id" },
           "name": { "type": "string" },
+          "version": { "type": "string" },
           "language": { "enum": ["python", "cpp", "java", "csharp", "javascript"] },
-          "status": { "const": "verified" },
+          "status": { "$ref": "#/components/schemas/BotStatus" },
           "builtin": {
             "description": "A reference bot shipped with the SDK (E68, E72).",
             "type": "boolean"
           },
           "created_at": { "$ref": "#/components/schemas/Timestamp" }
         },
-        "required": ["id", "name", "language", "status", "builtin", "created_at"],
+        "required": ["id", "name", "version", "language", "status", "builtin", "created_at"]
+      },
+      "Bot": {
+        "allOf": [{ "$ref": "#/components/schemas/BotFields" }],
+        "unevaluatedProperties": false
+      },
+      "BotDetail": {
+        "allOf": [{ "$ref": "#/components/schemas/BotFields" }],
+        "type": "object",
+        "properties": {
+          "details": {
+            "description": "Only for the owner and admins; null for everyone else.",
+            "oneOf": [{ "$ref": "#/components/schemas/BotDetails" }, { "type": "null" }]
+          }
+        },
+        "required": ["details"],
+        "unevaluatedProperties": false
+      },
+      "BotFile": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string" },
+          "kind": {
+            "description": "data: a file for load_data in data/.",
+            "enum": ["source", "data"]
+          },
+          "size": { "description": "Bytes.", "type": "integer", "minimum": 0 }
+        },
+        "required": ["path", "kind", "size"],
+        "additionalProperties": false
+      },
+      "BotDetails": {
+        "type": "object",
+        "properties": {
+          "owner": {
+            "description": "Name of the owner; null for reference bots.",
+            "type": ["string", "null"]
+          },
+          "entry": {
+            "description": "The file the bot starts with; null for reference bots.",
+            "type": ["string", "null"]
+          },
+          "files": { "type": "array", "items": { "$ref": "#/components/schemas/BotFile" } },
+          "sdk_version": {
+            "description": "SDK version of the runtime that verified the bot.",
+            "type": ["string", "null"]
+          },
+          "runtime_version": { "type": ["string", "null"] },
+          "verified_at": {
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          },
+          "rejected_at": {
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          },
+          "rejection": {
+            "oneOf": [{ "$ref": "#/components/schemas/Rejection" }, { "type": "null" }]
+          },
+          "report": {
+            "description": "null until the verification ends, and for reference bots.",
+            "oneOf": [{ "$ref": "#/components/schemas/VerificationReport" }, { "type": "null" }]
+          }
+        },
+        "required": [
+          "owner",
+          "entry",
+          "files",
+          "sdk_version",
+          "runtime_version",
+          "verified_at",
+          "rejected_at",
+          "rejection",
+          "report"
+        ],
+        "additionalProperties": false
+      },
+      "VerificationStageName": {
+        "description": "internal: the server could not verify the bot (E92).",
+        "enum": ["analysis", "tests", "internal"]
+      },
+      "Rejection": {
+        "type": "object",
+        "properties": {
+          "stage": { "$ref": "#/components/schemas/VerificationStageName" },
+          "reason": { "description": "English text from the runner.", "type": "string" }
+        },
+        "required": ["stage", "reason"],
+        "additionalProperties": false
+      },
+      "Finding": {
+        "description": "A problem the static analysis found (statische-analyse.md).",
+        "type": "object",
+        "properties": {
+          "rule": { "type": "string" },
+          "file": { "type": "string" },
+          "line": { "type": ["integer", "null"], "minimum": 1 },
+          "message": { "description": "English text from the analyzer.", "type": "string" }
+        },
+        "required": ["rule", "file", "line", "message"],
+        "additionalProperties": false
+      },
+      "TestGame": {
+        "description": "One Mindesttest: a game against the reference bot Random (verifikation.md).",
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "color": { "description": "The colour of the bot.", "enum": ["white", "black"] },
+          "result": { "$ref": "#/components/schemas/Result" },
+          "termination": { "$ref": "#/components/schemas/Termination" },
+          "detail": { "type": "string" },
+          "plies": { "type": "integer", "minimum": 0 },
+          "passed": { "type": "boolean" },
+          "problem": { "description": "Why the test failed.", "type": ["string", "null"] }
+        },
+        "required": [
+          "name",
+          "color",
+          "result",
+          "termination",
+          "detail",
+          "plies",
+          "passed",
+          "problem"
+        ],
+        "additionalProperties": false
+      },
+      "VerificationStage": {
+        "type": "object",
+        "properties": {
+          "stage": { "$ref": "#/components/schemas/VerificationStageName" },
+          "status": { "enum": ["passed", "failed"] },
+          "duration_ms": { "type": "integer", "minimum": 0 },
+          "problem": { "description": "Why the stage failed.", "type": ["string", "null"] },
+          "findings": {
+            "description": "Stage analysis.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Finding" }
+          },
+          "truncated": {
+            "description": "Stage analysis: there were more findings than listed.",
+            "type": "boolean"
+          },
+          "tests": {
+            "description": "Stage tests, up to the first that failed.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TestGame" }
+          }
+        },
+        "required": ["stage", "status", "duration_ms", "problem"],
+        "additionalProperties": false
+      },
+      "VerificationReport": {
+        "type": "object",
+        "properties": {
+          "result": { "enum": ["passed", "failed"] },
+          "ruleset": {
+            "description": "The rules of the static analysis, e.g. python-1.",
+            "type": ["string", "null"]
+          },
+          "runtime": {
+            "description": "Versions in the bots' runtime, e.g. python and sdk.",
+            "type": "object",
+            "additionalProperties": { "type": "string" }
+          },
+          "started_at": { "$ref": "#/components/schemas/Timestamp" },
+          "finished_at": { "$ref": "#/components/schemas/Timestamp" },
+          "stages": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/VerificationStage" }
+          }
+        },
+        "required": ["result", "ruleset", "runtime", "started_at", "finished_at", "stages"],
+        "additionalProperties": false
+      },
+      "BotUpload": {
+        "description": "Paths are relative with /; .py files and data files directly in data/, at most 100 of each and 1 MiB each in all (verifikation.md). At most 20 uploads a day per account.",
+        "type": "object",
+        "properties": {
+          "name": { "$ref": "#/components/schemas/BotName" },
+          "version": {
+            "description": "Higher than every earlier version of the name.",
+            "$ref": "#/components/schemas/BotVersion"
+          },
+          "language": { "description": "Only Python so far.", "const": "python" },
+          "entry": {
+            "description": "The file the bot starts with, in the top folder.",
+            "type": "string",
+            "maxLength": 200,
+            "default": "bot.py"
+          },
+          "paths": {
+            "description": "The path of each file, in the order of files.",
+            "type": "array",
+            "items": { "type": "string", "maxLength": 200 },
+            "minItems": 1,
+            "maxItems": 200
+          },
+          "files": {
+            "type": "array",
+            "items": { "type": "string", "contentMediaType": "application/octet-stream" },
+            "minItems": 1,
+            "maxItems": 200
+          }
+        },
+        "required": ["name", "version", "language", "paths", "files"],
+        "additionalProperties": false
+      },
+      "BotUpdate": {
+        "type": "object",
+        "properties": { "status": { "enum": ["verified", "disabled"] } },
+        "required": ["status"],
         "additionalProperties": false
       },
       "BotList": {
