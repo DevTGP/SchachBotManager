@@ -27,6 +27,9 @@ NAME_TAKEN = "name_taken"
 UPLOAD_CONFLICT = "upload_conflict"
 INVALID_UPLOAD = "invalid_upload"
 TOO_LARGE = "too_large"
+BUILTIN_BOT = "builtin_bot"
+BOT_VERIFYING = "bot_verifying"
+BOT_PLAYING = "bot_playing"
 
 
 class ApiError(Exception):

@@ -5,7 +5,8 @@ const dbName = process.env.SBM_MONGO_DB || "sbm";
 const appDb = db.getSiblingDB(dbName);
 
 // The api reads everything but writes only what accounts, the admin pages and uploads need
-// (E85, E92); the uploaded files go to the GridFS bucket bot_files (E82).
+// (E85, E92); the uploaded files go to the GridFS bucket bot_files (E82). Deleting a bot
+// removes it with its matches, their jobs and its report (E105).
 const writeAll = ["insert", "update", "remove"];
 const apiWrites = {
   users: writeAll,
@@ -14,9 +15,10 @@ const apiWrites = {
   password_resets: writeAll,
   rate_limits: writeAll,
   audit_log: ["insert"],
-  matches: ["insert"],
-  jobs: ["insert"],
-  bots: ["insert", "update"],
+  matches: ["insert", "remove"],
+  jobs: ["insert", "remove"],
+  bots: writeAll,
+  verification_reports: ["remove"],
   "bot_files.files": ["insert", "remove"],
   "bot_files.chunks": ["insert", "remove"],
   settings: ["insert", "update"],
