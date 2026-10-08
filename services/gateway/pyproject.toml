@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sbm-gateway"
+version = "0.1.0"
+description = "WebSocket gateway: connects browsers and remote bots with the games of the play runner"
+license = "MIT-0"
+requires-python = ">=3.12"
+# No database access: the runner tells the gateway which seats exist (gateway.md).
+dependencies = ["websockets>=15"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+sbm-gateway = "sbm_gateway.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM"]
