@@ -110,6 +110,23 @@ Neue Fehlercodes: `invalid_upload` (400, mit `path` der betroffenen Datei), `too
 
 Partien halten zu jeder Seite `version` (bei älteren Partien `null`). Eine Anfrage über dem Tageslimit zählt nicht.
 
+### Stand M4, Schritt 1 (E100)
+
+| Route | Aufgabe |
+|-------|---------|
+| `GET /disciplines`, `GET /disciplines/{id}` | Öffentlich: alle Disziplinen nach Name, archivierte eingeschlossen |
+| `POST /admin/disciplines` | Disziplin anlegen; Audit `discipline.create` |
+| `PATCH /admin/disciplines/{id}` | Felder ändern, archivieren oder wiederherstellen; Audit `discipline.update` |
+| `POST /admin/matches`, `POST /matches` | Optional `discipline_id`; dann sind `initial_time_ms`, `increment_ms` und `max_moves` nicht erlaubt. Unbekannte oder archivierte Disziplinen ergeben 400 mit `field` `discipline_id` |
+
+Ein vergebener Name ergibt 409 `name_taken` mit `field` `name`. Zusammenfassungen und Details von Partien enthalten `rated`, der Schnappschuss `discipline_id`.
+
+| Datei | Aufgabe |
+|-------|---------|
+| `discipline_request.py` | Prüfung der Bodies und der in einer Partie gewählten Disziplin |
+| `discipline_view.py` | Darstellung einer Disziplin |
+| `routes/disciplines.py`, `routes/admin_disciplines.py` | Öffentliche und Admin-Routen |
+
 ## Rollen und Rechte
 
 | Rolle | Darf |

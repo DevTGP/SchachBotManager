@@ -94,6 +94,16 @@ Die Bot-Liste zeigt die Version und verlinkt jeden Bot; die Kontonavigation füh
 
 Die Kontonavigation führt zu „Meine Bots“, von dort zum Upload. Dateien eines Bots zeigt die Seite nur als Text, den React maskiert; HTML in einer Datei wird nie ausgeführt.
 
+## Stand M4, Schritt 1 (E100)
+
+| Ort | Inhalt |
+|-----|--------|
+| `src/pages/admin/AdminDisciplinesPage.tsx`, `DisciplineEditor.tsx`, `disciplineForm.ts` | Seite `/admin/disciplines`: Disziplinen anlegen, ändern, archivieren und wiederherstellen |
+| `src/components/DisciplineSelect.tsx` | Auswahl einer nicht archivierten Disziplin oder freier Zeiten, im Admin- und im Coder-Formular für Partien; mit Disziplin entfallen die Zeitfelder |
+| `src/viewer/MatchDetails.tsx` | Zeile „Gewertet“ |
+
+Lädt `/disciplines` nicht, bieten die Formulare nur freie Zeiten an.
+
 ## Mensch gegen Bot
 
 - Zugeingabe per Drag-and-drop/Klick; legale Züge kommen vom Server oder aus einer Client-Schachbibliothek (nur Komfort – der Server prüft immer).

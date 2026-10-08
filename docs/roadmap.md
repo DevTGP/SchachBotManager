@@ -100,6 +100,8 @@ Abnahme: Ein eingeladener Nutzer lädt einen Python-Bot hoch; bösartige Testbot
 | Live-Kanal für laufende Spiele | Viewer aktualisiert sich |
 | Adminbereich Teil 1 (Disziplinen, Ligen, Queue-Steuerung, Bot sperren) | Betrieb ohne DB-Zugriff |
 
+Reihenfolge in vier Schritten (E99): (1) Disziplinen mit Admin-Seite und Auswahl bei Einzelspielen – umgesetzt (E100); (2) Ligen, Saisons, Anmeldung, Tabellen und Queue-Logik (E101); (3) Liga-Seiten der Website; (4) Live-Kanal (E102). Das Rating wartet auf seine Ausgestaltung (O21).
+
 Abnahme: Zwei aufeinanderfolgende Saisons laufen ohne manuellen Eingriff durch, inklusive Auf-/Abstieg, neu einsteigendem Bot und einem während der Saison zurückgezogenen Bot.
 
 ### M5 – Weitere Sprachen (P2)

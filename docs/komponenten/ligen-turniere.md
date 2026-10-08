@@ -18,6 +18,22 @@ Ressourcenlimitierte Disziplinen (Speicher, CPU, Dateigröße) sind zurückgeste
 
 Änderungen an einer Disziplin gelten erst ab der nächsten Saison/dem nächsten Turnier; laufende Wettbewerbe arbeiten mit einem Schnappschuss.
 
+### Stand M4, Schritt 1 (E100)
+
+| Feld | Bereich | Standard |
+|------|---------|----------|
+| `name` | 1 bis 40 Zeichen ohne Steuerzeichen, ohne Rücksicht auf Groß- und Kleinschreibung eindeutig | – |
+| `initial_time_ms` | 1 s bis 24 h | – |
+| `increment_ms` | 0 bis 1 h | 0 |
+| `startup_ms` | 1 bis 60 s | 10 s |
+| `tolerance_ms` | 0 bis 1000 ms | 20 ms |
+| `max_moves` | 1 bis 2000 | 500 |
+| `archived` | ja/nein | nein |
+
+- Admins legen Disziplinen auf `/admin/disciplines` an, ändern und archivieren sie. Gelöscht wird nie; archivierte Disziplinen sind für neue Partien nicht wählbar, bleiben aber lesbar.
+- Eine Partie kopiert die Disziplin beim Einreihen in `discipline_snapshot` samt `discipline_id`. Änderungen wirken nur auf später eingereihte Partien.
+- Noch nicht einstellbar: Log-Stufe und Log-Menge (O19) und das Verhalten bei Zeitüberschreitung mit ungenügendem Material (immer Remis).
+
 ## Ligen (E7)
 
 ### Struktur
@@ -95,6 +111,8 @@ Zu beachten:
 ## Einzelspiele
 
 Vom Admin oder Besitzer angesetzt (z. B. Version gegen Version), ungewertet oder nur fürs Rating.
+
+Seit E100 wählt man eine Disziplin oder freie Zeiten. Nur Partien mit Disziplin aus der Grundstellung sind `rated` und zählen später fürs Rating (O21); freie Zeiten und andere Startstellungen nicht. Für Coder gilt die Grenze von 5 min + 5 s nur bei freien Zeiten (E98).
 
 ## Rating
 

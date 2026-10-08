@@ -102,6 +102,12 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 - `rate_limits` zählt Partien durch Coder unter `matches:{user_id}` je Tag (E98); `sbm_store.rate_limits.hit` zählt dafür mehrere auf einmal, `give_back` nimmt eine abgelehnte Anfrage zurück.
 - Keine Migration nötig: Die neuen Felder sind optional.
 
+## Stand M4, Schritt 1 (E100)
+
+- Neu ist `disciplines` (`sbm_store.disciplines`) mit `name`, `name_key` (Name in Kleinbuchstaben), `initial_time_ms`, `increment_ms`, `startup_ms`, `tolerance_ms`, `max_moves`, `archived`, `created_by`, `created_at`, `updated_at` und `schema_version`.
+- `0005_disciplines` legt den eindeutigen Index auf `name_key` an.
+- `discipline_snapshot` einer Partie hält zusätzlich `discipline_id` (`null` bei freien Zeiten), die Partie `rated`. Ältere Partien haben beides nicht; die API liefert `null` und `false`.
+
 ## Zu beachten
 
 - **Tabellen sind abgeleitete Daten.** Sie müssen jederzeit aus `matches` neu berechenbar sein (Reparaturwerkzeug für Admins).
