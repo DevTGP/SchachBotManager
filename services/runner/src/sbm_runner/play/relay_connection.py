@@ -10,6 +10,7 @@ import queue
 import socket
 import threading
 import time
+from collections.abc import Callable
 
 from sbm.referee import PlayerTimeout
 
@@ -45,6 +46,9 @@ class RelayConnection:
         self._closed_reason: str | None = None
         self._lock = threading.Lock()
         self._reader: threading.Thread | None = None
+        # Called in the reader thread whenever a client takes the seat, e.g. to send it the
+        # whole game again after a reload.
+        self.on_present: Callable[[], None] | None = None
 
     def open(self, timeout: float) -> None:
         """Connects and attaches the seat; raises OSError if the gateway is unreachable."""
@@ -144,6 +148,9 @@ class RelayConnection:
         elif kind == "present":
             self._absent_since = None
             self._present.set()
+            if self.on_present is not None:
+                with contextlib.suppress(OSError, RelayClosed):
+                    self.on_present()
         elif kind == "absent":
             self._present.clear()
             self._absent_since = time.monotonic()

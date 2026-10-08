@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 
 from pymongo.database import Database
 from pymongo.errors import PyMongoError
-from sbm_store import jobs, matches, play
+from sbm_store import jobs, matches, play, play_settings
 
 from sbm_runner.heartbeat import Heartbeat
 from sbm_runner.play.config import PlayConfig
@@ -69,7 +69,9 @@ class PlayWorker:
         """Starts one game if a slot is free; False if nothing was started."""
         self._reap()
         recover_expired_play(self._db, self._now())
-        if self.running >= self._config.slots:
+        # The setting on the website, at most the slots this container was given (E115).
+        slots = min(self._config.slots, play_settings.get(self._db).max_games)
+        if self.running >= slots:
             return False
         job = jobs.claim(
             self._db,

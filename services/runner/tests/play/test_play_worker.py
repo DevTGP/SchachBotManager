@@ -73,15 +73,6 @@ def test_a_client_that_leaves_for_good_aborts_the_game(db, gateway, play_worker,
     assert "SeatAbandoned" in match["termination_detail"]
 
 
-def test_people_cannot_play_before_step_2(db, gateway, play_worker, create_remote):
-    match_id, _seat = create_remote(play.HUMAN)
-
-    assert play_worker.step()
-    wait_for(lambda: finished(db, match_id))
-
-    assert "cannot play yet" in matches.get(db, match_id)["termination_detail"]
-
-
 def test_an_unreachable_gateway_aborts_the_match(db, play_config, create_remote, gateway):
     config = PlayConfig(**{**play_config.__dict__, "relay_port": 1})
     worker = PlayWorker(db, config, sleep=lambda _seconds: None)
@@ -137,3 +128,17 @@ def test_a_match_left_running_is_not_restarted(db, gateway, play_worker, create_
     wait_for(lambda: finished(db, match_id))
 
     assert "cannot be resumed" in matches.get(db, match_id)["termination_detail"]
+
+
+def test_the_setting_on_the_website_lowers_the_slots(db, gateway, play_config, create_remote):
+    from sbm_store import play_settings
+
+    play_settings.save(db, play_settings.PlaySettings(max_games=1))
+    config = PlayConfig(**{**play_config.__dict__, "slots": 3})
+    worker = PlayWorker(db, config, sleep=lambda _seconds: None)
+    create_remote()
+    create_remote()
+
+    assert worker.step()
+    assert not worker.step()
+    worker.stop()

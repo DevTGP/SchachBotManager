@@ -9,12 +9,13 @@ from collections.abc import Callable
 from datetime import datetime
 
 from pymongo.database import Database
-from sbm.referee import Match, Player
+from sbm.referee import Match, MatchRecord, MoveRecord, Player
 from sbm_store import jobs, matches, play
 
-from sbm_runner.game import COLORS, bot_player, store_result
+from sbm_runner.game import COLORS, bot_player
 from sbm_runner.match_settings import match_settings
 from sbm_runner.play.config import PlayConfig
+from sbm_runner.play.human_player import HumanPlayer
 from sbm_runner.play.relay_connection import RelayConnection
 from sbm_runner.play.relay_player import RelayPlayer
 from sbm_runner.players import PlayerFactory, UnsupportedBot
@@ -50,6 +51,7 @@ class InteractiveGame:
         self._config = config
         self._now = now
         self._connections: list[RelayConnection] = []
+        self._people: list[HumanPlayer] = []
         self.match_id = job["payload"]["match_id"]
 
     def cancel(self) -> None:
@@ -87,12 +89,18 @@ class InteractiveGame:
         log.info("interactive match %s: %s vs %s", self.match_id, white.name, black.name)
         try:
             recorder = Recorder(self._db, self.match_id)
-            record = Match(white, black, match_settings(match), on_move=recorder.on_move).play()
+
+            def on_move(move: MoveRecord) -> None:
+                recorder.on_move(move)
+                for person in self._people:
+                    person.observe(move)
+
+            record = Match(white, black, match_settings(match), on_move=on_move).play()
         except Exception as error:
             log.warning("interactive match %s aborted: %s", self.match_id, error)
             self._abort(_reason(error))
             return
-        store_result(self._db, self.match_id, record, self._now())
+        self._store(match, record)
         jobs.complete(self._db, self._job["_id"], self._job["worker_id"], self._now())
         outcome = record.outcome
         log.info("match %s: %s (%s)", self.match_id, outcome.result, outcome.termination)
@@ -100,13 +108,37 @@ class InteractiveGame:
     def _side(self, side: dict) -> Player:
         if side["kind"] == "bot":
             return bot_player(self._db, side, self._players)
-        if side["kind"] != play.REMOTE:
-            raise UnsupportedBot(f"sides of kind {side['kind']} cannot play yet")
+        if side["kind"] not in play.SEAT_KINDS:
+            raise UnsupportedBot(f"sides of kind {side['kind']} cannot play")
         connection = self._relays(str(self.match_id), side["seat_hash"])
         self._connections.append(connection)
         connection.open(self._config.relay_timeout.total_seconds())
         grace = self._config.absent_grace.total_seconds()
-        return RelayPlayer(side["name"], connection, absent_grace=grace)
+        if side["kind"] == play.REMOTE:
+            return RelayPlayer(side["name"], connection, absent_grace=grace)
+        person = HumanPlayer(side["name"], connection, absent_grace=grace)
+        self._people.append(person)
+        return person
+
+    def _store(self, match: dict, record: MatchRecord) -> None:
+        """A person has no SDK; bots and remote bots keep what their ready said."""
+        outcome = record.outcome
+        sides = {}
+        for color, side in zip(COLORS, (record.white, record.black), strict=True):
+            person = match[color]["kind"] == play.HUMAN
+            sides[color] = {
+                "sdk": None if person else side.sdk,
+                "lang": None if person else side.lang,
+            }
+        matches.finish(
+            self._db,
+            self.match_id,
+            sides=sides,
+            result=outcome.result,
+            termination=outcome.termination,
+            detail=outcome.detail,
+            now=self._now(),
+        )
 
     def _wait_for_seats(self) -> None:
         for connection in self._connections:

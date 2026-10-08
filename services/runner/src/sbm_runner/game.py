@@ -51,7 +51,7 @@ def run_job(
     record = Match(
         white, black, match_settings(match), on_move=Recorder(db, match_id).on_move
     ).play()
-    store_result(db, match_id, record, now())
+    _store_result(db, match_id, record, now())
     jobs.complete(db, job["_id"], job["worker_id"], now())
     log.info("match %s: %s (%s)", match_id, record.outcome.result, record.outcome.termination)
 
@@ -66,7 +66,7 @@ def bot_player(db: Database, side: dict, players: PlayerFactory) -> Player:
     return players(bot)
 
 
-def store_result(db: Database, match_id, record: MatchRecord, now: datetime) -> None:
+def _store_result(db: Database, match_id, record: MatchRecord, now: datetime) -> None:
     outcome = record.outcome
     sides = {
         color: {"sdk": side.sdk, "lang": side.lang}

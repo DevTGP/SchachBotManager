@@ -109,6 +109,69 @@ class RemoteBot(threading.Thread):
         return [message["type"] for message in self.received]
 
 
+class Person(threading.Thread):
+    """A browser speaking play-v1: plays the first legal move when it is its turn.
+
+    first_try sends this move once before the legal one, early sends a move while the bot
+    thinks, resign_after resigns after that many own moves, leave_after closes the connection.
+    """
+
+    def __init__(
+        self,
+        url: str,
+        match_id,
+        seat: str,
+        *,
+        first_try: str | None = None,
+        early: bool = False,
+        resign_after: int | None = None,
+        leave_after: int | None = None,
+    ) -> None:
+        super().__init__(daemon=True)
+        self._url = url
+        self._join = {"type": "join", "v": 1, "match_id": str(match_id), "seat": seat}
+        self._first_try = first_try
+        self._early = early
+        self._resign_after = resign_after
+        self._leave_after = leave_after
+        self.states: list[dict] = []
+        self.errors: list[dict] = []
+        self.moves = 0
+
+    def run(self) -> None:
+        with connect(self._url, open_timeout=TIMEOUT) as socket:
+            socket.send(json.dumps(self._join))
+            try:
+                while True:
+                    message = json.loads(socket.recv(timeout=TIMEOUT))
+                    if message["type"] == "error":
+                        self.errors.append(message)
+                    elif message["type"] == "state":
+                        self.states.append(message)
+                        if not self._answer(socket, message):
+                            return
+            except (ConnectionClosed, TimeoutError):
+                return
+
+    def _answer(self, socket, state: dict) -> bool:
+        if state["result"] is not None:
+            return False
+        if not state["legal_moves"]:
+            if self._early:
+                self._early = False
+                socket.send('{"type":"move","v":1,"move":"a2a3"}')
+            return True
+        if self._first_try is not None:
+            socket.send(json.dumps({"type": "move", "v": 1, "move": self._first_try}))
+            self._first_try = None
+        if self._resign_after is not None and self.moves >= self._resign_after:
+            socket.send('{"type":"resign","v":1}')
+            return True
+        socket.send(json.dumps({"type": "move", "v": 1, "move": state["legal_moves"].split()[0]}))
+        self.moves += 1
+        return self._leave_after is None or self.moves < self._leave_after
+
+
 @pytest.fixture
 def gateway():
     running = RunningGateway()
