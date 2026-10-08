@@ -1,8 +1,9 @@
 """Interactive matches: a bot against a person in the browser or a bot on the person's machine
 (M7, E111, E113).
 
-They bypass the queue (E24): their job has the type play, which only the play runner takes,
-and they are never rated (A9). Each side that is not a bot holds a seat: a secret token the web
+They bypass the queue (E24): their job has the type play, which only the play runner takes.
+Only a person with an account is rated, under the rule of E100 (E103); guests and remote bots
+on the person's machine are not. Each side that is not a bot holds a seat: a secret token the web
 API hands out once; the match keeps only its hash, which the runner gives to the gateway.
 """
 
@@ -12,7 +13,7 @@ from bson import ObjectId
 from pymongo.database import Database
 
 from sbm_store import jobs, matches, tokens
-from sbm_store.discipline import Discipline
+from sbm_store.discipline import Discipline, is_rated
 from sbm_store.names import JOBS
 
 PLAY_JOB = "play"
@@ -49,6 +50,16 @@ def is_seat(side: dict) -> bool:
     return side["kind"] in SEAT_KINDS
 
 
+def rated(
+    match_type: str, sides: tuple[dict, dict], discipline: Discipline, start_fen: str
+) -> bool:
+    """A person with an account against a bot counts like a single game (E103)."""
+    if match_type != HUMAN:
+        return False
+    people = [side for side in sides if is_seat(side)]
+    return all(side["user_id"] is not None for side in people) and is_rated(discipline, start_fen)
+
+
 def new_play_match(
     match_type: str,
     white: dict,
@@ -72,7 +83,7 @@ def new_play_match(
         "black": black,
         "status": matches.QUEUED,
         "queue": None,
-        "rated": False,
+        "rated": rated(match_type, (white, black), discipline, start_fen),
         "start_fen": start_fen,
         "moves": [],
         "result": None,
