@@ -72,7 +72,7 @@ Grenzen je Adresse, Konto und Token (gleichzeitig und pro Tag) und die Plätze i
 | Verbinden | `/play/:id` öffnet die WebSocket-Verbindung, nimmt den Sitz ein und erhält nach `joined` den Stand als `state` |
 | Ziehen | Die SPA bietet nur die Züge aus `legal_moves` an (Ziehen oder Anklicken, Umwandlung per Auswahl) und sendet `move`; ein abgewiesener Zug kommt als `error` zurück |
 | Aufgeben | `resign`, mit Rückfrage; während der Bot rechnet, wirkt es zu Beginn des nächsten eigenen Zuges |
-| Neuladen | Die SPA verbindet sich neu und nimmt den Sitz wieder ein; der `HumanPlayer` sendet den ganzen Stand erneut |
+| Neuladen | Die SPA verbindet sich neu und nimmt den Sitz wieder ein; der `HumanPlayer` sendet den ganzen Stand erneut, die laufende Uhr um die Zeit seit dem letzten Stand verringert |
 
 ## Wertung (E117)
 

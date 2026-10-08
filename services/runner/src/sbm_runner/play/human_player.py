@@ -9,6 +9,8 @@ the browser shows the bot's moves and clocks at once.
 
 import json
 import threading
+import time
+from collections.abc import Callable
 
 from sbm import Board
 from sbm.referee import MoveRecord, Player
@@ -31,12 +33,21 @@ def _side_to_move(fen: str) -> str:
 
 
 class HumanPlayer(Player):
-    def __init__(self, name: str, connection: RelayConnection, *, absent_grace: float) -> None:
+    def __init__(
+        self,
+        name: str,
+        connection: RelayConnection,
+        *,
+        absent_grace: float,
+        monotonic: Callable[[], float] = time.monotonic,
+    ) -> None:
         super().__init__(name)
         self._connection = connection
         self._absent_grace = absent_grace
+        self._monotonic = monotonic
         self._lock = threading.Lock()
-        self._state: str | None = None
+        self._state: dict | None = None
+        self._sent_at = 0.0
         self._ready_due = False
         self._my_turn = False
         self._resign_requested = False
@@ -146,33 +157,39 @@ class HumanPlayer(Player):
     # To the browser
 
     def _publish(self) -> None:
-        state = _encode(
-            {
-                "type": "state",
-                "v": VERSION,
-                "color": self._color,
-                "white": self._names["white"],
-                "black": self._names["black"],
-                "start_fen": self._start_fen,
-                "fen": self._fen,
-                "moves": " ".join(self._uci),
-                "san": " ".join(self._san),
-                "clock": dict(self._clock),
-                "running": self._running,
-                "increment_ms": self._increment_ms,
-                "legal_moves": " ".join(self._legal),
-                "result": self._result,
-                "termination": self._termination,
-            }
-        )
+        state = {
+            "type": "state",
+            "v": VERSION,
+            "color": self._color,
+            "white": self._names["white"],
+            "black": self._names["black"],
+            "start_fen": self._start_fen,
+            "fen": self._fen,
+            "moves": " ".join(self._uci),
+            "san": " ".join(self._san),
+            "clock": dict(self._clock),
+            "running": self._running,
+            "increment_ms": self._increment_ms,
+            "legal_moves": " ".join(self._legal),
+            "result": self._result,
+            "termination": self._termination,
+        }
         with self._lock:
-            self._state = state
-            self._connection.send_line(state)
+            self._state, self._sent_at = state, self._monotonic()
+            self._connection.send_line(_encode(state))
 
     def _resend(self) -> None:
+        """The last state for a browser that came back, its running clock counted down since."""
         with self._lock:
-            if self._state is not None:
-                self._connection.send_line(self._state)
+            if self._state is None:
+                return
+            state, running = self._state, self._state["running"]
+            if running is not None:
+                elapsed_ms = int((self._monotonic() - self._sent_at) * 1000)
+                clock = dict(state["clock"])
+                clock[running] = max(0, clock[running] - elapsed_ms)
+                state = {**state, "clock": clock}
+            self._connection.send_line(_encode(state))
 
     def _error(self, code: str, text: str) -> None:
         self._connection.send_line(
