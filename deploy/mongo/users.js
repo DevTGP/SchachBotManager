@@ -4,8 +4,9 @@
 const dbName = process.env.SBM_MONGO_DB || "sbm";
 const appDb = db.getSiblingDB(dbName);
 
-// The api reads everything but writes only what accounts, the admin pages and uploads need
-// (E85, E92); the uploaded files go to the GridFS bucket bot_files (E82).
+// The api reads everything but writes only what accounts, the admin pages, uploads and
+// interactive games need (E85, E92, E115, E116); the uploaded files go to the GridFS bucket
+// bot_files (E82).
 const writeAll = ["insert", "update", "remove"];
 const apiWrites = {
   users: writeAll,
@@ -20,6 +21,8 @@ const apiWrites = {
   "bot_files.files": ["insert", "remove"],
   "bot_files.chunks": ["insert", "remove"],
   settings: ["insert", "update"],
+  // Coders make and revoke their API tokens; using one marks it used (E116).
+  api_tokens: ["insert", "update"],
 };
 const roles = [
   {
