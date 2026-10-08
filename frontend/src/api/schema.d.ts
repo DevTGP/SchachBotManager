@@ -170,6 +170,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ratings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public bots with at least one rated match, highest rating first, then by name and version (E103). */
+        get: operations["list_ratings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/disciplines": {
         parameters: {
             query?: never;
@@ -573,6 +590,18 @@ export interface components {
             lang: string | null;
             /** @description Version of the bot; null for matches queued before versions were kept (E95). */
             version: string | null;
+            /** @description The bot's rating before and after the match; null until a rated match is counted, and for unrated matches (E103). */
+            rating: components["schemas"]["RatingChange"] | null;
+        };
+        RatingChange: {
+            before: number;
+            after: number;
+        };
+        /** @description Every bot version starts at 2500; rated matches move it by the rule of E103. */
+        Rating: {
+            value: number;
+            /** @description Rated matches counted so far. */
+            games: number;
         };
         /** @description The fields of MatchSummary, open for extension by Match. */
         MatchFields: {
@@ -583,7 +612,7 @@ export interface components {
             white: components["schemas"]["Side"];
             black: components["schemas"]["Side"];
             discipline: components["schemas"]["Discipline"];
-            /** @description Played under a stored discipline from the standard position; only such matches will count for the rating (E100). */
+            /** @description Played under a stored discipline from the standard position between two different bots; only such matches count for the rating (E100, E103). */
             rated: boolean;
             /** @description null until the match ends. */
             result: components["schemas"]["result"] | null;
@@ -639,6 +668,7 @@ export interface components {
             builtin: boolean;
             /** @description Plain text by the owner, at most 500 characters; line breaks but no other control characters (E95). */
             description: string;
+            rating: components["schemas"]["Rating"];
             created_at: components["schemas"]["Timestamp"];
         };
         Bot: components["schemas"]["BotFields"];
@@ -1413,6 +1443,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Queue"];
+                };
+            };
+        };
+    };
+    list_ratings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The ranking. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotList"];
                 };
             };
         };
