@@ -81,6 +81,10 @@ Jedes Ende bekommt einen maschinenlesbaren `termination`-Code (Liste in [bot-pro
 - Partien durch Coder haben Priorität 50 und kommen damit nach denen der Admins (E98); sonst behandelt er sie gleich.
 - Die Seiten einer Partie halten die Version des Bots (E95).
 
+### Stand M4 Schritt 2 (E103, E104)
+
+- Nach jedem Partie-Job verbucht der Worker alle beendeten, gewerteten und noch offenen Partien in der Reihenfolge ihres Endes (`sbm_store.ratings.count_pending`). Ein Datenbankfehler dabei wird nur protokolliert; die nächste Partie holt das nach.
+
 ## Aufgezeichnete Daten pro Zug
 
 `uci`, `san`, FEN nach dem Zug, verbrauchte Zeit, Restzeit, optionale `info` des Bots. Siehe [datenmodell.md](datenmodell.md).

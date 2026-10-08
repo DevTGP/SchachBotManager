@@ -20,7 +20,6 @@
 | `tournaments` | Turnier inkl. Konfiguration und Zustand | `format`, `discipline_snapshot`, `status`, `rounds[]`, `bracket`, `recurrence_id` |
 | `registrations` | Anmeldung Bot ↔ Liga/Turnier | `bot_id`, `target_type`, `target_id`, `status`, `created_at` |
 | `matches` | Eine Partie | siehe unten |
-| `ratings` | Punktestand je Bot, ab M7 auch je Konto (E103) | `bot_id` bzw. `user_id`, `value`, `games`, Verlauf über die Partien |
 | `jobs` | Queue (A8) | `type`, `payload`, `priority`, `status`, `not_before`, `lease_until`, `worker_id`, `attempts` |
 | `audit_log` | Admin- und sicherheitsrelevante Aktionen | `actor_id`, `action`, `target`, `at`, `details` |
 
@@ -107,6 +106,13 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 - Neu ist `disciplines` (`sbm_store.disciplines`) mit `name`, `name_key` (Name in Kleinbuchstaben), `initial_time_ms`, `increment_ms`, `startup_ms`, `tolerance_ms`, `max_moves`, `archived`, `created_by`, `created_at`, `updated_at` und `schema_version`.
 - `0005_disciplines` legt den eindeutigen Index auf `name_key` an.
 - `discipline_snapshot` einer Partie hält zusätzlich `discipline_id` (`null` bei freien Zeiten), die Partie `rated`. Ältere Partien haben beides nicht; die API liefert `null` und `false`.
+
+## Stand M4, Schritt 2 (E103, E104)
+
+- Keine eigene Sammlung für Ratings. Ein Bot hält `rating` mit `value`, `games` und `seq` der zuletzt übernommenen Partie; ohne das Feld steht er bei 2500 und 0 Partien. Ab M7 bekommen Konten dasselbe Feld.
+- Eine verbuchte Partie hält `rating` mit `seq` und je Seite `before`, `after` und `games`; darin steckt der Verlauf (`sbm_store.ratings`, Regel in `sbm_store.rating_rule`).
+- `0006_ratings` legt den eindeutigen Teilindex auf `rating.seq`, einen Index für die offenen Partien (`status`, `rated`, `finished_at`) und einen auf `rating.value` der Bots an.
+- Eine Partie eines Bots gegen sich selbst ist nie `rated`.
 
 ## Zu beachten
 
