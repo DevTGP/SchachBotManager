@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { ApiError, apiUrl, getJson, sendJson } from "./client";
+import { ApiError, apiUrl, getJson, sendForm, sendJson } from "./client";
 
 describe("apiUrl", () => {
   it("leaves out missing parameters", () => {
@@ -73,5 +73,29 @@ describe("sendJson", () => {
       status: 400,
       field: "password",
     });
+  });
+});
+
+describe("sendForm", () => {
+  it("leaves the Content-Type to the browser and keeps the file to blame", async () => {
+    const fetch = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(
+        Response.json(
+          { code: "invalid_upload", message: "only .py files", path: "notes.txt" },
+          { status: 400 },
+        ),
+      );
+    const form = new FormData();
+    form.append("name", "Sharp");
+
+    await expect(sendForm("POST", "/bots", form)).rejects.toMatchObject({
+      code: "invalid_upload",
+      path: "notes.txt",
+    });
+    const init = fetch.mock.calls[0]![1];
+    expect(init?.body).toBe(form);
+    expect(new Headers(init?.headers).get("X-SBM-CSRF")).toBe("1");
+    expect(new Headers(init?.headers).has("Content-Type")).toBe(false);
   });
 });

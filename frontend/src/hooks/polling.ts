@@ -5,3 +5,6 @@ export const POLL_MATCH_MS = 2_000;
 
 /** Lists and the queue. */
 export const POLL_LIST_MS = 10_000;
+
+/** A bot in its verification. */
+export const POLL_VERIFY_MS = 3_000;

@@ -1,4 +1,13 @@
-import type { Bot, CurrentUser, Match, MatchSummary, Move, Queue, User } from "../api/types";
+import type {
+  Bot,
+  BotDetail,
+  CurrentUser,
+  Match,
+  MatchSummary,
+  Move,
+  Queue,
+  User,
+} from "../api/types";
 
 export const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -63,6 +72,7 @@ export const BOTS: Bot[] = [
   {
     id: "665f0000000000000000000a",
     name: "Random",
+    version: "1.0.0",
     language: "python",
     status: "verified",
     builtin: true,
@@ -71,6 +81,7 @@ export const BOTS: Bot[] = [
   {
     id: "665f0000000000000000000b",
     name: "Material",
+    version: "1.0.0",
     language: "python",
     status: "verified",
     builtin: true,
@@ -99,6 +110,54 @@ export function user(current: CurrentUser, overrides: Partial<User> = {}): User 
     active: true,
     created_at: "2026-05-01T10:00:00.000Z",
     last_login_at: null,
+    ...overrides,
+  };
+}
+
+export const SHARP_ID = "665f0000000000000000000c";
+
+/** An uploaded bot as its owner sees it, rejected by the static analysis. */
+export function botDetail(overrides: Partial<BotDetail> = {}): BotDetail {
+  return {
+    id: SHARP_ID,
+    name: "Sharp",
+    version: "1.0.0",
+    language: "python",
+    status: "rejected",
+    builtin: false,
+    created_at: "2026-05-01T10:00:00.000Z",
+    details: {
+      owner: "bob",
+      entry: "bot.py",
+      files: [
+        { path: "bot.py", kind: "source", size: 1234 },
+        { path: "data/book.txt", kind: "data", size: 5 },
+      ],
+      sdk_version: "0.4.0",
+      runtime_version: "3.12.1",
+      verified_at: null,
+      rejected_at: "2026-05-01T10:01:00.000Z",
+      rejection: { stage: "analysis", reason: "1 finding" },
+      report: {
+        result: "failed",
+        ruleset: "python-1",
+        runtime: { python: "3.12.1", sdk: "0.4.0" },
+        started_at: "2026-05-01T10:00:30.000Z",
+        finished_at: "2026-05-01T10:01:00.000Z",
+        stages: [
+          {
+            stage: "analysis",
+            status: "failed",
+            duration_ms: 1200,
+            problem: "1 finding",
+            findings: [
+              { rule: "import", file: "bot.py", line: 3, message: "socket is not allowed" },
+            ],
+            truncated: false,
+          },
+        ],
+      },
+    },
     ...overrides,
   };
 }

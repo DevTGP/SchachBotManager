@@ -11,6 +11,8 @@ export interface ApiCall {
   headers: Headers;
   /** The parsed JSON body, if any. */
   body: unknown;
+  /** A multipart body, if any. */
+  form: FormData | undefined;
 }
 
 /** A response per API path (without /api/v1 and query); a function sees the whole request. */
@@ -34,6 +36,7 @@ export function mockApi(responses: ApiResponses): MockedApi {
       method: init?.method ?? "GET",
       headers: new Headers(init?.headers),
       body: typeof init?.body === "string" ? JSON.parse(init.body) : undefined,
+      form: init?.body instanceof FormData ? init.body : undefined,
     };
     requests.push(url);
     calls.push(call);

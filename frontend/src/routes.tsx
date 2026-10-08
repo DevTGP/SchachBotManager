@@ -9,12 +9,14 @@ import { AdminInvitesPage } from "./pages/admin/AdminInvitesPage";
 import { AdminLayout } from "./pages/admin/AdminLayout";
 import { AdminMatchesPage } from "./pages/admin/AdminMatchesPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
+import { BotPage } from "./pages/bot/BotPage";
 import { BotsPage } from "./pages/BotsPage";
 import { MatchesPage } from "./pages/MatchesPage";
 import { MatchPage } from "./pages/MatchPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { QueuePage } from "./pages/QueuePage";
 import { StartPage } from "./pages/StartPage";
+import { UploadPage } from "./pages/upload/UploadPage";
 import { RequireRole } from "./session/RequireRole";
 import { SessionProvider } from "./session/SessionProvider";
 
@@ -31,6 +33,15 @@ export const routes: RouteObject[] = [
       { path: "matches/:id", element: <MatchPage /> },
       { path: "queue", element: <QueuePage /> },
       { path: "bots", element: <BotsPage /> },
+      {
+        path: "bots/new",
+        element: (
+          <RequireRole>
+            <UploadPage />
+          </RequireRole>
+        ),
+      },
+      { path: "bots/:id", element: <BotPage /> },
       { path: "login", element: <LoginPage /> },
       { path: "invite", element: <InvitePage /> },
       { path: "reset-password", element: <ResetPasswordPage /> },

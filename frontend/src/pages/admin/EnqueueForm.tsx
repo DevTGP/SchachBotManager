@@ -5,6 +5,7 @@ import { Link } from "react-router";
 import { enqueueMatches } from "../../api/admin";
 import type { Bot } from "../../api/types";
 import { FormError } from "../../components/FormError";
+import { botLabel } from "../../format/botLabel";
 import { useSubmit } from "../../hooks/useSubmit";
 import { DEFAULT_FORM, type MatchForm, matchOrder } from "./matchOrder";
 
@@ -34,7 +35,7 @@ export function EnqueueForm({ bots }: { bots: Bot[] }) {
 
   const botOptions = bots.map((bot) => (
     <option key={bot.id} value={bot.id}>
-      {bot.name}
+      {botLabel(bot)}
     </option>
   ));
 

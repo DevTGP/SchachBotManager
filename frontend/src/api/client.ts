@@ -10,12 +10,15 @@ export class ApiError extends Error {
   readonly status: number;
   /** The invalid parameter, for invalid_parameter. */
   readonly field: string | undefined;
+  /** The file to blame, for invalid_upload. */
+  readonly path: string | undefined;
 
-  constructor(code: FailureCode, status: number, message: string, field?: string) {
+  constructor(code: FailureCode, status: number, message: string, field?: string, path?: string) {
     super(message);
     this.code = code;
     this.status = status;
     this.field = field;
+    this.path = path;
   }
 }
 
@@ -55,6 +58,12 @@ export async function sendJson<T = undefined>(
   return (await readBody(response)) as T;
 }
 
+/** A multipart body; the browser sets its Content-Type with the boundary. */
+export async function sendForm<T>(method: "POST", path: string, form: FormData): Promise<T> {
+  const response = await request(apiUrl(path), { method, headers: CSRF_HEADER, body: form });
+  return (await readBody(response)) as T;
+}
+
 async function request(url: string, init: RequestInit, signal?: AbortSignal): Promise<Response> {
   try {
     return await fetch(url, {
@@ -70,11 +79,13 @@ async function request(url: string, init: RequestInit, signal?: AbortSignal): Pr
 async function readBody(response: Response): Promise<unknown> {
   const body: unknown = await response.json().catch(() => undefined);
   if (response.ok && body !== undefined) return body;
-  const failure = body as { code?: ErrorCode; message?: string; field?: string } | undefined;
+  const failure = body as
+    { code?: ErrorCode; message?: string; field?: string; path?: string } | undefined;
   throw new ApiError(
     failure?.code ?? "network",
     response.status,
     failure?.message ?? response.statusText,
     failure?.field,
+    failure?.path,
   );
 }

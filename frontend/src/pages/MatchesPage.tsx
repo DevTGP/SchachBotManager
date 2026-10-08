@@ -6,6 +6,7 @@ import type { MatchStatus } from "../api/types";
 import { ApiContent } from "../components/ApiContent";
 import { MatchTable } from "../components/MatchTable";
 import { Pager } from "../components/Pager";
+import { botLabel } from "../format/botLabel";
 import { useApi } from "../hooks/useApi";
 import { POLL_LIST_MS } from "../hooks/polling";
 
@@ -62,7 +63,7 @@ export function MatchesPage() {
             <option value="">{t("matches.allBots")}</option>
             {bots.data?.map((bot) => (
               <option key={bot.id} value={bot.id}>
-                {bot.name}
+                {botLabel(bot)}
               </option>
             ))}
           </select>

@@ -1,5 +1,7 @@
 import { getJson, sendJson } from "./client";
 import type {
+  BotDetail,
+  BotUpdate,
   CreatedInvite,
   EnqueueRequest,
   Invite,
@@ -46,4 +48,9 @@ export async function enqueueMatches(order: MatchOrder): Promise<string[]> {
 export async function setQueuePaused(paused: boolean): Promise<boolean> {
   const result = await sendJson<{ paused: boolean }>("PATCH", "/admin/queue", { paused });
   return result.paused;
+}
+
+/** Only verified and disabled bots can be switched (E93). */
+export function setBotStatus(id: string, status: BotUpdate["status"]): Promise<BotDetail> {
+  return sendJson("PATCH", `/admin/bots/${encodeURIComponent(id)}`, { status });
 }

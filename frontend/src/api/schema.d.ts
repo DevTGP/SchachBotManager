@@ -83,10 +83,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** All bots, ordered by name. */
+        /** All verified bots, ordered by name and version. */
         get: operations["list_bots"];
         put?: never;
-        post?: never;
+        /** Uploads a bot as source files; the runner then verifies it (E91, E92). The same name as an own bot makes a new version of it, with a higher version number. */
+        post: operations["upload_bot"];
         delete?: never;
         options?: never;
         head?: never;
@@ -102,7 +103,7 @@ export interface paths {
             };
             cookie?: never;
         };
-        /** One bot. */
+        /** One bot. Verified and disabled bots are public; the owner and admins also see the others, and they alone get the details with the verification report (E15). */
         get: operations["get_bot"];
         put?: never;
         post?: never;
@@ -192,6 +193,23 @@ export interface paths {
         get?: never;
         /** Changes the own password and ends all other sessions of the account. */
         put: operations["change_password"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/bots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The bots of the logged-in account in every status, newest first. */
+        get: operations["list_own_bots"];
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -291,6 +309,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/bots/{bot_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Disables a verified bot or enables a disabled one again (admin, E93); queued matches of a disabled bot are aborted when their turn comes. */
+        patch: operations["update_bot"];
+        trace?: never;
+    };
     "/admin/matches": {
         parameters: {
             query?: never;
@@ -335,11 +372,13 @@ export interface components {
         Timestamp: string;
         Error: {
             /** @enum {unknown} */
-            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts";
-            /** @description English text for logs; not shown to users. */
+            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large";
+            /** @description English text for logs; not shown to users, except as the detail of invalid_upload. */
             message: string;
             /** @description The invalid parameter, for invalid_parameter. */
             field?: string;
+            /** @description The file to blame, for invalid_upload. */
+            path?: string;
         };
         Health: {
             /** @constant */
@@ -412,16 +451,140 @@ export interface components {
             /** @description Matches matching the filter. */
             total: number;
         };
-        Bot: {
+        /**
+         * @description uploaded, analyzing, testing: in the verification; verified: plays; rejected: failed the verification; disabled: stopped by an admin (verifikation.md).
+         * @enum {unknown}
+         */
+        BotStatus: "uploaded" | "analyzing" | "testing" | "verified" | "rejected" | "disabled";
+        /** @description 3 to 32 letters, digits, _ . or -, starting with a letter or digit; regardless of case the name of one owner's bots (E91). */
+        BotName: string;
+        /** @description X.Y.Z, each part 0 to 999 without leading zeros (E91). */
+        BotVersion: string;
+        /** @description The fields of Bot, open for extension by BotDetail. */
+        BotFields: {
             id: components["schemas"]["Id"];
             name: string;
+            version: string;
             /** @enum {unknown} */
             language: "python" | "cpp" | "java" | "csharp" | "javascript";
-            /** @constant */
-            status: "verified";
+            status: components["schemas"]["BotStatus"];
             /** @description A reference bot shipped with the SDK (E68, E72). */
             builtin: boolean;
             created_at: components["schemas"]["Timestamp"];
+        };
+        Bot: components["schemas"]["BotFields"];
+        BotDetail: {
+            /** @description Only for the owner and admins; null for everyone else. */
+            details: components["schemas"]["BotDetails"] | null;
+        } & components["schemas"]["BotFields"];
+        BotFile: {
+            path: string;
+            /**
+             * @description data: a file for load_data in data/.
+             * @enum {unknown}
+             */
+            kind: "source" | "data";
+            /** @description Bytes. */
+            size: number;
+        };
+        BotDetails: {
+            /** @description Name of the owner; null for reference bots. */
+            owner: string | null;
+            /** @description The file the bot starts with; null for reference bots. */
+            entry: string | null;
+            files: components["schemas"]["BotFile"][];
+            /** @description SDK version of the runtime that verified the bot. */
+            sdk_version: string | null;
+            runtime_version: string | null;
+            verified_at: components["schemas"]["Timestamp"] | null;
+            rejected_at: components["schemas"]["Timestamp"] | null;
+            rejection: components["schemas"]["Rejection"] | null;
+            /** @description null until the verification ends, and for reference bots. */
+            report: components["schemas"]["VerificationReport"] | null;
+        };
+        /**
+         * @description internal: the server could not verify the bot (E92).
+         * @enum {unknown}
+         */
+        VerificationStageName: "analysis" | "tests" | "internal";
+        Rejection: {
+            stage: components["schemas"]["VerificationStageName"];
+            /** @description English text from the runner. */
+            reason: string;
+        };
+        /** @description A problem the static analysis found (statische-analyse.md). */
+        Finding: {
+            rule: string;
+            file: string;
+            line: number | null;
+            /** @description English text from the analyzer. */
+            message: string;
+        };
+        /** @description One Mindesttest: a game against the reference bot Random (verifikation.md). */
+        TestGame: {
+            name: string;
+            /**
+             * @description The colour of the bot.
+             * @enum {unknown}
+             */
+            color: "white" | "black";
+            result: components["schemas"]["result"];
+            termination: components["schemas"]["termination"];
+            detail: string;
+            plies: number;
+            passed: boolean;
+            /** @description Why the test failed. */
+            problem: string | null;
+        };
+        VerificationStage: {
+            stage: components["schemas"]["VerificationStageName"];
+            /** @enum {unknown} */
+            status: "passed" | "failed";
+            duration_ms: number;
+            /** @description Why the stage failed. */
+            problem: string | null;
+            /** @description Stage analysis. */
+            findings?: components["schemas"]["Finding"][];
+            /** @description Stage analysis: there were more findings than listed. */
+            truncated?: boolean;
+            /** @description Stage tests, up to the first that failed. */
+            tests?: components["schemas"]["TestGame"][];
+        };
+        VerificationReport: {
+            /** @enum {unknown} */
+            result: "passed" | "failed";
+            /** @description The rules of the static analysis, e.g. python-1. */
+            ruleset: string | null;
+            /** @description Versions in the bots' runtime, e.g. python and sdk. */
+            runtime: {
+                [key: string]: string;
+            };
+            started_at: components["schemas"]["Timestamp"];
+            finished_at: components["schemas"]["Timestamp"];
+            stages: components["schemas"]["VerificationStage"][];
+        };
+        /** @description Paths are relative with /; .py files and data files directly in data/, at most 100 of each and 1 MiB each in all (verifikation.md). At most 20 uploads a day per account. */
+        BotUpload: {
+            name: components["schemas"]["BotName"];
+            /** @description Higher than every earlier version of the name. */
+            version: components["schemas"]["BotVersion"];
+            /**
+             * @description Only Python so far.
+             * @constant
+             */
+            language: "python";
+            /**
+             * @description The file the bot starts with, in the top folder.
+             * @default bot.py
+             */
+            entry: string;
+            /** @description The path of each file, in the order of files. */
+            paths: string[];
+            files: string[];
+        };
+        BotUpdate: {
+            /** @enum {unknown} */
+            status: "verified" | "disabled";
         };
         BotList: {
             items: components["schemas"]["Bot"][];
@@ -668,6 +831,33 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
+        /** @description A field is invalid (code invalid_parameter), or the files break the upload rules (code invalid_upload, with the file to blame in path, if there is one). */
+        BadUpload: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description The name belongs to a bot of another account or to a reference bot (code name_taken), or another upload of the name came first (code upload_conflict). */
+        NameTaken: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description The request is larger than 3 MiB (code too_large). */
+        TooLarge: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
         /** @description The session after the request. */
         Session: {
             headers: {
@@ -813,6 +1003,39 @@ export interface operations {
             };
         };
     };
+    upload_bot: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["BotUpload"];
+            };
+        };
+        responses: {
+            /** @description The new bot, waiting for its verification. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotDetail"];
+                };
+            };
+            400: components["responses"]["BadUpload"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["NameTaken"];
+            413: components["responses"]["TooLarge"];
+            429: components["responses"]["TooManyAttempts"];
+        };
+    };
     get_bot: {
         parameters: {
             query?: never;
@@ -830,7 +1053,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Bot"];
+                    "application/json": components["schemas"]["BotDetail"];
                 };
             };
             400: components["responses"]["BadRequest"];
@@ -986,6 +1209,27 @@ export interface operations {
             401: components["responses"]["InvalidCredentials"];
             403: components["responses"]["Forbidden"];
             429: components["responses"]["TooManyAttempts"];
+        };
+    };
+    list_own_bots: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The bots. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotList"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
         };
     };
     list_users: {
@@ -1144,6 +1388,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    update_bot: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BotUpdate"];
+            };
+        };
+        responses: {
+            /** @description The changed bot. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotDetail"];
+                };
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthenticated"];
