@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "move (browser to server)",
+  "description": "The person's move; it must be one of legal_moves of the last state.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "move" },
+    "v": { "$ref": "common.schema.json#/$defs/version" },
+    "move": { "$ref": "../v1/common.schema.json#/$defs/uci" }
+  },
+  "required": ["type", "v", "move"],
+  "additionalProperties": false
+}

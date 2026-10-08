@@ -1,0 +1,1 @@
+{"type":"state","v":1,"color":"white","white":"Guest","black":"Material","start_fen":"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1","fen":"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1","moves":"","san":"","clock":{"white":300000,"black":300000},"running":"white","increment_ms":2000,"legal_moves":"a2a3 a2a4 b1c3 e2e4","result":null,"termination":null}

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "state (server to browser)",
+  "description": "The whole game as the person sees it. Sent when the game starts, after every move, when the person joins again and at the end. A newer state replaces the older one entirely.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "state" },
+    "v": { "$ref": "common.schema.json#/$defs/version" },
+    "color": { "description": "The person's color.", "$ref": "../v1/common.schema.json#/$defs/color" },
+    "white": { "$ref": "../v1/common.schema.json#/$defs/name" },
+    "black": { "$ref": "../v1/common.schema.json#/$defs/name" },
+    "start_fen": { "$ref": "../v1/common.schema.json#/$defs/fen" },
+    "fen": { "description": "The current position.", "$ref": "../v1/common.schema.json#/$defs/fen" },
+    "moves": { "$ref": "common.schema.json#/$defs/uci_list" },
+    "san": { "$ref": "common.schema.json#/$defs/san_list" },
+    "clock": {
+      "description": "Remaining time of each side when the server sent this state.",
+      "type": "object",
+      "properties": {
+        "white": { "$ref": "../v1/common.schema.json#/$defs/milliseconds" },
+        "black": { "$ref": "../v1/common.schema.json#/$defs/milliseconds" }
+      },
+      "required": ["white", "black"],
+      "additionalProperties": false
+    },
+    "running": {
+      "description": "The side whose clock runs; null before the start and after the end.",
+      "oneOf": [{ "$ref": "../v1/common.schema.json#/$defs/color" }, { "type": "null" }]
+    },
+    "increment_ms": { "$ref": "../v1/common.schema.json#/$defs/milliseconds" },
+    "legal_moves": {
+      "description": "The person's legal moves; empty unless it is the person's turn. The browser offers only these, it has no rules of its own.",
+      "$ref": "common.schema.json#/$defs/uci_list"
+    },
+    "result": {
+      "description": "null while the game runs.",
+      "oneOf": [{ "$ref": "../v1/game_over.schema.json#/properties/result" }, { "type": "null" }]
+    },
+    "termination": {
+      "oneOf": [{ "$ref": "../v1/game_over.schema.json#/properties/termination" }, { "type": "null" }]
+    }
+  },
+  "required": [
+    "type", "v", "color", "white", "black", "start_fen", "fen", "moves", "san", "clock",
+    "running", "increment_ms", "legal_moves", "result", "termination"
+  ],
+  "additionalProperties": false
+}

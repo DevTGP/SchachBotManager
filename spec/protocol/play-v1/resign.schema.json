@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "resign (browser to server)",
+  "description": "The person resigns. Sent while the bot thinks, it takes effect at the start of the person's next turn.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "resign" },
+    "v": { "$ref": "common.schema.json#/$defs/version" }
+  },
+  "required": ["type", "v"],
+  "additionalProperties": false
+}

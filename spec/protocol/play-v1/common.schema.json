@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Common definitions of the browser protocol, version 1",
+  "description": "Spoken between the browser and the HumanPlayer of the play runner after the gateway answered joined (docs/komponenten/gateway.md, E114).",
+  "$defs": {
+    "version": { "const": 1 },
+    "uci_list": {
+      "description": "Moves in UCI notation separated by single spaces, oldest first; empty when there are none.",
+      "type": "string",
+      "maxLength": 24000,
+      "pattern": "^([a-h][1-8][a-h][1-8][nbrq]?( [a-h][1-8][a-h][1-8][nbrq]?)*)?(?!\\n)$"
+    },
+    "san_list": {
+      "description": "The same moves in standard algebraic notation, separated by single spaces.",
+      "type": "string",
+      "maxLength": 32000,
+      "pattern": "^([^ ]+( [^ ]+)*)?(?!\\n)$"
+    }
+  }
+}

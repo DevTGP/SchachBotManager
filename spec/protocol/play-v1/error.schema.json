@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "error (server to browser)",
+  "description": "The last message of the browser was not taken; the game goes on and the clock keeps running.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "error" },
+    "v": { "$ref": "common.schema.json#/$defs/version" },
+    "code": {
+      "description": "illegal_move: not one of legal_moves. not_your_turn: a move outside the person's turn. invalid_message: not a valid move or resign.",
+      "enum": ["illegal_move", "not_your_turn", "invalid_message"]
+    },
+    "message": { "type": "string", "maxLength": 256 }
+  },
+  "required": ["type", "v", "code", "message"],
+  "additionalProperties": false
+}

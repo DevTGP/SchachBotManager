@@ -1,0 +1,1 @@
+{"type":"state","v":1,"color":"black","white":"Material","black":"alice","start_fen":"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1","fen":"rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2","moves":"e2e4 e7e5","san":"e4 e5","clock":{"white":298000,"black":295500},"running":null,"increment_ms":0,"legal_moves":"","result":"1-0","termination":"resignation"}

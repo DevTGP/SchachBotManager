@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Any message from server to browser",
+  "oneOf": [{ "$ref": "state.schema.json" }, { "$ref": "error.schema.json" }]
+}
