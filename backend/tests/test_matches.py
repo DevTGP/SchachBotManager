@@ -74,6 +74,15 @@ def test_matches_from_before_versions_show_none(client, db, enqueue):
     assert (match["white"]["version"], match["black"]["version"]) == (None, "1.0.0")
 
 
+def test_matches_from_before_disciplines_are_free_and_unrated(client, db, enqueue):
+    match_id = enqueue()
+    db[MATCHES].update_one(
+        {"_id": match_id}, {"$unset": {"rated": "", "discipline_snapshot.discipline_id": ""}}
+    )
+    match = client.get(f"/api/v1/matches/{match_id}").json
+    assert (match["discipline"]["discipline_id"], match["rated"]) == (None, False)
+
+
 def test_aborted_match_hides_its_detail(client, db, enqueue):
     match_id = enqueue()
     matches.abort(db, match_id, "runner crashed: secret path", NOW)

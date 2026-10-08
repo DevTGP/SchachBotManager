@@ -22,13 +22,23 @@ def match_summary(match: dict) -> dict:
         "status": match["status"],
         "white": side(match["white"]),
         "black": side(match["black"]),
-        "discipline": {field: match["discipline_snapshot"][field] for field in DISCIPLINE_FIELDS},
+        "discipline": discipline(match["discipline_snapshot"]),
+        # Matches queued before E100 were never rated.
+        "rated": match.get("rated", False),
         "result": match["result"],
         "termination": match["termination"],
         "ply_count": ply_count,
         "created_at": timestamp(match["created_at"]),
         "started_at": optional_timestamp(match["started_at"]),
         "finished_at": optional_timestamp(match["finished_at"]),
+    }
+
+
+def discipline(snapshot: dict) -> dict:
+    """Matches queued before E100 have no discipline_id: they had free times."""
+    discipline_id = snapshot.get("discipline_id")
+    return {field: snapshot[field] for field in DISCIPLINE_FIELDS} | {
+        "discipline_id": None if discipline_id is None else str(discipline_id)
     }
 
 

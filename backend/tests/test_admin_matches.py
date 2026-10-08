@@ -3,6 +3,7 @@ from sbm_store import matches
 from sbm_store.names import AUDIT_LOG, BOTS
 
 from accounts import CSRF
+from stored_disciplines import store_discipline
 
 
 def enqueue(admin, reference_bots, **body):
@@ -69,6 +70,54 @@ def test_invalid_requests(admin, db, reference_bots):
         response = enqueue(admin, reference_bots, **body)
         assert response.status_code == 400, body
         assert response.json["field"] == field
+    assert db.matches.count_documents({}) == 0
+
+
+def by_discipline(admin, reference_bots, discipline_id, **body):
+    white, black = reference_bots
+    request = {
+        "white_bot_id": str(white["_id"]),
+        "black_bot_id": str(black["_id"]),
+        "discipline_id": str(discipline_id),
+    } | body
+    return admin.post("/api/v1/admin/matches", json=request, headers=CSRF)
+
+
+def test_a_stored_discipline_makes_the_game_rated(admin, client, db, reference_bots):
+    blitz = store_discipline(db, "Blitz", initial_time_ms=180_000, increment_ms=2000)
+
+    match_id = by_discipline(admin, reference_bots, blitz["_id"]).json["match_ids"][0]
+
+    match = client.get(f"/api/v1/matches/{match_id}").json
+    assert match["discipline"]["discipline_id"] == str(blitz["_id"])
+    assert (match["discipline"]["name"], match["discipline"]["increment_ms"]) == ("Blitz", 2000)
+    assert match["rated"] is True
+
+
+def test_free_times_and_other_positions_are_unrated(admin, client, db, reference_bots):
+    blitz = store_discipline(db, "Blitz")
+    fen = "4k3/8/8/8/8/8/8/4K2R w K - 0 1"
+    free = enqueue(admin, reference_bots).json["match_ids"][0]
+    placed = by_discipline(admin, reference_bots, blitz["_id"], start_fen=fen)
+
+    for match_id in (free, placed.json["match_ids"][0]):
+        match = client.get(f"/api/v1/matches/{match_id}").json
+        assert match["rated"] is False
+
+
+def test_invalid_disciplines(admin, db, reference_bots):
+    archived = store_discipline(db, "Old", archived=True)
+    blitz = store_discipline(db, "Blitz")
+    cases = [
+        (archived["_id"], {}, "discipline_id"),
+        (ObjectId(), {}, "discipline_id"),
+        ("nope", {}, "discipline_id"),
+        (blitz["_id"], {"initial_time_ms": 60_000}, "initial_time_ms"),
+        (blitz["_id"], {"max_moves": 100}, "max_moves"),
+    ]
+    for discipline_id, body, field in cases:
+        response = by_discipline(admin, reference_bots, discipline_id, **body)
+        assert (response.status_code, response.json["field"]) == (400, field), body
     assert db.matches.count_documents({}) == 0
 
 

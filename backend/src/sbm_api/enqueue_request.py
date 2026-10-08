@@ -14,12 +14,13 @@ from sbm_store import bots
 from sbm_store.discipline import DEFAULT_MAX_MOVES, Discipline
 from sbm_store.enqueue import DEFAULT_PRIORITY, enqueue_match
 
-from sbm_api import body
+from sbm_api import body, discipline_request
 from sbm_api.errors import invalid_parameter
 
 FIELDS = (
     "white_bot_id",
     "black_bot_id",
+    "discipline_id",
     "initial_time_ms",
     "increment_ms",
     "games",
@@ -45,14 +46,7 @@ def parse(db: Database) -> EnqueueRequest:
     data = body.json_object(FIELDS)
     white = verified_bot(db, data, "white_bot_id")
     black = verified_bot(db, data, "black_bot_id")
-    initial_ms = body.integer(data, "initial_time_ms", low=1000, high=86_400_000)
-    increment_ms = body.integer(data, "increment_ms", low=0, high=3_600_000, default=0)
-    discipline = Discipline(
-        name=format_time_control(initial_ms, increment_ms),
-        initial_time_ms=initial_ms,
-        increment_ms=increment_ms,
-        max_moves=body.integer(data, "max_moves", low=1, high=2000, default=DEFAULT_MAX_MOVES),
-    )
+    discipline = discipline_request.chosen(db, data) or free_times(data)
     start_fen = body.string(data, "start_fen", max_length=100, default=None) or STANDARD_FEN
     _check_settings(discipline, start_fen)
     return EnqueueRequest(
@@ -63,6 +57,18 @@ def parse(db: Database) -> EnqueueRequest:
         games=body.integer(data, "games", low=1, high=100, default=1),
         alternate=body.boolean(data, "alternate", default=False),
         priority=body.integer(data, "priority", low=0, high=1000, default=DEFAULT_PRIORITY),
+    )
+
+
+def free_times(data: dict) -> Discipline:
+    """Named after the time control, e.g. 180+2."""
+    initial_ms = body.integer(data, "initial_time_ms", low=1000, high=86_400_000)
+    increment_ms = body.integer(data, "increment_ms", low=0, high=3_600_000, default=0)
+    return Discipline(
+        name=format_time_control(initial_ms, increment_ms),
+        initial_time_ms=initial_ms,
+        increment_ms=increment_ms,
+        max_moves=body.integer(data, "max_moves", low=1, high=2000, default=DEFAULT_MAX_MOVES),
     )
 
 

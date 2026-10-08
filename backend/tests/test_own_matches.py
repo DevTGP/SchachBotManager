@@ -12,6 +12,7 @@ from sbm_api import rate_limit
 
 from accounts import CSRF
 from bot_uploads import store_bot, verify
+from stored_disciplines import store_discipline
 
 
 @pytest.fixture
@@ -89,6 +90,35 @@ def test_tight_limits(own, db, reference_bots, body, field):
 
     assert (response.status_code, response.json["field"]) == (400, field)
     assert db[MATCHES].count_documents({}) == 0
+
+
+def test_any_discipline_in_use_beyond_the_free_limits(own, db, reference_bots):
+    coder, bot = own
+    classical = store_discipline(db, "Classical", initial_time_ms=3_600_000, increment_ms=30_000)
+    request = {
+        "white_bot_id": str(bot["_id"]),
+        "black_bot_id": str(reference_bots[0]["_id"]),
+        "discipline_id": str(classical["_id"]),
+    }
+
+    response = coder.post("/api/v1/matches", json=request, headers=CSRF)
+
+    assert response.status_code == 201
+    match = matches.get(db, ObjectId(response.json["match_ids"][0]))
+    assert match["discipline_snapshot"]["discipline_id"] == classical["_id"]
+    assert match["rated"] is True
+    free_times = request | {"discipline_id": None, "initial_time_ms": 60_000}
+    free = coder.post("/api/v1/matches", json=free_times, headers=CSRF).json["match_ids"][0]
+    assert matches.get(db, ObjectId(free))["rated"] is False
+
+
+def test_archived_disciplines_are_out(own, db, reference_bots):
+    coder, bot = own
+    old = store_discipline(db, "Old", archived=True)
+
+    response = enqueue(coder, bot, reference_bots[0], discipline_id=str(old["_id"]))
+
+    assert (response.status_code, response.json["field"]) == (400, "discipline_id")
 
 
 def test_games_are_limited_per_day(own, reference_bots, monkeypatch, clock):
