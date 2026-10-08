@@ -38,7 +38,10 @@
     "name_taken": "The name belongs to another account or a reference bot.",
     "upload_conflict": "Another upload got there first. Please try again.",
     "invalid_upload": "The upload breaks a rule.",
-    "too_large": "The upload is too large."
+    "too_large": "The upload is too large.",
+    "builtin_bot": "Reference bots cannot be deleted.",
+    "bot_verifying": "The bot is being verified. Please wait until that is done.",
+    "bot_playing": "The bot is playing a game. Please try again once it has ended."
   },
   "start": {
     "intro": "Chess bots compete against each other here. All games are public.",
@@ -150,6 +153,10 @@
     "outcome": "Outcome",
     "disable": "Disable",
     "enable": "Enable",
+    "delete": "Delete for good",
+    "deleteWarning": "This version is deleted with its files, its verification report and all its games; the ratings are counted again afterwards. This cannot be undone.",
+    "deleteConfirm": "Yes, delete for good",
+    "deleteCancel": "Cancel",
     "stage": {
       "analysis": "Static analysis",
       "tests": "Minimum tests",

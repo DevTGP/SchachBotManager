@@ -166,6 +166,85 @@ describe("bot page", () => {
     const patch = api.calls.find((call) => call.method === "PATCH");
     expect(patch?.body).toEqual({ status: "disabled" });
   });
+
+  it("lets admins delete the last version for good after asking", async () => {
+    const user = userEvent.setup();
+    const api = mockApi({
+      "/session": { user: ADMIN },
+      "/bots": { items: BOTS },
+      [`/bots/${SHARP_ID}`]: botDetail({ status: "verified" }),
+      [`/admin/bots/${SHARP_ID}`]: () => new Response(null, { status: 204 }),
+    });
+    const { router } = renderRoute(`/bots/${SHARP_ID}`);
+
+    await user.click(await screen.findByRole("button", { name: "Delete for good" }));
+    expect(screen.getByText(/This cannot be undone/)).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(api.calls.some((call) => call.method === "DELETE")).toBe(false);
+    await user.click(screen.getByRole("button", { name: "Delete for good" }));
+    await user.click(screen.getByRole("button", { name: "Yes, delete for good" }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe("/bots"));
+    const call = api.calls.find((entry) => entry.method === "DELETE");
+    expect(call?.url.pathname).toBe(`/api/v1/admin/bots/${SHARP_ID}`);
+    expect(call?.headers.get("X-SBM-CSRF")).toBe("1");
+  });
+
+  it("goes to the remaining version after deleting one", async () => {
+    const user = userEvent.setup();
+    const older = { ...OWN[0]!, version: "0.9.0" };
+    const shown = botDetail({ status: "verified" });
+    mockApi({
+      "/session": { user: ADMIN },
+      [`/bots/${SHARP_ID}`]: { ...shown, versions: [shown, older] },
+      [`/bots/${older.id}`]: botDetail({ ...older, versions: [older] }),
+      [`/admin/bots/${SHARP_ID}`]: () => new Response(null, { status: 204 }),
+    });
+    const { router } = renderRoute(`/bots/${SHARP_ID}`);
+
+    await user.click(await screen.findByRole("button", { name: "Delete for good" }));
+    await user.click(screen.getByRole("button", { name: "Yes, delete for good" }));
+
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/bots/${older.id}`));
+  });
+
+  it("explains why a bot cannot be deleted", async () => {
+    const user = userEvent.setup();
+    mockApi({
+      "/session": { user: ADMIN },
+      [`/bots/${SHARP_ID}`]: botDetail({ status: "verified" }),
+      [`/admin/bots/${SHARP_ID}`]: () =>
+        Response.json({ code: "bot_playing", message: "busy" }, { status: 409 }),
+    });
+    renderRoute(`/bots/${SHARP_ID}`);
+
+    await user.click(await screen.findByRole("button", { name: "Delete for good" }));
+    await user.click(screen.getByRole("button", { name: "Yes, delete for good" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "The bot is playing a game. Please try again once it has ended.",
+    );
+  });
+
+  it("offers deleting only to admins", async () => {
+    mockApi({
+      "/session": { user: CODER },
+      [`/bots/${SHARP_ID}`]: botDetail({ status: "verified" }),
+    });
+    renderRoute(`/bots/${SHARP_ID}`);
+    await screen.findByRole("heading", { name: "Sharp 1.0.0" });
+    expect(screen.queryByRole("button", { name: "Delete for good" })).toBeNull();
+  });
+
+  it("offers no deleting for reference bots", async () => {
+    mockApi({
+      "/session": { user: ADMIN },
+      [`/bots/${SHARP_ID}`]: botDetail({ status: "verified", builtin: true }),
+    });
+    renderRoute(`/bots/${SHARP_ID}`);
+    expect(await screen.findByRole("button", { name: "Disable" })).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Delete for good" })).toBeNull();
+  });
 });
 
 describe("bots page", () => {

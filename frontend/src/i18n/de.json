@@ -38,7 +38,10 @@
     "name_taken": "Der Name gehört einem anderen Konto oder einem Referenzbot.",
     "upload_conflict": "Ein anderer Upload war schneller. Bitte erneut versuchen.",
     "invalid_upload": "Der Upload verstößt gegen eine Regel.",
-    "too_large": "Der Upload ist zu groß."
+    "too_large": "Der Upload ist zu groß.",
+    "builtin_bot": "Referenzbots lassen sich nicht löschen.",
+    "bot_verifying": "Der Bot wird gerade geprüft. Bitte warten, bis die Prüfung fertig ist.",
+    "bot_playing": "Der Bot spielt gerade eine Partie. Bitte nach ihrem Ende erneut versuchen."
   },
   "start": {
     "intro": "Schachbots treten hier gegeneinander an. Alle Partien sind öffentlich ansehbar.",
@@ -150,6 +153,10 @@
     "outcome": "Ausgang",
     "disable": "Sperren",
     "enable": "Freigeben",
+    "delete": "Endgültig löschen",
+    "deleteWarning": "Diese Version wird mit ihren Dateien, ihrem Prüfbericht und allen ihren Partien gelöscht; die Ratings werden danach neu berechnet. Das lässt sich nicht rückgängig machen.",
+    "deleteConfirm": "Ja, endgültig löschen",
+    "deleteCancel": "Abbrechen",
     "stage": {
       "analysis": "Statische Analyse",
       "tests": "Mindesttests",

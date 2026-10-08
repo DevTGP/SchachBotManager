@@ -8,6 +8,7 @@ import { botLabel } from "../../format/botLabel";
 import { useApi } from "../../hooks/useApi";
 import { POLL_VERIFY_MS } from "../../hooks/polling";
 import { useSession } from "../../session/sessionContext";
+import { BotDelete } from "./BotDelete";
 import { BotDescription } from "./BotDescription";
 import { BotFiles } from "./BotFiles";
 import { BotOwnerSwitch } from "./BotOwnerSwitch";
@@ -47,6 +48,7 @@ export function BotPage() {
             )}
             {isOwner && <BotOwnerSwitch bot={data} onChange={bot.reload} />}
             <BotStatusSwitch bot={data} onChange={bot.reload} />
+            <BotDelete key={data.id} bot={data} />
             <p>
               <Link to={`/matches?bot=${data.id}`}>{t("bot.matches")}</Link>
             </p>

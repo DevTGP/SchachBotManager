@@ -59,6 +59,11 @@ export function setBotStatus(id: string, status: BotUpdate["status"]): Promise<B
   return sendJson("PATCH", `/admin/bots/${encodeURIComponent(id)}`, { status });
 }
 
+/** Deletes this version for good with its files and matches (E105). */
+export function deleteBot(id: string): Promise<undefined> {
+  return sendJson("DELETE", `/admin/bots/${encodeURIComponent(id)}`);
+}
+
 export function createDiscipline(request: DisciplineRequest): Promise<StoredDiscipline> {
   return sendJson("POST", "/admin/disciplines", request);
 }
