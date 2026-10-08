@@ -6,7 +6,10 @@ import type { Role } from "../api/types";
 import { Loading } from "../components/Loading";
 import { useSession } from "./sessionContext";
 
-/** Guests go to the login and come back; coders on an admin page are told no. */
+/**
+ * Guests go to the login and come back; coders on an admin page and players on a coder page
+ * are told no (E103).
+ */
 export function RequireRole({ role, children }: { role?: Role; children: ReactNode }) {
   const { t } = useTranslation();
   const { user } = useSession();
@@ -16,7 +19,9 @@ export function RequireRole({ role, children }: { role?: Role; children: ReactNo
     const next = location.pathname + location.search;
     return <Navigate to={`/login?next=${encodeURIComponent(next)}`} replace />;
   }
-  if (role === "admin" && user.role !== "admin") {
+  const allowed =
+    role === undefined || user.role === "admin" || (role === "coder" && user.role === "coder");
+  if (!allowed) {
     return (
       <p className="error" role="alert">
         {t("error.forbidden")}

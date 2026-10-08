@@ -125,6 +125,12 @@ export const CODER: CurrentUser = {
   role: "coder",
 };
 
+export const PLAYER: CurrentUser = {
+  id: "665f0000000000000000a003",
+  username: "pat",
+  role: "player",
+};
+
 export function user(current: CurrentUser, overrides: Partial<User> = {}): User {
   return {
     ...current,

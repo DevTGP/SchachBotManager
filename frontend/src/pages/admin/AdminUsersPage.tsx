@@ -12,7 +12,7 @@ import { useLocale } from "../../hooks/useLocale";
 import { useSubmit } from "../../hooks/useSubmit";
 import { useSession } from "../../session/sessionContext";
 
-const ROLES = ["coder", "admin"] as const;
+const ROLES = ["player", "coder", "admin"] as const;
 
 /** Accounts: role, active flag and a one-time link for a new password (E83, E85). */
 export function AdminUsersPage() {

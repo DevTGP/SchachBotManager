@@ -8,6 +8,7 @@ import type {
   EnqueueRequest,
   Invite,
   OneTimeLink,
+  PlaySettings,
   Role,
   StoredDiscipline,
   User,
@@ -66,4 +67,13 @@ export function createDiscipline(request: DisciplineRequest): Promise<StoredDisc
 /** Changes settings or archives a discipline; disciplines are never deleted (E100). */
 export function updateDiscipline(id: string, change: DisciplineUpdate): Promise<StoredDiscipline> {
   return sendJson("PATCH", `/admin/disciplines/${encodeURIComponent(id)}`, change);
+}
+
+export function fetchPlaySettings(signal?: AbortSignal): Promise<PlaySettings> {
+  return getJson("/admin/play-settings", undefined, signal);
+}
+
+/** The limits of games against people and remote bots (E115). */
+export function updatePlaySettings(settings: PlaySettings): Promise<PlaySettings> {
+  return sendJson("PUT", "/admin/play-settings", settings);
 }

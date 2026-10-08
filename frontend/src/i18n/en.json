@@ -12,7 +12,8 @@
     "login": "Log in",
     "account": "Account",
     "admin": "Admin",
-    "ownBots": "My bots"
+    "ownBots": "My bots",
+    "play": "Play"
   },
   "common": {
     "loading": "Loading …",
@@ -37,7 +38,9 @@
     "name_taken": "The name belongs to another account or a reference bot.",
     "upload_conflict": "Another upload got there first. Please try again.",
     "invalid_upload": "The upload breaks a rule.",
-    "too_large": "The upload is too large."
+    "too_large": "The upload is too large.",
+    "no_capacity": "All places for games are taken. Please try again in a few minutes.",
+    "too_many_games": "Finish your running game first."
   },
   "start": {
     "intro": "Chess bots compete against each other here. All games are public.",
@@ -334,7 +337,8 @@
   },
   "role": {
     "coder": "Coder",
-    "admin": "Admin"
+    "admin": "Admin",
+    "player": "Player"
   },
   "invite": {
     "title": "Accept invitation",
@@ -396,10 +400,67 @@
     "createdBy": "By",
     "commandLine": "Command line",
     "expires": "Valid until",
-    "revoke": "Revoke"
+    "revoke": "Revoke",
+    "play": "Play"
   },
   "notFound": {
     "title": "Page not found",
     "back": "To the home page"
+  },
+  "play": {
+    "title": "Play against a bot",
+    "intro": "Choose a bot and a time control. You play in the browser; the server checks every move. Games against people are not shown in the public lists.",
+    "noBots": "There is no verified bot to play against yet.",
+    "opponent": "Bot",
+    "color": "Your color",
+    "randomColor": "Random",
+    "minutes": "Minutes per side",
+    "limits": "One game at a time, at most 50 a day; free times up to 30 min + 30 s.",
+    "start": "Start game",
+    "noSeat": "This game was started in another browser or its seat was lost.",
+    "newGame": "New game",
+    "resign": "Resign",
+    "resignConfirm": "Really resign?",
+    "yourTurn": "Your move.",
+    "botThinks": "The bot is thinking …",
+    "over": "Game over: {{result}} ({{termination}})",
+    "promotion": "Promote to",
+    "cancel": "Cancel",
+    "piece": {
+      "q": "Queen",
+      "r": "Rook",
+      "b": "Bishop",
+      "n": "Knight"
+    },
+    "phase": {
+      "connecting": "Connecting …",
+      "waiting": "Waiting for the bot to start …",
+      "playing": "The game is running.",
+      "over": "The game is over.",
+      "refused": "This game cannot be joined (any more).",
+      "ended": "The game was ended without a result.",
+      "lost": "The connection was lost."
+    },
+    "problem": {
+      "illegal_move": "That move is not possible.",
+      "not_your_turn": "Wait for your turn.",
+      "replaced": "The game was opened in another window.",
+      "no_game": "The game is no longer waiting for you.",
+      "other": "Something went wrong; please try again."
+    }
+  },
+  "playError": {
+    "bot_id": "Choose a verified bot.",
+    "initial_time_ms": "Choose between 10 seconds and 30 minutes.",
+    "increment_ms": "The increment may be at most 30 seconds.",
+    "discipline_id": "Choose a discipline in use."
+  },
+  "adminPlay": {
+    "intro": "Limits of games against people and remote bots. Games at once and per day count for each address, account and API token on its own.",
+    "max_games": "Games at once in total",
+    "games_per_client": "Games at once per player",
+    "games_per_day": "Games per day per player",
+    "save": "Save",
+    "saved": "Saved."
   }
 }

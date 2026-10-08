@@ -48,6 +48,7 @@ export function AdminInvitesPage() {
           <label>
             {t("admin.role")}
             <select value={role} onChange={(event) => setRole(event.target.value as Role)}>
+              <option value="player">{t("role.player")}</option>
               <option value="coder">{t("role.coder")}</option>
               <option value="admin">{t("role.admin")}</option>
             </select>

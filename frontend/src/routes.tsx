@@ -9,6 +9,7 @@ import { AdminDisciplinesPage } from "./pages/admin/AdminDisciplinesPage";
 import { AdminInvitesPage } from "./pages/admin/AdminInvitesPage";
 import { AdminLayout } from "./pages/admin/AdminLayout";
 import { AdminMatchesPage } from "./pages/admin/AdminMatchesPage";
+import { AdminPlayPage } from "./pages/admin/AdminPlayPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
 import { BotPage } from "./pages/bot/BotPage";
 import { BotsPage } from "./pages/BotsPage";
@@ -16,6 +17,8 @@ import { MatchesPage } from "./pages/MatchesPage";
 import { MatchPage } from "./pages/MatchPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { OwnBotsPage } from "./pages/ownBots/OwnBotsPage";
+import { GamePage } from "./pages/play/GamePage";
+import { PlaySetupPage } from "./pages/play/PlaySetupPage";
 import { QueuePage } from "./pages/QueuePage";
 import { StartPage } from "./pages/StartPage";
 import { UploadPage } from "./pages/upload/UploadPage";
@@ -35,10 +38,12 @@ export const routes: RouteObject[] = [
       { path: "matches/:id", element: <MatchPage /> },
       { path: "queue", element: <QueuePage /> },
       { path: "bots", element: <BotsPage /> },
+      { path: "play", element: <PlaySetupPage /> },
+      { path: "play/:id", element: <GamePage /> },
       {
         path: "bots/new",
         element: (
-          <RequireRole>
+          <RequireRole role="coder">
             <UploadPage />
           </RequireRole>
         ),
@@ -58,7 +63,7 @@ export const routes: RouteObject[] = [
       {
         path: "account/bots",
         element: (
-          <RequireRole>
+          <RequireRole role="coder">
             <OwnBotsPage />
           </RequireRole>
         ),
@@ -71,6 +76,7 @@ export const routes: RouteObject[] = [
           { path: "users", element: <AdminUsersPage /> },
           { path: "invites", element: <AdminInvitesPage /> },
           { path: "disciplines", element: <AdminDisciplinesPage /> },
+          { path: "play", element: <AdminPlayPage /> },
         ],
       },
       { path: "*", element: <NotFoundPage /> },

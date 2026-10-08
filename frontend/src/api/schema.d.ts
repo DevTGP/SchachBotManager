@@ -206,6 +206,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/play": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A game of the person against a verified bot, as guest or with the session's account (E11, E114). The answer names the seat to join over the WebSocket at socket_path (gateway-v1); the game itself speaks play-v1. Games against people are not public: they appear in no list (E115). */
+        post: operations["start_game"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/session": {
         parameters: {
             query?: never;
@@ -457,6 +474,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/play-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The limits of interactive games (admin, E115). */
+        get: operations["get_play_settings"];
+        /** Sets all limits of interactive games at once (admin, E115); they apply to games asked for from now on. */
+        put: operations["update_play_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/queue": {
         parameters: {
             query?: never;
@@ -484,7 +519,7 @@ export interface components {
         Timestamp: string;
         Error: {
             /** @enum {unknown} */
-            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large";
+            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large" | "no_capacity" | "too_many_games";
             /** @description English text for logs; not shown to users, except as the detail of invalid_upload. */
             message: string;
             /** @description The invalid parameter, for invalid_parameter. */
@@ -797,10 +832,10 @@ export interface components {
         /** @description The secret part of an invite or reset link, after the # (E83). */
         OneTimeToken: string;
         /**
-         * @description coder: own bots; admin: everything (backend-api.md).
+         * @description player: plays against bots with an account (E103); coder: own bots; admin: everything (backend-api.md).
          * @enum {unknown}
          */
-        Role: "coder" | "admin";
+        Role: "player" | "coder" | "admin";
         CurrentUser: {
             id: components["schemas"]["Id"];
             username: string;
@@ -921,6 +956,35 @@ export interface components {
         };
         EnqueuedMatches: {
             match_ids: components["schemas"]["Id"][];
+        };
+        /** @description A game against a verified bot from the standard position: a discipline in use, or free times up to 30 min + 30 s (E115). */
+        PlayRequest: {
+            bot_id: components["schemas"]["Id"];
+            /**
+             * @description The person's color; random draws one.
+             * @enum {unknown}
+             */
+            color: "white" | "black" | "random";
+            /** @description A discipline that is not archived; null or missing for free times. */
+            discipline_id?: components["schemas"]["Id"] | null;
+            initial_time_ms?: number;
+            /** @default 0 */
+            increment_ms: number;
+        };
+        /** @description Where to join a new interactive game. The seat is shown only here; it stands for the side in the game (E113). */
+        PlaySeat: {
+            match_id: components["schemas"]["Id"];
+            seat: string;
+            /** @enum {unknown} */
+            color: "white" | "black";
+            /** @constant */
+            socket_path: "/api/v1/play/socket";
+        };
+        /** @description Limits of interactive games (E115): max_games at once in total; games_per_client at once and games_per_day for each address, account and API token on its own. */
+        PlaySettings: {
+            max_games: number;
+            games_per_client: number;
+            games_per_day: number;
         };
         QueueUpdate: {
             paused: boolean;
@@ -1064,6 +1128,26 @@ export interface components {
         };
         /** @description The request is larger than 3 MiB (code too_large). */
         TooLarge: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description The address, account or token already plays a game (code too_many_games), or reached its games for the day (code too_many_attempts, with Retry-After) (E115). */
+        PlayLimit: {
+            headers: {
+                /** @description Seconds until the daily limit allows the next game; only with too_many_attempts. */
+                "Retry-After"?: number;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description Every place for interactive games is taken; try again soon (code no_capacity, E115). */
+        NoCapacity: {
             headers: {
                 [name: string]: unknown;
             };
@@ -1461,6 +1545,37 @@ export interface operations {
             404: components["responses"]["NotFound"];
         };
     };
+    start_game: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlayRequest"];
+            };
+        };
+        responses: {
+            /** @description The game waits for the person to join. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaySeat"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            403: components["responses"]["Forbidden"];
+            429: components["responses"]["PlayLimit"];
+            503: components["responses"]["NoCapacity"];
+        };
+    };
     get_session: {
         parameters: {
             query?: never;
@@ -1611,6 +1726,7 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
         };
     };
     list_users: {
@@ -1897,6 +2013,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EnqueuedMatches"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    get_play_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The limits now in force. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaySettings"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    update_play_settings: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlaySettings"];
+            };
+        };
+        responses: {
+            /** @description The limits now in force. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaySettings"];
                 };
             };
             400: components["responses"]["BadRequest"];

@@ -12,7 +12,8 @@
     "login": "Anmelden",
     "account": "Konto",
     "admin": "Verwaltung",
-    "ownBots": "Meine Bots"
+    "ownBots": "Meine Bots",
+    "play": "Spielen"
   },
   "common": {
     "loading": "Lädt …",
@@ -37,7 +38,9 @@
     "name_taken": "Der Name gehört einem anderen Konto oder einem Referenzbot.",
     "upload_conflict": "Ein anderer Upload war schneller. Bitte erneut versuchen.",
     "invalid_upload": "Der Upload verstößt gegen eine Regel.",
-    "too_large": "Der Upload ist zu groß."
+    "too_large": "Der Upload ist zu groß.",
+    "no_capacity": "Alle Plätze für Partien sind belegt. Bitte in ein paar Minuten noch einmal versuchen.",
+    "too_many_games": "Bitte erst die laufende Partie beenden."
   },
   "start": {
     "intro": "Schachbots treten hier gegeneinander an. Alle Partien sind öffentlich ansehbar.",
@@ -334,7 +337,8 @@
   },
   "role": {
     "coder": "Coder",
-    "admin": "Admin"
+    "admin": "Admin",
+    "player": "Spieler"
   },
   "invite": {
     "title": "Einladung annehmen",
@@ -396,10 +400,67 @@
     "createdBy": "Von",
     "commandLine": "Kommandozeile",
     "expires": "Gültig bis",
-    "revoke": "Zurückziehen"
+    "revoke": "Zurückziehen",
+    "play": "Spielen"
   },
   "notFound": {
     "title": "Seite nicht gefunden",
     "back": "Zur Startseite"
+  },
+  "play": {
+    "title": "Gegen einen Bot spielen",
+    "intro": "Bot und Bedenkzeit wählen. Gespielt wird im Browser; der Server prüft jeden Zug. Partien gegen Menschen erscheinen nicht in den öffentlichen Listen.",
+    "noBots": "Es gibt noch keinen geprüften Bot als Gegner.",
+    "opponent": "Bot",
+    "color": "Deine Farbe",
+    "randomColor": "Zufällig",
+    "minutes": "Minuten je Seite",
+    "limits": "Eine Partie gleichzeitig, höchstens 50 am Tag; freie Zeiten bis 30 min + 30 s.",
+    "start": "Partie starten",
+    "noSeat": "Diese Partie wurde in einem anderen Browser gestartet, oder ihr Platz ging verloren.",
+    "newGame": "Neue Partie",
+    "resign": "Aufgeben",
+    "resignConfirm": "Wirklich aufgeben?",
+    "yourTurn": "Du bist am Zug.",
+    "botThinks": "Der Bot denkt nach …",
+    "over": "Partie zu Ende: {{result}} ({{termination}})",
+    "promotion": "Umwandeln in",
+    "cancel": "Abbrechen",
+    "piece": {
+      "q": "Dame",
+      "r": "Turm",
+      "b": "Läufer",
+      "n": "Springer"
+    },
+    "phase": {
+      "connecting": "Verbinde …",
+      "waiting": "Warte, bis der Bot startet …",
+      "playing": "Die Partie läuft.",
+      "over": "Die Partie ist zu Ende.",
+      "refused": "Dieser Partie kann (nicht mehr) beigetreten werden.",
+      "ended": "Die Partie wurde ohne Ergebnis beendet.",
+      "lost": "Die Verbindung ist abgerissen."
+    },
+    "problem": {
+      "illegal_move": "Dieser Zug ist nicht möglich.",
+      "not_your_turn": "Bitte warten, bis du am Zug bist.",
+      "replaced": "Die Partie wurde in einem anderen Fenster geöffnet.",
+      "no_game": "Die Partie wartet nicht mehr auf dich.",
+      "other": "Etwas ist schiefgegangen; bitte noch einmal versuchen."
+    }
+  },
+  "playError": {
+    "bot_id": "Bitte einen geprüften Bot wählen.",
+    "initial_time_ms": "Bitte zwischen 10 Sekunden und 30 Minuten wählen.",
+    "increment_ms": "Das Inkrement darf höchstens 30 Sekunden sein.",
+    "discipline_id": "Bitte eine Disziplin in Gebrauch wählen."
+  },
+  "adminPlay": {
+    "intro": "Grenzen für Partien gegen Menschen und Remote-Bots. Gleichzeitige und tägliche Partien zählen für jede Adresse, jedes Konto und jedes API-Token einzeln.",
+    "max_games": "Partien gleichzeitig insgesamt",
+    "games_per_client": "Partien gleichzeitig je Spieler",
+    "games_per_day": "Partien am Tag je Spieler",
+    "save": "Speichern",
+    "saved": "Gespeichert."
   }
 }
