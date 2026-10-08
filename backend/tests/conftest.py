@@ -9,6 +9,7 @@ from sbm.referee import STANDARD_FEN
 from sbm_store import bots
 from sbm_store.enqueue import enqueue_match
 from sbm_store.migrate import migrate
+from sbm_store.testing import keep_expired
 
 from sbm_api.app import create_app
 
@@ -45,6 +46,7 @@ def clock() -> Clock:
 def app(db, openapi, clock):
     """An app whose test clients check every response against the OpenAPI document."""
     migrate(db)
+    keep_expired(db)
     app = create_app(db, now=clock.now, public_url=SITE)
     app.testing = True
 

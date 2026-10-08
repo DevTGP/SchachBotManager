@@ -71,10 +71,13 @@ def test_the_owner_sees_the_report(db, login):
 def test_admins_see_the_details_of_any_bot(admin, db, reference_bots):
     bot = store_bot(db, ObjectId())
     response = admin.get(f"/api/v1/bots/{bot['_id']}")
+    assert response.status_code == 200, response.json
     assert response.json["details"]["owner"] is None
     assert response.json["details"]["files"][0]["path"] == "bot.py"
 
-    builtin = admin.get(f"/api/v1/bots/{reference_bots[0]['_id']}").json["details"]
+    response = admin.get(f"/api/v1/bots/{reference_bots[0]['_id']}")
+    assert response.status_code == 200, response.json
+    builtin = response.json["details"]
     assert (builtin["owner"], builtin["entry"], builtin["files"]) == (None, None, [])
 
 
@@ -86,7 +89,10 @@ def test_a_disabled_bot_stays_public(client, db):
 
     assert response.status_code == 200
     assert (response.json["status"], response.json["details"]) == (bots.DISABLED, None)
-    assert client.get("/api/v1/bots").json["items"] == []
+    assert [item["name"] for item in client.get("/api/v1/bots").json["items"]] == [
+        "Material",
+        "Random",
+    ]
 
 
 def test_a_retired_bot_stays_public(client, db):
@@ -97,7 +103,10 @@ def test_a_retired_bot_stays_public(client, db):
 
     assert response.status_code == 200
     assert (response.json["status"], response.json["description"]) == (bots.RETIRED, "Old.")
-    assert client.get("/api/v1/bots").json["items"] == []
+    assert [item["name"] for item in client.get("/api/v1/bots").json["items"]] == [
+        "Material",
+        "Random",
+    ]
 
 
 def test_versions_show_what_the_viewer_may_see(client, db, login):

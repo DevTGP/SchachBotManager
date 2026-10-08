@@ -17,6 +17,8 @@ URI_VARIABLE = "SBM_TEST_MONGO_URI"
 REQUIRE_VARIABLE = "SBM_REQUIRE_MONGO"
 DEFAULT_URI = "mongodb://localhost:27017"
 PROBE_TIMEOUT_MS = 1000
+# The largest value MongoDB accepts; far beyond any test clock.
+KEEP_SECONDS = 2**31 - 1
 
 
 @pytest.fixture(scope="session")
@@ -42,3 +44,17 @@ def db(mongo_uri: str):
     finally:
         database.client.drop_database(database.name)
         database.client.close()
+
+
+def keep_expired(database) -> None:
+    """Stops the TTL indexes from removing documents of this database.
+
+    Tests run on fixed clocks months before the real time, so MongoDB's TTL monitor would remove
+    their sessions and links at a random moment within a minute.
+    """
+    for collection in database.list_collection_names():
+        for name, index in database[collection].index_information().items():
+            if "expireAfterSeconds" in index:
+                database.command(
+                    "collMod", collection, index={"name": name, "expireAfterSeconds": KEEP_SECONDS}
+                )
