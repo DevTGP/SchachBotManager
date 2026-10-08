@@ -19,19 +19,29 @@ class Count:
     resets_at: datetime
 
 
-def hit(db: Database, key: str, *, now: datetime, window: timedelta) -> Count:
-    """Counts one request for key; returns the requests in this window, this one included."""
-    seconds = int(window.total_seconds())
-    start = int(now.timestamp()) // seconds * seconds
-    resets_at = datetime.fromtimestamp(start + seconds, now.tzinfo)
-    document_id = f"{key}:{start}"
-    update = {"$inc": {"count": 1}, "$setOnInsert": {"expires_at": resets_at}}
+def hit(db: Database, key: str, *, now: datetime, window: timedelta, amount: int = 1) -> Count:
+    """Counts amount requests for key; returns the requests in this window, these included."""
+    document_id, resets_at = _window(key, now, window)
+    update = {"$inc": {"count": amount}, "$setOnInsert": {"expires_at": resets_at}}
     try:
         counter = _increment(db, document_id, update)
     except DuplicateKeyError:
         # Two first requests at once: one upsert loses, and now the document exists.
         counter = _increment(db, document_id, update)
     return Count(requests=counter["count"], resets_at=resets_at)
+
+
+def give_back(db: Database, key: str, *, now: datetime, window: timedelta, amount: int) -> None:
+    """Takes back amount requests that hit counted at the same now, e.g. a refused one."""
+    document_id, _ = _window(key, now, window)
+    db[RATE_LIMITS].update_one({"_id": document_id}, {"$inc": {"count": -amount}})
+
+
+def _window(key: str, now: datetime, window: timedelta) -> tuple[str, datetime]:
+    """The document id of the window that holds now, and when that window ends."""
+    seconds = int(window.total_seconds())
+    start = int(now.timestamp()) // seconds * seconds
+    return f"{key}:{start}", datetime.fromtimestamp(start + seconds, now.tzinfo)
 
 
 def _increment(db: Database, document_id: str, update: dict) -> dict:

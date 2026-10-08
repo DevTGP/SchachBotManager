@@ -37,6 +37,7 @@ def test_first_version_starts_a_lineage(db):
     assert bot["parent_bot_id"] is None
     assert bot["status"] == bots.UPLOADED
     assert bot["sizes"] == {"data": 4, "source": 10}
+    assert bot["description"] == ""
     assert not bots.is_builtin(bot)
 
 
@@ -134,7 +135,32 @@ def test_pipeline_moves_forward_until_it_ends(db):
     assert not bots.advance(db, bot["_id"], bots.TESTING)
 
 
-def test_only_verified_and_disabled_bots_switch(db):
+def verified(db, name="Alpha", version="1.0.0") -> dict:
+    bot = upload(db, name, version)
+    bots.finish_verification(
+        db,
+        bot["_id"],
+        verified=True,
+        report_id=ObjectId(),
+        rejection=None,
+        sdk_version="0.4.0",
+        runtime_version="3.12",
+        now=T0,
+    )
+    return bots.get(db, bot["_id"])
+
+
+def test_versions_of_lists_every_status_newest_first(db):
+    migrate(db)
+    first = verified(db)
+    second = upload(db, "ALPHA", "1.1.0")
+    upload(db, "Beta")
+
+    found = [bot["_id"] for bot in bots.versions_of(db, "alpha")]
+    assert found == [second["_id"], first["_id"]]
+
+
+def test_admins_disable_verified_and_retired_bots(db):
     migrate(db)
     bot = upload(db)
 
@@ -142,3 +168,32 @@ def test_only_verified_and_disabled_bots_switch(db):
     random = bots.latest(db, "Random")
     assert bots.set_enabled(db, random["_id"], False)["status"] == bots.DISABLED
     assert bots.set_enabled(db, random["_id"], True)["status"] == bots.VERIFIED
+
+    retired = bots.change_by_owner(db, verified(db, "Beta")["_id"], retired=True)
+    assert bots.set_enabled(db, retired["_id"], True) is None
+    assert bots.set_enabled(db, retired["_id"], False)["status"] == bots.DISABLED
+    assert bots.set_enabled(db, retired["_id"], True)["status"] == bots.VERIFIED
+
+
+def test_owners_retire_and_reactivate_their_bots(db):
+    migrate(db)
+    bot = verified(db)
+
+    retired = bots.change_by_owner(db, bot["_id"], retired=True, description="old")
+    assert (retired["status"], retired["description"]) == (bots.RETIRED, "old")
+    assert bots.change_by_owner(db, bot["_id"], retired=False)["status"] == bots.VERIFIED
+    assert bots.change_by_owner(db, bot["_id"])["status"] == bots.VERIFIED
+
+
+def test_owners_cannot_lift_a_block_or_retire_unverified_bots(db):
+    migrate(db)
+    blocked = verified(db)
+    bots.set_enabled(db, blocked["_id"], False)
+    pending = upload(db, "Beta")
+
+    assert bots.change_by_owner(db, blocked["_id"], retired=False, description="x") is None
+    assert bots.get(db, blocked["_id"])["description"] == ""
+    assert bots.change_by_owner(db, pending["_id"], retired=True) is None
+    changed = bots.change_by_owner(db, blocked["_id"], description="still blocked")
+    assert (changed["status"], changed["description"]) == (bots.DISABLED, "still blocked")
+    assert bots.change_by_owner(db, ObjectId(), description="x") is None

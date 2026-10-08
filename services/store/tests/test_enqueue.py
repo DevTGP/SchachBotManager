@@ -19,6 +19,7 @@ def test_enqueued_match_is_queued_with_a_job(db, reference_bots):
         "kind": "bot",
         "bot_id": white["_id"],
         "name": "Random",
+        "version": "1.0.0",
         "sdk": None,
         "lang": None,
     }

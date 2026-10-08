@@ -18,6 +18,14 @@ def test_requests_count_per_key_and_window(db):
     assert hit(db, "auth:1.2.3.4", 15).requests == 1
 
 
+def test_a_request_counts_several_and_gives_them_back(db):
+    assert rate_limits.hit(db, "matches:1", now=T0, window=WINDOW, amount=4).requests == 4
+    count = rate_limits.hit(db, "matches:1", now=T0, window=WINDOW, amount=10)
+    assert count.requests == 14
+    rate_limits.give_back(db, "matches:1", now=T0, window=WINDOW, amount=10)
+    assert hit(db, "matches:1", 1).requests == 5
+
+
 def test_a_counter_expires_with_its_window(db):
     count = hit(db, "auth:1.2.3.4", 3)
 

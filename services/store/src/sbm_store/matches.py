@@ -40,7 +40,14 @@ SUMMARY_PROJECTION = {field: 1 for field in SUMMARY_FIELDS} | {"ply_count": {"$s
 
 def side(bot: dict) -> dict:
     """A bot as a side of a match; sdk and lang follow from its ready message."""
-    return {"kind": "bot", "bot_id": bot["_id"], "name": bot["name"], "sdk": None, "lang": None}
+    return {
+        "kind": "bot",
+        "bot_id": bot["_id"],
+        "name": bot["name"],
+        "version": bot.get("version"),
+        "sdk": None,
+        "lang": None,
+    }
 
 
 def new_match(

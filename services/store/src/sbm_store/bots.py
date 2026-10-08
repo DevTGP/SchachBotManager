@@ -21,10 +21,11 @@ TESTING = "testing"
 VERIFIED = "verified"
 REJECTED = "rejected"
 DISABLED = "disabled"
+RETIRED = "retired"
 # Statuses of a bot that is still being verified.
 PIPELINE = (UPLOADED, ANALYZING, TESTING)
 # Statuses anyone may see; the others only the owner and admins.
-PUBLIC = (VERIFIED, DISABLED)
+PUBLIC = (VERIFIED, DISABLED, RETIRED)
 BUILTIN_PREFIX = "builtin:"
 GRIDFS = "gridfs"
 
@@ -56,6 +57,7 @@ def new_uploaded_bot(
     owner_id: ObjectId,
     previous: dict | None,
     now: datetime,
+    description: str = "",
 ) -> dict:
     """A new version after previous, the latest bot of the lineage, or the first one.
 
@@ -72,6 +74,7 @@ def new_uploaded_bot(
         "owner_id": owner_id,
         "lineage_id": previous["lineage_id"] if previous else bot_id,
         "parent_bot_id": previous["_id"] if previous else None,
+        "description": description,
         "status": UPLOADED,
         "source_ref": GRIDFS,
         "entry": entry,
@@ -114,6 +117,11 @@ def by_name(db: Database, name: str) -> dict | None:
     return db[BOTS].find_one(
         {"name_key": name_key(name), "status": VERIFIED}, sort=[("version_no", DESCENDING)]
     )
+
+
+def versions_of(db: Database, name: str) -> list[dict]:
+    """All versions with this name, regardless of case and status, newest first."""
+    return list(db[BOTS].find({"name_key": name_key(name)}).sort([("version_no", DESCENDING)]))
 
 
 def all_by_name(db: Database) -> list[dict]:
@@ -167,12 +175,41 @@ def finish_verification(
 
 
 def set_enabled(db: Database, bot_id: ObjectId, enabled: bool) -> dict | None:
-    """Switches a bot between verified and disabled (E93); returns it as it is now.
+    """Disables a verified or retired bot, or makes a disabled one verified (E93, E96).
 
-    None if there is no such bot or it is in neither status.
+    Returns the bot as it is now; None if there is no such bot or it cannot switch, such
+    as a retired bot to verified, which only its owner may do.
     """
+    allowed = [DISABLED, VERIFIED] if enabled else [VERIFIED, RETIRED, DISABLED]
     return db[BOTS].find_one_and_update(
-        {"_id": bot_id, "status": {"$in": [VERIFIED, DISABLED]}},
+        {"_id": bot_id, "status": {"$in": allowed}},
         {"$set": {"status": VERIFIED if enabled else DISABLED}},
         return_document=ReturnDocument.AFTER,
+    )
+
+
+def change_by_owner(
+    db: Database,
+    bot_id: ObjectId,
+    *,
+    description: str | None = None,
+    retired: bool | None = None,
+) -> dict | None:
+    """Sets the description, retires the bot or makes it verified again (E95, E96).
+
+    Fields left None stay as they are. Returns the bot as it is now; None if there is no
+    such bot, or retired is given and the bot is neither verified nor retired, such as
+    one an admin disabled. Then nothing changes.
+    """
+    query: dict = {"_id": bot_id}
+    fields: dict = {}
+    if description is not None:
+        fields["description"] = description
+    if retired is not None:
+        query["status"] = {"$in": [VERIFIED, RETIRED]}
+        fields["status"] = RETIRED if retired else VERIFIED
+    if not fields:
+        return db[BOTS].find_one(query)
+    return db[BOTS].find_one_and_update(
+        query, {"$set": fields}, return_document=ReturnDocument.AFTER
     )
