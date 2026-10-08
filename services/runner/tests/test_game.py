@@ -1,12 +1,16 @@
-from dataclasses import replace
-
 from bson import ObjectId
-from conftest import QUICK
 from sbm_store import bots, jobs, matches, queue_settings, rating_recount, ratings
+from sbm_store.discipline import Discipline
 from sbm_store.names import BOTS, JOBS, MATCHES
 from sbm_store.rating_rule import START, white_gain
 
 from sbm_runner.worker import utc_now
+
+# As QUICK in conftest.py, but stored, so its games count. Not imported from conftest: the module
+# name is shared with tests/sandbox/conftest.py, whose QUICK is referee settings.
+RATED = Discipline(
+    "Quick", initial_time_ms=10_000, increment_ms=0, max_moves=3, discipline_id=ObjectId()
+)
 
 
 def job_of(db, match_id: ObjectId) -> dict:
@@ -90,7 +94,7 @@ def test_finished_match_only_closes_its_job(db, worker, reference_bots, enqueue)
 def test_a_rated_match_moves_the_ratings_of_both_bots(db, worker, reference_bots, enqueue):
     random, material = reference_bots
     unrated = enqueue(random, material)
-    rated = enqueue(random, material, replace(QUICK, discipline_id=ObjectId()))
+    rated = enqueue(random, material, RATED)
 
     assert worker.step()
     assert worker.step()
@@ -110,7 +114,7 @@ def test_a_rated_match_moves_the_ratings_of_both_bots(db, worker, reference_bots
 
 def test_ratings_are_counted_again_on_request_even_when_paused(db, worker, reference_bots, enqueue):
     random, material = reference_bots
-    rated = enqueue(random, material, replace(QUICK, discipline_id=ObjectId()))
+    rated = enqueue(random, material, RATED)
     assert worker.step()
     db[MATCHES].delete_one({"_id": rated})
     rating_recount.request(db, utc_now())
