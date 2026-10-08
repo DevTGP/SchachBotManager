@@ -196,9 +196,11 @@ def test_a_paused_queue_holds_verifications_too(db, verifying):
 
 def lose_worker(db, config, bot: dict, *, attempts: int) -> None:
     """A worker claimed the verification and vanished; its lease ran out long ago."""
-    db[JOBS].update_one({"_id": job_of(db, bot)["_id"]}, {"$set": {"attempts": attempts - 1}})
+    job_id = job_of(db, bot)["_id"]
+    db[JOBS].update_one({"_id": job_id}, {"$set": {"attempts": attempts - 1}})
+    assert jobs.claim(db, jobs.VERIFICATION, "dead-worker", now=utc_now(), lease=config.lease)
     past = utc_now() - timedelta(minutes=10)
-    jobs.claim(db, jobs.VERIFICATION, "dead-worker", now=past, lease=config.lease)
+    db[JOBS].update_one({"_id": job_id}, {"$set": {"lease_until": past}})
 
 
 def test_a_lost_verification_starts_over(db, config, verifier):

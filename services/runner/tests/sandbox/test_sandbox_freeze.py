@@ -21,6 +21,14 @@ def wait_frozen(cgroup) -> None:
         time.sleep(0.01)
 
 
+def wait_running(cgroup, usec: int) -> None:
+    """Thawed, the spinner gets processor time again; a busy CI machine may take a moment."""
+    deadline = time.monotonic() + 5
+    while int(cpu_usec(cgroup)) <= usec:
+        assert time.monotonic() < deadline, "the thawed bot got no processor time"
+        time.sleep(0.05)
+
+
 def test_frozen_bot_gets_no_processor_time(jailed):
     player = jailed("spinner")
     try:
@@ -36,7 +44,6 @@ def test_frozen_bot_gets_no_processor_time(jailed):
         assert int(cpu_usec(cgroup)) == frozen
 
         player.resume()
-        time.sleep(0.5)
-        assert int(cpu_usec(cgroup)) > frozen + 100_000
+        wait_running(cgroup, frozen + 100_000)
     finally:
         player.close()
