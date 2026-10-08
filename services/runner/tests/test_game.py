@@ -1,5 +1,5 @@
 from bson import ObjectId
-from sbm_store import jobs, matches, queue_settings
+from sbm_store import bots, jobs, matches, queue_settings
 from sbm_store.names import BOTS, JOBS, MATCHES
 
 
@@ -44,6 +44,19 @@ def test_bot_needing_the_sandbox_aborts_the_match(db, worker, reference_bots, fo
     match = matches.get(db, match_id)
     assert match["status"] == matches.ABORTED
     assert "sandbox" in match["termination_detail"]
+    assert job_of(db, match_id)["status"] == jobs.FAILED
+
+
+def test_bot_that_is_not_verified_aborts_the_match(db, worker, reference_bots, enqueue):
+    random, material = reference_bots
+    match_id = enqueue(random, material)
+    db[BOTS].update_one({"_id": material["_id"]}, {"$set": {"status": bots.DISABLED}})
+
+    assert worker.step()
+
+    match = matches.get(db, match_id)
+    assert match["status"] == matches.ABORTED
+    assert match["termination_detail"].endswith("is disabled")
     assert job_of(db, match_id)["status"] == jobs.FAILED
 
 

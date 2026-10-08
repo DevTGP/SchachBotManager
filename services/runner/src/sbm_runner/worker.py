@@ -1,4 +1,4 @@
-"""The runner's main loop: recover, claim, play, one game at a time."""
+"""The runner's main loop: recover, claim, then play a match or verify a bot, one at a time."""
 
 import logging
 import time
@@ -14,8 +14,9 @@ from sbm_runner.game import run_job
 from sbm_runner.heartbeat import Heartbeat
 from sbm_runner.players import PlayerFactory, plain_player
 from sbm_runner.recovery import recover_expired
-from sbm_runner.retries import retry_or_abort
+from sbm_runner.retries import retry_or_abort, retry_or_reject
 from sbm_runner.shutdown import Shutdown
+from sbm_runner.verification.pipeline import Verifier, run_verification
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +26,10 @@ def utc_now() -> datetime:
 
 
 class Worker:
-    """Plays one game at a time; the parallelism setting of the queue is not used yet."""
+    """Does one job at a time; the parallelism setting of the queue is not used yet.
+
+    Without a verifier (no sandbox) the worker takes no verification jobs.
+    """
 
     def __init__(
         self,
@@ -33,12 +37,14 @@ class Worker:
         config: RunnerConfig,
         *,
         players: PlayerFactory = plain_player,
+        verifier: Verifier | None = None,
         now: Callable[[], datetime] = utc_now,
         sleep: Callable[[float], None] = time.sleep,
     ) -> None:
         self._db = db
         self._config = config
         self._players = players
+        self._verifier = verifier
         self._now = now
         self._sleep = sleep
 
@@ -58,13 +64,7 @@ class Worker:
         recover_expired(self._db, self._config, self._now())
         if queue_settings.get(self._db).paused:
             return False
-        job = jobs.claim(
-            self._db,
-            jobs.MATCH,
-            self._config.worker_id,
-            now=self._now(),
-            lease=self._config.lease,
-        )
+        job = self._claim()
         if job is None:
             return False
         heartbeat = Heartbeat(
@@ -79,7 +79,46 @@ class Worker:
             self._work(job)
         return True
 
+    def _claim(self) -> dict | None:
+        """Matches first; a verification that waited too long goes ahead (E89)."""
+        now = self._now()
+
+        def claim(job_type: str, created_before: datetime | None = None) -> dict | None:
+            return jobs.claim(
+                self._db,
+                job_type,
+                self._config.worker_id,
+                now=now,
+                lease=self._config.lease,
+                created_before=created_before,
+            )
+
+        if self._verifier is None:
+            return claim(jobs.MATCH)
+        return (
+            claim(jobs.VERIFICATION, now - self._config.verification_wait)
+            or claim(jobs.MATCH)
+            or claim(jobs.VERIFICATION)
+        )
+
     def _work(self, job: dict) -> None:
+        if job["type"] == jobs.VERIFICATION:
+            self._verify(job)
+        else:
+            self._play(job)
+
+    def _verify(self, job: dict) -> None:
+        try:
+            run_verification(self._db, job, verifier=self._verifier, now=self._now)
+        except Shutdown:
+            # The bot keeps its pipeline status; the next attempt starts from the beginning.
+            jobs.release(self._db, job["_id"], self._config.worker_id)
+            raise
+        except Exception:
+            log.exception("verification job %s failed (attempt %d)", job["_id"], job["attempts"])
+            retry_or_reject(self._db, job, self._config, self._now())
+
+    def _play(self, job: dict) -> None:
         try:
             run_job(self._db, job, players=self._players, now=self._now)
         except Shutdown:

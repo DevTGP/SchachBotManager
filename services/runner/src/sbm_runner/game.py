@@ -60,6 +60,9 @@ def _player(db: Database, side: dict, players: PlayerFactory) -> Player:
     bot = bots.get(db, side["bot_id"])
     if bot is None:
         raise UnsupportedBot(f"bot {side['bot_id']} does not exist")
+    if bot["status"] != bots.VERIFIED:
+        # Disabled after the match was queued, or never verified (E93).
+        raise UnsupportedBot(f"bot {bot['name']} {bot.get('version', '')} is {bot['status']}")
     return players(bot)
 
 

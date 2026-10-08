@@ -10,18 +10,23 @@ _CHUNK_BYTES = 4096
 
 
 class StderrTail:
-    """Reading keeps the pipe empty, so a bot that floods stderr never blocks on it."""
+    """Reading keeps the pipe empty, so a bot that floods stderr never blocks on it.
+
+    total counts every byte read, also the dropped ones.
+    """
 
     def __init__(self, stream: BinaryIO, name: str, limit: int = STDERR_TAIL_BYTES) -> None:
         self._stream = stream
         self._limit = limit
         self._tail = bytearray()
+        self.total = 0
         self._thread = threading.Thread(target=self._read, name=f"stderr {name}", daemon=True)
         self._thread.start()
 
     def _read(self) -> None:
         with contextlib.suppress(OSError, ValueError):
             while chunk := self._stream.read1(_CHUNK_BYTES):
+                self.total += len(chunk)
                 self._tail += chunk
                 del self._tail[: -self._limit]
 

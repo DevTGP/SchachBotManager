@@ -54,8 +54,10 @@ def foreign_bot(db) -> dict:
     bot = {
         "_id": ObjectId(),
         "name": "Uploaded",
+        "version": "1.0.0",
         "language": "python",
-        "source_ref": "uploads/abc",
+        "entry": "bot.py",
+        "source_ref": bots.GRIDFS,
         "status": bots.VERIFIED,
     }
     db[BOTS].insert_one(bot)
