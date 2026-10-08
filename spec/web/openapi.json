@@ -3,7 +3,7 @@
   "info": {
     "title": "SchachBotManager web API",
     "version": "1",
-    "description": "Web API of SchachBotManager (backend-api.md, E73): public reading of matches, bots and the game queue; sessions, accounts and administration for invited users (E83, E84, E85); uploading bots and their verification (E91, E92, E93); own bots with their versions and source, and single games set by their owners (E95, E96, E97, E98). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32). Requests other than GET need the header X-SBM-CSRF: 1 (E84).",
+    "description": "Web API of SchachBotManager (backend-api.md, E73): public reading of matches, bots and the game queue; sessions, accounts and administration for invited users (E83, E84, E85); uploading bots and their verification (E91, E92, E93); own bots with their versions and source, and single games set by their owners (E95, E96, E97, E98); disciplines (E100). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32). Requests other than GET need the header X-SBM-CSRF: 1 (E84).",
     "license": { "name": "MIT-0", "identifier": "MIT-0" }
   },
   "servers": [{ "url": "/api/v1" }],
@@ -286,6 +286,37 @@
         }
       }
     },
+    "/disciplines": {
+      "get": {
+        "operationId": "list_disciplines",
+        "summary": "All disciplines ordered by name, the archived ones included (E100).",
+        "responses": {
+          "200": {
+            "description": "The disciplines.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/DisciplineList" } }
+            }
+          }
+        }
+      }
+    },
+    "/disciplines/{discipline_id}": {
+      "parameters": [{ "$ref": "#/components/parameters/DisciplineId" }],
+      "get": {
+        "operationId": "get_discipline",
+        "summary": "One discipline (E100).",
+        "responses": {
+          "200": {
+            "description": "The discipline.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/StoredDiscipline" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
     "/session": {
       "get": {
         "operationId": "get_session",
@@ -560,6 +591,62 @@
         }
       }
     },
+    "/admin/disciplines": {
+      "post": {
+        "operationId": "create_discipline",
+        "security": [{ "session": [] }],
+        "summary": "A new discipline (admin, E100).",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DisciplineRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The new discipline.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/StoredDiscipline" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "409": { "$ref": "#/components/responses/DisciplineNameTaken" }
+        }
+      }
+    },
+    "/admin/disciplines/{discipline_id}": {
+      "parameters": [{ "$ref": "#/components/parameters/DisciplineId" }],
+      "patch": {
+        "operationId": "update_discipline",
+        "security": [{ "session": [] }],
+        "summary": "Changes or archives a discipline (admin, E100); queued and played matches keep their copy.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/DisciplineUpdate" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The changed discipline.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/StoredDiscipline" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/DisciplineNameTaken" }
+        }
+      }
+    },
     "/admin/matches": {
       "post": {
         "operationId": "enqueue_matches",
@@ -636,6 +723,12 @@
       },
       "MatchId": {
         "name": "match_id",
+        "in": "path",
+        "required": true,
+        "schema": { "$ref": "#/components/schemas/Id" }
+      },
+      "DisciplineId": {
+        "name": "discipline_id",
         "in": "path",
         "required": true,
         "schema": { "$ref": "#/components/schemas/Id" }
@@ -722,6 +815,10 @@
         "description": "The name belongs to a bot of another account or to a reference bot (code name_taken), or another upload of the name came first (code upload_conflict).",
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
       },
+      "DisciplineNameTaken": {
+        "description": "Another discipline has the name, also in another case (code name_taken).",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
       "TooLarge": {
         "description": "The request is larger than 3 MiB (code too_large).",
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
@@ -796,7 +893,11 @@
           "increment_ms": { "type": "integer", "minimum": 0 },
           "startup_ms": { "type": "integer", "minimum": 1 },
           "tolerance_ms": { "type": "integer", "minimum": 0 },
-          "max_moves": { "type": "integer", "minimum": 1 }
+          "max_moves": { "type": "integer", "minimum": 1 },
+          "discipline_id": {
+            "description": "The stored discipline the match was queued under; null for free times (E100).",
+            "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }]
+          }
         },
         "required": [
           "name",
@@ -804,8 +905,102 @@
           "increment_ms",
           "startup_ms",
           "tolerance_ms",
-          "max_moves"
+          "max_moves",
+          "discipline_id"
         ],
+        "additionalProperties": false
+      },
+      "DisciplineName": {
+        "description": "1 to 40 characters without control characters, unique regardless of case (E100); the API removes leading and trailing spaces.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 40,
+        "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]*(?!\\n)$"
+      },
+      "StoredDiscipline": {
+        "description": "A discipline that matches, and later leagues, are played under (E100). Archived disciplines stay readable, but nothing new may use them.",
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Id" },
+          "name": { "$ref": "#/components/schemas/DisciplineName" },
+          "initial_time_ms": { "type": "integer", "minimum": 1000, "maximum": 86400000 },
+          "increment_ms": { "type": "integer", "minimum": 0, "maximum": 3600000 },
+          "startup_ms": { "type": "integer", "minimum": 1000, "maximum": 60000 },
+          "tolerance_ms": { "type": "integer", "minimum": 0, "maximum": 1000 },
+          "max_moves": { "type": "integer", "minimum": 1, "maximum": 2000 },
+          "archived": { "type": "boolean" },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" },
+          "updated_at": { "$ref": "#/components/schemas/Timestamp" }
+        },
+        "required": [
+          "id",
+          "name",
+          "initial_time_ms",
+          "increment_ms",
+          "startup_ms",
+          "tolerance_ms",
+          "max_moves",
+          "archived",
+          "created_at",
+          "updated_at"
+        ],
+        "additionalProperties": false
+      },
+      "DisciplineList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/StoredDiscipline" }
+          }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "DisciplineRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "$ref": "#/components/schemas/DisciplineName" },
+          "initial_time_ms": { "type": "integer", "minimum": 1000, "maximum": 86400000 },
+          "increment_ms": { "type": "integer", "minimum": 0, "maximum": 3600000, "default": 0 },
+          "startup_ms": {
+            "description": "Time for a bot to start and answer init.",
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 60000,
+            "default": 10000
+          },
+          "tolerance_ms": {
+            "description": "Grace on every move for the transport.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000,
+            "default": 20
+          },
+          "max_moves": {
+            "description": "Full moves until the game is drawn.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 2000,
+            "default": 500
+          }
+        },
+        "required": ["name", "initial_time_ms"],
+        "additionalProperties": false
+      },
+      "DisciplineUpdate": {
+        "description": "At least one field; changes apply to matches queued afterwards.",
+        "type": "object",
+        "properties": {
+          "name": { "$ref": "#/components/schemas/DisciplineName" },
+          "initial_time_ms": { "type": "integer", "minimum": 1000, "maximum": 86400000 },
+          "increment_ms": { "type": "integer", "minimum": 0, "maximum": 3600000 },
+          "startup_ms": { "type": "integer", "minimum": 1000, "maximum": 60000 },
+          "tolerance_ms": { "type": "integer", "minimum": 0, "maximum": 1000 },
+          "max_moves": { "type": "integer", "minimum": 1, "maximum": 2000 },
+          "archived": { "type": "boolean" }
+        },
+        "minProperties": 1,
         "additionalProperties": false
       },
       "Side": {
@@ -835,6 +1030,10 @@
           "white": { "$ref": "#/components/schemas/Side" },
           "black": { "$ref": "#/components/schemas/Side" },
           "discipline": { "$ref": "#/components/schemas/Discipline" },
+          "rated": {
+            "description": "Played under a stored discipline from the standard position; only such matches will count for the rating (E100).",
+            "type": "boolean"
+          },
           "result": {
             "description": "null until the match ends.",
             "oneOf": [{ "$ref": "#/components/schemas/Result" }, { "type": "null" }]
@@ -859,6 +1058,7 @@
           "white",
           "black",
           "discipline",
+          "rated",
           "result",
           "termination",
           "ply_count",
@@ -1419,11 +1619,15 @@
         "additionalProperties": false
       },
       "EnqueueRequest": {
-        "description": "The discipline is named after the time control in seconds, e.g. 180+2 or 20+0.5; bots get 10 s to start (E85).",
+        "description": "Either discipline_id or free times with initial_time_ms, increment_ms and max_moves (E100). Free times are named after the time control in seconds, e.g. 180+2 or 20+0.5; bots get 10 s to start (E85).",
         "type": "object",
         "properties": {
           "white_bot_id": { "$ref": "#/components/schemas/Id" },
           "black_bot_id": { "$ref": "#/components/schemas/Id" },
+          "discipline_id": {
+            "description": "A discipline that is not archived; null or missing for free times.",
+            "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }]
+          },
           "initial_time_ms": { "type": "integer", "minimum": 1000, "maximum": 86400000 },
           "increment_ms": { "type": "integer", "minimum": 0, "maximum": 3600000, "default": 0 },
           "games": { "type": "integer", "minimum": 1, "maximum": 100, "default": 1 },
@@ -1452,15 +1656,19 @@
             "maxLength": 100
           }
         },
-        "required": ["white_bot_id", "black_bot_id", "initial_time_ms"],
+        "required": ["white_bot_id", "black_bot_id"],
         "additionalProperties": false
       },
       "OwnMatchRequest": {
-        "description": "Like EnqueueRequest with tighter limits: from the standard position with the default move limit, at most 5 min + 5 s and 10 games (E98).",
+        "description": "Like EnqueueRequest with tighter limits: from the standard position, at most 10 games, and free times only with the default move limit up to 5 min + 5 s (E98, E100).",
         "type": "object",
         "properties": {
           "white_bot_id": { "$ref": "#/components/schemas/Id" },
           "black_bot_id": { "$ref": "#/components/schemas/Id" },
+          "discipline_id": {
+            "description": "A discipline that is not archived; null or missing for free times.",
+            "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }]
+          },
           "initial_time_ms": { "type": "integer", "minimum": 1000, "maximum": 300000 },
           "increment_ms": { "type": "integer", "minimum": 0, "maximum": 5000, "default": 0 },
           "games": { "type": "integer", "minimum": 1, "maximum": 10, "default": 1 },
@@ -1470,7 +1678,7 @@
             "default": false
           }
         },
-        "required": ["white_bot_id", "black_bot_id", "initial_time_ms"],
+        "required": ["white_bot_id", "black_bot_id"],
         "additionalProperties": false
       },
       "EnqueuedMatches": {

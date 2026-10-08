@@ -170,6 +170,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/disciplines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All disciplines ordered by name, the archived ones included (E100). */
+        get: operations["list_disciplines"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/disciplines/{discipline_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                discipline_id: components["parameters"]["DisciplineId"];
+            };
+            cookie?: never;
+        };
+        /** One discipline (E100). */
+        get: operations["get_discipline"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/session": {
         parameters: {
             query?: never;
@@ -368,6 +404,42 @@ export interface paths {
         patch: operations["update_bot"];
         trace?: never;
     };
+    "/admin/disciplines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A new discipline (admin, E100). */
+        post: operations["create_discipline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/disciplines/{discipline_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                discipline_id: components["parameters"]["DisciplineId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Changes or archives a discipline (admin, E100); queued and played matches keep their copy. */
+        patch: operations["update_discipline"];
+        trace?: never;
+    };
     "/admin/matches": {
         parameters: {
             query?: never;
@@ -439,6 +511,57 @@ export interface components {
             startup_ms: number;
             tolerance_ms: number;
             max_moves: number;
+            /** @description The stored discipline the match was queued under; null for free times (E100). */
+            discipline_id: components["schemas"]["Id"] | null;
+        };
+        /** @description 1 to 40 characters without control characters, unique regardless of case (E100); the API removes leading and trailing spaces. */
+        DisciplineName: string;
+        /** @description A discipline that matches, and later leagues, are played under (E100). Archived disciplines stay readable, but nothing new may use them. */
+        StoredDiscipline: {
+            id: components["schemas"]["Id"];
+            name: components["schemas"]["DisciplineName"];
+            initial_time_ms: number;
+            increment_ms: number;
+            startup_ms: number;
+            tolerance_ms: number;
+            max_moves: number;
+            archived: boolean;
+            created_at: components["schemas"]["Timestamp"];
+            updated_at: components["schemas"]["Timestamp"];
+        };
+        DisciplineList: {
+            items: components["schemas"]["StoredDiscipline"][];
+        };
+        DisciplineRequest: {
+            name: components["schemas"]["DisciplineName"];
+            initial_time_ms: number;
+            /** @default 0 */
+            increment_ms: number;
+            /**
+             * @description Time for a bot to start and answer init.
+             * @default 10000
+             */
+            startup_ms: number;
+            /**
+             * @description Grace on every move for the transport.
+             * @default 20
+             */
+            tolerance_ms: number;
+            /**
+             * @description Full moves until the game is drawn.
+             * @default 500
+             */
+            max_moves: number;
+        };
+        /** @description At least one field; changes apply to matches queued afterwards. */
+        DisciplineUpdate: {
+            name?: components["schemas"]["DisciplineName"];
+            initial_time_ms?: number;
+            increment_ms?: number;
+            startup_ms?: number;
+            tolerance_ms?: number;
+            max_moves?: number;
+            archived?: boolean;
         };
         /** @description One side of a match. sdk and lang are filled once the bot reported ready. */
         Side: {
@@ -460,6 +583,8 @@ export interface components {
             white: components["schemas"]["Side"];
             black: components["schemas"]["Side"];
             discipline: components["schemas"]["Discipline"];
+            /** @description Played under a stored discipline from the standard position; only such matches will count for the rating (E100). */
+            rated: boolean;
             /** @description null until the match ends. */
             result: components["schemas"]["result"] | null;
             /** @description null until the match ends. */
@@ -748,11 +873,13 @@ export interface components {
             /** @description The page of the SPA with the token after the #, so it stays out of server logs. */
             url: string;
         };
-        /** @description The discipline is named after the time control in seconds, e.g. 180+2 or 20+0.5; bots get 10 s to start (E85). */
+        /** @description Either discipline_id or free times with initial_time_ms, increment_ms and max_moves (E100). Free times are named after the time control in seconds, e.g. 180+2 or 20+0.5; bots get 10 s to start (E85). */
         EnqueueRequest: {
             white_bot_id: components["schemas"]["Id"];
             black_bot_id: components["schemas"]["Id"];
-            initial_time_ms: number;
+            /** @description A discipline that is not archived; null or missing for free times. */
+            discipline_id?: components["schemas"]["Id"] | null;
+            initial_time_ms?: number;
             /** @default 0 */
             increment_ms: number;
             /** @default 1 */
@@ -775,11 +902,13 @@ export interface components {
             /** @description Start position; null or missing for the standard position. */
             start_fen?: string | null;
         };
-        /** @description Like EnqueueRequest with tighter limits: from the standard position with the default move limit, at most 5 min + 5 s and 10 games (E98). */
+        /** @description Like EnqueueRequest with tighter limits: from the standard position, at most 10 games, and free times only with the default move limit up to 5 min + 5 s (E98, E100). */
         OwnMatchRequest: {
             white_bot_id: components["schemas"]["Id"];
             black_bot_id: components["schemas"]["Id"];
-            initial_time_ms: number;
+            /** @description A discipline that is not archived; null or missing for free times. */
+            discipline_id?: components["schemas"]["Id"] | null;
+            initial_time_ms?: number;
             /** @default 0 */
             increment_ms: number;
             /** @default 1 */
@@ -924,6 +1053,15 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
+        /** @description Another discipline has the name, also in another case (code name_taken). */
+        DisciplineNameTaken: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
         /** @description The request is larger than 3 MiB (code too_large). */
         TooLarge: {
             headers: {
@@ -948,6 +1086,7 @@ export interface components {
         Csrf: "1";
         UserId: components["schemas"]["Id"];
         MatchId: components["schemas"]["Id"];
+        DisciplineId: components["schemas"]["Id"];
         /** @description Page size. */
         Limit: number;
         /** @description Number of items to skip. */
@@ -1276,6 +1415,50 @@ export interface operations {
                     "application/json": components["schemas"]["Queue"];
                 };
             };
+        };
+    };
+    list_disciplines: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The disciplines. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisciplineList"];
+                };
+            };
+        };
+    };
+    get_discipline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                discipline_id: components["parameters"]["DisciplineId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The discipline. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoredDiscipline"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
         };
     };
     get_session: {
@@ -1624,6 +1807,71 @@ export interface operations {
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+        };
+    };
+    create_discipline: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DisciplineRequest"];
+            };
+        };
+        responses: {
+            /** @description The new discipline. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoredDiscipline"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["DisciplineNameTaken"];
+        };
+    };
+    update_discipline: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                discipline_id: components["parameters"]["DisciplineId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DisciplineUpdate"];
+            };
+        };
+        responses: {
+            /** @description The changed discipline. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoredDiscipline"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["DisciplineNameTaken"];
         };
     };
     enqueue_matches: {
