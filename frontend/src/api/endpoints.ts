@@ -1,5 +1,5 @@
 import { apiUrl, getJson } from "./client";
-import type { Bot, Match, MatchPage, MatchStatus, Queue } from "./types";
+import type { Bot, Match, MatchPage, MatchStatus, Queue, StoredDiscipline } from "./types";
 
 export interface MatchQuery {
   status?: MatchStatus;
@@ -28,4 +28,10 @@ export async function fetchBots(signal?: AbortSignal): Promise<Bot[]> {
 
 export function fetchQueue(signal?: AbortSignal): Promise<Queue> {
   return getJson("/queue", undefined, signal);
+}
+
+/** All disciplines by name, archived ones too (E100). */
+export async function fetchDisciplines(signal?: AbortSignal): Promise<StoredDiscipline[]> {
+  const list = await getJson<{ items: StoredDiscipline[] }>("/disciplines", undefined, signal);
+  return list.items;
 }

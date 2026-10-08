@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import { fetchOwnBots } from "../../api/bots";
-import { fetchBots } from "../../api/endpoints";
+import { fetchBots, fetchDisciplines } from "../../api/endpoints";
 import { ApiContent } from "../../components/ApiContent";
 import { useApi } from "../../hooks/useApi";
 import { OwnBotGroups } from "./OwnBotGroups";
@@ -13,6 +13,8 @@ export function OwnBotsPage() {
   const { t } = useTranslation();
   const ownBots = useApi(fetchOwnBots, "own-bots");
   const bots = useApi(fetchBots, "bots");
+  // Without the list only free times are offered.
+  const disciplines = useApi(fetchDisciplines, "disciplines");
   return (
     <>
       <h1>{t("ownBots.title")}</h1>
@@ -29,6 +31,7 @@ export function OwnBotsPage() {
                 <OwnMatchForm
                   own={own.filter((bot) => bot.status === "verified")}
                   opponents={opponents}
+                  disciplines={disciplines.data ?? []}
                 />
               )}
             </ApiContent>

@@ -190,7 +190,7 @@
     "opponent": "Opponent",
     "ownColor": "Your bot plays",
     "noVerified": "Once one of your bots is verified, you can schedule games for it here.",
-    "limits": "At most 5 minutes plus 5 seconds a move, 10 games at once and 20 games a day. Your games start after those set by admins."
+    "limits": "Free times at most 5 minutes plus 5 seconds a move; disciplines without this limit. At most 10 games at once and 20 games a day. Your games start after those set by admins."
   },
   "ownMatchError": {
     "initial_time_ms": "The time must be between 1 and 300 seconds.",
@@ -198,6 +198,31 @@
     "games": "1 to 10 games are possible.",
     "white_bot_id": "One of the bots must be yours, and both must be verified.",
     "black_bot_id": "The opponent must be a verified bot."
+  },
+  "disciplines": {
+    "title": "Disciplines",
+    "new": "New discipline",
+    "create": "Create discipline",
+    "edit": "Edit discipline {{name}}",
+    "editHint": "Changes apply to games scheduled afterwards.",
+    "editButton": "Edit",
+    "name": "Name",
+    "startupSeconds": "Startup (s)",
+    "toleranceMs": "Tolerance (ms)",
+    "inUse": "In use",
+    "archived": "Archived",
+    "archive": "Archive",
+    "restore": "Restore",
+    "empty": "No disciplines yet.",
+    "nameTaken": "Another discipline already has this name.",
+    "choose": "Discipline",
+    "freeTimes": "Free times (unrated)",
+    "ratedHint": "Only games under a discipline from the standard position are rated."
+  },
+  "disciplineError": {
+    "name": "The name must have 1 to 40 characters without control characters.",
+    "startup_ms": "The startup time must be between 1 and 60 seconds.",
+    "tolerance_ms": "The tolerance must be between 0 and 1000 ms."
   },
   "language": {
     "python": "Python",
@@ -241,6 +266,9 @@
     "result": "Result",
     "termination": "End",
     "discipline": "Discipline",
+    "rated": "Rated",
+    "ratedYes": "Yes",
+    "ratedNo": "No",
     "started": "Started",
     "finished": "Finished",
     "info": "Bot info",
@@ -280,7 +308,8 @@
     "paths": "Each file needs a path.",
     "files": "Choose 1 to 200 files.",
     "status": "The bot cannot switch to this status.",
-    "description": "The description may have at most 500 characters and no control characters except line breaks."
+    "description": "The description may have at most 500 characters and no control characters except line breaks.",
+    "discipline_id": "The discipline is unknown or archived."
   },
   "login": {
     "title": "Log in",
@@ -327,6 +356,7 @@
     "matches": "Games",
     "users": "Users",
     "invites": "Invitations",
+    "disciplines": "Disciplines",
     "queue": "Queue",
     "queueRunning": "The queue is running.",
     "queuePaused": "The queue is paused.",

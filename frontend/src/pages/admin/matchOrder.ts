@@ -4,6 +4,8 @@ import type { MatchOrder } from "../../api/admin";
 export interface MatchForm {
   white: string;
   black: string;
+  /** The id of a discipline, or "" for free times (E100). */
+  discipline: string;
   initialSeconds: string;
   incrementSeconds: string;
   games: string;
@@ -14,6 +16,7 @@ export interface MatchForm {
 }
 
 export const DEFAULT_FORM: Omit<MatchForm, "white" | "black"> = {
+  discipline: "",
   initialSeconds: "180",
   incrementSeconds: "2",
   games: "1",
@@ -26,15 +29,20 @@ export const DEFAULT_FORM: Omit<MatchForm, "white" | "black"> = {
 /** The request body; the API checks the ranges and the position. */
 export function matchOrder(form: MatchForm): MatchOrder {
   const fen = form.startFen.trim();
+  const conditions = form.discipline
+    ? { discipline_id: form.discipline }
+    : {
+        initial_time_ms: secondsToMs(form.initialSeconds),
+        increment_ms: secondsToMs(form.incrementSeconds),
+        max_moves: Number(form.maxMoves),
+      };
   return {
     white_bot_id: form.white,
     black_bot_id: form.black,
-    initial_time_ms: secondsToMs(form.initialSeconds),
-    increment_ms: secondsToMs(form.incrementSeconds),
+    ...conditions,
     games: Number(form.games),
     alternate: form.alternate,
     priority: Number(form.priority),
-    max_moves: Number(form.maxMoves),
     ...(fen ? { start_fen: fen } : {}),
   };
 }

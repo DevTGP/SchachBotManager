@@ -17,6 +17,7 @@ export function MatchDetails({ match }: { match: Match }) {
       match.termination ? t(`termination.${match.termination}`) : t("common.none"),
     ],
     [t("viewer.discipline"), `${match.discipline.name} (${formatTimeControl(match.discipline)})`],
+    [t("viewer.rated"), match.rated ? t("viewer.ratedYes") : t("viewer.ratedNo")],
   ];
   if (match.started_at) rows.push([t("viewer.started"), formatDateTime(match.started_at, locale)]);
   if (match.finished_at) {

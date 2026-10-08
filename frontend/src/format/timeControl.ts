@@ -4,7 +4,9 @@ import type { Discipline } from "../api/types";
  * Base time in minutes and increment in seconds, as players write it: 3+2.
  * A base time under a minute is given in seconds instead: 20s+0.5.
  */
-export function formatTimeControl(discipline: Discipline): string {
+export function formatTimeControl(
+  discipline: Pick<Discipline, "initial_time_ms" | "increment_ms">,
+): string {
   const base = discipline.initial_time_ms;
   const increment = trim(discipline.increment_ms / 1000);
   return base < 60_000

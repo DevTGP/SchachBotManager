@@ -59,8 +59,12 @@ export function botSourceUrl(id: string): string {
   return apiUrl(`${botPath(id)}/source`);
 }
 
+/** The two bots and either a discipline or free times (E100). */
+export type OwnMatchOrder = Pick<OwnMatchRequest, "white_bot_id" | "black_bot_id"> &
+  Partial<Omit<OwnMatchRequest, "white_bot_id" | "black_bot_id">>;
+
 /** Games of an own bot, with the tighter limits for coders (E98). */
-export async function enqueueOwnMatches(order: OwnMatchRequest): Promise<string[]> {
+export async function enqueueOwnMatches(order: OwnMatchOrder): Promise<string[]> {
   const result = await sendJson<{ match_ids: string[] }>("POST", "/matches", order);
   return result.match_ids;
 }

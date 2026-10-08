@@ -3,15 +3,24 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import { enqueueOwnMatches } from "../../api/bots";
-import type { Bot } from "../../api/types";
+import type { Bot, StoredDiscipline } from "../../api/types";
+import { DisciplineSelect } from "../../components/DisciplineSelect";
 import { FormError } from "../../components/FormError";
 import { NumberField } from "../../components/NumberField";
 import { botLabel } from "../../format/botLabel";
 import { useSubmit } from "../../hooks/useSubmit";
 import { DEFAULT_OWN_FORM, OWN_LIMITS, type OwnMatchForm, ownMatchOrder } from "./ownMatchOrder";
 
-/** Games of an own verified bot against any verified bot, with the coder limits (E98). */
-export function OwnMatchForm({ own, opponents }: { own: Bot[]; opponents: Bot[] }) {
+/** Games of an own verified bot against any verified bot, with the coder limits (E98, E100). */
+export function OwnMatchForm({
+  own,
+  opponents,
+  disciplines,
+}: {
+  own: Bot[];
+  opponents: Bot[];
+  disciplines: StoredDiscipline[];
+}) {
   const { t } = useTranslation();
   const { pending, error, submit } = useSubmit();
   const [queued, setQueued] = useState<number | undefined>(undefined);
@@ -71,21 +80,30 @@ export function OwnMatchForm({ own, opponents }: { own: Bot[]; opponents: Bot[] 
         </label>
       </div>
       <div className="form-row">
-        <NumberField
-          label={t("admin.initialSeconds")}
-          value={form.initialSeconds}
-          step="any"
-          min={1}
-          max={OWN_LIMITS.initialSeconds}
-          onChange={(value) => set("initialSeconds", value)}
+        <DisciplineSelect
+          disciplines={disciplines}
+          value={form.discipline}
+          onChange={(value) => set("discipline", value)}
         />
-        <NumberField
-          label={t("admin.incrementSeconds")}
-          value={form.incrementSeconds}
-          step="any"
-          max={OWN_LIMITS.incrementSeconds}
-          onChange={(value) => set("incrementSeconds", value)}
-        />
+        {!form.discipline && (
+          <>
+            <NumberField
+              label={t("admin.initialSeconds")}
+              value={form.initialSeconds}
+              step="any"
+              min={1}
+              max={OWN_LIMITS.initialSeconds}
+              onChange={(value) => set("initialSeconds", value)}
+            />
+            <NumberField
+              label={t("admin.incrementSeconds")}
+              value={form.incrementSeconds}
+              step="any"
+              max={OWN_LIMITS.incrementSeconds}
+              onChange={(value) => set("incrementSeconds", value)}
+            />
+          </>
+        )}
         <NumberField
           label={t("admin.games")}
           value={form.games}

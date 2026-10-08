@@ -3,15 +3,22 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import { enqueueMatches } from "../../api/admin";
-import type { Bot } from "../../api/types";
+import type { Bot, StoredDiscipline } from "../../api/types";
+import { DisciplineSelect } from "../../components/DisciplineSelect";
 import { FormError } from "../../components/FormError";
 import { NumberField } from "../../components/NumberField";
 import { botLabel } from "../../format/botLabel";
 import { useSubmit } from "../../hooks/useSubmit";
 import { DEFAULT_FORM, type MatchForm, matchOrder } from "./matchOrder";
 
-/** Puts games between two bots into the queue (E71, E85). */
-export function EnqueueForm({ bots }: { bots: Bot[] }) {
+/** Puts games between two bots into the queue, under a discipline or free times (E85, E100). */
+export function EnqueueForm({
+  bots,
+  disciplines,
+}: {
+  bots: Bot[];
+  disciplines: StoredDiscipline[];
+}) {
   const { t } = useTranslation();
   const { pending, error, submit } = useSubmit();
   const [queued, setQueued] = useState<number | undefined>(undefined);
@@ -57,18 +64,34 @@ export function EnqueueForm({ bots }: { bots: Bot[] }) {
         </label>
       </div>
       <div className="form-row">
-        <NumberField
-          label={t("admin.initialSeconds")}
-          value={form.initialSeconds}
-          step="any"
-          onChange={(value) => set("initialSeconds", value)}
+        <DisciplineSelect
+          disciplines={disciplines}
+          value={form.discipline}
+          onChange={(value) => set("discipline", value)}
         />
-        <NumberField
-          label={t("admin.incrementSeconds")}
-          value={form.incrementSeconds}
-          step="any"
-          onChange={(value) => set("incrementSeconds", value)}
-        />
+        {!form.discipline && (
+          <>
+            <NumberField
+              label={t("admin.initialSeconds")}
+              value={form.initialSeconds}
+              step="any"
+              onChange={(value) => set("initialSeconds", value)}
+            />
+            <NumberField
+              label={t("admin.incrementSeconds")}
+              value={form.incrementSeconds}
+              step="any"
+              onChange={(value) => set("incrementSeconds", value)}
+            />
+            <NumberField
+              label={t("admin.maxMoves")}
+              value={form.maxMoves}
+              onChange={(value) => set("maxMoves", value)}
+            />
+          </>
+        )}
+      </div>
+      <div className="form-row">
         <NumberField
           label={t("admin.games")}
           value={form.games}
@@ -78,11 +101,6 @@ export function EnqueueForm({ bots }: { bots: Bot[] }) {
           label={t("admin.priority")}
           value={form.priority}
           onChange={(value) => set("priority", value)}
-        />
-        <NumberField
-          label={t("admin.maxMoves")}
-          value={form.maxMoves}
-          onChange={(value) => set("maxMoves", value)}
         />
       </div>
       <label className="checkbox">
@@ -101,6 +119,7 @@ export function EnqueueForm({ bots }: { bots: Bot[] }) {
           onChange={(event) => set("startFen", event.target.value)}
         />
       </label>
+      <p className="hint">{t("disciplines.ratedHint")}</p>
       <FormError error={error} />
       {queued !== undefined && (
         <p role="status">

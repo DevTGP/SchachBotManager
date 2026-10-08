@@ -190,7 +190,7 @@
     "opponent": "Gegner",
     "ownColor": "Dein Bot spielt",
     "noVerified": "Sobald einer deiner Bots geprüft ist, kannst du hier Partien für ihn ansetzen.",
-    "limits": "Höchstens 5 Minuten plus 5 Sekunden je Zug, 10 Partien auf einmal und 20 Partien am Tag. Deine Partien starten nach denen, die Admins ansetzen."
+    "limits": "Freie Zeiten höchstens 5 Minuten plus 5 Sekunden je Zug; Disziplinen ohne diese Grenze. Höchstens 10 Partien auf einmal und 20 Partien am Tag. Deine Partien starten nach denen, die Admins ansetzen."
   },
   "ownMatchError": {
     "initial_time_ms": "Die Zeit muss zwischen 1 und 300 Sekunden liegen.",
@@ -198,6 +198,31 @@
     "games": "1 bis 10 Partien sind möglich.",
     "white_bot_id": "Einer der Bots muss dir gehören, und beide müssen geprüft sein.",
     "black_bot_id": "Der Gegner muss ein geprüfter Bot sein."
+  },
+  "disciplines": {
+    "title": "Disziplinen",
+    "new": "Neue Disziplin",
+    "create": "Disziplin anlegen",
+    "edit": "Disziplin {{name}} bearbeiten",
+    "editHint": "Änderungen gelten für Partien, die danach angesetzt werden.",
+    "editButton": "Bearbeiten",
+    "name": "Name",
+    "startupSeconds": "Startzeit (s)",
+    "toleranceMs": "Toleranz (ms)",
+    "inUse": "Aktiv",
+    "archived": "Archiviert",
+    "archive": "Archivieren",
+    "restore": "Wieder aktivieren",
+    "empty": "Noch keine Disziplinen.",
+    "nameTaken": "Eine andere Disziplin hat diesen Namen schon.",
+    "choose": "Disziplin",
+    "freeTimes": "Freie Zeiten (ungewertet)",
+    "ratedHint": "Gewertet werden nur Partien mit einer Disziplin aus der Grundstellung."
+  },
+  "disciplineError": {
+    "name": "Der Name muss 1 bis 40 Zeichen ohne Steuerzeichen haben.",
+    "startup_ms": "Die Startzeit muss zwischen 1 und 60 Sekunden liegen.",
+    "tolerance_ms": "Die Toleranz muss zwischen 0 und 1000 ms liegen."
   },
   "language": {
     "python": "Python",
@@ -241,6 +266,9 @@
     "result": "Ergebnis",
     "termination": "Ende",
     "discipline": "Disziplin",
+    "rated": "Gewertet",
+    "ratedYes": "Ja",
+    "ratedNo": "Nein",
     "started": "Gestartet",
     "finished": "Beendet",
     "info": "Bot-Info",
@@ -280,7 +308,8 @@
     "paths": "Jede Datei braucht einen Pfad.",
     "files": "1 bis 200 Dateien auswählen.",
     "status": "Der Bot kann nicht in diesen Status wechseln.",
-    "description": "Die Beschreibung darf höchstens 500 Zeichen und außer Zeilenumbrüchen keine Steuerzeichen haben."
+    "description": "Die Beschreibung darf höchstens 500 Zeichen und außer Zeilenumbrüchen keine Steuerzeichen haben.",
+    "discipline_id": "Die Disziplin ist unbekannt oder archiviert."
   },
   "login": {
     "title": "Anmelden",
@@ -327,6 +356,7 @@
     "matches": "Partien",
     "users": "Nutzer",
     "invites": "Einladungen",
+    "disciplines": "Disziplinen",
     "queue": "Queue",
     "queueRunning": "Die Queue läuft.",
     "queuePaused": "Die Queue ist pausiert.",

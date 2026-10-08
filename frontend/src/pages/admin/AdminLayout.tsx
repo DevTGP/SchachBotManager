@@ -7,6 +7,7 @@ const SECTIONS = [
   { to: "/admin", key: "admin.matches", end: true },
   { to: "/admin/users", key: "admin.users", end: false },
   { to: "/admin/invites", key: "admin.invites", end: false },
+  { to: "/admin/disciplines", key: "admin.disciplines", end: false },
 ] as const;
 
 /** The admin pages, only for admins; the API checks the role again on every request (E85). */

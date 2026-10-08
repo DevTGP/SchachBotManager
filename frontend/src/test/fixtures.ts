@@ -6,6 +6,7 @@ import type {
   MatchSummary,
   Move,
   Queue,
+  StoredDiscipline,
   User,
 } from "../api/types";
 
@@ -18,6 +19,7 @@ const BLITZ = {
   startup_ms: 10_000,
   tolerance_ms: 500,
   max_moves: 500,
+  discipline_id: null,
 };
 
 function move(ply: number, uci: string, san: string, fen: string, clock: number): Move {
@@ -54,6 +56,7 @@ export function summary(overrides: Partial<MatchSummary> = {}): MatchSummary {
     white: side("Random", "665f0000000000000000000a"),
     black: side("Material", "665f0000000000000000000b"),
     discipline: BLITZ,
+    rated: false,
     result: "0-1",
     termination: "resignation",
     ply_count: 3,
@@ -93,6 +96,22 @@ export const BOTS: Bot[] = [
 
 export function queue(overrides: Partial<Queue> = {}): Queue {
   return { paused: false, running: [], waiting: [], waiting_total: 0, ...overrides };
+}
+
+export function storedDiscipline(overrides: Partial<StoredDiscipline> = {}): StoredDiscipline {
+  return {
+    id: "665f0000000000000000d001",
+    name: "Blitz",
+    initial_time_ms: 180_000,
+    increment_ms: 2_000,
+    startup_ms: 10_000,
+    tolerance_ms: 20,
+    max_moves: 500,
+    archived: false,
+    created_at: "2026-05-01T10:00:00.000Z",
+    updated_at: "2026-05-01T10:00:00.000Z",
+    ...overrides,
+  };
 }
 
 export const ADMIN: CurrentUser = {

@@ -38,6 +38,7 @@ describe("viewer", () => {
     ).toBeVisible();
     expect(currentMove()).toHaveTextContent("Nf3");
     expect(screen.getByText("Resignation")).toBeVisible();
+    expect(screen.getByText("Rated").nextElementSibling).toHaveTextContent("No");
     expect(within(screen.getByTestId("player-w")).getByRole("timer")).toHaveTextContent("2:56");
     expect(within(screen.getByTestId("player-b")).getByRole("timer")).toHaveTextContent("2:58");
     expect(screen.getByRole("link", { name: "Download PGN" })).toHaveAttribute(
