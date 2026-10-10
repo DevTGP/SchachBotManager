@@ -53,7 +53,7 @@ def test_selection_skips_links(tmp_path):
 def test_template_passes(capsys):
     assert main([str(TEMPLATE)]) == 0
     out = capsys.readouterr()
-    assert out.out.strip() == "sbm-check: OK, 2 files checked (python-1)"
+    assert out.out.strip() == "sbm-check: OK, 3 files checked (python-1)"
     assert "README.md" in out.err
 
 

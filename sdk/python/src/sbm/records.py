@@ -1,4 +1,4 @@
-"""Records of the bot API (spec/api/types.json): GameInfo, GameResult and Info."""
+"""Records of the bot API (spec/api/types.json): GameInfo, GameResult, Info and PlayedGame."""
 
 from dataclasses import dataclass
 
@@ -39,3 +39,14 @@ class Info:
     nodes: int | None = None
     pv: list[Move] | None = None
     text: str | None = None
+
+
+@dataclass(frozen=True)
+class PlayedGame:
+    """One game played with play, from the own bot's point of view."""
+
+    game_id: str
+    color: int
+    opponent_name: str
+    result: str
+    termination: str

@@ -2,22 +2,13 @@
 
 import os
 import sys
-import traceback
 
 from sbm import log
-from sbm.arena.time_control import parse_time_control
 from sbm.bot import Bot
 from sbm.channel import Channel, ProtocolError, open_stdio, open_tcp
-from sbm.game import BotError, Game, guarded
+from sbm.game import BotError, Game, describe, guarded
 from sbm.log import Log
 from sbm.options import Options, OptionsError, RemoteOptions, parse_options
-
-
-def _describe(error: BotError) -> str:
-    cause = error.__cause__
-    if cause is None:
-        return str(error)
-    return f"{error}\n{''.join(traceback.format_exception(cause)).rstrip()}"
 
 
 class RemoteError(Exception):
@@ -39,23 +30,13 @@ def _open_remote(remote: RemoteOptions) -> Channel:
     imports them.
     """
     from sbm.remote import game_request
-    from sbm.remote.channel import RemoteChannel
+    from sbm.remote.opening import open_game
 
-    body = {"opponent": remote.opponent, "color": remote.color}
-    if remote.discipline:
-        body["discipline"] = remote.discipline
-    else:
-        try:
-            initial_ms, increment_ms = parse_time_control(remote.time)
-        except ValueError as error:
-            raise RemoteError(str(error)) from None
-        body |= {"initial_time_ms": initial_ms, "increment_ms": increment_ms}
     try:
-        seat = game_request.request_game(remote.url, remote.token, body)
-        Log.info(f"remote game {seat.match_id} against {remote.opponent}, playing {seat.color}")
-        return RemoteChannel.join(seat)
+        _, channel = open_game(remote)
     except game_request.RemoteError as error:
         raise RemoteError(str(error)) from None
+    return channel
 
 
 def _play(bot: type[Bot], options: Options) -> None:
@@ -72,7 +53,7 @@ def _play(bot: type[Bot], options: Options) -> None:
         try:
             Game(guarded(f"{bot.__name__}()", bot), channel).play()
         except BotError as error:
-            Log.error(_describe(error))
+            Log.error(describe(error))
             sys.exit(1)
         except ProtocolError as error:
             Log.error(f"protocol error: {error}")

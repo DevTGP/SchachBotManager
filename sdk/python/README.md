@@ -29,8 +29,27 @@ if __name__ == "__main__":
 sbm-arena my_bot.py material --games 10 --pgn games.pgn
 ```
 
+oder aus einem Skript, ohne Argumente:
+
+```python
+import sbm
+from my_bot import MyBot
+
+sbm.play(MyBot, "material", games=10)
+```
+
 `random` und `material` sind die mitgelieferten Referenzbots; `sbm-arena --help` zeigt alle Optionen. Ein Vorlagenprojekt mit Eröffnungsbuch und Debug-Konfiguration für VS Code liegt unter [`templates/python`](https://github.com/DevTGP/SchachBotManager/tree/master/templates/python).
+
+## Gegen Bots auf dem Server
+
+Mit einem API-Token von der Kontoseite spielt der Bot vom eigenen Rechner aus gegen geprüfte Bots auf der Website, ohne Upload:
+
+```python
+sbm.play(MyBot, "Material", server="https://schachbotmanager.devtgp.net", token="sbm_…", games=2)
+```
+
+oder `python my_bot.py --remote https://schachbotmanager.devtgp.net --opponent Material` mit `SBM_TOKEN` in der Umgebung.
 
 ## Anleitung
 
-Die vollständige Anleitung für Bot-Autoren – Partieablauf, Brett- und Zug-API, Uhr, Log, Datendateien, Arena, Debugging und Upload – liegt unter [`sdk/python/docs`](https://github.com/DevTGP/SchachBotManager/tree/master/sdk/python/docs).
+Die vollständige Anleitung für Bot-Autoren – Partieablauf, Brett- und Zug-API, Uhr, Log, Datendateien, Arena, Debugging, Partien per Code, Remote und Upload – liegt unter [`sdk/python/docs`](https://github.com/DevTGP/SchachBotManager/tree/master/sdk/python/docs).

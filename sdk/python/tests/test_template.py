@@ -96,8 +96,30 @@ def test_tasks_are_valid_arena_calls():
 def test_launch_starts_the_bot_after_its_task():
     labels = {task["label"] for task in load_json("tasks.json")["tasks"]}
     configurations = load_json("launch.json")["configurations"]
-    assert len(configurations) == 5
+    assert len(configurations) == 6
+    starter = [entry for entry in configurations if entry["program"].endswith("start.py")]
+    assert [entry.get("args") for entry in starter] == [None]
     for configuration in configurations:
+        if configuration in starter:
+            continue
         assert configuration["program"] == "${workspaceFolder}/bot.py"
         assert configuration["args"] == ["--tcp"]
         assert configuration.get("preLaunchTask", next(iter(labels))) in labels
+
+
+def test_start_script_plays_without_arguments(tmp_path):
+    for name in ("bot.py", "start.py"):
+        (tmp_path / name).write_text((TEMPLATE / name).read_text(encoding="utf-8"))
+    (tmp_path / "data").mkdir()
+    (tmp_path / "data" / "book.txt").write_bytes((TEMPLATE / "data" / "book.txt").read_bytes())
+    script = (tmp_path / "start.py").read_text(encoding="utf-8")
+    assert 'sbm.play(TemplateBot, "material", games=2' in script
+    # A short time keeps the test fast; the script is otherwise unchanged.
+    script = script.replace('time="60+1"', 'time="5+0"')
+    (tmp_path / "start.py").write_text(script, encoding="utf-8")
+    done = subprocess.run(
+        [sys.executable, "start.py"], capture_output=True, text=True, timeout=120, cwd=tmp_path
+    )
+    assert done.returncode == 0, done.stderr
+    assert "game 2/2 (local-2)" in done.stderr
+    assert "score " in done.stderr

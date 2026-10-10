@@ -1,4 +1,4 @@
-"""Bot SDK of SchachBotManager (spec/api/): board and moves, the bot base class and run."""
+"""Bot SDK of SchachBotManager (spec/api/): board and moves, the bot base class, run and play."""
 
 from sbm import constants
 from sbm._core import Board, Move, core_version
@@ -16,8 +16,9 @@ from sbm.errors import (
     InvalidUciError,
 )
 from sbm.log import Log
-from sbm.records import GameInfo, GameResult, Info
+from sbm.records import GameInfo, GameResult, Info, PlayedGame
 from sbm.runtime import run
+from sbm.starter import play
 
 __version__ = core_version()
 
@@ -37,8 +38,10 @@ __all__ = [
     "InvalidUciError",
     "Log",
     "Move",
+    "PlayedGame",
     "__version__",
     "load_data",
+    "play",
     "run",
 ]
 __all__ += constants.__all__

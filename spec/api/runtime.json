@@ -1,13 +1,30 @@
 {
   "$schema": "api.schema.json",
   "module": "runtime",
-  "description": "Module-level functions for starting the bot and reading its data files.",
+  "description": "Module-level functions for starting the bot, playing games from code and reading its data files.",
   "functions": [
     {
       "name": "run",
       "kind": "free",
       "params": [{ "name": "bot", "type": "Bot", "description": "The bot class, or a factory where the language has no class objects (C++: template argument)." }],
       "description": "Entry point and the only call in the bot's main. Creates one bot instance, speaks the protocol and returns when the game is over. Transport and log level come from command-line arguments or environment, so the same file runs locally, in a debugger and on the server (E61): --tcp [PORT] connects to 127.0.0.1 (default port 7470) instead of using stdin/stdout, --log-level LEVEL sets the start level (trace, debug, info, warn, error, off), --log-file PATH also writes the log to a file. The environment variables SBM_TRANSPORT (stdio or tcp), SBM_PORT, SBM_LOG_LEVEL and SBM_LOG_FILE do the same; arguments win. Without either the bot uses stdio and INFO. --remote URL plays against a bot on the server at URL instead (E116): with an API token of a coder from --token or, better, SBM_TOKEN, the opponent's name from --opponent, the own color from --color (white, black or random, the default) and either a discipline by name from --discipline or free times from --time SECONDS+INCREMENT (default 60+1); SBM_TRANSPORT=remote with SBM_REMOTE_URL, SBM_OPPONENT, SBM_COLOR, SBM_DISCIPLINE and SBM_TIME do the same. The SDK asks the web API for the game, joins its seat over WebSocket and then speaks the same protocol; the clock runs on the server and includes the network's delay. Other arguments are left to the bot."
+    },
+    {
+      "name": "play",
+      "kind": "free",
+      "params": [
+        { "name": "bot", "type": "Bot", "description": "The own bot class (C++: template argument); it runs inside the calling program, so a debugger stops at its breakpoints." },
+        { "name": "opponent", "type": "string", "description": "Without server: a reference bot (random, material), a bot file or a command as in the local arena (E67). With server: the name of a checked bot on the server." },
+        { "name": "server", "type": "string", "description": "Address of the site, e.g. https://schachbotmanager.example.org; absent or empty plays locally (default)." },
+        { "name": "token", "type": "string", "description": "API token of a coder, needed with server; absent or empty takes SBM_TOKEN from the environment." },
+        { "name": "color", "type": "string", "description": "Own color in the first game: white, black or random (default); later games alternate." },
+        { "name": "time", "type": "string", "description": "Time control SECONDS+INCREMENT, default 60+1; not together with discipline." },
+        { "name": "discipline", "type": "string", "description": "With server only: a discipline by name instead of time." },
+        { "name": "games", "type": "i32", "description": "Number of games, at least 1 (default 1)." }
+      ],
+      "returns": { "type": "list<PlayedGame>", "description": "One entry per game in the order played." },
+      "errors": ["InvalidArgument"],
+      "description": "Plays games from code, so a starter script needs neither arguments nor environment variables (E120). Without server the games run in the local arena: the referee in the calling program, the own bot in a thread of it, the opponent as its own process with its log hidden. With server each game is asked for at the web API and played over WebSocket as with --remote of run (E116); the server allows one running game per token, so play waits briefly for the previous one to end. Each result is logged at INFO, the score after the last game. Arguments outside their ranges raise InvalidArgument; an exception of the bot, a refused game or a lost connection is logged at ERROR and ends the process with exit code 1, as with run."
     },
     {
       "name": "load_data",

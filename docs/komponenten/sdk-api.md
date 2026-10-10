@@ -59,6 +59,8 @@ Zustand in Objektfeldern (Transpositionstabelle, Suchbaum) bleibt zwischen den Z
 
 Argumente schlagen Umgebung; ohne beides gelten `stdio` und `INFO`. Andere Argumente bleiben dem Bot.
 
+Daneben startet `play(bot, opponent, …)` Partien aus einem eigenen Skript ohne Argumente: lokal gegen einen Referenzbot, eine Bot-Datei oder einen Befehl, oder mit `server` und `token` gegen einen Bot der Website. Es gibt die Partien als Liste von `PlayedGame` zurück (E120). Bisher nur im Python-SDK.
+
 ## API – hohe Ebene
 
 Namen sind wortgleich, Schreibweise idiomatisch (`legal_moves` / `legalMoves` / `LegalMoves`). Die kanonische Definition liegt maschinenlesbar unter `spec/api/` (E39); sie schreibt Funktionen in `snake_case`, Typen in `PascalCase`, Konstanten in `UPPER_SNAKE`, und der kanonische Konstruktor `create` wird zum Konstruktor der Sprache (E47).

@@ -63,6 +63,18 @@
       ]
     },
     {
+      "name": "PlayedGame",
+      "kind": "record",
+      "description": "One game played with play, from the own bot's point of view.",
+      "fields": [
+        { "name": "game_id", "type": "string", "description": "Identifier of the game; on the server the match id, under which the site shows the game." },
+        { "name": "color", "type": "Color", "description": "Own color." },
+        { "name": "opponent_name", "type": "string", "description": "Display name of the opponent." },
+        { "name": "result", "type": "string", "description": "1-0, 0-1, 1/2-1/2 or * (aborted)." },
+        { "name": "termination", "type": "string", "description": "Termination code as listed in the protocol (E44)." }
+      ]
+    },
+    {
       "name": "Info",
       "kind": "record",
       "description": "Search information sent with the move (E43); shown publicly in the viewer. Limits as in the protocol schema; the SDK truncates pv and text instead of failing, and leaves out other fields outside their limits with a warning (score_cp if both scores are set, pv from the first move without UCI form) (E63).",

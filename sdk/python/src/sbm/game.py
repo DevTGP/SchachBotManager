@@ -1,5 +1,6 @@
 """One game from the bot's side: init, turns and game_over (state machine of bot-protokoll.md)."""
 
+import traceback
 from collections.abc import Callable
 from contextlib import suppress
 
@@ -10,6 +11,7 @@ from sbm.channel import Channel, ProtocolError
 from sbm.clock import Clock
 from sbm.errors import ChessError
 from sbm.log import Log, set_ply
+from sbm.records import GameInfo, GameResult
 
 
 class BotError(Exception):
@@ -24,12 +26,24 @@ def guarded(name: str, callback: Callable, *args: object) -> object:
         raise BotError(f"{name} raised {type(error).__name__}: {error}") from error
 
 
+def describe(error: BotError) -> str:
+    """The message of a BotError with the traceback of the bot's exception, for the log."""
+    cause = error.__cause__
+    if cause is None:
+        return str(error)
+    return f"{error}\n{''.join(traceback.format_exception(cause)).rstrip()}"
+
+
 class Game:
+    """info and result are set once init and game_over arrive, for play to report the game."""
+
     def __init__(self, bot: Bot, channel: Channel) -> None:
         self._bot = bot
         self._channel = channel
         self._board: Board | None = None
         self._increment_ms = 0
+        self.info: GameInfo | None = None
+        self.result: GameResult | None = None
 
     def play(self) -> None:
         """Answers referee messages until game_over or the end of the input."""
@@ -52,6 +66,7 @@ class Game:
         if self._board is not None:
             raise ProtocolError("init: second init in one game")
         info = protocol.game_info(init)
+        self.info = info
         try:
             self._board = Board.from_fen(info.start_fen)
         except ChessError as error:
@@ -122,4 +137,5 @@ class Game:
 
     def _end(self, game_over: dict) -> None:
         result = protocol.game_result(game_over)
+        self.result = result
         guarded("on_game_end", self._bot.on_game_end, result)

@@ -76,6 +76,10 @@ Ausgangspunkt ist die Vorlage `templates/python/` (E69); ihr README beschreibt d
 
 Ohne VS Code gilt dieselbe Reihenfolge: erst die Arena mit `tcp` im Terminal, dann den Bot mit `--tcp` im Debugger der eigenen IDE.
 
+### Partien per Code (E120)
+
+`start.py` der Vorlage ruft `sbm.play(TemplateBot, "material", games=2)` auf; `python start.py` oder „Partien aus start.py“ in VS Code spielt ohne Argumente. Der eigene Bot läuft dabei in einem Thread des Skripts, Haltepunkte greifen also ohne Arena; die Uhr läuft weiter und der Bot wird nicht eingefroren. Mit `server` und `token` spielt derselbe Aufruf gegen einen Bot der Website (siehe unten). Anleitung: `sdk/python/docs/spielen-per-code.md`.
+
 ## Lokaler Bot gegen die Web-API
 
 Umgesetzt für Python (E116):
@@ -84,6 +88,8 @@ Umgesetzt für Python (E116):
 2. Start des Bots: `SBM_TOKEN=sbm_… python bot.py --remote https://schachbotmanager.example.org --opponent Material [--color white|black|random] [--discipline NAME | --time 60+1]`.
 3. Das SDK fragt `POST /api/v1/remote/matches` an, öffnet die WebSocket-Verbindung zum Gateway und nimmt seinen Sitz ein; der Play-Runner startet den Gegner in der Sandbox.
 4. Danach sind die Nachrichten dieselben wie im `stdio`-Protokoll. Die Partie ist nie gewertet, aber öffentlich (E119).
+
+Aus einem Skript geht dasselbe mit `sbm.play(MyBot, "Material", server=URL, token="sbm_…", games=2)`; das Token steht dann im Code statt in der Umgebung und darf weder eingecheckt noch hochgeladen werden (E120).
 
 Zu beachten:
 

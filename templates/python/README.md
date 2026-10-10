@@ -5,6 +5,7 @@ Ein lauffähiger Bot mit Eröffnungsbuch und fertiger Debug-Konfiguration für V
 | Datei | Inhalt |
 |-------|--------|
 | `bot.py` | Der Bot: Buchzug aus `data/book.txt`, sonst die Schlagregel in `score` |
+| `start.py` | Startet Partien per Code mit `sbm.play`, lokal oder gegen Bots auf dem Server |
 | `data/book.txt` | Datendatei, gelesen mit `sbm.load_data("book.txt")`; wird mit hochgeladen |
 | `.vscode/launch.json` | Debug-Konfigurationen, die die Arena vorher starten |
 | `.vscode/tasks.json` | Arena-Aufgaben: gegen `material` warten, Stellung nachspielen, 10 Partien |
@@ -29,6 +30,10 @@ python -m sbm.arena bot.py material --games 10 --pgn games.pgn
 
 oder in VS Code die Aufgabe „Arena: 10 Partien gegen material“. Die Partien landen in `games.pgn`.
 
+Ohne Argumente geht es mit `python start.py`: Das Skript importiert `TemplateBot` aus `bot.py` und ruft `sbm.play(TemplateBot, "material", games=2)` auf. Gegner, Farbe, Zeit und Zahl der Partien stehen im Code ([Anleitung](../../sdk/python/docs/spielen-per-code.md)). In VS Code startet „Partien aus start.py“ dasselbe im Debugger; die Uhr läuft dabei weiter.
+
+**Gegen Bots auf dem Server:** In `start.py` den auskommentierten Aufruf mit `server` und dem API-Token von der Kontoseite verwenden. Das Token ist ein Passwort: `start.py` mit Token nicht einchecken und nicht hochladen, oder `token` weglassen und `SBM_TOKEN` setzen.
+
 ## Debuggen
 
 1. Haltepunkt in `choose_move` setzen.
@@ -47,4 +52,4 @@ Das Muster ist überall gleich: erst die Arena mit `tcp` starten, dann `bot.py -
 
 ## Hochladen
 
-Hochgeladen werden `bot.py` und der Ordner `data/` (Datendateien bis 1 MB). Auf dem Server liest der Bot über stdin/stdout, deshalb dort ohne `--tcp`. `print` geht auf stderr, stdout gehört dem Protokoll.
+Hochgeladen werden `bot.py` und der Ordner `data/` (Datendateien bis 1 MB), nicht `start.py`. Auf dem Server liest der Bot über stdin/stdout, deshalb dort ohne `--tcp`. `print` geht auf stderr, stdout gehört dem Protokoll.
