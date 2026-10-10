@@ -11,6 +11,7 @@ import { AdminInvitesPage } from "./pages/admin/AdminInvitesPage";
 import { AdminLayout } from "./pages/admin/AdminLayout";
 import { AdminMatchesPage } from "./pages/admin/AdminMatchesPage";
 import { AdminPlayPage } from "./pages/admin/AdminPlayPage";
+import { AdminSettingsPage } from "./pages/admin/AdminSettingsPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
 import { BotPage } from "./pages/bot/BotPage";
 import { BotsPage } from "./pages/BotsPage";
@@ -81,6 +82,7 @@ export const routes: RouteObject[] = [
           { path: "disciplines", element: <AdminDisciplinesPage /> },
           { path: "play", element: <AdminPlayPage /> },
           { path: "audit", element: <AdminAuditPage /> },
+          { path: "settings", element: <AdminSettingsPage /> },
         ],
       },
       { path: "*", element: <NotFoundPage /> },

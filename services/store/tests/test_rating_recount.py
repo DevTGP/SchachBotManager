@@ -63,8 +63,8 @@ def test_a_recount_counts_the_remaining_matches_from_the_start(db):
         "white": {"before": 2500, "after": 2550, "games": 1},
         "black": {"before": 2500, "after": 2450, "games": 1},
     }
-    assert ratings.current(bots.get(db, a["_id"])) == {"value": 2550, "games": 1}
-    assert ratings.current(bots.get(db, c["_id"])) == {"value": 2450, "games": 1}
+    assert ratings.current(bots.get(db, a["_id"]), 2500) == {"value": 2550, "games": 1}
+    assert ratings.current(bots.get(db, c["_id"]), 2500) == {"value": 2450, "games": 1}
 
 
 def test_a_bot_without_remaining_matches_is_back_at_the_start(db):
@@ -78,7 +78,7 @@ def test_a_bot_without_remaining_matches_is_back_at_the_start(db):
     assert rating_recount.run_if_requested(db) == 0
 
     assert "rating" not in bots.get(db, a["_id"])
-    assert ratings.current(bots.get(db, b["_id"])) == {"value": 2500, "games": 0}
+    assert ratings.current(bots.get(db, b["_id"]), 2500) == {"value": 2500, "games": 0}
 
 
 def test_a_request_made_during_the_recount_stays(db, monkeypatch):

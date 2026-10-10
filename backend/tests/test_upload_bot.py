@@ -4,10 +4,9 @@ from datetime import timedelta
 
 import pytest
 from bson import ObjectId
-from sbm_store import bot_files, bots, jobs
+from sbm_store import bot_files, bots, coder_settings, jobs
+from sbm_store.coder_settings import CoderSettings
 from sbm_store.names import BOT_FILES, BOTS, JOBS
-
-from sbm_api import rate_limit
 
 from accounts import CSRF
 from bot_uploads import FILES, post_upload, store_bot, upload_form
@@ -181,8 +180,8 @@ def test_uploads_need_an_account(client):
     assert response.status_code == 401
 
 
-def test_uploads_are_limited_per_day(login, monkeypatch, clock):
-    monkeypatch.setattr(rate_limit, "UPLOAD_LIMIT", 2)
+def test_uploads_are_limited_per_day(login, db, clock):
+    coder_settings.save(db, CoderSettings(uploads_per_day=2))
     coder, _ = login()
     assert post_upload(coder, version="1.0.0").status_code == 201
     # A mistake does not count.

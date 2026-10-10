@@ -23,6 +23,11 @@ ADMIN_ROUTES = [
     ("post", "/api/v1/admin/bots/recheck", {"language": "python"}),
     ("patch", "/api/v1/admin/queue", {"paused": True}),
     ("get", "/api/v1/admin/audit", None),
+    ("get", "/api/v1/admin/settings", None),
+    ("put", "/api/v1/admin/settings/coders", {}),
+    ("put", "/api/v1/admin/settings/accounts", {}),
+    ("put", "/api/v1/admin/settings/rating", {}),
+    ("put", "/api/v1/admin/settings/estimate", {}),
 ]
 
 

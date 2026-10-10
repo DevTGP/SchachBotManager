@@ -472,6 +472,23 @@
         }
       }
     },
+    "/account/limits": {
+      "get": {
+        "operationId": "get_own_limits",
+        "security": [{ "session": [] }],
+        "summary": "The limits for the uploads and own matches of coders now in force (coders, E154).",
+        "responses": {
+          "200": {
+            "description": "The limits.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/CoderLimits" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
     "/account/rating": {
       "get": {
         "operationId": "get_own_rating",
@@ -1032,6 +1049,123 @@
             "description": "The limits now in force.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/PlaySettings" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/admin/settings": {
+      "get": {
+        "operationId": "get_settings",
+        "security": [{ "session": [] }],
+        "summary": "The settings of coders, accounts, the rating rule and the queue estimate (admin, E154).",
+        "responses": {
+          "200": {
+            "description": "All settings now in force.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/AdminSettings" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/admin/settings/coders": {
+      "put": {
+        "operationId": "update_coders_settings",
+        "security": [{ "session": [] }],
+        "summary": "Sets all limits of coders at once (admin, E154); they apply to uploads and requests from now on.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CoderSettings" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "All settings now in force.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/AdminSettings" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/admin/settings/accounts": {
+      "put": {
+        "operationId": "update_accounts_settings",
+        "security": [{ "session": [] }],
+        "summary": "Sets invitation and login settings at once (admin, E154); invite_days may not exceed invite_max_days.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/AccountSettings" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "All settings now in force.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/AdminSettings" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/admin/settings/rating": {
+      "put": {
+        "operationId": "update_rating_settings",
+        "security": [{ "session": [] }],
+        "summary": "Sets the numbers of the rating rule at once (admin, E154); a change counts all ratings again (E105). min_win <= base <= max_win.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/RatingRule" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "All settings now in force.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/AdminSettings" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/admin/settings/estimate": {
+      "put": {
+        "operationId": "update_estimate_settings",
+        "security": [{ "session": [] }],
+        "summary": "Sets how the queue estimates start times (admin, E154).",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/EstimateSettings" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "All settings now in force.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/AdminSettings" } }
             }
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
@@ -2327,6 +2461,83 @@
           "games_per_day": { "type": "integer", "minimum": 1, "maximum": 1000 }
         },
         "required": ["max_games", "games_per_client", "games_per_day"],
+        "additionalProperties": false
+      },
+      "CoderSettings": {
+        "description": "Limits of coders (E154): uploads and own match games per day for each coder, games per request, the longest free times and the queue priority of own matches, below the default of admins.",
+        "type": "object",
+        "properties": {
+          "games_per_day": { "type": "integer", "minimum": 1, "maximum": 1000 },
+          "uploads_per_day": { "type": "integer", "minimum": 1, "maximum": 1000 },
+          "games_per_request": { "type": "integer", "minimum": 1, "maximum": 100 },
+          "max_initial_ms": { "type": "integer", "minimum": 1000, "maximum": 3600000 },
+          "max_increment_ms": { "type": "integer", "minimum": 0, "maximum": 60000 },
+          "priority": { "type": "integer", "minimum": 0, "maximum": 99 }
+        },
+        "required": ["games_per_day", "uploads_per_day", "games_per_request", "max_initial_ms", "max_increment_ms", "priority"],
+        "additionalProperties": false
+      },
+      "CoderLimits": {
+        "description": "The limits of coders without the queue priority (E154).",
+        "type": "object",
+        "properties": {
+          "games_per_day": { "type": "integer", "minimum": 1, "maximum": 1000 },
+          "uploads_per_day": { "type": "integer", "minimum": 1, "maximum": 1000 },
+          "games_per_request": { "type": "integer", "minimum": 1, "maximum": 100 },
+          "max_initial_ms": { "type": "integer", "minimum": 1000, "maximum": 3600000 },
+          "max_increment_ms": { "type": "integer", "minimum": 0, "maximum": 60000 }
+        },
+        "required": ["games_per_day", "uploads_per_day", "games_per_request", "max_initial_ms", "max_increment_ms"],
+        "additionalProperties": false
+      },
+      "AccountSettings": {
+        "description": "Invitations and logins (E154): the default and longest validity of an invitation link in days, wrong passwords in a row before a login is locked.",
+        "type": "object",
+        "properties": {
+          "invite_days": { "type": "integer", "minimum": 1, "maximum": 365 },
+          "invite_max_days": { "type": "integer", "minimum": 1, "maximum": 365 },
+          "login_failures": { "type": "integer", "minimum": 1, "maximum": 100 }
+        },
+        "required": ["invite_days", "invite_max_days", "login_failures"],
+        "additionalProperties": false
+      },
+      "RatingRule": {
+        "description": "The numbers of the rating rule (E103, E154): start rating, gain between equal ratings, the rating difference worth one point, the bounds of a win and the most a draw moves.",
+        "type": "object",
+        "properties": {
+          "start": { "type": "integer", "minimum": 0, "maximum": 10000 },
+          "base": { "type": "integer", "minimum": 1, "maximum": 1000 },
+          "step": { "type": "integer", "minimum": 1, "maximum": 1000 },
+          "max_win": { "type": "integer", "minimum": 1, "maximum": 1000 },
+          "min_win": { "type": "integer", "minimum": 0, "maximum": 1000 },
+          "max_draw": { "type": "integer", "minimum": 0, "maximum": 1000 }
+        },
+        "required": ["start", "base", "step", "max_win", "min_win", "max_draw"],
+        "additionalProperties": false
+      },
+      "EstimateSettings": {
+        "description": "How the queue estimates start times (E154): finished matches a discipline's duration is the mean of, and the moves each side is assumed to make without any.",
+        "type": "object",
+        "properties": {
+          "recent_games": { "type": "integer", "minimum": 1, "maximum": 200 },
+          "moves_per_game": { "type": "integer", "minimum": 1, "maximum": 1000 }
+        },
+        "required": ["recent_games", "moves_per_game"],
+        "additionalProperties": false
+      },
+      "AdminSettings": {
+        "type": "object",
+        "properties": {
+          "coders": { "$ref": "#/components/schemas/CoderSettings" },
+          "accounts": { "$ref": "#/components/schemas/AccountSettings" },
+          "rating": { "$ref": "#/components/schemas/RatingRule" },
+          "estimate": { "$ref": "#/components/schemas/EstimateSettings" },
+          "rating_recount_pending": {
+            "description": "Whether the runner has yet to count all ratings again (E105).",
+            "type": "boolean"
+          }
+        },
+        "required": ["coders", "accounts", "rating", "estimate", "rating_recount_pending"],
         "additionalProperties": false
       },
       "ApiToken": {

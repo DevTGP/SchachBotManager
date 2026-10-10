@@ -7,6 +7,7 @@ the details: files, runtime versions, the report of the upload and those of rech
 from sbm_store import bots, jobs, ratings, users, verification_reports
 
 from sbm_api import context
+from sbm_api.rating_start import rating_start
 from sbm_api.report_view import report_view
 from sbm_api.timestamps import optional_timestamp, timestamp
 
@@ -22,7 +23,7 @@ def bot_view(bot: dict) -> dict:
         # Reference bots and bots from before E95 have none.
         "description": bot.get("description") or "",
         # Bots without a counted match have no rating stored yet (E103).
-        "rating": ratings.current(bot),
+        "rating": ratings.current(bot, rating_start()),
         "created_at": timestamp(bot["created_at"]),
     }
 

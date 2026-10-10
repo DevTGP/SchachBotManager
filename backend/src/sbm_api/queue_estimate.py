@@ -1,25 +1,22 @@
-"""Estimated start and end times of queued matches (E20)."""
+"""Estimated start and end times of queued matches (E20); parameters from the settings (E154)."""
 
 import heapq
 from collections.abc import Callable
 from datetime import datetime, timedelta
 
 from pymongo.database import Database
-from sbm_store import matches
-
-RECENT_GAMES = 20
-# Without history: both sides start, then a game uses about one side's initial time in total
-# and gains the increment for about 40 moves per side.
-ESTIMATED_MOVES_PER_GAME = 80
+from sbm_store import estimate_settings, matches
 
 Duration = Callable[[dict], timedelta]
 
 
-def fallback_duration(discipline: dict) -> timedelta:
+def fallback_duration(discipline: dict, moves_per_game: int) -> timedelta:
+    """Without history: both sides start, then a game uses about one side's initial time in
+    total and gains the increment for each move of both sides (80 by default)."""
     milliseconds = (
         2 * discipline["startup_ms"]
         + discipline["initial_time_ms"]
-        + ESTIMATED_MOVES_PER_GAME * discipline["increment_ms"]
+        + moves_per_game * discipline["increment_ms"]
     )
     return timedelta(milliseconds=milliseconds)
 
@@ -29,16 +26,17 @@ class RecentDurations:
 
     def __init__(self, db: Database) -> None:
         self._db = db
+        self._settings = estimate_settings.get(db)
         self._cache: dict[str, timedelta] = {}
 
     def __call__(self, discipline: dict) -> timedelta:
         name = discipline["name"]
         if name not in self._cache:
-            recent = matches.recent_durations_ms(self._db, name, RECENT_GAMES)
+            recent = matches.recent_durations_ms(self._db, name, self._settings.recent_games)
             self._cache[name] = (
                 timedelta(milliseconds=sum(recent) // len(recent))
                 if recent
-                else fallback_duration(discipline)
+                else fallback_duration(discipline, self._settings.moves_per_game)
             )
         return self._cache[name]
 

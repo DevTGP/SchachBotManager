@@ -14,6 +14,7 @@ from sbm_api.errors import register_error_handlers
 from sbm_api.routes import (
     account,
     account_bots,
+    account_limits,
     account_rating,
     account_tokens,
     admin_audit_log,
@@ -25,6 +26,7 @@ from sbm_api.routes import (
     admin_matches,
     admin_play,
     admin_queue,
+    admin_settings,
     admin_users,
     bot_source,
     bots,
@@ -62,6 +64,7 @@ BLUEPRINTS = (
     account,
     account_rating,
     account_bots,
+    account_limits,
     account_tokens,
     remote,
     admin_users,
@@ -74,6 +77,7 @@ BLUEPRINTS = (
     admin_play,
     admin_queue,
     admin_audit_log,
+    admin_settings,
 )
 
 

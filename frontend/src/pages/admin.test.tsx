@@ -3,7 +3,16 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import type { AuditEntry, Invite, User } from "../api/types";
-import { ADMIN, BOTS, CODER, match, queue, summary, user as account } from "../test/fixtures";
+import {
+  ADMIN,
+  adminSettings,
+  BOTS,
+  CODER,
+  match,
+  queue,
+  summary,
+  user as account,
+} from "../test/fixtures";
 import { type ApiCall, mockApi, renderRoute } from "../test/render";
 
 const NO_CONTENT = () => new Response(null, { status: 204 });
@@ -266,6 +275,9 @@ describe("admin invites", () => {
         invites = [invite, ...invites];
         return Response.json({ invite, url: `${SITE}/invite#invite-token` }, { status: 201 });
       },
+      "/admin/settings": adminSettings({
+        accounts: { invite_days: 2, invite_max_days: 10, login_failures: 5 },
+      }),
       [`/admin/invites/${invite.id}`]: () => {
         invites = invites.filter((item) => item.id !== invite.id);
         return NO_CONTENT();
@@ -274,6 +286,9 @@ describe("admin invites", () => {
     renderRoute("/admin/invites");
 
     expect(await screen.findByRole("cell", { name: "Command line" })).toBeVisible();
+    const validDays = await screen.findByRole("spinbutton", { name: "Valid (days)" });
+    expect(validDays).toHaveValue(2);
+    expect(validDays).toHaveAttribute("max", "10");
     await user.selectOptions(screen.getByRole("combobox", { name: "Role" }), "Admin");
     await user.clear(screen.getByRole("spinbutton", { name: "Valid (days)" }));
     await user.type(screen.getByRole("spinbutton", { name: "Valid (days)" }), "3");

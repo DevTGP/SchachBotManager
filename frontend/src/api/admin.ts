@@ -1,17 +1,22 @@
 import { getJson, sendJson } from "./client";
 import type {
+  AccountSettings,
+  AdminSettings,
   AuditPage,
   AuditQuery,
   BotDetail,
   BotLanguage,
   BotUpdate,
+  CoderSettings,
   CreatedInvite,
   DisciplineRequest,
   DisciplineUpdate,
   EnqueueRequest,
+  EstimateSettings,
   Invite,
   OneTimeLink,
   PlaySettings,
+  RatingRule,
   Role,
   StoredDiscipline,
   User,
@@ -128,6 +133,26 @@ export function fetchPlaySettings(signal?: AbortSignal): Promise<PlaySettings> {
 /** The limits of games against people and remote bots (E115). */
 export function updatePlaySettings(settings: PlaySettings): Promise<PlaySettings> {
   return sendJson("PUT", "/admin/play-settings", settings);
+}
+
+/** The groups on /admin/settings and the values each one takes (E154). */
+export interface SettingsGroups {
+  coders: CoderSettings;
+  accounts: AccountSettings;
+  rating: RatingRule;
+  estimate: EstimateSettings;
+}
+
+export function fetchSettings(signal?: AbortSignal): Promise<AdminSettings> {
+  return getJson("/admin/settings", undefined, signal);
+}
+
+/** Sets all values of one group; a changed rating rule makes the runner count again (E105). */
+export function updateSettings<G extends keyof SettingsGroups>(
+  group: G,
+  values: SettingsGroups[G],
+): Promise<AdminSettings> {
+  return sendJson("PUT", `/admin/settings/${group}`, values);
 }
 
 /** The audit log, newest first; the filters are optional (E151). */

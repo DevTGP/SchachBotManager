@@ -3,25 +3,29 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import { enqueueOwnMatches } from "../../api/bots";
-import type { Bot, StoredDiscipline } from "../../api/types";
+import type { Bot, CoderLimits, StoredDiscipline } from "../../api/types";
 import { DisciplineSelect } from "../../components/DisciplineSelect";
 import { FormError } from "../../components/FormError";
 import { NumberField } from "../../components/NumberField";
 import { botLabel } from "../../format/botLabel";
 import { useSubmit } from "../../hooks/useSubmit";
-import { DEFAULT_OWN_FORM, OWN_LIMITS, type OwnMatchForm, ownMatchOrder } from "./ownMatchOrder";
+import { ownLimits } from "./ownLimits";
+import { DEFAULT_OWN_FORM, type OwnMatchForm, ownMatchOrder } from "./ownMatchOrder";
 
-/** Games of an own verified bot against any verified bot, with the coder limits (E98, E100). */
+/** Games of an own verified bot against any verified bot, with the coder limits (E98, E100, E154). */
 export function OwnMatchForm({
   own,
   opponents,
   disciplines,
+  limits,
 }: {
   own: Bot[];
   opponents: Bot[];
   disciplines: StoredDiscipline[];
+  limits: CoderLimits;
 }) {
   const { t } = useTranslation();
+  const values = ownLimits(limits);
   const { pending, error, submit } = useSubmit();
   const [queued, setQueued] = useState<number | undefined>(undefined);
   const [form, setForm] = useState<OwnMatchForm>({
@@ -92,14 +96,14 @@ export function OwnMatchForm({
               value={form.initialSeconds}
               step="any"
               min={1}
-              max={OWN_LIMITS.initialSeconds}
+              max={values.initialSeconds}
               onChange={(value) => set("initialSeconds", value)}
             />
             <NumberField
               label={t("admin.incrementSeconds")}
               value={form.incrementSeconds}
               step="any"
-              max={OWN_LIMITS.incrementSeconds}
+              max={values.incrementSeconds}
               onChange={(value) => set("incrementSeconds", value)}
             />
           </>
@@ -108,7 +112,7 @@ export function OwnMatchForm({
           label={t("admin.games")}
           value={form.games}
           min={1}
-          max={OWN_LIMITS.games}
+          max={values.games}
           onChange={(value) => set("games", value)}
         />
       </div>
@@ -120,8 +124,8 @@ export function OwnMatchForm({
         />
         {t("admin.alternate")}
       </label>
-      <p className="hint">{t("ownBots.limits")}</p>
-      <FormError error={error} rules="ownMatchError" />
+      <p className="hint">{t("ownBots.limits", values)}</p>
+      <FormError error={error} rules="ownMatchError" values={values} />
       {queued !== undefined && (
         <p role="status">
           {t("admin.queued", { count: queued })} <Link to="/queue">{t("nav.queue")}</Link>

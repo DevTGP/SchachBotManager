@@ -215,12 +215,13 @@
     "version": "Version",
     "versionHint": "X.Y.Z, höher als jede frühere Version des Namens.",
     "submit": "Hochladen",
-    "limit": "Der Bot wird geprüft und getestet, bevor er spielen darf. Höchstens 20 Uploads am Tag.",
+    "limit": "Höchstens {{uploads}} Uploads am Tag.",
     "noFiles": "Einen Ordner oder Dateien mit mindestens einer .py-Datei auswählen.",
     "tooManyFiles": "Erlaubt sind höchstens 100 .py-Dateien und 100 Datendateien.",
     "tooLarge": "Die .py-Dateien und die Datendateien dürfen je höchstens 1 MB zusammen haben.",
     "noEntry": "Im obersten Ordner fehlt eine .py-Datei, mit der der Bot startet.",
-    "ownLink": "Alle deine Bots und Versionen"
+    "ownLink": "Alle deine Bots und Versionen",
+    "review": "Der Bot wird geprüft und getestet, bevor er spielen darf."
   },
   "ownBots": {
     "title": "Meine Bots",
@@ -230,12 +231,12 @@
     "opponent": "Gegner",
     "ownColor": "Dein Bot spielt",
     "noVerified": "Sobald einer deiner Bots geprüft ist, kannst du hier Partien für ihn ansetzen.",
-    "limits": "Freie Zeiten höchstens 5 Minuten plus 5 Sekunden je Zug; Disziplinen ohne diese Grenze. Höchstens 10 Partien auf einmal und 20 Partien am Tag. Deine Partien starten nach denen, die Admins ansetzen."
+    "limits": "Freie Zeiten höchstens {{initialSeconds}} Sekunden plus {{incrementSeconds}} Sekunden je Zug; Disziplinen ohne diese Grenze. Höchstens {{games}} Partien auf einmal und {{gamesPerDay}} Partien am Tag. Deine Partien starten nach denen, die Admins ansetzen."
   },
   "ownMatchError": {
-    "initial_time_ms": "Die Zeit muss zwischen 1 und 300 Sekunden liegen.",
-    "increment_ms": "Das Inkrement darf höchstens 5 Sekunden betragen.",
-    "games": "1 bis 10 Partien sind möglich.",
+    "initial_time_ms": "Die Zeit muss zwischen 1 und {{initialSeconds}} Sekunden liegen.",
+    "increment_ms": "Das Inkrement darf höchstens {{incrementSeconds}} Sekunden betragen.",
+    "games": "1 bis {{games}} Partien sind möglich.",
     "white_bot_id": "Einer der Bots muss dir gehören, und beide müssen geprüft sein.",
     "black_bot_id": "Der Gegner muss ein geprüfter Bot sein."
   },
@@ -340,7 +341,7 @@
     "max_moves": "Das Zuglimit muss zwischen 1 und 2000 liegen.",
     "white_bot_id": "Weiß ist kein geprüfter Bot.",
     "black_bot_id": "Schwarz ist kein geprüfter Bot.",
-    "valid_days": "Ein Link gilt 1 bis 30 Tage.",
+    "valid_days": "Ein Link gilt 1 bis {{max}} Tage.",
     "role": "Die Rolle ist unbekannt.",
     "user_id": "Das eigene Konto lässt sich hier nicht ändern.",
     "name": "Der Name muss 3 bis 32 Zeichen haben: Buchstaben, Ziffern, _ . oder -, am Anfang ein Buchstabe oder eine Ziffer.",
@@ -469,7 +470,8 @@
     "recheckHint": "Prüft alle geprüften und abgelehnten hochgeladenen Bots einer Sprache mit den aktuellen Regeln. Jede Neuprüfung ergänzt nur einen Bericht; der Status bleibt.",
     "recheck": "Neu prüfen",
     "rechecksQueued_one": "{{count}} Neuprüfung eingereiht.",
-    "rechecksQueued_other": "{{count}} Neuprüfungen eingereiht."
+    "rechecksQueued_other": "{{count}} Neuprüfungen eingereiht.",
+    "settings": "Einstellungen"
   },
   "notFound": {
     "title": "Seite nicht gefunden",
@@ -549,5 +551,41 @@
   },
   "tokenError": {
     "name": "1 bis 40 Zeichen; ein Konto hat höchstens 10 Tokens."
+  },
+  "adminSettings": {
+    "coders": "Grenzen für Coder",
+    "codersHint": "Gelten für Uploads und für Partien, die Coder für eigene Bots ansetzen. Partien der Admins haben Priorität 100.",
+    "games_per_day": "Partien am Tag",
+    "uploads_per_day": "Uploads am Tag",
+    "games_per_request": "Partien je Auftrag",
+    "max_initial_ms": "Freie Zeit höchstens (s)",
+    "max_increment_ms": "Inkrement höchstens (s)",
+    "priority": "Priorität in der Queue",
+    "accounts": "Einladungen und Konten",
+    "accountsHint": "Gültigkeit neuer Einladungslinks in Tagen und falsche Passwörter in Folge, nach denen ein Login 15 Minuten gesperrt ist.",
+    "invite_days": "Gültigkeit Standard",
+    "invite_max_days": "Gültigkeit höchstens",
+    "login_failures": "Fehlversuche bis zur Sperre",
+    "rating": "Rating",
+    "ratingHint": "Startwert und Regel für Gewinne und Remis. Eine Änderung rechnet alle gewerteten Partien neu.",
+    "start": "Startwert",
+    "base": "Gewinn bei gleichem Rating",
+    "step": "Ratingabstand je Punkt",
+    "max_win": "Gewinn höchstens",
+    "min_win": "Gewinn mindestens",
+    "max_draw": "Remis höchstens",
+    "estimate": "Schätzung der Queue",
+    "estimateHint": "Grundlage für die geschätzte Startzeit wartender Partien.",
+    "recent_games": "Letzte Partien je Disziplin",
+    "moves_per_game": "Züge je Partie ohne Erfahrung",
+    "save": "Speichern",
+    "saved": "Gespeichert.",
+    "recountPending": "Die Ratings werden gerade neu berechnet."
+  },
+  "settingsError": {
+    "invite_days": "Die Standard-Gültigkeit darf die höchste nicht übersteigen.",
+    "min_win": "Der kleinste Gewinn darf den Gewinn bei gleichem Rating nicht übersteigen.",
+    "max_win": "Der größte Gewinn darf nicht unter dem Gewinn bei gleichem Rating liegen.",
+    "priority": "Die Priorität liegt zwischen 0 und 99."
   }
 }

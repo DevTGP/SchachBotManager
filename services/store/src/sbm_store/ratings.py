@@ -15,33 +15,34 @@ from pymongo import ASCENDING, DESCENDING
 from pymongo.database import Database
 from pymongo.errors import DuplicateKeyError
 
-from sbm_store import bots, users
+from sbm_store import bots, rating_settings, users
 from sbm_store.matches import FINISHED
 from sbm_store.names import BOTS, MATCHES, USERS
-from sbm_store.rating_rule import START, white_gain
+from sbm_store.rating_rule import RatingRule, white_gain
 
 COLORS = ("white", "black")
 PENDING = {"status": FINISHED, "rated": True, "rating": {"$exists": False}}
 IN_ORDER = [("finished_at", ASCENDING), ("_id", ASCENDING)]
 
 
-def current(holder: dict | None) -> dict:
-    """value and games of a bot or user; one without rated matches stands at the start."""
+def current(holder: dict | None, start: int) -> dict:
+    """value and games of a bot or user; one without rated matches stands at start (E154)."""
     rating = (holder or {}).get("rating")
     if rating is None:
-        return {"value": START, "games": 0}
+        return {"value": start, "games": 0}
     return {"value": rating["value"], "games": rating["games"]}
 
 
 def count_pending(db: Database) -> int:
     """Counts the finished rated matches not counted yet, oldest first; returns how many."""
+    rule = rating_settings.get(db)
     counted = 0
     while True:
         seq = _settle_last(db) + 1
         match = db[MATCHES].find_one(PENDING, sort=IN_ORDER)
         if match is None:
             return counted
-        if _count(db, match, seq):
+        if _count(db, match, seq, rule):
             counted += 1
 
 
@@ -72,15 +73,15 @@ def _settle_last(db: Database) -> int:
     return last["rating"]["seq"]
 
 
-def _count(db: Database, match: dict, seq: int) -> bool:
+def _count(db: Database, match: dict, seq: int, rule: RatingRule) -> bool:
     """Claims seq for the match and moves both ratings; False if another runner came first."""
     white_holder, black_holder = (holder(match[color]) for color in COLORS)
     if white_holder == black_holder or None in (white_holder, black_holder):
         # A bot against itself cannot win or lose points (E103); a guest has no rating.
         db[MATCHES].update_one({"_id": match["_id"]}, {"$set": {"rated": False}})
         return False
-    white, black = (current(_load(db, side)) for side in (white_holder, black_holder))
-    gain = white_gain(white["value"], black["value"], match["result"])
+    white, black = (current(_load(db, side), rule.start) for side in (white_holder, black_holder))
+    gain = white_gain(white["value"], black["value"], match["result"], rule)
     rating = {
         "seq": seq,
         "white": _side(white, gain),

@@ -2,6 +2,7 @@ import { type ChangeEvent, type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 
+import { fetchLimits } from "../../api/account";
 import { fetchOwnBots, uploadBot } from "../../api/bots";
 import { FormError } from "../../components/FormError";
 import { useApi } from "../../hooks/useApi";
@@ -26,6 +27,7 @@ export function UploadPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const ownBots = useApi(fetchOwnBots, "own-bots");
+  const limits = useApi(fetchLimits, "own-limits");
   const { pending, error, submit, fail } = useSubmit();
   const [selection, setSelection] = useState<Selection>();
   const [entryChoice, setEntryChoice] = useState<string>();
@@ -124,7 +126,10 @@ export function UploadPage() {
           />
           <span className="hint">{t("bot.descriptionHint", { max: DESCRIPTION_LENGTH })}</span>
         </label>
-        <p className="hint">{t("upload.limit")}</p>
+        <p className="hint">
+          {t("upload.review")}
+          {limits.data && ` ${t("upload.limit", { uploads: limits.data.uploads_per_day })}`}
+        </p>
         <FormError error={error} />
         <button type="submit" className="primary" disabled={pending}>
           {t("upload.submit")}

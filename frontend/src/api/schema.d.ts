@@ -327,6 +327,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/account/limits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The limits for the uploads and own matches of coders now in force (coders, E154). */
+        get: operations["get_own_limits"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/account/rating": {
         parameters: {
             query?: never;
@@ -703,6 +720,91 @@ export interface paths {
         get: operations["get_play_settings"];
         /** Sets all limits of interactive games at once (admin, E115); they apply to games asked for from now on. */
         put: operations["update_play_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The settings of coders, accounts, the rating rule and the queue estimate (admin, E154). */
+        get: operations["get_settings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/settings/coders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Sets all limits of coders at once (admin, E154); they apply to uploads and requests from now on. */
+        put: operations["update_coders_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/settings/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Sets invitation and login settings at once (admin, E154); invite_days may not exceed invite_max_days. */
+        put: operations["update_accounts_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/settings/rating": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Sets the numbers of the rating rule at once (admin, E154); a change counts all ratings again (E105). min_win <= base <= max_win. */
+        put: operations["update_rating_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/settings/estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Sets how the queue estimates start times (admin, E154). */
+        put: operations["update_estimate_settings"];
         post?: never;
         delete?: never;
         options?: never;
@@ -1284,6 +1386,51 @@ export interface components {
             max_games: number;
             games_per_client: number;
             games_per_day: number;
+        };
+        /** @description Limits of coders (E154): uploads and own match games per day for each coder, games per request, the longest free times and the queue priority of own matches, below the default of admins. */
+        CoderSettings: {
+            games_per_day: number;
+            uploads_per_day: number;
+            games_per_request: number;
+            max_initial_ms: number;
+            max_increment_ms: number;
+            priority: number;
+        };
+        /** @description The limits of coders without the queue priority (E154). */
+        CoderLimits: {
+            games_per_day: number;
+            uploads_per_day: number;
+            games_per_request: number;
+            max_initial_ms: number;
+            max_increment_ms: number;
+        };
+        /** @description Invitations and logins (E154): the default and longest validity of an invitation link in days, wrong passwords in a row before a login is locked. */
+        AccountSettings: {
+            invite_days: number;
+            invite_max_days: number;
+            login_failures: number;
+        };
+        /** @description The numbers of the rating rule (E103, E154): start rating, gain between equal ratings, the rating difference worth one point, the bounds of a win and the most a draw moves. */
+        RatingRule: {
+            start: number;
+            base: number;
+            step: number;
+            max_win: number;
+            min_win: number;
+            max_draw: number;
+        };
+        /** @description How the queue estimates start times (E154): finished matches a discipline's duration is the mean of, and the moves each side is assumed to make without any. */
+        EstimateSettings: {
+            recent_games: number;
+            moves_per_game: number;
+        };
+        AdminSettings: {
+            coders: components["schemas"]["CoderSettings"];
+            accounts: components["schemas"]["AccountSettings"];
+            rating: components["schemas"]["RatingRule"];
+            estimate: components["schemas"]["EstimateSettings"];
+            /** @description Whether the runner has yet to count all ratings again (E105). */
+            rating_recount_pending: boolean;
         };
         ApiToken: {
             id: components["schemas"]["Id"];
@@ -2120,6 +2267,28 @@ export interface operations {
             429: components["responses"]["TooManyAttempts"];
         };
     };
+    get_own_limits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The limits. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoderLimits"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
     get_own_rating: {
         parameters: {
             query?: never;
@@ -2816,6 +2985,148 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PlaySettings"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    get_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description All settings now in force. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSettings"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    update_coders_settings: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoderSettings"];
+            };
+        };
+        responses: {
+            /** @description All settings now in force. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSettings"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    update_accounts_settings: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountSettings"];
+            };
+        };
+        responses: {
+            /** @description All settings now in force. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSettings"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    update_rating_settings: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RatingRule"];
+            };
+        };
+        responses: {
+            /** @description All settings now in force. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSettings"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    update_estimate_settings: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EstimateSettings"];
+            };
+        };
+        responses: {
+            /** @description All settings now in force. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSettings"];
                 };
             };
             400: components["responses"]["BadRequest"];

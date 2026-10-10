@@ -3,11 +3,12 @@ from datetime import timedelta
 from bson import ObjectId
 from conftest import T0
 
-from sbm_store import bots, matches, ratings
+from sbm_store import bots, matches, rating_settings, ratings
 from sbm_store.discipline import STANDARD_FEN, Discipline
 from sbm_store.enqueue import enqueue_match
 from sbm_store.migrate import migrate
 from sbm_store.names import BOTS, MATCHES
+from sbm_store.rating_rule import DEFAULT, RatingRule
 
 RATED = Discipline("Blitz", initial_time_ms=60_000, discipline_id=ObjectId())
 FREE = Discipline("Free", initial_time_ms=60_000)
@@ -36,14 +37,17 @@ def play(db, white, black, result, *, minute=0, discipline=RATED, finish=True):
 
 
 def value(db, bot) -> int:
-    return ratings.current(bots.get(db, bot["_id"]))["value"]
+    return ratings.current(bots.get(db, bot["_id"]), 2500)["value"]
 
 
 def test_a_bot_without_counted_matches_stands_at_the_start(db):
     migrate(db)
 
-    assert ratings.current(bots.get(db, add_bot(db, "A")["_id"])) == {"value": 2500, "games": 0}
-    assert ratings.current(None) == {"value": 2500, "games": 0}
+    assert ratings.current(bots.get(db, add_bot(db, "A")["_id"]), 2500) == {
+        "value": 2500,
+        "games": 0,
+    }
+    assert ratings.current(None, 2500) == {"value": 2500, "games": 0}
 
 
 def test_rated_matches_are_counted_in_the_order_they_finished(db):
@@ -61,7 +65,19 @@ def test_rated_matches_are_counted_in_the_order_they_finished(db):
         "black": {"before": 2500, "after": 2450, "games": 1},
     }
     assert matches.get(db, second)["rating"]["seq"] == 2
-    assert ratings.current(bots.get(db, a["_id"])) == {"value": 2598, "games": 2}
+    assert ratings.current(bots.get(db, a["_id"]), 2500) == {"value": 2598, "games": 2}
+
+
+def test_the_rule_comes_from_the_settings(db):
+    migrate(db)
+    rating_settings.save(db, RatingRule(start=1000, base=10))
+    a, b = add_bot(db, "A"), add_bot(db, "B")
+    play(db, a, b, "1-0")
+
+    assert ratings.count_pending(db) == 1
+
+    assert ratings.current(bots.get(db, a["_id"]), 1000) == {"value": 1010, "games": 1}
+    assert ratings.current(bots.get(db, b["_id"]), 1000) == {"value": 990, "games": 1}
 
 
 def test_unrated_aborted_and_unfinished_matches_change_nothing(db):
@@ -104,8 +120,8 @@ def test_a_crash_after_the_claim_is_repaired_before_the_next_match(db):
     assert ratings.count_pending(db) == 1
 
     assert matches.get(db, second)["rating"]["white"]["after"] == 2595
-    assert ratings.current(bots.get(db, a["_id"])) == {"value": 2595 - 9, "games": 3}
-    assert ratings.current(bots.get(db, b["_id"])) == {"value": 2405 + 9, "games": 3}
+    assert ratings.current(bots.get(db, a["_id"]), 2500) == {"value": 2595 - 9, "games": 3}
+    assert ratings.current(bots.get(db, b["_id"]), 2500) == {"value": 2405 + 9, "games": 3}
 
 
 def test_a_number_taken_by_another_runner_is_not_used_twice(db):
@@ -117,7 +133,7 @@ def test_a_number_taken_by_another_runner_is_not_used_twice(db):
     ratings._settle_last(db)
     first = matches.get(db, first_id)
 
-    assert not ratings._count(db, first, 1)
+    assert not ratings._count(db, first, 1, DEFAULT)
     assert ratings.count_pending(db) == 1
     assert matches.get(db, first_id)["rating"]["seq"] == 2
 

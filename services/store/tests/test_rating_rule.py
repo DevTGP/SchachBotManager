@@ -1,6 +1,6 @@
 import pytest
 
-from sbm_store.rating_rule import white_gain
+from sbm_store.rating_rule import DEFAULT, white_gain
 
 
 @pytest.mark.parametrize(
@@ -24,4 +24,4 @@ from sbm_store.rating_rule import white_gain
     ],
 )
 def test_the_rule_of_e103(white, black, result, gain):
-    assert white_gain(white, black, result) == gain
+    assert white_gain(white, black, result, DEFAULT) == gain

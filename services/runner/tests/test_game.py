@@ -2,9 +2,11 @@ from bson import ObjectId
 from sbm_store import bots, jobs, matches, queue_settings, rating_recount, ratings
 from sbm_store.discipline import Discipline
 from sbm_store.names import BOTS, JOBS, MATCHES
-from sbm_store.rating_rule import START, white_gain
+from sbm_store.rating_rule import DEFAULT, white_gain
 
 from sbm_runner.worker import utc_now
+
+START = DEFAULT.start
 
 # As QUICK in conftest.py, but stored, so its games count. Not imported from conftest: the module
 # name is shared with tests/sandbox/conftest.py, whose QUICK is referee settings.
@@ -102,14 +104,20 @@ def test_a_rated_match_moves_the_ratings_of_both_bots(db, worker, reference_bots
     assert "rating" not in matches.get(db, unrated)
     match = matches.get(db, rated)
     # Usually a draw after six plies; a quick mate by Random's blunders moves 50 points.
-    gain = white_gain(START, START, match["result"])
+    gain = white_gain(START, START, match["result"], DEFAULT)
     assert match["rating"] == {
         "seq": 1,
         "white": {"before": START, "after": START + gain, "games": 1},
         "black": {"before": START, "after": START - gain, "games": 1},
     }
-    assert ratings.current(bots.get(db, random["_id"])) == {"value": START + gain, "games": 1}
-    assert ratings.current(bots.get(db, material["_id"])) == {"value": START - gain, "games": 1}
+    assert ratings.current(bots.get(db, random["_id"]), START) == {
+        "value": START + gain,
+        "games": 1,
+    }
+    assert ratings.current(bots.get(db, material["_id"]), START) == {
+        "value": START - gain,
+        "games": 1,
+    }
 
 
 def test_ratings_are_counted_again_on_request_even_when_paused(db, worker, reference_bots, enqueue):
@@ -123,5 +131,5 @@ def test_ratings_are_counted_again_on_request_even_when_paused(db, worker, refer
     assert not worker.step()
 
     assert not rating_recount.is_requested(db)
-    assert ratings.current(bots.get(db, random["_id"])) == {"value": START, "games": 0}
-    assert ratings.current(bots.get(db, material["_id"])) == {"value": START, "games": 0}
+    assert ratings.current(bots.get(db, random["_id"]), START) == {"value": START, "games": 0}
+    assert ratings.current(bots.get(db, material["_id"]), START) == {"value": START, "games": 0}

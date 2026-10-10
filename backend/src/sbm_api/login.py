@@ -1,18 +1,17 @@
 """Checking a name and password, and opening a session (E84).
 
-Five wrong passwords in a row lock the account for 15 minutes; during the lock even the right
-password is refused, so guessing cannot continue.
+A number of wrong passwords in a row (a setting, five by default, E154) lock the account for
+15 minutes; during the lock even the right password is refused, so guessing cannot continue.
 """
 
 from datetime import datetime, timedelta
 
 from pymongo.database import Database
-from sbm_store import sessions, users
+from sbm_store import account_settings, sessions, users
 
 from sbm_api import passwords, session_cookie
 from sbm_api.errors import invalid_credentials, too_many_attempts
 
-MAX_FAILURES = 5
 LOCK = timedelta(minutes=15)
 
 
@@ -26,7 +25,8 @@ def authenticate(db: Database, username: str, password: str, now: datetime) -> d
     if locked_until is not None and locked_until > now:
         raise too_many_attempts(now, locked_until)
     if not passwords.verify(user["password_hash"], password):
-        if users.count_failed_login(db, user["_id"]) >= MAX_FAILURES:
+        failures = users.count_failed_login(db, user["_id"])
+        if failures >= account_settings.get(db).login_failures:
             users.lock(db, user["_id"], now + LOCK)
         raise invalid_credentials()
     if not user["active"]:

@@ -109,7 +109,7 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 
 ## Stand M4, Schritt 2 (E103, E104)
 
-- Keine eigene Sammlung für Ratings. Ein Bot hält `rating` mit `value`, `games` und `seq` der zuletzt übernommenen Partie; ohne das Feld steht er bei 2500 und 0 Partien. Konten (`users`) halten dasselbe Feld für ihre gewerteten Partien gegen Bots (E117); die Rangliste der Spieler liest es ohne eigenen Index, weil es nur wenige Konten gibt (E118).
+- Keine eigene Sammlung für Ratings. Ein Bot hält `rating` mit `value`, `games` und `seq` der zuletzt übernommenen Partie; ohne das Feld steht er beim Startwert (Standard 2500, Einstellung seit E154) und 0 Partien. Konten (`users`) halten dasselbe Feld für ihre gewerteten Partien gegen Bots (E117); die Rangliste der Spieler liest es ohne eigenen Index, weil es nur wenige Konten gibt (E118).
 - Eine verbuchte Partie hält `rating` mit `seq` und je Seite `before`, `after` und `games`; darin steckt der Verlauf (`sbm_store.ratings`, Regel in `sbm_store.rating_rule`).
 - `0006_ratings` legt den eindeutigen Teilindex auf `rating.seq`, einen Index für die offenen Partien (`status`, `rated`, `finished_at`) und einen auf `rating.value` der Bots an.
 - Eine Partie eines Bots gegen sich selbst ist nie `rated`.
@@ -131,6 +131,7 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 - `jobs.status` kennt zusätzlich `cancelled`: Ein Admin hat die Partie abgebrochen (E152). `lease_until` wird geleert, `finished_at` gesetzt; ein Runner, der den Job hielt, kann ihn nicht mehr verlängern.
 - Migration `0150_job_matches` legt einen dünn besetzten Index auf `payload.match_id` von `jobs` an, für Abbrechen und Ändern der Priorität (`sbm_store.jobs.cancel_match`, `set_match_priority`); `sbm_store.matches.set_priority` hält `queue.priority` der Partie gleich.
 - Neuprüfung und Override (E153): Ein Job der Art `verification` mit `payload.recheck: true` prüft einen Bot erneut (`sbm_store.rechecks`). `verification_reports.kind` ist `upload` oder `recheck`; Berichte ohne `kind` stammen aus Uploads. `bots.overridden_at` hält fest, wann ein Admin einen abgelehnten Bot verifiziert hat. Migration `0151_job_bots` legt einen dünn besetzten Index auf `payload.bot_id` von `jobs` an.
+- `settings` (E154): Dokumente `coders` (`games_per_day`, `uploads_per_day`, `games_per_request`, `max_initial_ms`, `max_increment_ms`, `priority`), `accounts` (`invite_days`, `invite_max_days`, `login_failures`), `rating_rule` (`start`, `base`, `step`, `max_win`, `min_win`, `max_draw`) und `estimate` (`recent_games`, `moves_per_game`). Je Gruppe ein Modul in `sbm_store` (`coder_settings`, `account_settings`, `rating_settings`, `estimate_settings`) über `sbm_store.settings_document`; ein fehlendes Dokument oder Feld ergibt den Standard, daher keine Migration. `sbm_store.ratings.count_pending` liest die Regel einmal je Aufruf.
 
 ## Zu beachten
 

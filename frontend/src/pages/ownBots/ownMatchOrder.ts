@@ -1,15 +1,12 @@
 import type { OwnMatchOrder } from "../../api/bots";
 import { secondsToMs } from "../admin/matchOrder";
 
-/** The limits for games set by coders (E98). */
-export const OWN_LIMITS = { initialSeconds: 300, incrementSeconds: 5, games: 10 };
-
 /** The form as typed: an own bot, any verified opponent, times in seconds. */
 export interface OwnMatchForm {
   own: string;
   opponent: string;
   ownColor: "white" | "black";
-  /** The id of a discipline, or "" for free times within OWN_LIMITS (E100). */
+  /** The id of a discipline, or "" for free times within the coder limits (E100). */
   discipline: string;
   initialSeconds: string;
   incrementSeconds: string;

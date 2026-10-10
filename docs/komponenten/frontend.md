@@ -86,7 +86,7 @@ Die Bot-Liste zeigt die Version und verlinkt jeden Bot; die Kontonavigation füh
 
 | Ort | Inhalt |
 |-----|--------|
-| `src/pages/ownBots/` | Seite `/account/bots` „Meine Bots“ (nur angemeldet): eigene Bots nach Name gruppiert mit allen Versionen und Status, Link zum Upload, Formular für Partien eines eigenen geprüften Bots gegen jeden geprüften Bot mit den Grenzen aus E98 |
+| `src/pages/ownBots/` | Seite `/account/bots` „Meine Bots“ (nur angemeldet): eigene Bots nach Name gruppiert mit allen Versionen und Status, Link zum Upload, Formular für Partien eines eigenen geprüften Bots gegen jeden geprüften Bot mit den Grenzen aus E98, seit E154 aus `GET /account/limits` (`ownLimits.ts`) in Feldern und Texten |
 | `src/pages/bot/` | Zusätzlich Beschreibung (Besitzer bearbeitet sie), Zurückziehen und Reaktivieren für den Besitzer, Sperre durch Admins auch für zurückgezogene Bots, Liste der Versionen, Dateien als Text (nur gültiges UTF-8) und Download einzeln oder als ZIP |
 | `src/pages/upload/` | Feld für die Beschreibung; statt der Liste eigener Bots ein Link auf „Meine Bots“ |
 | `src/format/botLabel.ts` | `sideLabel` und `playersLabel`: Seiten einer Partie als „Name Version“ in Listen, Queue und Viewer |
@@ -144,6 +144,10 @@ Lädt `/disciplines` nicht, bieten die Formulare nur freie Zeiten an.
 | `src/pages/admin/MatchRepeat.tsx` | Partieseite, nur Admins: beendete oder abgebrochene Einzelspiele erneut einreihen, danach die neue Partie (E152) |
 | `src/pages/bot/BotChecks.tsx` | Bot-Seite, nur Admins: Neuprüfung auslösen, bei abgelehnten Bots Override mit Rückfrage (E153) |
 | `src/pages/bot/BotRechecks.tsx`, `ReportStages.tsx`, `reportFacts.ts` | Bot-Seite für Besitzer und Admins: Neuprüfungen als aufklappbare Liste mit denselben Stufen wie der Report; die Seite fragt nach, solange eine Prüfung wartet (E153) |
+| `src/pages/admin/AdminSettingsPage.tsx`, `SettingsGroupForm.tsx`, `settingsFields.ts` | `/admin/settings`: je Gruppe (Coder, Einladungen und Konten, Rating, Schätzung der Queue) ein Formular mit Feldern und Grenzen aus `settingsFields.ts`, Zeiten in Sekunden; Hinweis, solange eine Neuberechnung der Ratings ansteht (E154) |
+| `src/pages/admin/InviteForm.tsx` | `/admin/invites`: Formular für Einladungen mit Standard und Höchstwert der Gültigkeit aus den Einstellungen (E154) |
+| `src/pages/upload/UploadPage.tsx` | zeigt die Zahl der Uploads je Tag aus `GET /account/limits` (E154) |
+| `src/components/FormError.tsx` | zusätzlich `values` für Texte mit eingesetzten Grenzen (E154) |
 | `src/pages/admin/RecheckLanguage.tsx` | `/admin`: alle verifizierten und abgelehnten Bots einer Sprache erneut prüfen, meldet die Zahl der eingereihten Prüfungen (E153) |
 
 ## Zu beachten
