@@ -6,7 +6,7 @@ again (rating_recount). The name is free again once no version is left (bots.lat
 
 Without transactions the steps run in an order a crash can repeat: the bot document goes
 last, so a second attempt finds it and removes what is left. Reference bots, bots still being
-verified and bots in a running match cannot be deleted.
+verified, bots in a running recheck (E153) and bots in a running match cannot be deleted.
 """
 
 from dataclasses import dataclass
@@ -71,7 +71,7 @@ def delete_bot(db: Database, bot_id: ObjectId, now: datetime) -> Deletion | None
 def _check(db: Database, bot: dict) -> None:
     if bots.is_builtin(bot):
         raise NotDeletable(BUILTIN)
-    if bot["status"] in bots.PIPELINE:
+    if bot["status"] in bots.PIPELINE or jobs.running_verification(db, bot["_id"]):
         raise NotDeletable(VERIFYING)
     running = matches.match_filter(status=matches.RUNNING, bot_id=bot["_id"])
     if db[MATCHES].count_documents(running, limit=1) > 0:

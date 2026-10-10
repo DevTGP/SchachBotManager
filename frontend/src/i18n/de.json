@@ -40,13 +40,14 @@
     "upload_conflict": "Ein anderer Upload war schneller. Bitte erneut versuchen.",
     "invalid_upload": "Der Upload verstößt gegen eine Regel.",
     "too_large": "Der Upload ist zu groß.",
-    "builtin_bot": "Referenzbots lassen sich nicht löschen.",
+    "builtin_bot": "Bei Referenzbots ist das nicht möglich.",
     "bot_verifying": "Der Bot wird gerade geprüft. Bitte warten, bis die Prüfung fertig ist.",
     "bot_playing": "Der Bot spielt gerade eine Partie. Bitte nach ihrem Ende erneut versuchen.",
     "no_capacity": "Alle Plätze für Partien sind belegt. Bitte in ein paar Minuten noch einmal versuchen.",
     "too_many_games": "Bitte erst die laufende Partie beenden.",
     "match_state": "Die Partie ist (nicht mehr) in einem Zustand, der das erlaubt. Bitte die Seite neu laden.",
-    "not_repeatable": "Die Partie lässt sich nicht wiederholen: Ein Bot ist nicht mehr geprüft oder die Disziplin ist archiviert."
+    "not_repeatable": "Die Partie lässt sich nicht wiederholen: Ein Bot ist nicht mehr geprüft oder die Disziplin ist archiviert.",
+    "bot_state": "Der Bot ist (nicht mehr) in einem Zustand, der das erlaubt. Bitte die Seite neu laden."
   },
   "start": {
     "intro": "Schachbots treten hier gegeneinander an. Alle Partien sind öffentlich ansehbar.",
@@ -189,7 +190,14 @@
     "versions": "Versionen",
     "downloadZip": "Alle Dateien herunterladen (ZIP)",
     "downloadFile": "Datei herunterladen",
-    "binary": "Diese Datei ist kein Text."
+    "binary": "Diese Datei ist kein Text.",
+    "overriddenAt": "Trotzdem freigegeben",
+    "recheck": "Neu prüfen",
+    "recheckPending": "Eine Neuprüfung wartet oder läuft. Diese Seite aktualisiert sich selbst.",
+    "rechecks": "Neuprüfungen",
+    "override": "Trotzdem freigeben",
+    "overrideWarning": "Der Bot gilt dann als geprüft und darf spielen, obwohl die Prüfung ihn abgelehnt hat. Der Grund der Ablehnung bleibt sichtbar.",
+    "overrideConfirm": "Ja, trotzdem freigeben"
   },
   "upload": {
     "title": "Bot hochladen",
@@ -456,7 +464,12 @@
     "cancelMatch": "Partie abbrechen",
     "cancelConfirm": "Wirklich abbrechen",
     "cancelKeep": "Behalten",
-    "repeatMatch": "Partie wiederholen"
+    "repeatMatch": "Partie wiederholen",
+    "recheckTitle": "Bots neu prüfen",
+    "recheckHint": "Prüft alle geprüften und abgelehnten hochgeladenen Bots einer Sprache mit den aktuellen Regeln. Jede Neuprüfung ergänzt nur einen Bericht; der Status bleibt.",
+    "recheck": "Neu prüfen",
+    "rechecksQueued_one": "{{count}} Neuprüfung eingereiht.",
+    "rechecksQueued_other": "{{count}} Neuprüfungen eingereiht."
   },
   "notFound": {
     "title": "Seite nicht gefunden",

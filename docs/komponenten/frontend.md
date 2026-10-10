@@ -142,6 +142,9 @@ Lädt `/disciplines` nicht, bieten die Formulare nur freie Zeiten an.
 | `src/pages/admin/AdminAuditPage.tsx` | `/admin/audit`: Audit-Log mit Filtern nach Akteur, Aktion, Zeitraum und Ziel in der URL, Klick auf ein Ziel filtert danach, Seitenwechsel (E151) |
 | `src/pages/admin/AdminQueueTable.tsx`, `QueueEntryActions.tsx` | `/admin`: Queue mit Priorität; bei wartenden Einzelspielen Priorität setzen und „Nach vorn“, bei wartenden und laufenden Abbrechen mit Rückfrage (E152) |
 | `src/pages/admin/MatchRepeat.tsx` | Partieseite, nur Admins: beendete oder abgebrochene Einzelspiele erneut einreihen, danach die neue Partie (E152) |
+| `src/pages/bot/BotChecks.tsx` | Bot-Seite, nur Admins: Neuprüfung auslösen, bei abgelehnten Bots Override mit Rückfrage (E153) |
+| `src/pages/bot/BotRechecks.tsx`, `ReportStages.tsx`, `reportFacts.ts` | Bot-Seite für Besitzer und Admins: Neuprüfungen als aufklappbare Liste mit denselben Stufen wie der Report; die Seite fragt nach, solange eine Prüfung wartet (E153) |
+| `src/pages/admin/RecheckLanguage.tsx` | `/admin`: alle verifizierten und abgelehnten Bots einer Sprache erneut prüfen, meldet die Zahl der eingereihten Prüfungen (E153) |
 
 ## Zu beachten
 

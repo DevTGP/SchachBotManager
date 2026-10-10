@@ -98,7 +98,8 @@ Jedes Ende bekommt einen maschinenlesbaren `termination`-Code (Liste in [bot-pro
 - Die Plätze kommen aus den Einstellungen auf `/admin/play` (`max_games`), höchstens `SBM_PLAY_SLOTS` (E115).
 - Kein Neustart: Infrastrukturfehler, verlorene Leases, ein nicht eingenommener Sitz, ein Client, der länger als 60 s fehlt, und SIGTERM brechen die Partie ab (`aborted`), Einzelheiten in [gateway.md](gateway.md).
 
-### Stand M6 (E152)
+### Stand M6 (E152, E153)
 
 - Ein Admin bricht eine laufende Partie ab, indem er ihren Job auf `cancelled` setzt. Der Heartbeat bemerkt beim nächsten Verlängern, dass der Worker den Job nicht mehr hält, und ruft `on_lost`; `stopper.py` beendet dann die Bots der Partie (`stop` an Sandbox- und Klartext-Spielern, auch für Spieler, die erst danach starten).
 - Das Ergebnis einer so beendeten Partie wird verworfen: Die Web-API hat sie bereits auf `aborted` gesetzt, der Worker schreibt kein Ergebnis und wiederholt nichts. Bis dahin gespielte Züge bleiben stehen.
+- Neuprüfung (E153): Ein Verifikationsjob mit `payload.recheck` durchläuft dieselbe Pipeline, schreibt aber nur einen Report der Art `recheck`. Er ändert weder Status noch `report_id`, `rejection` oder Versionen des Bots; auch ein Fehler des Servers nach drei Versuchen und eine verlorene Lease (`recovery.py`) ergeben nur einen Report.

@@ -130,6 +130,7 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 
 - `jobs.status` kennt zusätzlich `cancelled`: Ein Admin hat die Partie abgebrochen (E152). `lease_until` wird geleert, `finished_at` gesetzt; ein Runner, der den Job hielt, kann ihn nicht mehr verlängern.
 - Migration `0150_job_matches` legt einen dünn besetzten Index auf `payload.match_id` von `jobs` an, für Abbrechen und Ändern der Priorität (`sbm_store.jobs.cancel_match`, `set_match_priority`); `sbm_store.matches.set_priority` hält `queue.priority` der Partie gleich.
+- Neuprüfung und Override (E153): Ein Job der Art `verification` mit `payload.recheck: true` prüft einen Bot erneut (`sbm_store.rechecks`). `verification_reports.kind` ist `upload` oder `recheck`; Berichte ohne `kind` stammen aus Uploads. `bots.overridden_at` hält fest, wann ein Admin einen abgelehnten Bot verifiziert hat. Migration `0151_job_bots` legt einen dünn besetzten Index auf `payload.bot_id` von `jobs` an.
 
 ## Zu beachten
 

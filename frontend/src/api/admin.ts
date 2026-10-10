@@ -3,6 +3,7 @@ import type {
   AuditPage,
   AuditQuery,
   BotDetail,
+  BotLanguage,
   BotUpdate,
   CreatedInvite,
   DisciplineRequest,
@@ -93,6 +94,22 @@ export function setBotStatus(id: string, status: BotUpdate["status"]): Promise<B
 /** Deletes this version for good with its files and matches (E105). */
 export function deleteBot(id: string): Promise<undefined> {
   return sendJson("DELETE", `/admin/bots/${encodeURIComponent(id)}`);
+}
+
+/** Checks a bot again with the current rules; only a report is added, the status stays (E153). */
+export function recheckBot(id: string): Promise<BotDetail> {
+  return sendJson("POST", `/admin/bots/${encodeURIComponent(id)}/recheck`);
+}
+
+/** Checks every verified or rejected uploaded bot of a language again (E153). */
+export async function recheckLanguage(language: BotLanguage): Promise<number> {
+  const result = await sendJson<{ queued: number }>("POST", "/admin/bots/recheck", { language });
+  return result.queued;
+}
+
+/** Verifies a rejected bot anyway; its rejection stays on record (E153). */
+export function overrideBot(id: string): Promise<BotDetail> {
+  return sendJson("POST", `/admin/bots/${encodeURIComponent(id)}/override`);
 }
 
 export function createDiscipline(request: DisciplineRequest): Promise<StoredDiscipline> {

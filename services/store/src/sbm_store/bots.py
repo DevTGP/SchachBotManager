@@ -91,6 +91,7 @@ def new_uploaded_bot(
         "created_at": now,
         "verified_at": None,
         "rejected_at": None,
+        "overridden_at": None,
     }
 
 
@@ -186,6 +187,28 @@ def set_enabled(db: Database, bot_id: ObjectId, enabled: bool) -> dict | None:
         {"$set": {"status": VERIFIED if enabled else DISABLED}},
         return_document=ReturnDocument.AFTER,
     )
+
+
+def override(db: Database, bot_id: ObjectId, now: datetime) -> dict | None:
+    """An admin verifies a rejected bot anyway (E153); the rejection stays on record.
+
+    Returns the bot as it is now; None if there is no such bot or it is not rejected.
+    """
+    return db[BOTS].find_one_and_update(
+        {"_id": bot_id, "status": REJECTED},
+        {"$set": {"status": VERIFIED, "verified_at": now, "overridden_at": now}},
+        return_document=ReturnDocument.AFTER,
+    )
+
+
+def recheckable(db: Database, language: str) -> list[ObjectId]:
+    """The uploaded bots of a language an admin may check again at once (E153)."""
+    query = {
+        "language": language,
+        "status": {"$in": [VERIFIED, REJECTED]},
+        "source_ref": {"$not": {"$regex": f"^{BUILTIN_PREFIX}"}},
+    }
+    return [bot["_id"] for bot in db[BOTS].find(query, {"_id": 1}).sort("_id", ASCENDING)]
 
 
 def change_by_owner(

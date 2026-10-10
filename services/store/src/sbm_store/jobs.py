@@ -51,6 +51,17 @@ def new_verification_job(bot_id: ObjectId, *, now: datetime) -> dict:
     return job
 
 
+def new_recheck_job(bot_id: ObjectId, *, now: datetime) -> dict:
+    """Checks a bot again for an admin; only writes a report, the status stays (E153)."""
+    job = new_verification_job(bot_id, now=now)
+    job["payload"]["recheck"] = True
+    return job
+
+
+def is_recheck(job: dict) -> bool:
+    return job["payload"].get("recheck", False)
+
+
 def insert(db: Database, job: dict) -> None:
     db[JOBS].insert_one(job)
 
@@ -179,3 +190,14 @@ def set_match_priority(db: Database, match_id: ObjectId, priority: int) -> bool:
         {"$set": {"priority": priority}},
     )
     return result.matched_count == 1
+
+
+def verifying(db: Database, bot_id: ObjectId) -> bool:
+    """Whether a verification of the bot is queued or running, a recheck included."""
+    query = {"type": VERIFICATION, "payload.bot_id": bot_id, "status": {"$in": [QUEUED, RUNNING]}}
+    return db[JOBS].count_documents(query, limit=1) > 0
+
+
+def running_verification(db: Database, bot_id: ObjectId) -> bool:
+    query = {"type": VERIFICATION, "payload.bot_id": bot_id, "status": RUNNING}
+    return db[JOBS].count_documents(query, limit=1) > 0

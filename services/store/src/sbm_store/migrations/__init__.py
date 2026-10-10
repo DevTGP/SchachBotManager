@@ -10,6 +10,7 @@ from sbm_store.migrations import (
     m0110_play_origin,
     m0111_api_tokens,
     m0150_job_matches,
+    m0151_job_bots,
 )
 
 MIGRATIONS = [
@@ -24,4 +25,5 @@ MIGRATIONS = [
     ("0111_api_tokens", m0111_api_tokens.apply),
     # M6 numbers its migrations from 0150 on (E150).
     ("0150_job_matches", m0150_job_matches.apply),
+    ("0151_job_bots", m0151_job_bots.apply),
 ]

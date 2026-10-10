@@ -186,6 +186,9 @@ export function botDetail(overrides: Partial<BotDetail> = {}): BotDetail {
             verified_at: null,
             rejected_at: "2026-05-01T10:01:00.000Z",
             rejection: { stage: "analysis", reason: "1 finding" },
+            overridden_at: null,
+            recheck_pending: false,
+            rechecks: [],
             report: {
               result: "failed",
               ruleset: "python-1",

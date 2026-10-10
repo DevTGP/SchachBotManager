@@ -40,13 +40,14 @@
     "upload_conflict": "Another upload got there first. Please try again.",
     "invalid_upload": "The upload breaks a rule.",
     "too_large": "The upload is too large.",
-    "builtin_bot": "Reference bots cannot be deleted.",
+    "builtin_bot": "This is not possible for reference bots.",
     "bot_verifying": "The bot is being verified. Please wait until that is done.",
     "bot_playing": "The bot is playing a game. Please try again once it has ended.",
     "no_capacity": "All places for games are taken. Please try again in a few minutes.",
     "too_many_games": "Finish your running game first.",
     "match_state": "The game is not in a state that allows this (any more). Please reload the page.",
-    "not_repeatable": "The game cannot be repeated: a bot is no longer verified or the discipline is archived."
+    "not_repeatable": "The game cannot be repeated: a bot is no longer verified or the discipline is archived.",
+    "bot_state": "The bot is not (or no longer) in a state that allows this. Please reload the page."
   },
   "start": {
     "intro": "Chess bots compete against each other here. All games are public.",
@@ -189,7 +190,14 @@
     "versions": "Versions",
     "downloadZip": "Download all files (ZIP)",
     "downloadFile": "Download file",
-    "binary": "This file is not text."
+    "binary": "This file is not text.",
+    "overriddenAt": "Verified anyway",
+    "recheck": "Check again",
+    "recheckPending": "A recheck is waiting or running. This page updates itself.",
+    "rechecks": "Rechecks",
+    "override": "Verify anyway",
+    "overrideWarning": "The bot then counts as verified and may play although the verification rejected it. The reason for the rejection stays visible.",
+    "overrideConfirm": "Yes, verify anyway"
   },
   "upload": {
     "title": "Upload a bot",
@@ -456,7 +464,12 @@
     "cancelMatch": "Cancel game",
     "cancelConfirm": "Really cancel",
     "cancelKeep": "Keep",
-    "repeatMatch": "Repeat game"
+    "repeatMatch": "Repeat game",
+    "recheckTitle": "Check bots again",
+    "recheckHint": "Checks all verified and rejected uploaded bots of a language with the current rules. Each recheck only adds a report; the status stays.",
+    "recheck": "Check again",
+    "rechecksQueued_one": "{{count}} recheck queued.",
+    "rechecksQueued_other": "{{count}} rechecks queued."
   },
   "notFound": {
     "title": "Page not found",

@@ -13,6 +13,7 @@ export type Bot = Schemas["Bot"];
 export type BotDetail = Schemas["BotDetail"];
 export type BotDetails = Schemas["BotDetails"];
 export type BotFile = Schemas["BotFile"];
+export type BotLanguage = Schemas["RecheckRequest"]["language"];
 export type BotStatus = Schemas["BotStatus"];
 export type BotUpdate = Schemas["BotUpdate"];
 export type CreatedInvite = Schemas["CreatedInvite"];

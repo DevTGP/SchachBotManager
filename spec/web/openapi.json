@@ -829,6 +829,87 @@
         }
       }
     },
+    "/admin/bots/recheck": {
+      "post": {
+        "operationId": "recheck_language",
+        "security": [{ "session": [] }],
+        "summary": "Checks every verified or rejected uploaded bot of a language again with the current rules (admin, E153); bots with a pending verification are left out. Each recheck only adds a report, the status stays.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/RecheckRequest" } }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "How many rechecks were queued.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/RecheckCount" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/admin/bots/{bot_id}/recheck": {
+      "parameters": [
+        {
+          "name": "bot_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "post": {
+        "operationId": "recheck_bot",
+        "security": [{ "session": [] }],
+        "summary": "Checks an uploaded bot again with the current rules (admin, E153); it waits like an upload (E89). The result is a report in the list rechecks; the status and the upload report stay.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "responses": {
+          "202": {
+            "description": "The bot with the recheck pending.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BotDetail" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/NotRecheckable" }
+        }
+      }
+    },
+    "/admin/bots/{bot_id}/override": {
+      "parameters": [
+        {
+          "name": "bot_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "post": {
+        "operationId": "override_bot",
+        "security": [{ "session": [] }],
+        "summary": "Verifies a rejected bot anyway, whatever the stage of its rejection (admin, E153); the rejection and the report stay on record.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "responses": {
+          "200": {
+            "description": "The verified bot.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BotDetail" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/NotRejected" }
+        }
+      }
+    },
     "/admin/matches": {
       "post": {
         "operationId": "enqueue_matches",
@@ -1167,6 +1248,14 @@
         "description": "A reference bot (code builtin_bot), a bot still being verified (code bot_verifying) or a bot in a running match (code bot_playing) cannot be deleted.",
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
       },
+      "NotRecheckable": {
+        "description": "A reference bot (code builtin_bot), or a bot with a verification still queued or running (code bot_verifying), cannot be checked again.",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "NotRejected": {
+        "description": "Only a rejected bot can be verified anyway (code bot_state).",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
       "MatchState": {
         "description": "The match is not a single game or not in a state that allows this (code match_state), or it cannot be queued again because a bot is no longer verified or its discipline is archived (code not_repeatable).",
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
@@ -1229,7 +1318,8 @@
               "no_capacity",
               "too_many_games",
               "match_state",
-              "not_repeatable"
+              "not_repeatable",
+              "bot_state"
             ]
           },
           "message": {
@@ -1627,9 +1717,23 @@
           "rejection": {
             "oneOf": [{ "$ref": "#/components/schemas/Rejection" }, { "type": "null" }]
           },
+          "overridden_at": {
+            "description": "When an admin verified the rejected bot anyway (E153); rejection and report stay.",
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          },
           "report": {
-            "description": "null until the verification ends, and for reference bots.",
+            "description": "The report of the upload; null until the verification ends, and for reference bots.",
             "oneOf": [{ "$ref": "#/components/schemas/VerificationReport" }, { "type": "null" }]
+          },
+          "rechecks": {
+            "description": "Reports of the rechecks by admins, newest first, at most 20 (E153).",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/VerificationReport" },
+            "maxItems": 20
+          },
+          "recheck_pending": {
+            "description": "A recheck is queued or running.",
+            "type": "boolean"
           }
         },
         "required": [
@@ -1641,7 +1745,10 @@
           "verified_at",
           "rejected_at",
           "rejection",
-          "report"
+          "overridden_at",
+          "report",
+          "rechecks",
+          "recheck_pending"
         ],
         "additionalProperties": false
       },
@@ -1780,6 +1887,18 @@
           }
         },
         "required": ["name", "version", "language", "paths", "files"],
+        "additionalProperties": false
+      },
+      "RecheckRequest": {
+        "type": "object",
+        "properties": { "language": { "enum": ["python", "cpp", "java", "csharp", "javascript"] } },
+        "required": ["language"],
+        "additionalProperties": false
+      },
+      "RecheckCount": {
+        "type": "object",
+        "properties": { "queued": { "type": "integer", "minimum": 0 } },
+        "required": ["queued"],
         "additionalProperties": false
       },
       "BotUpdate": {

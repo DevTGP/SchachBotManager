@@ -68,7 +68,7 @@ Die Liste liegt als versionierte Konfiguration vor und ist erweiterbar; jede Erw
 
 ## Zu beachten
 
-- **Fehlablehnungen** sind bei strikten Regeln unvermeidbar. Der Report muss so konkret sein, dass Autoren den Code anpassen können; ein Admin-Override pro Upload ist als Option vorzusehen.
+- **Fehlablehnungen** sind bei strikten Regeln unvermeidbar. Der Report muss so konkret sein, dass Autoren den Code anpassen können; ein Admin kann jede Ablehnung per Override aufheben (E153).
 - **Lokale Prüfung:** Derselbe Analyzer wird als CLI im SDK/Tooling ausgeliefert, damit Autoren vor dem Upload prüfen können; für Python ist das `sbm-check`.
-- **Regeländerungen** betreffen nur neue Uploads; verifizierte Bots behalten ihren Status, bis ein Admin eine Neuprüfung auslöst.
+- **Regeländerungen** betreffen nur neue Uploads; verifizierte Bots behalten ihren Status. Eine Neuprüfung durch einen Admin zeigt, wie ein Bot mit den aktuellen Regeln abschneidet, ändert den Status aber nicht (E153); sperren muss der Admin selbst.
 - **Aufwand:** Fünf Analyzer sind neben den fünf SDK-Kernen der größte Einzelposten des Projekts; C++ ist am aufwendigsten.

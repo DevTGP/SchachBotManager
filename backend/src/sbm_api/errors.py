@@ -36,6 +36,8 @@ TOO_MANY_GAMES = "too_many_games"
 # Admin interventions in a match (E152).
 MATCH_STATE = "match_state"
 NOT_REPEATABLE = "not_repeatable"
+# Override of a bot that is not rejected (E153).
+BOT_STATE = "bot_state"
 
 
 class ApiError(Exception):

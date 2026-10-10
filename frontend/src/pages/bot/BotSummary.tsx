@@ -23,6 +23,9 @@ export function BotSummary({ bot }: { bot: BotDetail }) {
   if (details?.verified_at) {
     rows.push([t("bot.verifiedAt"), formatDateTime(details.verified_at, locale)]);
   }
+  if (details?.overridden_at) {
+    rows.push([t("bot.overriddenAt"), formatDateTime(details.overridden_at, locale)]);
+  }
   if (details?.rejected_at) {
     rows.push([t("bot.rejectedAt"), formatDateTime(details.rejected_at, locale)]);
   }

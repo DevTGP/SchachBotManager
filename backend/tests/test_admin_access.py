@@ -18,6 +18,9 @@ ADMIN_ROUTES = [
     ("post", f"/api/v1/admin/matches/{USER}/repeat", None),
     ("patch", f"/api/v1/admin/bots/{USER}", {"status": "disabled"}),
     ("delete", f"/api/v1/admin/bots/{USER}", None),
+    ("post", f"/api/v1/admin/bots/{USER}/recheck", None),
+    ("post", f"/api/v1/admin/bots/{USER}/override", None),
+    ("post", "/api/v1/admin/bots/recheck", {"language": "python"}),
     ("patch", "/api/v1/admin/queue", {"paused": True}),
     ("get", "/api/v1/admin/audit", None),
 ]

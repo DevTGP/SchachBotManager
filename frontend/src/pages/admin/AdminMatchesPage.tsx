@@ -5,6 +5,7 @@ import { ApiContent } from "../../components/ApiContent";
 import { useApi } from "../../hooks/useApi";
 import { EnqueueForm } from "./EnqueueForm";
 import { QueueControl } from "./QueueControl";
+import { RecheckLanguage } from "./RecheckLanguage";
 
 export function AdminMatchesPage() {
   const { t } = useTranslation();
@@ -20,6 +21,7 @@ export function AdminMatchesPage() {
           {(items) => <EnqueueForm bots={items} disciplines={disciplines.data ?? []} />}
         </ApiContent>
       </section>
+      <RecheckLanguage />
     </>
   );
 }

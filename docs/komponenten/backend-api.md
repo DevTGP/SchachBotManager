@@ -168,8 +168,10 @@ Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 
 | `params.py` | zusätzlich `optional_date` für Datumsfilter im Format `2026-10-10` |
 | `routes/admin_match_actions.py` | `PATCH /admin/matches/{id}` (Priorität einer wartenden Partie), `POST /admin/matches/{id}/cancel`, `POST /admin/matches/{id}/repeat`, nur für Einzelspiele, je mit Eintrag im Audit-Log (E152) |
 | `queue_view.py` | zusätzlich `priority` je Eintrag aus dem Job, für interaktive Partien 0 (E152) |
+| `routes/admin_bot_checks.py` | `POST /admin/bots/{id}/recheck` und `POST /admin/bots/recheck` (eine Sprache) reihen Neuprüfungen ein, `POST /admin/bots/{id}/override` verifiziert einen abgelehnten Bot, je mit Eintrag im Audit-Log (E153); Logik in `sbm_store.rechecks` und `sbm_store.bots.override` |
+| `bot_view.py` | zusätzlich `overridden_at`, für Besitzer und Admins `rechecks` (letzte 20 Berichte der Art `recheck`) und `recheck_pending` (E153) |
 
-- Neue Fehlercodes: `match_state` (409, Partie im falschen Zustand oder kein Einzelspiel), `not_repeatable` (409, Bot nicht mehr `verified` oder Disziplin archiviert).
+- Neue Fehlercodes: `match_state` (409, Partie im falschen Zustand oder kein Einzelspiel), `not_repeatable` (409, Bot nicht mehr `verified` oder Disziplin archiviert), `bot_state` (409, Override eines nicht abgelehnten Bots).
 
 ## Rollen und Rechte
 

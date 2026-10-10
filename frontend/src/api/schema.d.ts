@@ -563,6 +563,61 @@ export interface paths {
         patch: operations["update_discipline"];
         trace?: never;
     };
+    "/admin/bots/recheck": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Checks every verified or rejected uploaded bot of a language again with the current rules (admin, E153); bots with a pending verification are left out. Each recheck only adds a report, the status stays. */
+        post: operations["recheck_language"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/bots/{bot_id}/recheck": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Checks an uploaded bot again with the current rules (admin, E153); it waits like an upload (E89). The result is a report in the list rechecks; the status and the upload report stay. */
+        post: operations["recheck_bot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/bots/{bot_id}/override": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verifies a rejected bot anyway, whatever the stage of its rejection (admin, E153); the rejection and the report stay on record. */
+        post: operations["override_bot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/matches": {
         parameters: {
             query?: never;
@@ -699,7 +754,7 @@ export interface components {
         Timestamp: string;
         Error: {
             /** @enum {unknown} */
-            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large" | "builtin_bot" | "bot_verifying" | "bot_playing" | "no_capacity" | "too_many_games" | "match_state" | "not_repeatable";
+            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large" | "builtin_bot" | "bot_verifying" | "bot_playing" | "no_capacity" | "too_many_games" | "match_state" | "not_repeatable" | "bot_state";
             /** @description English text for logs; not shown to users, except as the detail of invalid_upload. */
             message: string;
             /** @description The invalid parameter, for invalid_parameter. */
@@ -903,8 +958,14 @@ export interface components {
             verified_at: components["schemas"]["Timestamp"] | null;
             rejected_at: components["schemas"]["Timestamp"] | null;
             rejection: components["schemas"]["Rejection"] | null;
-            /** @description null until the verification ends, and for reference bots. */
+            /** @description When an admin verified the rejected bot anyway (E153); rejection and report stay. */
+            overridden_at: components["schemas"]["Timestamp"] | null;
+            /** @description The report of the upload; null until the verification ends, and for reference bots. */
             report: components["schemas"]["VerificationReport"] | null;
+            /** @description Reports of the rechecks by admins, newest first, at most 20 (E153). */
+            rechecks: components["schemas"]["VerificationReport"][];
+            /** @description A recheck is queued or running. */
+            recheck_pending: boolean;
         };
         /**
          * @description internal: the server could not verify the bot (E92).
@@ -990,6 +1051,13 @@ export interface components {
             /** @description The path of each file, in the order of files. */
             paths: string[];
             files: string[];
+        };
+        RecheckRequest: {
+            /** @enum {unknown} */
+            language: "python" | "cpp" | "java" | "csharp" | "javascript";
+        };
+        RecheckCount: {
+            queued: number;
         };
         BotUpdate: {
             /** @enum {unknown} */
@@ -1395,6 +1463,24 @@ export interface components {
         };
         /** @description A reference bot (code builtin_bot), a bot still being verified (code bot_verifying) or a bot in a running match (code bot_playing) cannot be deleted. */
         BotNotDeletable: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description A reference bot (code builtin_bot), or a bot with a verification still queued or running (code bot_verifying), cannot be checked again. */
+        NotRecheckable: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description Only a rejected bot can be verified anyway (code bot_state). */
+        NotRejected: {
             headers: {
                 [name: string]: unknown;
             };
@@ -2475,6 +2561,94 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["DisciplineNameTaken"];
+        };
+    };
+    recheck_language: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecheckRequest"];
+            };
+        };
+        responses: {
+            /** @description How many rechecks were queued. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecheckCount"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    recheck_bot: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The bot with the recheck pending. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotDetail"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["NotRecheckable"];
+        };
+    };
+    override_bot: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The verified bot. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotDetail"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["NotRejected"];
         };
     };
     enqueue_matches: {
