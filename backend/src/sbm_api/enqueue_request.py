@@ -1,7 +1,7 @@
 """The body of POST /admin/matches: which games to queue, checked as the referee would (E85).
 
 enqueue puts the games of a parsed request into the queue, also for POST /matches (E98); two or
-more games form a series (E155).
+more games between fixed bots form a series (E155). A side may be random (E162).
 """
 
 from dataclasses import dataclass
@@ -11,11 +11,11 @@ from bson import ObjectId
 from pymongo.database import Database
 from sbm.arena.time_control import format_time_control
 from sbm.referee import STANDARD_FEN, MatchSettings
-from sbm_store import bots, matches
+from sbm_store import matches
 from sbm_store.discipline import DEFAULT_MAX_MOVES, Discipline
 from sbm_store.enqueue import DEFAULT_PRIORITY, enqueue_match
 
-from sbm_api import body, discipline_request
+from sbm_api import body, bot_choice, discipline_request
 from sbm_api.errors import invalid_parameter
 
 FIELDS = (
@@ -35,8 +35,10 @@ FIELDS = (
 
 @dataclass(frozen=True)
 class EnqueueRequest:
-    white: dict
-    black: dict
+    """White and black are None if random (E162)."""
+
+    white: dict | None
+    black: dict | None
     discipline: Discipline
     start_fen: str
     games: int
@@ -47,8 +49,9 @@ class EnqueueRequest:
 
 def parse(db: Database) -> EnqueueRequest:
     data = body.json_object(FIELDS)
-    white = verified_bot(db, data, "white_bot_id")
-    black = verified_bot(db, data, "black_bot_id")
+    white = bot_choice.choice(db, data, "white_bot_id")
+    black = bot_choice.choice(db, data, "black_bot_id")
+    bot_choice.check_pool(db, white, black, "white_bot_id" if white is None else "black_bot_id")
     discipline = discipline_request.chosen(db, data) or free_times(data)
     start_fen = body.string(data, "start_fen", max_length=100, default=None) or STANDARD_FEN
     check_settings(discipline, start_fen)
@@ -101,11 +104,15 @@ def enqueue(
     """Queues the games in order; the colours swap after each game if asked.
 
     created_by is the account that set them, counted whether the daily limit paid (E156).
+    Random sides are drawn for each game, and such games form no series (E162).
     """
-    white, black = order.white, order.black
-    series_id = ObjectId() if order.games > 1 else None
+    fixed = order.white is not None and order.black is not None
+    series_id = ObjectId() if order.games > 1 and fixed else None
+    games = bot_choice.pairings(
+        db, order.white, order.black, games=order.games, alternate=order.alternate
+    )
     ids = []
-    for index in range(1, order.games + 1):
+    for index, (white, black) in enumerate(games, start=1):
         series = None if series_id is None else matches.series_place(series_id, index, order.games)
         ids.append(
             enqueue_match(
@@ -122,16 +129,7 @@ def enqueue(
                 counted=counted,
             )
         )
-        if order.alternate:
-            white, black = black, white
     return Enqueued(ids, series_id)
-
-
-def verified_bot(db: Database, data: dict, field: str) -> dict:
-    bot = bots.get(db, body.identifier(data, field))
-    if bot is None or bot["status"] != bots.VERIFIED:
-        raise invalid_parameter(field, f"{field} is not a verified bot")
-    return bot
 
 
 def check_settings(discipline: Discipline, start_fen: str) -> None:

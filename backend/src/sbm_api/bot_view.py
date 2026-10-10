@@ -1,12 +1,15 @@
-"""Bots as the API shows them (schemas Bot and BotDetail); source and owner stay hidden (E15).
+"""Bots as the API shows them (schemas Bot and BotDetail); the source stays hidden (E15).
+
+The creator is public (E164); the rating is the overall one (E163).
 
 The detail lists the versions of the name the viewer may see (E95). Owner and admins also get
 the details: files, runtime versions, the report of the upload and those of rechecks (E153).
 """
 
-from sbm_store import bots, jobs, ratings, users, verification_reports
+from sbm_store import bots, jobs, rating_values, users, verification_reports
 
 from sbm_api import context
+from sbm_api.owner_names import owner_name
 from sbm_api.rating_start import rating_start
 from sbm_api.report_view import report_view
 from sbm_api.timestamps import optional_timestamp, timestamp
@@ -20,10 +23,11 @@ def bot_view(bot: dict) -> dict:
         "language": bot["language"],
         "status": bot["status"],
         "builtin": bots.is_builtin(bot),
+        "owner": owner_name(bot.get("owner_id")),
         # Reference bots and bots from before E95 have none.
         "description": bot.get("description") or "",
         # Bots without a counted match have no rating stored yet (E103).
-        "rating": ratings.current(bot, rating_start()),
+        "rating": rating_values.overall(bot, rating_start()),
         "created_at": timestamp(bot["created_at"]),
     }
 
@@ -51,11 +55,10 @@ def bot_detail_view(bot: dict, viewer: dict | None) -> dict:
 def _details(bot: dict) -> dict:
     db = context.db()
     # Reference bots have no owner, no files and no report (E72).
-    owner = users.get(db, bot["owner_id"]) if bot.get("owner_id") else None
     report = verification_reports.get(db, bot["report_id"]) if bot.get("report_id") else None
     rejection = bot.get("rejection")
     return {
-        "owner": owner["username"] if owner else None,
+        "owner": owner_name(bot.get("owner_id")),
         "entry": bot.get("entry"),
         "files": [
             {"path": file["path"], "kind": file["kind"], "size": file["size"]}

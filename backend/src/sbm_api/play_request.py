@@ -1,7 +1,7 @@
 """The body of POST /play: a game of the person against a verified bot (E114, E115).
 
-Any verified bot may be chosen. The time comes from a discipline in use or is free, at most
-30 min + 30 s; the game starts from the standard position.
+Any verified bot may be chosen, or a random one (E162). The time comes from a discipline in use
+or is free, at most 30 min + 30 s; the game starts from the standard position.
 """
 
 import secrets
@@ -12,8 +12,7 @@ from sbm.arena.time_control import format_time_control
 from sbm.referee import STANDARD_FEN
 from sbm_store.discipline import DEFAULT_MAX_MOVES, Discipline
 
-from sbm_api import body, discipline_request
-from sbm_api.enqueue_request import verified_bot
+from sbm_api import body, bot_choice, discipline_request
 
 FIELDS = ("bot_id", "color", "discipline_id", "initial_time_ms", "increment_ms")
 COLORS = ("white", "black")
@@ -31,7 +30,7 @@ class PlayRequest:
 
 def parse(db: Database) -> PlayRequest:
     data = body.json_object(FIELDS)
-    bot = verified_bot(db, data, "bot_id")
+    bot = bot_choice.choice(db, data, "bot_id") or bot_choice.draw(db, None, "bot_id")
     color = body.choice(data, "color", (*COLORS, "random"))
     if color == "random":
         color = secrets.choice(COLORS)

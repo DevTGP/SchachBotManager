@@ -10,10 +10,12 @@ from accounts import add_user
 from bot_uploads import store_bot
 from stored_games import BLITZ, NOW, finish_by_resignation
 
+STORED = replace(BLITZ, discipline_id=ObjectId())
+OTHER = replace(BLITZ, name="Other", discipline_id=ObjectId())
 
-def rated_win(db, white: dict, black: dict) -> ObjectId:
+
+def rated_win(db, white: dict, black: dict, discipline=STORED) -> ObjectId:
     """White wins a rated match, and the runner counts it."""
-    discipline = replace(BLITZ, discipline_id=ObjectId())
     match_id = enqueue_match(db, white, black, discipline, start_fen=STANDARD_FEN, now=NOW)
     finish_by_resignation(db, match_id, NOW)
     ratings.count_pending(db)
@@ -42,6 +44,35 @@ def test_the_ranking_holds_the_counted_bots_highest_first(client, db, reference_
     ]
 
 
+def test_the_ranking_of_a_discipline_holds_its_games_only(client, db, reference_bots):
+    random_bot, material = reference_bots
+    rated_win(db, material, random_bot)
+    rated_win(db, material, random_bot, OTHER)
+    rated_win(db, random_bot, material, OTHER)
+
+    def ranking(query: str) -> list:
+        items = client.get(f"/api/v1/ratings{query}").json["items"]
+        return [(bot["name"], bot["rating"]) for bot in items]
+
+    assert ranking(f"?discipline_id={STORED.discipline_id}") == [
+        ("Material", {"value": 2550, "games": 1}),
+        ("Random", {"value": 2450, "games": 1}),
+    ]
+    # In Other Random beat Material at 2450 against 2550: 55 points.
+    assert ranking(f"?discipline_id={OTHER.discipline_id}") == [
+        ("Random", {"value": 2505, "games": 2}),
+        ("Material", {"value": 2495, "games": 2}),
+    ]
+    # Overall: Material (2550 + 2 * 2495) / 3, Random (2450 + 2 * 2505) / 3.
+    assert ranking("") == [
+        ("Material", {"value": 2513, "games": 3}),
+        ("Random", {"value": 2487, "games": 3}),
+    ]
+    assert ranking(f"?discipline_id={ObjectId()}") == []
+    assert client.get("/api/v1/ratings?discipline_id=x").status_code == 400
+    assert client.get("/api/v1/ratings/players?discipline_id=x").status_code == 400
+
+
 def test_a_counted_match_shows_the_change_of_each_side(client, db, enqueue, reference_bots):
     match_id = rated_win(db, *reference_bots)
     unrated = enqueue()
@@ -64,8 +95,9 @@ def test_the_player_ranking_shows_name_and_rating_only(client, db):
         ("gone", 2700, 4, False),
     ]:
         user, _ = add_user(db, name, users.PLAYER, active=active)
-        rating = {"value": value, "games": games, "seq": 1}
-        db[USERS].update_one({"_id": user["_id"]}, {"$set": {"rating": rating}})
+        if games:
+            entry = {"value": value, "games": games, "seq": 1}
+            db[USERS].update_one({"_id": user["_id"]}, {"$set": {"ratings": {"a": entry}}})
 
     response = client.get("/api/v1/ratings/players")
 
@@ -78,7 +110,7 @@ def test_the_player_ranking_shows_name_and_rating_only(client, db):
 
 def test_accounts_stay_out_of_the_bot_ranking(client, db):
     user, _ = add_user(db, "anna", users.PLAYER)
-    rating = {"value": 2540, "games": 2, "seq": 1}
-    db[USERS].update_one({"_id": user["_id"]}, {"$set": {"rating": rating}})
+    entry = {"value": 2540, "games": 2, "seq": 1}
+    db[USERS].update_one({"_id": user["_id"]}, {"$set": {"ratings": {"a": entry}}})
 
     assert client.get("/api/v1/ratings").json["items"] == []

@@ -251,7 +251,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Public bots with at least one rated match, highest rating first, then by name and version (E103). */
+        /** Public bots with at least one rated match, highest rating first, then by name and version (E103). Without discipline_id by the overall rating, with it by the rating in that discipline, which is then the rating of each item (E163). */
         get: operations["list_ratings"];
         put?: never;
         post?: never;
@@ -268,7 +268,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Active accounts with at least one rated game against bots, highest rating first, then by name (E118). Their games are public like all others (E119). */
+        /** Active accounts with at least one rated game against bots, highest rating first, then by name (E118). Their games are public like all others (E119). Overall or in one discipline like the ranking of bots (E163). */
         get: operations["list_player_ratings"];
         put?: never;
         post?: never;
@@ -926,6 +926,8 @@ export interface components {
     schemas: {
         /** @description Identifier of a document: 24 lowercase hexadecimal digits. */
         Id: string;
+        /** @description A bot, or random for one drawn anew for every game from all verified bots, never the bot on the other side (E162). */
+        BotChoice: components["schemas"]["Id"] | "random";
         /** Format: date-time */
         Timestamp: string;
         Error: {
@@ -1028,10 +1030,10 @@ export interface components {
             before: number;
             after: number;
         };
-        /** @description Every bot version and every account starts at 2500; rated matches move it by the rule of E103. */
+        /** @description Every bot version and every account starts at 2500 in every discipline; rated matches move it by the rule of E103 in their discipline. Unless a discipline is named, it is the overall rating: the mean over all disciplines weighted by their games, rounded half up (E163). */
         Rating: {
             value: number;
-            /** @description Rated matches counted so far. */
+            /** @description Rated matches counted so far, in all disciplines for the overall rating. */
             games: number;
         };
         /** @description The fields of MatchSummary, open for extension by Match. */
@@ -1130,6 +1132,8 @@ export interface components {
             /** @description Plain text by the owner, at most 500 characters; line breaks but no other control characters (E95). */
             description: string;
             rating: components["schemas"]["Rating"];
+            /** @description The username of the creator; null for reference bots (E164). */
+            owner: string | null;
             created_at: components["schemas"]["Timestamp"];
         };
         Bot: components["schemas"]["BotFields"];
@@ -1423,10 +1427,10 @@ export interface components {
             /** @description The page of the SPA with the token after the #, so it stays out of server logs. */
             url: string;
         };
-        /** @description Either discipline_id or free times with initial_time_ms, increment_ms and max_moves (E100). Free times are named after the time control in seconds, e.g. 180+2 or 20+0.5; bots get 10 s to start (E85). */
+        /** @description Either discipline_id or free times with initial_time_ms, increment_ms and max_moves (E100). Free times are named after the time control in seconds, e.g. 180+2 or 20+0.5; bots get 10 s to start (E85). Either side or both may be random; such games form no series (E162). */
         EnqueueRequest: {
-            white_bot_id: components["schemas"]["Id"];
-            black_bot_id: components["schemas"]["Id"];
+            white_bot_id: components["schemas"]["BotChoice"];
+            black_bot_id: components["schemas"]["BotChoice"];
             /** @description A discipline that is not archived; null or missing for free times. */
             discipline_id?: components["schemas"]["Id"] | null;
             initial_time_ms?: number;
@@ -1457,10 +1461,10 @@ export interface components {
              */
             rated: boolean;
         };
-        /** @description Like EnqueueRequest with tighter limits from the settings of coders (E98, E154): a limited number of games, and free times only with the default move limit up to a limited time. Games from another than the standard position are not rated (E100, E159). */
+        /** @description Like EnqueueRequest with tighter limits from the settings of coders (E98, E154): a limited number of games, and free times only with the default move limit up to a limited time. Games from another than the standard position are not rated (E100, E159). One side may be random if the other is an own bot; such games form no series (E162). */
         OwnMatchRequest: {
-            white_bot_id: components["schemas"]["Id"];
-            black_bot_id: components["schemas"]["Id"];
+            white_bot_id: components["schemas"]["BotChoice"];
+            black_bot_id: components["schemas"]["BotChoice"];
             /** @description A discipline that is not archived; null or missing for free times. */
             discipline_id?: components["schemas"]["Id"] | null;
             initial_time_ms?: number;
@@ -1502,7 +1506,7 @@ export interface components {
         };
         /** @description A game against a verified bot from the standard position: a discipline in use, or free times up to 30 min + 30 s (E115). */
         PlayRequest: {
-            bot_id: components["schemas"]["Id"];
+            bot_id: components["schemas"]["BotChoice"];
             /**
              * @description The person's color; random draws one.
              * @enum {unknown}
@@ -1831,6 +1835,8 @@ export interface components {
         UserId: components["schemas"]["Id"];
         MatchId: components["schemas"]["Id"];
         DisciplineId: components["schemas"]["Id"];
+        /** @description The ranking of this discipline; missing for the overall ranking (E163). An unknown discipline has an empty ranking. */
+        RankingDiscipline: components["schemas"]["Id"];
         /** @description Page size. */
         Limit: number;
         /** @description Number of items to skip. */
@@ -2278,7 +2284,10 @@ export interface operations {
     };
     list_ratings: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The ranking of this discipline; missing for the overall ranking (E163). An unknown discipline has an empty ranking. */
+                discipline_id?: components["parameters"]["RankingDiscipline"];
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2294,11 +2303,15 @@ export interface operations {
                     "application/json": components["schemas"]["BotList"];
                 };
             };
+            400: components["responses"]["BadRequest"];
         };
     };
     list_player_ratings: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description The ranking of this discipline; missing for the overall ranking (E163). An unknown discipline has an empty ranking. */
+                discipline_id?: components["parameters"]["RankingDiscipline"];
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2314,6 +2327,7 @@ export interface operations {
                     "application/json": components["schemas"]["PlayerRatingList"];
                 };
             };
+            400: components["responses"]["BadRequest"];
         };
     };
     list_disciplines: {

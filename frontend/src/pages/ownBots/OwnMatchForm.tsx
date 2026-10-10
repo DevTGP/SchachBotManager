@@ -3,20 +3,21 @@ import { useTranslation } from "react-i18next";
 
 import { enqueueOwnMatches } from "../../api/bots";
 import type { Bot, CoderLimits, EnqueuedMatches, StoredDiscipline } from "../../api/types";
+import { BotOptions } from "../../components/BotOptions";
 import { DisciplineSelect } from "../../components/DisciplineSelect";
 import { FormError } from "../../components/FormError";
 import { NumberField } from "../../components/NumberField";
 import { QueuedNotice } from "../../components/QueuedNotice";
 import { RatedField } from "../../components/RatedField";
 import { StartPositionField } from "../../components/StartPositionField";
-import { botLabel } from "../../format/botLabel";
 import { useSubmit } from "../../hooks/useSubmit";
 import { ownLimits } from "./ownLimits";
 import { DEFAULT_OWN_FORM, type OwnMatchForm, ownMatchOrder } from "./ownMatchOrder";
 
 /**
  * Games of an own verified bot against any verified bot, with the coder limits (E98, E100,
- * E154); both bots may come preset, e.g. from the bot page (E160).
+ * E154); both bots may come preset, e.g. from the bot page (E160). The opponent may be "Random":
+ * the server draws a new one for every game (E162).
  */
 export function OwnMatchForm({
   own,
@@ -68,21 +69,13 @@ export function OwnMatchForm({
         <label>
           {t("ownBots.ownBot")}
           <select value={form.own} onChange={(event) => set("own", event.target.value)}>
-            {own.map((bot) => (
-              <option key={bot.id} value={bot.id}>
-                {botLabel(bot)}
-              </option>
-            ))}
+            <BotOptions bots={own} />
           </select>
         </label>
         <label>
           {t("ownBots.opponent")}
           <select value={form.opponent} onChange={(event) => set("opponent", event.target.value)}>
-            {opponents.map((bot) => (
-              <option key={bot.id} value={bot.id}>
-                {botLabel(bot)}
-              </option>
-            ))}
+            <BotOptions bots={opponents} random />
           </select>
         </label>
         <label>

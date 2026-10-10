@@ -13,7 +13,7 @@ from datetime import datetime
 from bson import ObjectId
 from pymongo.database import Database
 
-from sbm_store import ratings
+from sbm_store import rating_values, ratings
 from sbm_store.names import BOTS, MATCHES, SETTINGS, USERS
 
 DOCUMENT_ID = "ratings"
@@ -48,7 +48,11 @@ def recount(db: Database) -> int:
     # Matches first: once none is counted, nothing puts an old value back on a bot.
     db[MATCHES].update_many({"rating": {"$exists": True}}, {"$unset": {"rating": ""}})
     for collection in (BOTS, USERS):
-        db[collection].update_many({"rating": {"$exists": True}}, {"$unset": {"rating": ""}})
+        # rating is the single value from before E163; a runner of that time may still write it.
+        db[collection].update_many(
+            {"$or": [{"rating": {"$exists": True}}, {rating_values.FIELD: {"$exists": True}}]},
+            {"$unset": {"rating": "", rating_values.FIELD: ""}},
+        )
     return ratings.count_pending(db)
 
 

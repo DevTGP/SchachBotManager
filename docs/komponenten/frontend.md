@@ -108,9 +108,9 @@ Lädt `/disciplines` nicht, bieten die Formulare nur freie Zeiten an.
 
 | Ort | Inhalt |
 |-----|--------|
-| `src/pages/RatingsPage.tsx` | Seite `/ratings` („Rangliste“) in der Hauptnavigation: Platz, Name, Art (Sprache des Bots oder „Spieler“), Rating, gewertete Partien; Filter Alle/Bots/Spieler in der URL (`show`), Spieler ohne Link (E118) |
-| `src/pages/ranking.ts` | Lädt `/ratings` und `/ratings/players` je nach Filter und sortiert sie gemeinsam nach Rating (E118) |
-| `src/pages/BotsPage.tsx`, `src/pages/bot/BotSummary.tsx` | Spalte bzw. Zeilen „Rating“ und „Gewertete Partien“ |
+| `src/pages/RatingsPage.tsx` | Seite `/ratings` („Rangliste“) in der Hauptnavigation: Platz, Name, Version, Ersteller („Referenzbot“ ohne Besitzer, E164), Art (Sprache des Bots oder „Spieler“), Rating, gewertete Partien; Auswahl „Gesamt“ oder eine Disziplin (auch archivierte) in der URL (`discipline`, E163) mit Hinweis zur Gewichtung bei „Gesamt“; Filter Alle/Bots/Spieler in der URL (`show`), Spieler ohne Link und ohne Version und Ersteller (E118) |
+| `src/pages/ranking.ts` | Lädt `/ratings` und `/ratings/players` je nach Filter, gesamt oder mit `discipline_id`, und sortiert sie gemeinsam nach Rating (E118, E163) |
+| `src/pages/BotsPage.tsx`, `src/pages/bot/BotSummary.tsx` | Spalte bzw. Zeilen „Rating“ (seit E163 gesamt) und „Gewertete Partien“; die Botliste hat die Spalte „Ersteller“ (E164) |
 | `src/viewer/MatchDetails.tsx`, `src/format/rating.ts` | Zeilen „Rating Weiß“ und „Rating Schwarz“ als „2500 → 2550 (+50)“, sobald die Partie verbucht ist |
 
 ## Endgültiges Löschen (E105)
@@ -148,6 +148,7 @@ Lädt `/disciplines` nicht, bieten die Formulare nur freie Zeiten an.
 | `src/pages/admin/InviteForm.tsx` | `/admin/invites`: Formular für Einladungen mit Standard und Höchstwert der Gültigkeit aus den Einstellungen (E154) |
 | `src/pages/upload/UploadPage.tsx` | zeigt die Zahl der Uploads je Tag aus `GET /account/limits` (E154) |
 | `src/components/FormError.tsx` | zusätzlich `values` für Texte mit eingesetzten Grenzen (E154) |
+| `src/components/BotOptions.tsx` | Optionen einer Bot-Auswahl, auf Wunsch zuerst „Zufall“ (Wert `random`, E162): im Admin-Formular für beide Seiten (`EnqueueForm.tsx`), unter „Meine Bots“ nur für den Gegner (`OwnMatchForm.tsx`), auf `/play` für den Bot (`PlaySetupPage.tsx`); mit Zufall verlinkt die Rückmeldung keine Serie |
 | `src/pages/admin/RecheckLanguage.tsx` | `/admin`: alle verifizierten und abgelehnten Bots einer Sprache erneut prüfen, meldet die Zahl der eingereihten Prüfungen (E153) |
 
 ## Einzelspiele (Stand M6, E155–E161)

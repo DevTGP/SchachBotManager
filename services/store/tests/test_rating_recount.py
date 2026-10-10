@@ -3,7 +3,7 @@ from datetime import timedelta
 from bson import ObjectId
 from conftest import T0
 
-from sbm_store import bots, matches, rating_recount, ratings
+from sbm_store import bots, matches, rating_recount, rating_values, ratings
 from sbm_store.discipline import STANDARD_FEN, Discipline
 from sbm_store.enqueue import enqueue_match
 from sbm_store.migrate import migrate
@@ -31,6 +31,10 @@ def play(db, white, black, result, *, minute) -> ObjectId:
         now=T0 + timedelta(minutes=minute),
     )
     return match_id
+
+
+def rating(db, bot) -> dict:
+    return rating_values.in_discipline(bots.get(db, bot["_id"]), RATED.discipline_id, 2500)
 
 
 def token(db):
@@ -63,8 +67,8 @@ def test_a_recount_counts_the_remaining_matches_from_the_start(db):
         "white": {"before": 2500, "after": 2550, "games": 1},
         "black": {"before": 2500, "after": 2450, "games": 1},
     }
-    assert ratings.current(bots.get(db, a["_id"]), 2500) == {"value": 2550, "games": 1}
-    assert ratings.current(bots.get(db, c["_id"]), 2500) == {"value": 2450, "games": 1}
+    assert rating(db, a) == {"value": 2550, "games": 1}
+    assert rating(db, c) == {"value": 2450, "games": 1}
 
 
 def test_a_bot_without_remaining_matches_is_back_at_the_start(db):
@@ -77,8 +81,19 @@ def test_a_bot_without_remaining_matches_is_back_at_the_start(db):
     rating_recount.request(db, T0)
     assert rating_recount.run_if_requested(db) == 0
 
+    assert "ratings" not in bots.get(db, a["_id"])
+    assert rating(db, b) == {"value": 2500, "games": 0}
+
+
+def test_a_recount_removes_ratings_of_the_old_form(db):
+    migrate(db)
+    a = add_bot(db, "A")
+    db[BOTS].update_one({"_id": a["_id"]}, {"$set": {"rating": {"value": 2600, "games": 1}}})
+
+    rating_recount.request(db, T0)
+    rating_recount.run_if_requested(db)
+
     assert "rating" not in bots.get(db, a["_id"])
-    assert ratings.current(bots.get(db, b["_id"]), 2500) == {"value": 2500, "games": 0}
 
 
 def test_a_request_made_during_the_recount_stays(db, monkeypatch):

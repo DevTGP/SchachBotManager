@@ -3,6 +3,7 @@
 Tighter than the admin's request: a limited number of games, behind the admin's matches in the
 queue. Any discipline in use may be chosen (E100); free times have the default move limit. The
 limits are settings of coders (E154). Another start position makes the games unrated (E159).
+The opponent may be random, drawn anew for every game (E162).
 """
 
 from pymongo.database import Database
@@ -12,8 +13,8 @@ from sbm_store import coder_settings
 from sbm_store.coder_settings import CoderSettings
 from sbm_store.discipline import DEFAULT_MAX_MOVES, Discipline
 
-from sbm_api import body, discipline_request
-from sbm_api.enqueue_request import EnqueueRequest, check_settings, verified_bot
+from sbm_api import body, bot_choice, discipline_request
+from sbm_api.enqueue_request import EnqueueRequest, check_settings
 from sbm_api.errors import invalid_parameter
 
 FIELDS = (
@@ -32,10 +33,12 @@ FIELDS = (
 def parse(db: Database, user: dict) -> EnqueueRequest:
     data = body.json_object(FIELDS)
     limits = coder_settings.get(db)
-    white = verified_bot(db, data, "white_bot_id")
-    black = verified_bot(db, data, "black_bot_id")
-    if user["_id"] not in (white.get("owner_id"), black.get("owner_id")):
+    white = bot_choice.choice(db, data, "white_bot_id")
+    black = bot_choice.choice(db, data, "black_bot_id")
+    owners = [bot.get("owner_id") for bot in (white, black) if bot is not None]
+    if user["_id"] not in owners:
         raise invalid_parameter("white_bot_id", "one of the bots must be your own")
+    bot_choice.check_pool(db, white, black, "white_bot_id" if white is None else "black_bot_id")
     discipline = discipline_request.chosen(db, data) or free_times(data, limits)
     start_fen = body.string(data, "start_fen", max_length=100, default=None) or STANDARD_FEN
     check_settings(discipline, start_fen)

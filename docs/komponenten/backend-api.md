@@ -46,7 +46,7 @@ Dazu kommen Anmeldung, Konten und die Admin-Routen. Alle ändernden Anfragen bra
 | `POST /invites/redeem` | Einladung einlösen: Konto anlegen und anmelden |
 | `POST /password-resets/redeem` | Neues Passwort über den Link des Admins, beendet alle Sitzungen |
 | `PUT /account/password` | Eigenes Passwort ändern, beendet die anderen Sitzungen |
-| `GET /account/rating` | Eigenes Rating (`value`, `games`) aus gewerteten Partien gegen Bots; nur für den Inhaber, jede Rolle (E117) |
+| `GET /account/rating` | Eigenes Rating (`value`, `games`) aus gewerteten Partien gegen Bots, seit E163 das Gesamtrating; nur für den Inhaber, jede Rolle (E117) |
 | `GET /admin/users`, `PATCH /admin/users/{id}` | Nutzer auflisten, Rolle oder Aktiv-Status ändern |
 | `POST /admin/users/{id}/password-reset` | Einmal-Link für ein neues Passwort |
 | `GET/POST /admin/invites`, `DELETE /admin/invites/{id}` | Offene Einladungen, neue Einladung, Einladung zurückziehen |
@@ -137,6 +137,8 @@ Ein vergebener Name ergibt 409 `name_taken` mit `field` `name`. Zusammenfassunge
 
 Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 und 0). Jede Seite einer Partie enthält `rating` mit `before` und `after`, solange die Partie nicht verbucht ist `null`.
 
+Seit E163 ist `rating` eines Bots oder Kontos das Gesamtrating (nach Partien gewichteter Durchschnitt über die Disziplinen, `sbm_store.rating_values`); `before` und `after` einer Partie gelten in ihrer Disziplin. Beide Ranglisten nehmen `discipline_id`: ohne die Gesamtrangliste, mit ihr die der Disziplin (`rating` dann aus der Disziplin), eine unbekannte Id ergibt eine leere Liste, eine ungültige 400 (`sbm_store.rankings`).
+
 ### Endgültiges Löschen (E105)
 
 | Route | Aufgabe |
@@ -192,6 +194,17 @@ Einzelspiele (Schritt 2, E155–E161):
 | `routes/bot_opponents.py` | `GET /bots/{id}/opponents`: Bilanz gegen jeden Gegner-Bot aus beendeten Partien (E161); Abfrage in `sbm_store.opponents` |
 
 - `POST /matches/{id}/withdraw` nutzt `match_state` (409) für laufende und beendete Partien und 404 für fremde.
+
+Zufall, Rating je Disziplin, Ersteller (E162–E164):
+
+| Datei | Aufgabe |
+|-------|---------|
+| `bot_choice.py` | Liest eine Bot-Wahl: Id oder `"random"` (Schema `BotChoice`); zieht je Partie über `sbm_store.bot_draw` aus den `verified` Bots, nie den Bot der anderen Seite; zu wenige Kandidaten ergeben 400 (E162) |
+| `enqueue_request.py`, `routes/admin_matches.py` | `POST /admin/matches`: beide Seiten dürfen `"random"` sein; mit Farbwechsel tauschen die Seiten vor der Ziehung; mit Zufall keine Serie (`series_id` `null`) |
+| `own_match_request.py`, `routes/own_matches.py` | `POST /matches`: höchstens eine Seite `"random"`, die feste muss ein eigener Bot sein |
+| `play_request.py` | `POST /play`: `bot_id` `"random"` |
+| `routes/ratings.py`, `routes/account_rating.py` | Rangliste gesamt oder je Disziplin (`discipline_id`), eigenes Gesamtrating (E163) |
+| `owner_names.py`, `bot_view.py` | `owner` je Bot: Nutzername des Besitzers, einmal je Anfrage für alle Bots geladen, `null` bei Referenzbots (E164) |
 
 ## Rollen und Rechte
 

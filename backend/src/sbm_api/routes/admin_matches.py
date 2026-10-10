@@ -2,7 +2,7 @@
 
 from flask import Blueprint
 
-from sbm_api import admin_audit, context, enqueue_request
+from sbm_api import admin_audit, bot_choice, context, enqueue_request
 from sbm_api.current_user import require_admin
 
 blueprint = Blueprint("admin_matches", __name__)
@@ -15,8 +15,8 @@ def enqueue_matches():
     order = enqueue_request.parse(db)
     enqueued = enqueue_request.enqueue(db, order, now=now, created_by=admin["_id"])
     details = {
-        "white": order.white["name"],
-        "black": order.black["name"],
+        "white": bot_choice.label(order.white),
+        "black": bot_choice.label(order.black),
         "discipline": order.discipline.name,
         "games": order.games,
         "rated": order.rated,

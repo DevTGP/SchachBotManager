@@ -3,19 +3,20 @@ import { useTranslation } from "react-i18next";
 
 import { enqueueMatches } from "../../api/admin";
 import type { Bot, EnqueuedMatches, StoredDiscipline } from "../../api/types";
+import { BotOptions } from "../../components/BotOptions";
 import { DisciplineSelect } from "../../components/DisciplineSelect";
 import { FormError } from "../../components/FormError";
 import { NumberField } from "../../components/NumberField";
 import { QueuedNotice } from "../../components/QueuedNotice";
 import { RatedField } from "../../components/RatedField";
 import { StartPositionField } from "../../components/StartPositionField";
-import { botLabel } from "../../format/botLabel";
 import { useSubmit } from "../../hooks/useSubmit";
 import { DEFAULT_FORM, type MatchForm, matchOrder } from "./matchOrder";
 
 /**
  * Puts games between two bots into the queue, under a discipline or free times (E85, E100);
- * white and black may come preset, e.g. from the bot page (E160).
+ * white and black may come preset, e.g. from the bot page (E160). Either side may be "Random":
+ * the server draws a new bot for every game (E162).
  */
 export function EnqueueForm({
   bots,
@@ -52,25 +53,19 @@ export function EnqueueForm({
     });
   }
 
-  const botOptions = bots.map((bot) => (
-    <option key={bot.id} value={bot.id}>
-      {botLabel(bot)}
-    </option>
-  ));
-
   return (
     <form className="form" onSubmit={onSubmit}>
       <div className="form-row">
         <label>
           {t("viewer.white")}
           <select value={form.white} onChange={(event) => set("white", event.target.value)}>
-            {botOptions}
+            <BotOptions bots={bots} random />
           </select>
         </label>
         <label>
           {t("viewer.black")}
           <select value={form.black} onChange={(event) => set("black", event.target.value)}>
-            {botOptions}
+            <BotOptions bots={bots} random />
           </select>
         </label>
       </div>

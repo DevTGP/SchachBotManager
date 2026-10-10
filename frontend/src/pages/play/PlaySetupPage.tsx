@@ -6,10 +6,10 @@ import { fetchBots, fetchDisciplines } from "../../api/endpoints";
 import { startGame } from "../../api/play";
 import type { Bot, PlayRequest, StoredDiscipline } from "../../api/types";
 import { ApiContent } from "../../components/ApiContent";
+import { BotOptions } from "../../components/BotOptions";
 import { DisciplineSelect } from "../../components/DisciplineSelect";
 import { FormError } from "../../components/FormError";
 import { NumberField } from "../../components/NumberField";
-import { botLabel } from "../../format/botLabel";
 import { useApi } from "../../hooks/useApi";
 import { useSubmit } from "../../hooks/useSubmit";
 import { saveSeat } from "../../play/seats";
@@ -26,7 +26,10 @@ interface SetupForm {
   incrementSeconds: string;
 }
 
-/** Choose a verified bot, a color and the time, then play in the browser (E11, E114). */
+/**
+ * Choose a verified bot or a random one, a color and the time, then play in the browser (E11,
+ * E114, E162).
+ */
 export function PlaySetupPage() {
   const { t } = useTranslation();
   const bots = useApi((signal) => fetchBots(signal), "bots");
@@ -81,11 +84,7 @@ function SetupForm({ bots, disciplines }: { bots: Bot[]; disciplines: StoredDisc
         <label>
           {t("play.opponent")}
           <select value={form.bot} onChange={(event) => set("bot", event.target.value)}>
-            {bots.map((bot) => (
-              <option key={bot.id} value={bot.id}>
-                {botLabel(bot)}
-              </option>
-            ))}
+            <BotOptions bots={bots} random />
           </select>
         </label>
         <label>

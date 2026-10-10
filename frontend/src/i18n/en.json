@@ -109,6 +109,7 @@
     "title": "Bots",
     "name": "Name",
     "version": "Version",
+    "owner": "Creator",
     "language": "Language",
     "kind": "Kind",
     "status": "Status",
@@ -122,8 +123,10 @@
   },
   "ratings": {
     "title": "Ranking",
-    "hint": "Bots and players with at least one rated game. Every bot version and every account starts at 2500.",
+    "hint": "Bots and players with at least one rated game. Every bot version and every account starts at 2500 in each discipline.",
     "empty": "No rated game yet.",
+    "overall": "Overall",
+    "overallHint": "Overall: the mean over all disciplines, weighted by the number of games in each.",
     "show": "Show",
     "all": "All",
     "bots": "Bots only",
@@ -132,6 +135,9 @@
     "name": "Name",
     "type": "Type",
     "player": "Player"
+  },
+  "botChoice": {
+    "random": "Random"
   },
   "botStatus": {
     "uploaded": "Waiting for verification",

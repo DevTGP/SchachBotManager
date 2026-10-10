@@ -8,14 +8,18 @@ export const RANKING_FILTERS = ["bots", "players"] as const;
 export type RankingRow =
   { kind: "bot"; bot: Bot; rating: Rating } | { kind: "player"; username: string; rating: Rating };
 
-/** Loads the rows for the filter, highest rating first; on a tie bots keep their place first. */
+/**
+ * Loads the rows for the filter, highest rating first; on a tie bots keep their place first.
+ * Without a discipline the rows hold the overall rating (E163).
+ */
 export async function loadRanking(
   filter: RankingFilter,
+  disciplineId: string | undefined,
   signal: AbortSignal,
 ): Promise<RankingRow[]> {
   const [bots, players] = await Promise.all([
-    filter === "players" ? [] : fetchRatings(signal),
-    filter === "bots" ? [] : fetchPlayerRatings(signal),
+    filter === "players" ? [] : fetchRatings(disciplineId, signal),
+    filter === "bots" ? [] : fetchPlayerRatings(disciplineId, signal),
   ]);
   const rows: RankingRow[] = [
     ...bots.map((bot) => ({ kind: "bot" as const, bot, rating: bot.rating })),

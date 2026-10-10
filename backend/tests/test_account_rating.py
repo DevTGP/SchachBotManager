@@ -12,11 +12,14 @@ def test_an_account_without_rated_games_stands_at_the_start(login):
 
 def test_the_account_sees_its_counted_rating(login, db):
     client, user = login()
-    db[USERS].update_one(
-        {"_id": user["_id"]}, {"$set": {"rating": {"value": 2547, "games": 3, "seq": 9}}}
-    )
+    entries = {
+        "a": {"value": 2600, "games": 1, "seq": 9},
+        "b": {"value": 2500, "games": 3, "seq": 8},
+    }
+    db[USERS].update_one({"_id": user["_id"]}, {"$set": {"ratings": entries}})
 
-    assert client.get("/api/v1/account/rating").json == {"value": 2547, "games": 3}
+    # The overall rating weighs each discipline by its games (E163).
+    assert client.get("/api/v1/account/rating").json == {"value": 2525, "games": 4}
 
 
 def test_a_guest_has_no_rating(client):

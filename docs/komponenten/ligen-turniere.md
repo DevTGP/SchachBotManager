@@ -122,13 +122,15 @@ Seit M6 Schritt 2 (E155–E161):
 - **Zurückziehen:** Coder nehmen wartende eigene Partien unter „Meine Bots“ aus der Queue und bekommen sie aufs Tageslimit zurück (E157).
 - **Filter** unter `/matches` nach Disziplin, Gegner und eigenen Partien (E156); **Bilanz** gegen jeden Gegner auf der Bot-Seite (E161).
 - **Schnellstart:** Links „Spielen“ und „Gegen Vorgänger spielen“ in der Versionstabelle führen zum vorbelegten Formular (E160).
+- **Zufälliger Gegner:** „Zufall“ statt eines Bots, für Admins auf beiden Seiten (auch Zufall gegen Zufall), für Coder als Gegner, auf `/play` als Bot. Je Partie neu gezogen aus allen geprüften Bots, nie gegen sich selbst; solche Anfragen bilden keine Serie (E162).
 
 ## Rating
 
 Regel laut E103:
 
-- Ein Punktestand je Bot über alle Disziplinen, Start 2500; jede Version beginnt neu. Ab M7 haben auch angemeldete Konten einen Stand.
-- Abstand d der Stände vor der Partie, s = ⌊d / 20⌋. Sieg des Stärkeren: max(1, 50 − s). Sieg des Schwächeren: min(100, 50 + s). Remis: Der Schwächere bekommt min(50, s). Der Gegner verliert genau so viel.
+- Ein Punktestand je Bot und Disziplin, Start 2500 (seit E163; vorher einer über alle Disziplinen); jede Version beginnt neu. Ab M7 haben auch angemeldete Konten einen Stand.
+- Gesamtrating: nach Partien gewichteter Durchschnitt über die Disziplinen, Σ(Rating · Partien) / Σ Partien (3000 bei 8 und 2000 bei 92 Partien ergibt 2080). Die Rangliste zeigt es unter „Gesamt“, dazu je Disziplin eine eigene (E163).
+- Abstand d der Stände in der Disziplin vor der Partie, s = ⌊d / 20⌋. Sieg des Stärkeren: max(1, 50 − s). Sieg des Schwächeren: min(100, 50 + s). Remis: Der Schwächere bekommt min(50, s). Der Gegner verliert genau so viel.
 - Es zählen nur Partien mit `rated` (Disziplin und Grundstellung). Freie Zeiten, andere Startstellungen, Remote-Partien, Partien gegen Gäste, kampflose Siege und abgebrochene Partien ändern nichts.
 - Nur Statistik, kein Einfluss auf Auf- und Abstieg (E7).
 - Der Runner verbucht die Partien in der Reihenfolge ihres Endes (E104); die Rangliste steht unter `/ratings`.

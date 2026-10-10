@@ -25,6 +25,7 @@ export function BotsPage() {
                   <tr>
                     <th>{t("bots.name")}</th>
                     <th>{t("bots.version")}</th>
+                    <th>{t("bots.owner")}</th>
                     <th>{t("bots.language")}</th>
                     <th>{t("bots.kind")}</th>
                     <th>{t("bots.rating")}</th>
@@ -39,6 +40,7 @@ export function BotsPage() {
                         <Link to={`/bots/${bot.id}`}>{bot.name}</Link>
                       </td>
                       <td>{bot.version}</td>
+                      <td>{bot.owner ?? t("common.none")}</td>
                       <td>{t(`language.${bot.language}`)}</td>
                       <td>{bot.builtin ? t("bots.builtin") : t("bots.uploaded")}</td>
                       <td>{bot.rating.value}</td>

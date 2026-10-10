@@ -3,7 +3,7 @@ from datetime import timedelta
 from bson import ObjectId
 from conftest import T0
 
-from sbm_store import bots, matches, play, rating_recount, ratings, users
+from sbm_store import bots, matches, play, rankings, rating_recount, rating_values, ratings, users
 from sbm_store.discipline import STANDARD_FEN, Discipline
 from sbm_store.migrate import migrate
 from sbm_store.names import BOTS
@@ -44,7 +44,7 @@ def person_plays(db, user_id, bot, result, *, minute) -> ObjectId:
 
 
 def value(db, collection_get, holder_id) -> dict:
-    return ratings.current(collection_get(db, holder_id), 2500)
+    return rating_values.in_discipline(collection_get(db, holder_id), RATED.discipline_id, 2500)
 
 
 def test_a_game_of_an_account_moves_the_account_and_the_bot(db):
@@ -98,4 +98,11 @@ def test_the_player_ranking_holds_active_accounts_with_counted_games(db):
     ratings.count_pending(db)
     users.update(db, carol["_id"], {"active": False})
 
-    assert [user["username"] for user in ratings.player_ranking(db)] == ["Bob", "alice"]
+    ranking = rankings.player_ranking(db, None, 2500)
+    assert [(user["username"], entry["value"]) for user, entry in ranking] == [
+        # Bob met the bot at 2550 after it beat alice.
+        ("Bob", 2552),
+        ("alice", 2450),
+    ]
+    assert rankings.player_ranking(db, RATED.discipline_id, 2500) == ranking
+    assert rankings.player_ranking(db, ObjectId(), 2500) == []

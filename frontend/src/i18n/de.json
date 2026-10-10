@@ -109,6 +109,7 @@
     "title": "Bots",
     "name": "Name",
     "version": "Version",
+    "owner": "Ersteller",
     "language": "Sprache",
     "kind": "Art",
     "status": "Status",
@@ -122,8 +123,10 @@
   },
   "ratings": {
     "title": "Rangliste",
-    "hint": "Bots und Spieler mit mindestens einer gewerteten Partie. Jede Bot-Version und jedes Konto beginnt bei 2500.",
+    "hint": "Bots und Spieler mit mindestens einer gewerteten Partie. Jede Bot-Version und jedes Konto beginnt in jeder Disziplin bei 2500.",
     "empty": "Noch keine gewertete Partie.",
+    "overall": "Gesamt",
+    "overallHint": "Gesamt: der Durchschnitt über alle Disziplinen, gewichtet nach der Zahl der Partien je Disziplin.",
     "show": "Anzeigen",
     "all": "Alle",
     "bots": "Nur Bots",
@@ -132,6 +135,9 @@
     "name": "Name",
     "type": "Art",
     "player": "Spieler"
+  },
+  "botChoice": {
+    "random": "Zufall"
   },
   "botStatus": {
     "uploaded": "Wartet auf Prüfung",

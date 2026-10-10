@@ -1,7 +1,7 @@
 import type { OwnMatchOrder } from "../../api/bots";
 import { secondsToMs } from "../admin/matchOrder";
 
-/** The form as typed: an own bot, any verified opponent, times in seconds. */
+/** The form as typed: an own bot, any verified opponent or "random" (E162), times in seconds. */
 export interface OwnMatchForm {
   own: string;
   opponent: string;

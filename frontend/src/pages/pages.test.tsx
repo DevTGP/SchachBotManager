@@ -1,8 +1,8 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
-import { BOTS, queue, summary } from "../test/fixtures";
+import { BOTS, queue, storedDiscipline, summary } from "../test/fixtures";
 import { mockApi, renderRoute } from "../test/render";
 
 describe("start page", () => {
@@ -95,6 +95,7 @@ describe("bots page", () => {
     expect(row).not.toBeNull();
     expect(within(row!).getByText("Reference bot")).toBeVisible();
     expect(within(row!).getByText("2500")).toBeVisible();
+    expect(screen.getByRole("columnheader", { name: "Creator" })).toBeVisible();
     expect(within(row!).getByRole("link", { name: "Games" })).toHaveAttribute(
       "href",
       "/matches?bot=665f0000000000000000000b",
@@ -104,10 +105,13 @@ describe("bots page", () => {
 
 describe("ratings page", () => {
   const [random, material] = BOTS;
+  const sharp = { ...random!, id: "665f0000000000000000001a", name: "Sharp", builtin: false };
   const ranking = {
+    "/disciplines": { items: [storedDiscipline()] },
     "/ratings": {
       items: [
         { ...material!, rating: { value: 2550, games: 3 } },
+        { ...sharp, version: "1.2.0", owner: "bob", rating: { value: 2510, games: 1 } },
         { ...random!, rating: { value: 2450, games: 3 } },
       ],
     },
@@ -119,15 +123,16 @@ describe("ratings page", () => {
     renderRoute("/ratings");
     const rows = (await screen.findAllByRole("row")).slice(1);
     expect(rows.map((row) => row.textContent)).toEqual([
-      "1MaterialPython25503",
-      "2annaPlayer25002",
-      "3RandomPython24503",
+      "1Material1.0.0Reference botPython25503",
+      "2Sharp1.2.0bobPython25101",
+      "3anna––Player25002",
+      "4Random1.0.0Reference botPython24503",
     ]);
     expect(within(rows[0]!).getByRole("link", { name: "Material" })).toHaveAttribute(
       "href",
       "/bots/665f0000000000000000000b",
     );
-    expect(within(rows[1]!).queryByRole("link")).toBeNull();
+    expect(within(rows[2]!).queryByRole("link")).toBeNull();
   });
 
   it("filters bots or players through the URL", async () => {
@@ -146,8 +151,31 @@ describe("ratings page", () => {
     expect(router.state.location.search).toBe("?show=bots");
   });
 
+  it("ranks by the overall rating or within one discipline", async () => {
+    const user = userEvent.setup();
+    const api = mockApi(ranking);
+    const { router } = renderRoute("/ratings");
+    expect(await screen.findByText(/weighted by the number of games/)).toBeVisible();
+    const discipline = screen.getByRole("combobox", { name: "Discipline" });
+    expect(discipline).toHaveValue("");
+
+    await user.selectOptions(discipline, "Blitz");
+    expect(router.state.location.search).toBe(`?discipline=${storedDiscipline().id}`);
+    await waitFor(() => {
+      const last = api.requests.filter((url) => url.pathname === "/api/v1/ratings").at(-1);
+      expect(last?.searchParams.get("discipline_id")).toBe(storedDiscipline().id);
+    });
+    const players = api.requests.filter((url) => url.pathname === "/api/v1/ratings/players");
+    expect(players.at(-1)?.searchParams.get("discipline_id")).toBe(storedDiscipline().id);
+    expect(screen.queryByText(/weighted by the number of games/)).toBeNull();
+  });
+
   it("explains an empty ranking", async () => {
-    mockApi({ "/ratings": { items: [] }, "/ratings/players": { items: [] } });
+    mockApi({
+      "/disciplines": { items: [] },
+      "/ratings": { items: [] },
+      "/ratings/players": { items: [] },
+    });
     renderRoute("/ratings");
     expect(await screen.findByText("No rated game yet.")).toBeVisible();
   });

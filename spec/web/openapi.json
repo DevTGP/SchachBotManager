@@ -404,28 +404,32 @@
     "/ratings": {
       "get": {
         "operationId": "list_ratings",
-        "summary": "Public bots with at least one rated match, highest rating first, then by name and version (E103).",
+        "summary": "Public bots with at least one rated match, highest rating first, then by name and version (E103). Without discipline_id by the overall rating, with it by the rating in that discipline, which is then the rating of each item (E163).",
+        "parameters": [{ "$ref": "#/components/parameters/RankingDiscipline" }],
         "responses": {
           "200": {
             "description": "The ranking.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/BotList" } }
             }
-          }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
         }
       }
     },
     "/ratings/players": {
       "get": {
         "operationId": "list_player_ratings",
-        "summary": "Active accounts with at least one rated game against bots, highest rating first, then by name (E118). Their games are public like all others (E119).",
+        "summary": "Active accounts with at least one rated game against bots, highest rating first, then by name (E118). Their games are public like all others (E119). Overall or in one discipline like the ranking of bots (E163).",
+        "parameters": [{ "$ref": "#/components/parameters/RankingDiscipline" }],
         "responses": {
           "200": {
             "description": "The ranking of players.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/PlayerRatingList" } }
             }
-          }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
         }
       }
     },
@@ -1401,6 +1405,12 @@
         "required": true,
         "schema": { "$ref": "#/components/schemas/Id" }
       },
+      "RankingDiscipline": {
+        "name": "discipline_id",
+        "in": "query",
+        "description": "The ranking of this discipline; missing for the overall ranking (E163). An unknown discipline has an empty ranking.",
+        "schema": { "$ref": "#/components/schemas/Id" }
+      },
       "Limit": {
         "name": "limit",
         "in": "query",
@@ -1533,6 +1543,10 @@
         "description": "Identifier of a document: 24 lowercase hexadecimal digits.",
         "type": "string",
         "pattern": "^[0-9a-f]{24}(?!\\n)$"
+      },
+      "BotChoice": {
+        "description": "A bot, or random for one drawn anew for every game from all verified bots, never the bot on the other side (E162).",
+        "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "const": "random" }]
       },
       "Timestamp": { "type": "string", "format": "date-time" },
       "Error": {
@@ -1746,11 +1760,15 @@
         "additionalProperties": false
       },
       "Rating": {
-        "description": "Every bot version and every account starts at 2500; rated matches move it by the rule of E103.",
+        "description": "Every bot version and every account starts at 2500 in every discipline; rated matches move it by the rule of E103 in their discipline. Unless a discipline is named, it is the overall rating: the mean over all disciplines weighted by their games, rounded half up (E163).",
         "type": "object",
         "properties": {
           "value": { "type": "integer" },
-          "games": { "description": "Rated matches counted so far.", "type": "integer", "minimum": 0 }
+          "games": {
+            "description": "Rated matches counted so far, in all disciplines for the overall rating.",
+            "type": "integer",
+            "minimum": 0
+          }
         },
         "required": ["value", "games"],
         "additionalProperties": false
@@ -1935,6 +1953,10 @@
             "maxLength": 500
           },
           "rating": { "$ref": "#/components/schemas/Rating" },
+          "owner": {
+            "description": "The username of the creator; null for reference bots (E164).",
+            "type": ["string", "null"]
+          },
           "created_at": { "$ref": "#/components/schemas/Timestamp" }
         },
         "required": [
@@ -1946,6 +1968,7 @@
           "builtin",
           "description",
           "rating",
+          "owner",
           "created_at"
         ]
       },
@@ -2529,11 +2552,11 @@
         "additionalProperties": false
       },
       "EnqueueRequest": {
-        "description": "Either discipline_id or free times with initial_time_ms, increment_ms and max_moves (E100). Free times are named after the time control in seconds, e.g. 180+2 or 20+0.5; bots get 10 s to start (E85).",
+        "description": "Either discipline_id or free times with initial_time_ms, increment_ms and max_moves (E100). Free times are named after the time control in seconds, e.g. 180+2 or 20+0.5; bots get 10 s to start (E85). Either side or both may be random; such games form no series (E162).",
         "type": "object",
         "properties": {
-          "white_bot_id": { "$ref": "#/components/schemas/Id" },
-          "black_bot_id": { "$ref": "#/components/schemas/Id" },
+          "white_bot_id": { "$ref": "#/components/schemas/BotChoice" },
+          "black_bot_id": { "$ref": "#/components/schemas/BotChoice" },
           "discipline_id": {
             "description": "A discipline that is not archived; null or missing for free times.",
             "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }]
@@ -2575,11 +2598,11 @@
         "additionalProperties": false
       },
       "OwnMatchRequest": {
-        "description": "Like EnqueueRequest with tighter limits from the settings of coders (E98, E154): a limited number of games, and free times only with the default move limit up to a limited time. Games from another than the standard position are not rated (E100, E159).",
+        "description": "Like EnqueueRequest with tighter limits from the settings of coders (E98, E154): a limited number of games, and free times only with the default move limit up to a limited time. Games from another than the standard position are not rated (E100, E159). One side may be random if the other is an own bot; such games form no series (E162).",
         "type": "object",
         "properties": {
-          "white_bot_id": { "$ref": "#/components/schemas/Id" },
-          "black_bot_id": { "$ref": "#/components/schemas/Id" },
+          "white_bot_id": { "$ref": "#/components/schemas/BotChoice" },
+          "black_bot_id": { "$ref": "#/components/schemas/BotChoice" },
           "discipline_id": {
             "description": "A discipline that is not archived; null or missing for free times.",
             "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }]
@@ -2652,7 +2675,7 @@
         "description": "A game against a verified bot from the standard position: a discipline in use, or free times up to 30 min + 30 s (E115).",
         "type": "object",
         "properties": {
-          "bot_id": { "$ref": "#/components/schemas/Id" },
+          "bot_id": { "$ref": "#/components/schemas/BotChoice" },
           "color": {
             "description": "The person's color; random draws one.",
             "enum": ["white", "black", "random"]

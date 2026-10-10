@@ -1,5 +1,5 @@
 from bson import ObjectId
-from sbm_store import bots, jobs, matches, queue_settings, rating_recount, ratings
+from sbm_store import bots, jobs, matches, queue_settings, rating_recount, rating_values
 from sbm_store.discipline import Discipline
 from sbm_store.names import BOTS, JOBS, MATCHES
 from sbm_store.rating_rule import DEFAULT, white_gain
@@ -110,11 +110,11 @@ def test_a_rated_match_moves_the_ratings_of_both_bots(db, worker, reference_bots
         "white": {"before": START, "after": START + gain, "games": 1},
         "black": {"before": START, "after": START - gain, "games": 1},
     }
-    assert ratings.current(bots.get(db, random["_id"]), START) == {
+    assert rating_values.overall(bots.get(db, random["_id"]), START) == {
         "value": START + gain,
         "games": 1,
     }
-    assert ratings.current(bots.get(db, material["_id"]), START) == {
+    assert rating_values.overall(bots.get(db, material["_id"]), START) == {
         "value": START - gain,
         "games": 1,
     }
@@ -131,5 +131,5 @@ def test_ratings_are_counted_again_on_request_even_when_paused(db, worker, refer
     assert not worker.step()
 
     assert not rating_recount.is_requested(db)
-    assert ratings.current(bots.get(db, random["_id"]), START) == {"value": START, "games": 0}
-    assert ratings.current(bots.get(db, material["_id"]), START) == {"value": START, "games": 0}
+    for bot in (random, material):
+        assert rating_values.overall(bots.get(db, bot["_id"]), START)["games"] == 0

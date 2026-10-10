@@ -68,15 +68,23 @@ export async function fetchBots(signal?: AbortSignal): Promise<Bot[]> {
   return list.items;
 }
 
-/** Public bots with at least one counted match, highest rating first (E103). */
-export async function fetchRatings(signal?: AbortSignal): Promise<Bot[]> {
-  const list = await getJson<{ items: Bot[] }>("/ratings", undefined, signal);
+/**
+ * Public bots with at least one counted match, highest rating first (E103); in one discipline,
+ * or without one by the overall rating, the mean weighted by games (E163).
+ */
+export async function fetchRatings(disciplineId?: string, signal?: AbortSignal): Promise<Bot[]> {
+  const query = { discipline_id: disciplineId };
+  const list = await getJson<{ items: Bot[] }>("/ratings", query, signal);
   return list.items;
 }
 
 /** Active accounts with at least one counted game against bots, highest rating first (E118). */
-export async function fetchPlayerRatings(signal?: AbortSignal): Promise<PlayerRating[]> {
-  const list = await getJson<{ items: PlayerRating[] }>("/ratings/players", undefined, signal);
+export async function fetchPlayerRatings(
+  disciplineId?: string,
+  signal?: AbortSignal,
+): Promise<PlayerRating[]> {
+  const query = { discipline_id: disciplineId };
+  const list = await getJson<{ items: PlayerRating[] }>("/ratings/players", query, signal);
   return list.items;
 }
 
