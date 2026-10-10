@@ -152,6 +152,13 @@ Jeder Aufruf aus Python/Java/C#/JS in den Kern kostet einen festen Betrag, unabh
 - Lokal: Konsole (optional Datei) mit Zeitstempel, Zugnummer, Stufe, z. B. `14:03:12.517 [ply 12] INFO  depth 6`. Server: `stderr`, mengenbegrenzt gespeichert, nur für Besitzer/Admin einsehbar
 - Die Disziplin legt für den Server eine maximale Stufe und Menge fest; wie die Stufe den Bot erreicht, ist offen (O19)
 
+## Grafischer Viewer (E106)
+
+- Lokal öffnet das SDK ein Fenster, in dem die Partie live mitläuft und sich Zug für Zug zurück- und vorspulen lässt; dazu die Log-Zeilen des Bots je Zug.
+- Das Fenster ist ein eigenes Viewer-Programm in C++, gebaut mit dem Kern und in jedem SDK-Paket mitgeliefert. Das SDK startet es als eigenen Prozess und schickt ihm die Partie zeilenweise als JSON; kein Binding enthält eigenen GUI-Code.
+- Es schließt sich nur von Hand oder mit dem Programm; `run` kehrt erst zurück, wenn alle Fenster geschlossen sind.
+- Auf dem Server öffnet sich nie ein Fenster. Aktivierung und weitere Einzelheiten sind offen (O21).
+
 ## Tests
 
 | Ebene | Inhalt |

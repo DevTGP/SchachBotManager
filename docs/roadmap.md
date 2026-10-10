@@ -106,11 +106,26 @@ Reihenfolge in fünf Schritten (E99): (1) Disziplinen mit Admin-Seite und Auswah
 
 Abnahme: Zwei aufeinanderfolgende Saisons laufen ohne manuellen Eingriff durch, inklusive Auf-/Abstieg, neu einsteigendem Bot und einem während der Saison zurückgezogenen Bot.
 
+Vor Schritt 3 kommt als eigener Schritt der grafische Viewer im SDK (E106), zuerst für Python.
+
+### Grafischer Viewer im SDK (E106)
+
+| Inhalt | Ergebnis |
+|--------|----------|
+| Format der Nachrichten vom SDK an den Viewer unter `spec/` | Sprachneutral festgelegt |
+| Viewer-Programm in C++, gebaut mit dem Kern | Fenster mit Brett, Zugliste, Uhren und Log-Zeilen je Zug; live folgen, zurück- und vorspulen |
+| Einbettung in die Wheels, Start aus dem Python-SDK | Ein `pip install` genügt weiterhin |
+| Lebensdauer | Fenster schließt nur von Hand oder mit dem Programm; das Programm endet erst nach dem letzten Fenster |
+
+Offen vor der Umsetzung: Aktivierung und weitere Einzelheiten (O21).
+
+Abnahme: Ein Python-Bot aus der Vorlage öffnet beim lokalen Lauf ein Fenster, das die Partie live zeigt, sich nach dem Ende vor- und zurückspulen lässt und erst von Hand geschlossen wird; auf dem Server geht nie ein Fenster auf.
+
 ### M5 – Weitere Sprachen (P2)
 
 Zurückgestellt (E110). Mit jeder Sprache kommt auch ihr Transport `remote` für M7 (E111).
 
-Pro Sprache: Binding auf den Kern, Paket mit eingebetteten Binaries, API- und Protokolltests, Laufzeitverzeichnis + seccomp-Whitelist, Analyzer mit Bibliotheks-Whitelist, Vorlagenprojekt, Aufnahme in den Kreuztest. Die Schachregeln selbst müssen nicht erneut implementiert werden.
+Pro Sprache: Binding auf den Kern, Paket mit eingebetteten Binaries samt Viewer (E106), API- und Protokolltests, Laufzeitverzeichnis + seccomp-Whitelist, Analyzer mit Bibliotheks-Whitelist, Vorlagenprojekt, Aufnahme in den Kreuztest. Die Schachregeln selbst müssen nicht erneut implementiert werden.
 
 | Reihenfolge | Sprache | Begründung der Position |
 |-------------|---------|-------------------------|
