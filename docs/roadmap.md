@@ -117,7 +117,7 @@ Vor Schritt 3 kommt als eigener Schritt der grafische Viewer im SDK (E106), zuer
 | Einbettung in die Wheels, Start aus dem Python-SDK | Ein `pip install` genügt weiterhin |
 | Lebensdauer | Fenster schließt nur von Hand oder mit dem Programm; das Programm endet erst nach dem letzten Fenster |
 
-Umgesetzt (E107): Programm `sbm-viewer` unter `sdk/viewer/`, Protokoll viewer-v1, Einbettung in die Wheels, CI-Job `viewer`. Eingeschaltet wird das Fenster im Code mit `viewer=True` in `sbm.run` und `sbm.play`; auf dem Server hält die Sandbox es mit `SBM_NO_VIEWER` zu (E108).
+Umgesetzt (E107): Programm `sbm-viewer` unter `sdk/viewer/`, Protokoll viewer-v1, Einbettung in die Wheels, CI-Job `viewer`. Eingeschaltet wird das Fenster im Code mit `viewer=True` in `sbm.run` und `sbm.play`; auf dem Server hält die Sandbox es mit `SBM_NO_VIEWER` zu (E108). Veröffentlicht mit Version 0.3.0 des SDK.
 
 Abnahme: Ein Python-Bot aus der Vorlage öffnet beim lokalen Lauf ein Fenster, das die Partie live zeigt, sich nach dem Ende vor- und zurückspulen lässt und erst von Hand geschlossen wird; auf dem Server geht nie ein Fenster auf.
 
