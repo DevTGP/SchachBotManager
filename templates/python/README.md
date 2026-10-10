@@ -30,7 +30,7 @@ python -m sbm.arena bot.py material --games 10 --pgn games.pgn
 
 oder in VS Code die Aufgabe „Arena: 10 Partien gegen material“. Die Partien landen in `games.pgn`.
 
-Ohne Argumente geht es mit `python start.py`: Das Skript importiert `TemplateBot` aus `bot.py` und ruft `sbm.play(TemplateBot, "material", games=2)` auf. Gegner, Farbe, Zeit und Zahl der Partien stehen im Code ([Anleitung](../../sdk/python/docs/spielen-per-code.md)). In VS Code startet „Partien aus start.py“ dasselbe im Debugger; die Uhr läuft dabei weiter.
+Ohne Argumente geht es mit `python start.py`: Das Skript importiert `TemplateBot` aus `bot.py` und ruft `sbm.play(TemplateBot, "material", games=2, time="60+1", viewer=True)` auf. Die Partien laufen live in einem Fenster mit, mit ←/→ spult man durch die Züge; das Skript endet, wenn das Fenster geschlossen ist. Gegner, Farbe, Zeit, Zahl der Partien und das Fenster stehen im Code ([Anleitung](../../sdk/python/docs/spielen-per-code.md)). In VS Code startet „Partien aus start.py“ dasselbe im Debugger; die Uhr läuft dabei weiter.
 
 **Gegen Bots auf dem Server:** In `start.py` den auskommentierten Aufruf mit `server` und dem API-Token von der Kontoseite verwenden. Das Token ist ein Passwort: `start.py` mit Token nicht einchecken und nicht hochladen, oder `token` weglassen und `SBM_TOKEN` setzen.
 

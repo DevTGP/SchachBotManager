@@ -5,15 +5,33 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "schachbotmanager"
 dynamic = ["version"]
-description = "Bot SDK for SchachBotManager: chess board, moves and the bot main loop"
+description = "Bot SDK for SchachBotManager: chess board, moves, bot main loop, local arena and a game viewer"
 readme = "README.md"
 license = "MIT-0"
 requires-python = ">=3.11"
 dependencies = []
+keywords = ["chess", "chess-bot", "chess-engine", "bot", "sdk"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Natural Language :: German",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Games/Entertainment :: Board Games",
+]
 
 [project.urls]
 Homepage = "https://github.com/DevTGP/SchachBotManager"
 Source = "https://github.com/DevTGP/SchachBotManager/tree/master/sdk/python"
+Documentation = "https://github.com/DevTGP/SchachBotManager/tree/master/sdk/python/docs"
 
 [project.scripts]
 sbm-arena = "sbm.arena.cli:main"

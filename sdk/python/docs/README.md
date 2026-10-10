@@ -23,6 +23,7 @@ Die Konzeptseite dazu ist [docs/komponenten/sdk-api.md](../../../docs/komponente
 | 13 | [beispiel-suche.md](beispiel-suche.md) | Vollständiger Bot mit iterativer Vertiefung und Zeitgrenze |
 | 14 | [remote.md](remote.md) | Mit API-Token gegen Bots auf dem Server spielen (`--remote`) |
 | 15 | [spielen-per-code.md](spielen-per-code.md) | Partien aus einem Skript starten, lokal oder auf dem Server (`sbm.play`) |
+| 16 | [viewer.md](viewer.md) | Partien live im Fenster verfolgen und durchspulen (`viewer=True`) |
 
 ## Auf einen Blick
 

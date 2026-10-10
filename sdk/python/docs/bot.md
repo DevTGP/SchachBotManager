@@ -112,7 +112,7 @@ if __name__ == "__main__":
     sbm.run(MyBot)
 ```
 
-`run` erwartet die Klasse, nicht eine Instanz. Transport und Log-Stufe kommen aus Argumenten oder Umgebung:
+`run` erwartet die Klasse, nicht eine Instanz. `sbm.run(MyBot, viewer=True)` zeigt die Partie zusätzlich im Viewer-Fenster ([viewer.md](viewer.md)); auf dem Server bleibt es zu. Transport und Log-Stufe kommen aus Argumenten oder Umgebung:
 
 | Argument | Umgebungsvariable | Wirkung |
 |----------|-------------------|---------|

@@ -18,7 +18,15 @@ python start.py
 
 ```python
 sbm.play(
-    bot, opponent, server=None, token=None, color="random", time=None, discipline=None, games=1
+    bot,
+    opponent,
+    server=None,
+    token=None,
+    color="random",
+    time=None,
+    discipline=None,
+    games=1,
+    viewer=False,
 )
 ```
 
@@ -32,6 +40,7 @@ sbm.play(
 | `time` | Bedenkzeit `SEKUNDEN+INKREMENT`, Standard `60+1` |
 | `discipline` | Nur mit `server`: Disziplin der Website per Name statt `time` |
 | `games` | Zahl der Partien, Standard 1 |
+| `viewer` | `True` zeigt alle Partien in einem Fenster; am Ende wartet das Skript, bis es geschlossen ist ([viewer.md](viewer.md)) |
 
 Rückgabe ist eine Liste von `sbm.PlayedGame` in Spielreihenfolge, aus Sicht des eigenen Bots:
 
@@ -79,7 +88,7 @@ Voraussetzungen, Grenzen und Fehlermeldungen wie bei `--remote` ([remote.md](rem
 
 | Fall | Verhalten |
 |------|-----------|
-| Falsches Argument (Farbe, Zeit, `games`, Disziplin lokal, fehlendes Token) | `InvalidArgumentError` bzw. `TypeError` vor der ersten Partie |
+| Falsches Argument (Farbe, Zeit, `games`, `viewer`, Disziplin lokal, fehlendes Token) | `InvalidArgumentError` bzw. `TypeError` vor der ersten Partie |
 | Ausnahme im Bot | Wird mit Traceback auf `ERROR` geloggt, das Skript endet mit Exit-Code 1 – wie bei `sbm.run` |
 | Partie vom Server abgelehnt, Verbindung verloren | Meldung auf `ERROR`, Exit-Code 1 |
 
