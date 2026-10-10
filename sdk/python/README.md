@@ -99,8 +99,8 @@ games = sbm.play(MyBot, "material", games=4, time="60+1", viewer=True)
 Mit `viewer=True` öffnet sich ein Fenster, in dem die Partien live mitlaufen:
 
 ```python
-sbm.play(MyBot, "material", games=4, viewer=True)   # alle Partien in einem Fenster
-sbm.run(MyBot, viewer=True)                         # in bot.py
+sbm.play(MyBot, "material", games=4, viewer=True)  # alle Partien in einem Fenster
+sbm.run(MyBot, viewer=True)  # in bot.py
 ```
 
 - **Bedienung:** ←/→ oder das Mausrad über dem Brett springen einen Halbzug zurück oder vor. Pos1/Ende springen zum Anfang oder zum letzten Zug, „Live“ folgt wieder der laufenden Partie, F dreht das Brett.
