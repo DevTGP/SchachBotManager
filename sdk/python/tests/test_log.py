@@ -72,3 +72,18 @@ def test_ply_and_file(capsys):
 def test_log_is_not_instantiated():
     with pytest.raises(TypeError):
         sbm.Log()
+
+
+def test_listener_receives_written_lines(capsys):
+    received = []
+    log.set_listener(lambda level, time, text: received.append((level, time, text)))
+    try:
+        sbm.Log.debug("hidden")
+        sbm.Log.warn(42)
+    finally:
+        log.set_listener(None)
+    sbm.Log.error("after")
+    ((level, time, text),) = received
+    assert (level, text) == (sbm.WARN, "42")
+    assert re.fullmatch(r"\d\d:\d\d:\d\d\.\d{3}", time)
+    assert lines(capsys.readouterr().err)[0][1:] == ("WARN ", "42")

@@ -9,6 +9,8 @@ from sbm import INFO, log
 def reset_log():
     log.configure(INFO, None)
     log.set_ply(None)
+    log.set_listener(None)
     yield
     log.configure(INFO, None)
     log.set_ply(None)
+    log.set_listener(None)

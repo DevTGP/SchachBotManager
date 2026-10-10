@@ -12,6 +12,7 @@ from sbm.clock import Clock
 from sbm.errors import ChessError
 from sbm.log import Log, set_ply
 from sbm.records import GameInfo, GameResult
+from sbm.viewer.game_view import GameView
 
 
 class BotError(Exception):
@@ -42,6 +43,7 @@ class Game:
         self._channel = channel
         self._board: Board | None = None
         self._increment_ms = 0
+        self._view = GameView()
         self.info: GameInfo | None = None
         self.result: GameResult | None = None
 
@@ -80,6 +82,7 @@ class Game:
                 f"this SDK speaks version {protocol.PROTOCOL_VERSION}; update the SDK"
             )
         guarded("on_game_start", self._bot.on_game_start, info)
+        self._view.started(type(self._bot).__name__, info)
         self._channel.send(protocol.ready(core_version()))
 
     def _turn(self, turn: dict) -> None:
@@ -91,13 +94,16 @@ class Game:
         )
         if self._board is None:
             raise ProtocolError("turn before init")
-        set_ply(protocol.field(turn, "ply", int))
+        ply = protocol.field(turn, "ply", int)
+        set_ply(ply)
         self._synchronize(turn)
+        self._view.opponent_moved(ply, turn.get("last_move"), self._board.fen(), clock)
         take_report(self._bot)
         choice = guarded("choose_move", self._bot.choose_move, self._board.copy(), clock)
-        self._channel.send(self._answer(choice))
-        if choice != Move.RESIGN:
-            self._play_own(choice)
+        answer = self._answer(choice)
+        self._channel.send(answer)
+        if choice != Move.RESIGN and self._play_own(choice):
+            self._view.own_move(ply + 1, answer, self._board.fen(), clock)
 
     def _synchronize(self, turn: dict) -> None:
         """Applies the opponent's move and adopts the referee's position on a mismatch (E42)."""
@@ -129,13 +135,17 @@ class Game:
             raise BotError(f"choose_move returned {choice!r}, which has no UCI form") from None
         return protocol.move(uci, info)
 
-    def _play_own(self, choice: Move) -> None:
+    def _play_own(self, choice: Move) -> bool:
         try:
             self._board.make_move(choice)
         except ChessError:
             Log.warn(f"own move {choice.uci()} is not legal in this position; the referee decides")
+            return False
+        return True
 
     def _end(self, game_over: dict) -> None:
         result = protocol.game_result(game_over)
         self.result = result
+        # First, so that the window shows the result even if on_game_end raises.
+        self._view.ended(game_over)
         guarded("on_game_end", self._bot.on_game_end, result)

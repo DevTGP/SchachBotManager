@@ -7,6 +7,8 @@ use it.
 import ctypes
 from ctypes import wintypes
 
+from sbm.viewer.process import PROGRAM as VIEWER_PROGRAM
+
 TH32CS_SNAPPROCESS = 0x00000002
 PROCESS_TERMINATE = 0x0001
 PROCESS_SET_QUOTA = 0x0100
@@ -65,7 +67,8 @@ def children_by_parent() -> dict[int, list[int]]:
     """The ids of the running processes by the id of the process that started them.
 
     Windows keeps a parent's id after the parent ended and reuses ids, so a listed child may
-    be unrelated; compare the creation times.
+    be unrelated; compare the creation times. The viewer window of a bot (E106) is left out, so
+    that it stays usable while the bot is frozen.
     """
     snapshot = kernel32.CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
     if snapshot == INVALID_HANDLE_VALUE:
@@ -76,7 +79,10 @@ def children_by_parent() -> dict[int, list[int]]:
         children: dict[int, list[int]] = {}
         found = kernel32.Process32FirstW(snapshot, ctypes.byref(entry))
         while found:
-            if entry.th32ProcessID != entry.th32ParentProcessID:
+            if (
+                entry.th32ProcessID != entry.th32ParentProcessID
+                and entry.szExeFile.lower() != VIEWER_PROGRAM
+            ):
                 children.setdefault(entry.th32ParentProcessID, []).append(entry.th32ProcessID)
             found = kernel32.Process32NextW(snapshot, ctypes.byref(entry))
         return children

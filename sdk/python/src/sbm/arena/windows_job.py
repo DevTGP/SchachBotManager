@@ -19,6 +19,7 @@ CREATE_SUSPENDED = 0x00000004
 CREATE_NEW_PROCESS_GROUP = 0x00000200
 POPEN_OPTIONS = {"creationflags": CREATE_SUSPENDED | CREATE_NEW_PROCESS_GROUP}
 
+JOB_OBJECT_LIMIT_BREAKAWAY_OK = 0x00000800
 JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE = 0x00002000
 JOB_OBJECT_BASIC_PROCESS_ID_LIST = 3
 JOB_OBJECT_EXTENDED_LIMIT_INFORMATION = 9
@@ -84,7 +85,10 @@ def _create_job(process: int) -> int:
     check(job)
     try:
         limits = JOBOBJECT_EXTENDED_LIMIT_INFORMATION()
-        limits.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+        # Breakaway only on request: the viewer window of the bot leaves the job (E106).
+        limits.BasicLimitInformation.LimitFlags = (
+            JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE | JOB_OBJECT_LIMIT_BREAKAWAY_OK
+        )
         check(
             kernel32.SetInformationJobObject(
                 job,

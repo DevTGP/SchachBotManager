@@ -6,6 +6,7 @@ each turn.
 """
 
 import sys
+from collections.abc import Callable
 from datetime import datetime
 from typing import TextIO
 
@@ -19,6 +20,8 @@ class _State:
     level = INFO
     ply: int | None = None
     file: TextIO | None = None
+    # Receives level, time and text of every written line: the viewer window (E106).
+    listener: Callable[[int, str, str], None] | None = None
 
 
 def _check_level(function: str, level: int) -> int:
@@ -40,6 +43,8 @@ def _write(level: int, message: object) -> None:
     if _State.file is not None:
         _State.file.write(line)
         _State.file.flush()
+    if _State.listener is not None:
+        _State.listener(level, time, str(message))
 
 
 class Log:
@@ -93,6 +98,11 @@ def configure(level: int, file: TextIO | None) -> None:
     """Start level and optional log file, set by run before the game."""
     _State.level = level
     _State.file = file
+
+
+def set_listener(listener: Callable[[int, str, str], None] | None) -> None:
+    """Also hands every written line to the listener; None ends that."""
+    _State.listener = listener
 
 
 def set_ply(ply: int | None) -> None:
