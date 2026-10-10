@@ -46,6 +46,7 @@ class JailPlayer(StreamPlayer):
         self._process: subprocess.Popen | None = None
         self._stderr: StderrTail | None = None
         self._failed = False
+        self._stopping = False
         self.exited_cleanly = False
 
     @property
@@ -65,6 +66,8 @@ class JailPlayer(StreamPlayer):
         )
         self._stderr = StderrTail(self._process.stderr, self.name)
         self._attach(self._process.stdout, self._process.stdin)
+        if self._stopping:
+            self._cgroup.kill()
 
     def send(self, message: dict) -> None:
         try:
@@ -92,6 +95,15 @@ class JailPlayer(StreamPlayer):
     def resume(self) -> None:
         if self._process is not None:
             self._cgroup.thaw()
+
+    def stop(self) -> None:
+        """Kills the bot from another thread when the match is cancelled (E152); the referee
+        then sees its output end, and a bot started later is killed at once. close still cleans
+        up."""
+        self._stopping = True
+        cgroup = self._cgroup
+        if cgroup is not None and self._process is not None:
+            cgroup.kill()
 
     def close(self) -> None:
         try:

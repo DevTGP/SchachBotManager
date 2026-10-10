@@ -158,6 +158,7 @@ describe("queue page", () => {
     const entry = {
       match: summary({ status: "queued", result: null, termination: null }),
       position: 1,
+      priority: 100,
       estimated_start: "2026-05-01T12:10:00.000Z",
       estimated_end: "2026-05-01T12:20:00.000Z",
     };

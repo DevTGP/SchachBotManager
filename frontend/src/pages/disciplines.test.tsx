@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import type { Bot, StoredDiscipline } from "../api/types";
-import { ADMIN, BOTS, CODER, queue, storedDiscipline } from "../test/fixtures";
+import { ADMIN, BOTS, CODER, CODER_LIMITS, queue, storedDiscipline } from "../test/fixtures";
 import { type ApiCall, mockApi, renderRoute } from "../test/render";
 
 const BLITZ = storedDiscipline();
@@ -129,6 +129,7 @@ describe("games under a discipline", () => {
     const api = mockApi({
       "/session": { user: CODER },
       "/account/bots": { items: [SHARP] },
+      "/account/limits": CODER_LIMITS,
       "/bots": { items: [...BOTS, SHARP] },
       "/disciplines": { items: [BLITZ] },
       "/matches": { match_ids: ["m1", "m2"] },

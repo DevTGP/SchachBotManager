@@ -1,16 +1,22 @@
+import pytest
+from sbm_store import account_settings
+from sbm_store.account_settings import AccountSettings
 from sbm_store.names import AUDIT_LOG, INVITES
 from sbm_store.tokens import token_hash
 
 from sbm_api.invite_cli import main
 
 
-def test_prints_a_link_for_the_first_admin(db, mongo_uri, capsys):
-    environ = {
+@pytest.fixture
+def environ(db, mongo_uri) -> dict[str, str]:
+    return {
         "SBM_MONGO_URI": mongo_uri,
         "SBM_MONGO_DB": db.name,
         "SBM_PUBLIC_URL": "https://sbm.example/",
     }
 
+
+def test_prints_a_link_for_the_first_admin(db, environ, capsys):
     assert main(["--role", "admin", "--valid-days", "2"], environ) == 0
 
     url = capsys.readouterr().out.strip()
@@ -37,6 +43,17 @@ def test_needs_the_database(capsys):
     assert "SBM_MONGO_URI" in capsys.readouterr().err
 
 
-def test_rejects_a_validity_out_of_range(capsys):
-    assert main(["--valid-days", "31"], {}) == 2
+def test_rejects_a_validity_out_of_range(db, environ, capsys):
+    assert main(["--valid-days", "31"], environ) == 2
     assert "--valid-days" in capsys.readouterr().err
+    assert db[INVITES].count_documents({}) == 0
+
+
+def test_the_validity_comes_from_the_settings(db, environ, capsys):
+    account_settings.save(db, AccountSettings(invite_days=3, invite_max_days=40))
+
+    assert main([], environ) == 0
+    assert main(["--valid-days", "40"], environ) == 0
+
+    days = [(i["expires_at"] - i["created_at"]).days for i in db[INVITES].find().sort("_id", 1)]
+    assert days == [3, 40]

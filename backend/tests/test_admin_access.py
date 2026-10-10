@@ -13,9 +13,21 @@ ADMIN_ROUTES = [
     ("post", "/api/v1/admin/invites", {"role": "coder"}),
     ("delete", f"/api/v1/admin/invites/{USER}", None),
     ("post", "/api/v1/admin/matches", {}),
+    ("patch", f"/api/v1/admin/matches/{USER}", {"priority": 1}),
+    ("post", f"/api/v1/admin/matches/{USER}/cancel", None),
+    ("post", f"/api/v1/admin/matches/{USER}/repeat", None),
     ("patch", f"/api/v1/admin/bots/{USER}", {"status": "disabled"}),
     ("delete", f"/api/v1/admin/bots/{USER}", None),
+    ("post", f"/api/v1/admin/bots/{USER}/recheck", None),
+    ("post", f"/api/v1/admin/bots/{USER}/override", None),
+    ("post", "/api/v1/admin/bots/recheck", {"language": "python"}),
     ("patch", "/api/v1/admin/queue", {"paused": True}),
+    ("get", "/api/v1/admin/audit", None),
+    ("get", "/api/v1/admin/settings", None),
+    ("put", "/api/v1/admin/settings/coders", {}),
+    ("put", "/api/v1/admin/settings/accounts", {}),
+    ("put", "/api/v1/admin/settings/rating", {}),
+    ("put", "/api/v1/admin/settings/estimate", {}),
 ]
 
 

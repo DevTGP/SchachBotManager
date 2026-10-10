@@ -72,9 +72,10 @@ uploaded → analyzing → building → testing → verified
                           rejected
 verified ↔ retired (Besitzer)
 verified, retired → disabled (Admin)   disabled → verified (Admin)
+rejected → verified (Admin, Override)
 ```
 
-Bei Python fehlt `building`. Admins sperren und geben frei (E93, E96); der Besitzer zieht einen geprüften Bot zurück und aktiviert ihn wieder, eine Sperre kann er nicht aufheben (E96). Kann der Server einen Bot dreimal nicht prüfen (Infrastrukturfehler), wird er mit der Stufe `internal` abgelehnt (E89).
+Bei Python fehlt `building`. Admins sperren und geben frei (E93, E96); der Besitzer zieht einen geprüften Bot zurück und aktiviert ihn wieder, eine Sperre kann er nicht aufheben (E96). Kann der Server einen Bot dreimal nicht prüfen (Infrastrukturfehler), wird er mit der Stufe `internal` abgelehnt (E89). Ein Admin kann jeden abgelehnten Bot trotzdem auf `verified` setzen (Override, E153); `overridden_at` hält das fest, Ablehnung und Report bleiben stehen.
 
 - Der Report (Stufe, Regel, Datei/Zeile, Build-Ausgabe gekürzt, Testprotokoll) ist für Besitzer und Admin einsehbar. Er liegt in `verification_reports` mit Regelsatz und den Versionen von Python und SDK; der Bot verweist über `report_id` darauf und hält Stufe und Grund einer Ablehnung in `rejection`.
 - Der Quellcode ist ausschließlich für Besitzer und Admin abrufbar (E15).
@@ -92,4 +93,4 @@ Bei Python fehlt `building`. Admins sperren und geben frei (E93, E96); der Besit
 - **Speicherung:** Quellcode, Artefakt und Report mit Hash ablegen; Version des Laufzeitverzeichnisses und SDK-Version am Bot speichern.
 - **Missbrauch:** 20 Uploads je Konto und Tag (E92); Pipeline-Jobs haben niedrigere Priorität als Partien (E89).
 - **Determinismus:** Die Stellungen sind fest, der Zufallsbot spielt ohne festen Seed. Ein regelkonformer Bot besteht unabhängig von dessen Zügen; der Report nennt Test, Ende und Grund (E92).
-- **Neuprüfung:** Admin kann für einen Bot oder alle Bots einer Sprache eine erneute Verifikation auslösen (z. B. nach Sicherheitsfix).
+- **Neuprüfung (E153):** Ein Admin lässt einen Bot (`verified`, `rejected`, `disabled`, `retired`) oder alle verifizierten und abgelehnten Bots einer Sprache erneut prüfen, etwa nach einer Regeländerung. Die Prüfung läuft wie beim Upload mit demselben Vorrang (E89), schreibt aber nur einen Report der Art `recheck`; der Status des Bots bleibt. Besitzer und Admins sehen die letzten 20 Neuprüfungen auf der Bot-Seite.

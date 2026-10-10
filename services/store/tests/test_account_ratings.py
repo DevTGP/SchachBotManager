@@ -44,7 +44,7 @@ def person_plays(db, user_id, bot, result, *, minute) -> ObjectId:
 
 
 def value(db, collection_get, holder_id) -> dict:
-    return ratings.current(collection_get(db, holder_id))
+    return ratings.current(collection_get(db, holder_id), 2500)
 
 
 def test_a_game_of_an_account_moves_the_account_and_the_bot(db):

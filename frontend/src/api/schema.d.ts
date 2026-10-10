@@ -327,6 +327,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/account/limits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The limits for the uploads and own matches of coders now in force (coders, E154). */
+        get: operations["get_own_limits"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/account/rating": {
         parameters: {
             query?: never;
@@ -563,6 +580,61 @@ export interface paths {
         patch: operations["update_discipline"];
         trace?: never;
     };
+    "/admin/bots/recheck": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Checks every verified or rejected uploaded bot of a language again with the current rules (admin, E153); bots with a pending verification are left out. Each recheck only adds a report, the status stays. */
+        post: operations["recheck_language"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/bots/{bot_id}/recheck": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Checks an uploaded bot again with the current rules (admin, E153); it waits like an upload (E89). The result is a report in the list rechecks; the status and the upload report stay. */
+        post: operations["recheck_bot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/bots/{bot_id}/override": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verifies a rejected bot anyway, whatever the stage of its rejection (admin, E153); the rejection and the report stay on record. */
+        post: operations["override_bot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/matches": {
         parameters: {
             query?: never;
@@ -574,6 +646,63 @@ export interface paths {
         put?: never;
         /** Puts single games between two verified bots into the queue (admin, E71, E85). */
         post: operations["enqueue_matches"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/matches/{match_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                match_id: components["parameters"]["MatchId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Changes the priority of a waiting single game (admin, E152); higher starts first. */
+        patch: operations["update_match_priority"];
+        trace?: never;
+    };
+    "/admin/matches/{match_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                match_id: components["parameters"]["MatchId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Takes a waiting single game out of the queue or stops a running one (admin, E152). The match ends as aborted and does not count. */
+        post: operations["cancel_match"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/matches/{match_id}/repeat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                match_id: components["parameters"]["MatchId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queues an ended single game again: same bots, colours, start position and priority, under the discipline as it is now (admin, E152). */
+        post: operations["repeat_match"];
         delete?: never;
         options?: never;
         head?: never;
@@ -598,6 +727,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The settings of coders, accounts, the rating rule and the queue estimate (admin, E154). */
+        get: operations["get_settings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/settings/coders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Sets all limits of coders at once (admin, E154); they apply to uploads and requests from now on. */
+        put: operations["update_coders_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/settings/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Sets invitation and login settings at once (admin, E154); invite_days may not exceed invite_max_days. */
+        put: operations["update_accounts_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/settings/rating": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Sets the numbers of the rating rule at once (admin, E154); a change counts all ratings again (E105). min_win <= base <= max_win. */
+        put: operations["update_rating_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/settings/estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Sets how the queue estimates start times (admin, E154). */
+        put: operations["update_estimate_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/queue": {
         parameters: {
             query?: never;
@@ -615,6 +829,23 @@ export interface paths {
         patch: operations["update_queue"];
         trace?: never;
     };
+    "/admin/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Entries of the audit log, newest first, with the actions and actors that occur (admin, E151). */
+        get: operations["list_audit_entries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -625,7 +856,7 @@ export interface components {
         Timestamp: string;
         Error: {
             /** @enum {unknown} */
-            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large" | "builtin_bot" | "bot_verifying" | "bot_playing" | "no_capacity" | "too_many_games";
+            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large" | "builtin_bot" | "bot_verifying" | "bot_playing" | "no_capacity" | "too_many_games" | "match_state" | "not_repeatable" | "bot_state";
             /** @description English text for logs; not shown to users, except as the detail of invalid_upload. */
             message: string;
             /** @description The invalid parameter, for invalid_parameter. */
@@ -829,8 +1060,14 @@ export interface components {
             verified_at: components["schemas"]["Timestamp"] | null;
             rejected_at: components["schemas"]["Timestamp"] | null;
             rejection: components["schemas"]["Rejection"] | null;
-            /** @description null until the verification ends, and for reference bots. */
+            /** @description When an admin verified the rejected bot anyway (E153); rejection and report stay. */
+            overridden_at: components["schemas"]["Timestamp"] | null;
+            /** @description The report of the upload; null until the verification ends, and for reference bots. */
             report: components["schemas"]["VerificationReport"] | null;
+            /** @description Reports of the rechecks by admins, newest first, at most 20 (E153). */
+            rechecks: components["schemas"]["VerificationReport"][];
+            /** @description A recheck is queued or running. */
+            recheck_pending: boolean;
         };
         /**
          * @description internal: the server could not verify the bot (E92).
@@ -917,6 +1154,13 @@ export interface components {
             paths: string[];
             files: string[];
         };
+        RecheckRequest: {
+            /** @enum {unknown} */
+            language: "python" | "cpp" | "java" | "csharp" | "javascript";
+        };
+        RecheckCount: {
+            queued: number;
+        };
         BotUpdate: {
             /** @enum {unknown} */
             status: "verified" | "disabled";
@@ -948,6 +1192,8 @@ export interface components {
             /** @description When the match should start; for running matches when it started. */
             estimated_start: components["schemas"]["Timestamp"];
             estimated_end: components["schemas"]["Timestamp"];
+            /** @description Higher starts first (E152); 0 for interactive games, which have their own runner. */
+            priority: number;
         };
         Queue: {
             /** @description No new matches start while the queue is paused. */
@@ -1003,6 +1249,28 @@ export interface components {
             active: boolean;
             created_at: components["schemas"]["Timestamp"];
             last_login_at: components["schemas"]["Timestamp"] | null;
+        };
+        /** @description One action of an admin or of the command line (E85). */
+        AuditEntry: {
+            id: components["schemas"]["Id"];
+            at: components["schemas"]["Timestamp"];
+            actor: string;
+            action: string;
+            /** @description What the action changed, usually an id; null if it has no single target. */
+            target: string | null;
+            /** @description Fields of the action as recorded, such as the new status of a bot. */
+            details: {
+                [key: string]: unknown;
+            };
+        };
+        AuditPage: {
+            items: components["schemas"]["AuditEntry"][];
+            /** @description Entries matching the filter. */
+            total: number;
+            /** @description Every action in the log, sorted. */
+            actions: string[];
+            /** @description Every actor in the log, sorted. */
+            actors: string[];
         };
         UserList: {
             items: components["schemas"]["User"][];
@@ -1119,6 +1387,51 @@ export interface components {
             games_per_client: number;
             games_per_day: number;
         };
+        /** @description Limits of coders (E154): uploads and own match games per day for each coder, games per request, the longest free times and the queue priority of own matches, below the default of admins. */
+        CoderSettings: {
+            games_per_day: number;
+            uploads_per_day: number;
+            games_per_request: number;
+            max_initial_ms: number;
+            max_increment_ms: number;
+            priority: number;
+        };
+        /** @description The limits of coders without the queue priority (E154). */
+        CoderLimits: {
+            games_per_day: number;
+            uploads_per_day: number;
+            games_per_request: number;
+            max_initial_ms: number;
+            max_increment_ms: number;
+        };
+        /** @description Invitations and logins (E154): the default and longest validity of an invitation link in days, wrong passwords in a row before a login is locked. */
+        AccountSettings: {
+            invite_days: number;
+            invite_max_days: number;
+            login_failures: number;
+        };
+        /** @description The numbers of the rating rule (E103, E154): start rating, gain between equal ratings, the rating difference worth one point, the bounds of a win and the most a draw moves. */
+        RatingRule: {
+            start: number;
+            base: number;
+            step: number;
+            max_win: number;
+            min_win: number;
+            max_draw: number;
+        };
+        /** @description How the queue estimates start times (E154): finished matches a discipline's duration is the mean of, and the moves each side is assumed to make without any. */
+        EstimateSettings: {
+            recent_games: number;
+            moves_per_game: number;
+        };
+        AdminSettings: {
+            coders: components["schemas"]["CoderSettings"];
+            accounts: components["schemas"]["AccountSettings"];
+            rating: components["schemas"]["RatingRule"];
+            estimate: components["schemas"]["EstimateSettings"];
+            /** @description Whether the runner has yet to count all ratings again (E105). */
+            rating_recount_pending: boolean;
+        };
         ApiToken: {
             id: components["schemas"]["Id"];
             name: string;
@@ -1154,6 +1467,9 @@ export interface components {
         };
         QueueUpdate: {
             paused: boolean;
+        };
+        MatchPriority: {
+            priority: number;
         };
         /**
          * @description PGN result; * if the game was aborted without rating.
@@ -1294,6 +1610,33 @@ export interface components {
         };
         /** @description A reference bot (code builtin_bot), a bot still being verified (code bot_verifying) or a bot in a running match (code bot_playing) cannot be deleted. */
         BotNotDeletable: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description A reference bot (code builtin_bot), or a bot with a verification still queued or running (code bot_verifying), cannot be checked again. */
+        NotRecheckable: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description Only a rejected bot can be verified anyway (code bot_state). */
+        NotRejected: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description The match is not a single game or not in a state that allows this (code match_state), or it cannot be queued again because a bot is no longer verified or its discipline is archived (code not_repeatable). */
+        MatchState: {
             headers: {
                 [name: string]: unknown;
             };
@@ -1924,6 +2267,28 @@ export interface operations {
             429: components["responses"]["TooManyAttempts"];
         };
     };
+    get_own_limits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The limits. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoderLimits"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
     get_own_rating: {
         parameters: {
             query?: never;
@@ -2367,6 +2732,94 @@ export interface operations {
             409: components["responses"]["DisciplineNameTaken"];
         };
     };
+    recheck_language: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecheckRequest"];
+            };
+        };
+        responses: {
+            /** @description How many rechecks were queued. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecheckCount"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    recheck_bot: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The bot with the recheck pending. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotDetail"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["NotRecheckable"];
+        };
+    };
+    override_bot: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The verified bot. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotDetail"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["NotRejected"];
+        };
+    };
     enqueue_matches: {
         parameters: {
             query?: never;
@@ -2395,6 +2848,96 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
+        };
+    };
+    update_match_priority: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                match_id: components["parameters"]["MatchId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MatchPriority"];
+            };
+        };
+        responses: {
+            /** @description The priority now in force. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MatchPriority"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["MatchState"];
+        };
+    };
+    cancel_match: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                match_id: components["parameters"]["MatchId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The match is aborted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["MatchState"];
+        };
+    };
+    repeat_match: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                match_id: components["parameters"]["MatchId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The new match. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnqueuedMatches"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["MatchState"];
         };
     };
     get_play_settings: {
@@ -2449,6 +2992,148 @@ export interface operations {
             403: components["responses"]["Forbidden"];
         };
     };
+    get_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description All settings now in force. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSettings"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    update_coders_settings: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoderSettings"];
+            };
+        };
+        responses: {
+            /** @description All settings now in force. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSettings"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    update_accounts_settings: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountSettings"];
+            };
+        };
+        responses: {
+            /** @description All settings now in force. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSettings"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    update_rating_settings: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RatingRule"];
+            };
+        };
+        responses: {
+            /** @description All settings now in force. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSettings"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    update_estimate_settings: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EstimateSettings"];
+            };
+        };
+        responses: {
+            /** @description All settings now in force. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSettings"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
     update_queue: {
         parameters: {
             query?: never;
@@ -2472,6 +3157,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["QueueUpdate"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    list_audit_entries: {
+        parameters: {
+            query?: {
+                /** @description Only entries of this actor: a username, or cli for the command line. */
+                actor?: string;
+                /** @description Only entries with this action, such as bot.update. */
+                action?: string;
+                /** @description Only entries about this target, usually the id of a bot, account, invite or discipline. */
+                target?: string;
+                /** @description Only entries from this day on (UTC). */
+                since?: string;
+                /** @description Only entries up to and including this day (UTC). */
+                until?: string;
+                /** @description Page size. */
+                limit?: components["parameters"]["Limit"];
+                /** @description Number of items to skip. */
+                offset?: components["parameters"]["Offset"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page of entries. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditPage"];
                 };
             };
             400: components["responses"]["BadRequest"];

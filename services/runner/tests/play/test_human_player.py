@@ -99,5 +99,8 @@ def test_a_rated_game_of_an_account_is_counted_at_once(db, gateway, play_worker,
 
     wait_for(lambda: "rating" in matches.get(db, match["_id"]))
     assert match["rated"] is True
-    assert ratings.current(db["users"].find_one({"_id": user_id})) == {"value": 2450, "games": 1}
-    assert ratings.current(bots.get(db, match["black"]["bot_id"]))["value"] == 2550
+    assert ratings.current(db["users"].find_one({"_id": user_id}), 2500) == {
+        "value": 2450,
+        "games": 1,
+    }
+    assert ratings.current(bots.get(db, match["black"]["bot_id"]), 2500)["value"] == 2550

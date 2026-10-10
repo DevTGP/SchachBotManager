@@ -85,7 +85,7 @@ Upload und Bot-Seite für Python:
 | `routes/bots.py`, `routes/account_bots.py`, `routes/admin_bots.py` | Upload und Detail, eigene Bots, Sperre |
 | `bot_view.py`, `report_view.py` | Ausgabeform von Bot, Dateien und Report |
 
-Neue Fehlercodes: `invalid_upload` (400, mit `path` der betroffenen Datei), `too_large` (413, über 3 MiB), `name_taken` und `upload_conflict` (409). Gültige Uploads zählen je Konto unter `upload:{user_id}`, höchstens 20 am Tag (429 `too_many_attempts`). Die API prüft nur Form und Grenzen, den Inhalt nie; sie startet keine Prozesse (E81).
+Neue Fehlercodes: `invalid_upload` (400, mit `path` der betroffenen Datei), `too_large` (413, über 3 MiB), `name_taken` und `upload_conflict` (409). Gültige Uploads zählen je Konto unter `upload:{user_id}`, höchstens 20 am Tag (429 `too_many_attempts`; Zahl seit E154 eine Einstellung). Die API prüft nur Form und Grenzen, den Inhalt nie; sie startet keine Prozesse (E81).
 
 ### Stand M3, Schritt 4 (E95–E98)
 
@@ -98,7 +98,7 @@ Neue Fehlercodes: `invalid_upload` (400, mit `path` der betroffenen Datei), `too
 | `PATCH /bots/{id}` | Nur der Besitzer: `description` ändern und/oder `status` zwischen `verified` und `retired` schalten (E95, E96); andere Übergänge ergeben 400 `invalid_parameter` mit `field` `status` |
 | `GET /bots/{id}/file?path=…` | Eine Datei als Download, nur Besitzer und Admins (E97) |
 | `GET /bots/{id}/source` | Alle Dateien als ZIP `Name-Version.zip`, nur Besitzer und Admins (E97) |
-| `POST /matches` | Partien eines eigenen `verified` Bots gegen jeden `verified` Bot: 1–10 Partien, bis 5 min + 5 s, Priorität 50; 20 Partien je Konto und Tag unter `matches:{user_id}` (E98) |
+| `POST /matches` | Partien eines eigenen `verified` Bots gegen jeden `verified` Bot: 1–10 Partien, bis 5 min + 5 s, Priorität 50; 20 Partien je Konto und Tag unter `matches:{user_id}` (E98; alle Grenzen seit E154 Einstellungen) |
 | `PATCH /admin/bots/{id}` | Sperrt jetzt auch `retired` Bots; Freigeben setzt `verified` (E96) |
 
 | Datei | Aufgabe |
@@ -160,6 +160,23 @@ Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 
 - `require_coder` schützt Upload, eigene Bots, eigene Partien und Tokens; die Rolle `player` bekommt dort 403.
 - Neue Fehlercodes: `no_capacity` (503), `too_many_games` (429).
 
+### Stand M6 (E150–E169)
+
+| Datei | Aufgabe |
+|-------|---------|
+| `routes/admin_audit_log.py`, `audit_view.py` | `GET /admin/audit`: Audit-Log neueste zuerst, Filter `actor`, `action`, `target`, `since`, `until` (UTC-Tage, einschließlich), dazu alle Akteure und Aktionen (E151); Abfrage in `sbm_store.audit` |
+| `params.py` | zusätzlich `optional_date` für Datumsfilter im Format `2026-10-10` |
+| `routes/admin_match_actions.py` | `PATCH /admin/matches/{id}` (Priorität einer wartenden Partie), `POST /admin/matches/{id}/cancel`, `POST /admin/matches/{id}/repeat`, nur für Einzelspiele, je mit Eintrag im Audit-Log (E152) |
+| `queue_view.py` | zusätzlich `priority` je Eintrag aus dem Job, für interaktive Partien 0 (E152) |
+| `routes/admin_bot_checks.py` | `POST /admin/bots/{id}/recheck` und `POST /admin/bots/recheck` (eine Sprache) reihen Neuprüfungen ein, `POST /admin/bots/{id}/override` verifiziert einen abgelehnten Bot, je mit Eintrag im Audit-Log (E153); Logik in `sbm_store.rechecks` und `sbm_store.bots.override` |
+| `bot_view.py` | zusätzlich `overridden_at`, für Besitzer und Admins `rechecks` (letzte 20 Berichte der Art `recheck`) und `recheck_pending` (E153) |
+| `settings_groups.py`, `routes/admin_settings.py` | `GET /admin/settings` mit allen Gruppen und `rating_recount_pending`, `PUT /admin/settings/{coders,accounts,rating,estimate}` ersetzt eine Gruppe nach Bereichen je Feld und Regeln zwischen Feldern, je mit Eintrag im Audit-Log; geänderte Rating-Werte fordern eine Neuberechnung an (E154) |
+| `routes/account_limits.py` | `GET /account/limits`: Grenzen für Uploads und eigene Partien ohne Priorität, nur Coder und Admins (E154) |
+| `rating_start.py` | Startwert des Ratings einmal je Anfrage, für Bots und Konten ohne verbuchte Partie (E154) |
+| `login.py`, `rate_limit.py`, `own_match_request.py`, `queue_estimate.py`, `invite_cli.py`, `routes/admin_invites.py` | lesen Sperre, Grenzen der Coder, Schätzung und Gültigkeit der Einladungen aus den Einstellungen (E154) |
+
+- Neue Fehlercodes: `match_state` (409, Partie im falschen Zustand oder kein Einzelspiel), `not_repeatable` (409, Bot nicht mehr `verified` oder Disziplin archiviert), `bot_state` (409, Override eines nicht abgelehnten Bots).
+
 ## Rollen und Rechte
 
 | Rolle | Darf |
@@ -180,7 +197,7 @@ Jede Route prüft Rolle **und** Besitz (eigene Ressource vs. fremde).
 
 - Konto aus Nutzername und Passwort, ohne E-Mail (E83).
 - Invite: einmalig, mit Ablaufdatum, legt Rolle fest; nur der Hash wird gespeichert (E83).
-- Passwörter mit argon2id; Rate-Limit je Client-Adresse und Sperre nach fünf Fehlversuchen (E84).
+- Passwörter mit argon2id; Rate-Limit je Client-Adresse und Sperre nach fünf Fehlversuchen (E84; Zahl seit E154 eine Einstellung).
 - Passwort-Reset ohne Mailversand: durch Admin ausgelöster Einmal-Link (E83).
 - CSRF-Schutz über den Header `X-SBM-CSRF: 1` bei jeder ändernden Anfrage (E84).
 

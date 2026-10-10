@@ -1,7 +1,8 @@
 """Verifies an uploaded bot: static analysis, then the Mindesttests, then the report (E92).
 
 Python needs no build stage. The bot's files are checked out once and removed at the end;
-a bot that passes is verified at once (E93).
+a bot that passes is verified at once (E93). A recheck by an admin runs the same stages but
+only writes a report of kind recheck; the bot keeps its status (E153).
 """
 
 import logging
@@ -14,7 +15,7 @@ from typing import Protocol
 from pymongo.database import Database
 from sbm.referee import Player
 from sbm_store import bots, jobs, verification_reports
-from sbm_store.verification_reports import FAILED, PASSED, TESTS
+from sbm_store.verification_reports import FAILED, PASSED, RECHECK, TESTS, UPLOAD
 
 from sbm_runner.checkout import BotDir
 from sbm_runner.sandbox.run_once import Completed
@@ -48,15 +49,22 @@ def run_verification(
         log.error("job %s refers to the missing bot %s", job["_id"], bot_id)
         jobs.fail(db, job["_id"], now())
         return
-    if bot["status"] not in bots.PIPELINE:
+    recheck = jobs.is_recheck(job)
+    if not recheck and bot["status"] not in bots.PIPELINE:
         # The previous worker finished the bot but died before closing the job.
         jobs.complete(db, job["_id"], job["worker_id"], now())
         return
-    log.info("verifying bot %s (%s %s)", bot_id, bot["name"], bot["version"])
+    log.info(
+        "%s bot %s (%s %s)",
+        "rechecking" if recheck else "verifying",
+        bot_id,
+        bot["name"],
+        bot["version"],
+    )
     started_at = now()
     bot_dir = verifier.checkout(bot)
     try:
-        stages, ruleset = _stages(db, bot, verifier, bot_dir.path)
+        stages, ruleset = _stages(db, bot, verifier, bot_dir.path, advance=not recheck)
     finally:
         bot_dir.remove()
     failed = next((stage for stage in stages if stage["status"] == FAILED), None)
@@ -70,8 +78,13 @@ def run_verification(
         ruleset=ruleset,
         runtime=verifier.runtime,
         stages=stages,
+        kind=RECHECK if recheck else UPLOAD,
     )
     verification_reports.insert(db, report)
+    if recheck:
+        jobs.complete(db, job["_id"], job["worker_id"], now())
+        log.info("bot %s rechecked: %s", bot_id, failed["problem"] if failed else "passed")
+        return
     bots.finish_verification(
         db,
         bot_id,
@@ -87,15 +100,18 @@ def run_verification(
 
 
 def _stages(
-    db: Database, bot: dict, verifier: Verifier, bot_dir: Path
+    db: Database, bot: dict, verifier: Verifier, bot_dir: Path, *, advance: bool
 ) -> tuple[list[dict], str | None]:
-    bots.advance(db, bot["_id"], bots.ANALYZING)
+    """With advance the bot's status follows the stages; a recheck leaves it."""
+    if advance:
+        bots.advance(db, bot["_id"], bots.ANALYZING)
     start = time.monotonic()
     completed = verifier.analyze(bot_dir, bot["entry"], ANALYSIS_SECONDS)
     analysis, ruleset = analysis_stage(completed, _ms_since(start))
     if analysis["status"] == FAILED:
         return [analysis], ruleset
-    bots.advance(db, bot["_id"], bots.TESTING)
+    if advance:
+        bots.advance(db, bot["_id"], bots.TESTING)
     return [analysis, _tests_stage(bot, verifier, bot_dir)], ruleset
 
 

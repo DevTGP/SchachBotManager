@@ -5,6 +5,7 @@ from sbm_store import ratings
 
 from sbm_api import context
 from sbm_api.bot_view import bot_view
+from sbm_api.rating_start import rating_start
 
 blueprint = Blueprint("ratings", __name__)
 
@@ -18,7 +19,7 @@ def list_ratings():
 def list_player_ratings():
     return {
         "items": [
-            {"username": user["username"], "rating": ratings.current(user)}
+            {"username": user["username"], "rating": ratings.current(user, rating_start())}
             for user in ratings.player_ranking(context.db())
         ]
     }

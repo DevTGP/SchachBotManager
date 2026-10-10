@@ -40,11 +40,14 @@
     "upload_conflict": "Another upload got there first. Please try again.",
     "invalid_upload": "The upload breaks a rule.",
     "too_large": "The upload is too large.",
-    "builtin_bot": "Reference bots cannot be deleted.",
+    "builtin_bot": "This is not possible for reference bots.",
     "bot_verifying": "The bot is being verified. Please wait until that is done.",
     "bot_playing": "The bot is playing a game. Please try again once it has ended.",
     "no_capacity": "All places for games are taken. Please try again in a few minutes.",
-    "too_many_games": "Finish your running game first."
+    "too_many_games": "Finish your running game first.",
+    "match_state": "The game is not in a state that allows this (any more). Please reload the page.",
+    "not_repeatable": "The game cannot be repeated: a bot is no longer verified or the discipline is archived.",
+    "bot_state": "The bot is not (or no longer) in a state that allows this. Please reload the page."
   },
   "start": {
     "intro": "Chess bots compete against each other here. All games are public.",
@@ -187,7 +190,14 @@
     "versions": "Versions",
     "downloadZip": "Download all files (ZIP)",
     "downloadFile": "Download file",
-    "binary": "This file is not text."
+    "binary": "This file is not text.",
+    "overriddenAt": "Verified anyway",
+    "recheck": "Check again",
+    "recheckPending": "A recheck is waiting or running. This page updates itself.",
+    "rechecks": "Rechecks",
+    "override": "Verify anyway",
+    "overrideWarning": "The bot then counts as verified and may play although the verification rejected it. The reason for the rejection stays visible.",
+    "overrideConfirm": "Yes, verify anyway"
   },
   "upload": {
     "title": "Upload a bot",
@@ -205,12 +215,13 @@
     "version": "Version",
     "versionHint": "X.Y.Z, higher than every earlier version of the name.",
     "submit": "Upload",
-    "limit": "The bot is checked and tested before it may play. At most 20 uploads a day.",
+    "limit": "At most {{uploads}} uploads a day.",
     "noFiles": "Choose a folder or files with at least one .py file.",
     "tooManyFiles": "At most 100 .py files and 100 data files are allowed.",
     "tooLarge": "The .py files and the data files may each be at most 1 MB in all.",
     "noEntry": "The top folder needs a .py file the bot starts with.",
-    "ownLink": "All your bots and versions"
+    "ownLink": "All your bots and versions",
+    "review": "The bot is checked and tested before it may play."
   },
   "ownBots": {
     "title": "My bots",
@@ -220,12 +231,12 @@
     "opponent": "Opponent",
     "ownColor": "Your bot plays",
     "noVerified": "Once one of your bots is verified, you can schedule games for it here.",
-    "limits": "Free times at most 5 minutes plus 5 seconds a move; disciplines without this limit. At most 10 games at once and 20 games a day. Your games start after those set by admins."
+    "limits": "Free times at most {{initialSeconds}} seconds plus {{incrementSeconds}} seconds a move; disciplines without this limit. At most {{games}} games at once and {{gamesPerDay}} games a day. Your games start after those set by admins."
   },
   "ownMatchError": {
-    "initial_time_ms": "The time must be between 1 and 300 seconds.",
-    "increment_ms": "The increment may be at most 5 seconds.",
-    "games": "1 to 10 games are possible.",
+    "initial_time_ms": "The time must be between 1 and {{initialSeconds}} seconds.",
+    "increment_ms": "The increment may be at most {{incrementSeconds}} seconds.",
+    "games": "1 to {{games}} games are possible.",
     "white_bot_id": "One of the bots must be yours, and both must be verified.",
     "black_bot_id": "The opponent must be a verified bot."
   },
@@ -330,7 +341,7 @@
     "max_moves": "The move limit must be between 1 and 2000.",
     "white_bot_id": "White is not a verified bot.",
     "black_bot_id": "Black is not a verified bot.",
-    "valid_days": "A link is valid for 1 to 30 days.",
+    "valid_days": "A link is valid for 1 to {{max}} days.",
     "role": "The role is unknown.",
     "user_id": "Your own account cannot be changed here.",
     "name": "The name must have 3 to 32 characters: letters, digits, _ . or -, starting with a letter or digit.",
@@ -434,7 +445,33 @@
     "commandLine": "Command line",
     "expires": "Valid until",
     "revoke": "Revoke",
-    "play": "Play"
+    "play": "Play",
+    "audit": "Log",
+    "auditActor": "Who",
+    "auditAction": "Action",
+    "auditAll": "All",
+    "auditSince": "From",
+    "auditUntil": "To",
+    "auditAt": "Time",
+    "auditTarget": "Target",
+    "auditDetails": "Details",
+    "auditEmpty": "No entries.",
+    "auditFilterTarget": "Only entries about this target",
+    "auditClearTarget": "Remove target {{target}}",
+    "queueRunningShort": "running",
+    "queueEmpty": "The queue is empty.",
+    "setPriority": "Set",
+    "toFront": "To the front",
+    "cancelMatch": "Cancel game",
+    "cancelConfirm": "Really cancel",
+    "cancelKeep": "Keep",
+    "repeatMatch": "Repeat game",
+    "recheckTitle": "Check bots again",
+    "recheckHint": "Checks all verified and rejected uploaded bots of a language with the current rules. Each recheck only adds a report; the status stays.",
+    "recheck": "Check again",
+    "rechecksQueued_one": "{{count}} recheck queued.",
+    "rechecksQueued_other": "{{count}} rechecks queued.",
+    "settings": "Settings"
   },
   "notFound": {
     "title": "Page not found",
@@ -514,5 +551,41 @@
   },
   "tokenError": {
     "name": "1 to 40 characters; an account has at most 10 tokens."
+  },
+  "adminSettings": {
+    "coders": "Limits for coders",
+    "codersHint": "Apply to uploads and to games coders set for their own bots. Games set by admins have priority 100.",
+    "games_per_day": "Games per day",
+    "uploads_per_day": "Uploads per day",
+    "games_per_request": "Games per request",
+    "max_initial_ms": "Free time at most (s)",
+    "max_increment_ms": "Increment at most (s)",
+    "priority": "Priority in the queue",
+    "accounts": "Invitations and accounts",
+    "accountsHint": "Validity of new invite links in days and wrong passwords in a row after which a login is locked for 15 minutes.",
+    "invite_days": "Default validity",
+    "invite_max_days": "Longest validity",
+    "login_failures": "Failures until locked",
+    "rating": "Rating",
+    "ratingHint": "Start value and rule for gains and draws. A change counts all rated games again.",
+    "start": "Start value",
+    "base": "Gain at equal rating",
+    "step": "Rating gap per point",
+    "max_win": "Gain at most",
+    "min_win": "Gain at least",
+    "max_draw": "Draw at most",
+    "estimate": "Queue estimate",
+    "estimateHint": "Basis for the estimated start of waiting games.",
+    "recent_games": "Recent games per discipline",
+    "moves_per_game": "Moves per game without experience",
+    "save": "Save",
+    "saved": "Saved.",
+    "recountPending": "The ratings are being counted again."
+  },
+  "settingsError": {
+    "invite_days": "The default validity must not exceed the longest.",
+    "min_win": "The smallest gain must not exceed the gain at equal rating.",
+    "max_win": "The largest gain must not be below the gain at equal rating.",
+    "priority": "The priority lies between 0 and 99."
   }
 }

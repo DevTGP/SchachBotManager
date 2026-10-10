@@ -1,21 +1,36 @@
-"""How a rated match moves the ratings of its two sides (E103)."""
+"""How a rated match moves the ratings of its two sides (E103); the numbers are settings (E154)."""
 
-START = 2500
-BASE = 50
-STEP = 20
-MAX_WIN = 100
-MIN_WIN = 1
-MAX_DRAW = 50
+from dataclasses import dataclass
 
 
-def white_gain(white: int, black: int, result: str) -> int:
+@dataclass(frozen=True)
+class RatingRule:
+    """start is the rating without rated matches; base the gain between equal ratings; per full
+    step the winner is ahead it gains one point less, at least min_win, per full step behind
+    one more, at most max_win; a draw moves the lower rating up one point per full step, at
+    most max_draw."""
+
+    start: int = 2500
+    base: int = 50
+    step: int = 20
+    max_win: int = 100
+    min_win: int = 1
+    max_draw: int = 50
+
+
+DEFAULT = RatingRule()
+
+
+def white_gain(white: int, black: int, result: str, rule: RatingRule) -> int:
     """Points White wins (negative: loses); Black's rating moves by the same amount the other
-    way. One point less per full 20 the winner is ahead, one more per full 20 behind."""
-    steps = abs(white - black) // STEP
+    way."""
+    steps = abs(white - black) // rule.step
     if result == "1/2-1/2":
-        gain = min(MAX_DRAW, steps)
+        gain = min(rule.max_draw, steps)
         return gain if white < black else -gain
     winner, loser = (white, black) if result == "1-0" else (black, white)
-    ahead = winner >= loser
-    gain = max(MIN_WIN, BASE - steps) if ahead else min(MAX_WIN, BASE + steps)
+    if winner >= loser:
+        gain = max(rule.min_win, rule.base - steps)
+        return gain if result == "1-0" else -gain
+    gain = min(rule.max_win, rule.base + steps)
     return gain if result == "1-0" else -gain

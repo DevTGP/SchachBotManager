@@ -1,6 +1,8 @@
 import type {
+  AdminSettings,
   Bot,
   BotDetail,
+  CoderLimits,
   CurrentUser,
   Match,
   MatchSummary,
@@ -124,6 +126,25 @@ export function storedDiscipline(overrides: Partial<StoredDiscipline> = {}): Sto
   };
 }
 
+export const CODER_LIMITS: CoderLimits = {
+  games_per_day: 20,
+  uploads_per_day: 20,
+  games_per_request: 10,
+  max_initial_ms: 300_000,
+  max_increment_ms: 5_000,
+};
+
+export function adminSettings(overrides: Partial<AdminSettings> = {}): AdminSettings {
+  return {
+    coders: { ...CODER_LIMITS, priority: 50 },
+    accounts: { invite_days: 7, invite_max_days: 30, login_failures: 5 },
+    rating: { start: 2500, base: 50, step: 20, max_win: 100, min_win: 1, max_draw: 50 },
+    estimate: { recent_games: 20, moves_per_game: 80 },
+    rating_recount_pending: false,
+    ...overrides,
+  };
+}
+
 export const ADMIN: CurrentUser = {
   id: "665f0000000000000000a001",
   username: "admin",
@@ -186,6 +207,9 @@ export function botDetail(overrides: Partial<BotDetail> = {}): BotDetail {
             verified_at: null,
             rejected_at: "2026-05-01T10:01:00.000Z",
             rejection: { stage: "analysis", reason: "1 finding" },
+            overridden_at: null,
+            recheck_pending: false,
+            rechecks: [],
             report: {
               result: "failed",
               ruleset: "python-1",

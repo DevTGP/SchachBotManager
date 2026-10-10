@@ -1,9 +1,9 @@
-"""Admin: list, create and revoke invites (E4, E83, E85)."""
+"""Admin: list, create and revoke invites (E4, E83, E85); validity from the settings (E154)."""
 
 from datetime import timedelta
 
 from flask import Blueprint
-from sbm_store import invites, users
+from sbm_store import account_settings, invites, users
 
 from sbm_api import admin_audit, body, context
 from sbm_api.current_user import require_admin
@@ -13,9 +13,6 @@ from sbm_api.links import INVITE_PAGE, one_time_link
 from sbm_api.params import object_id
 
 blueprint = Blueprint("admin_invites", __name__)
-
-DEFAULT_VALID_DAYS = 7
-MAX_VALID_DAYS = 30
 
 
 @blueprint.get("/admin/invites")
@@ -30,10 +27,14 @@ def create_invite():
     admin = require_admin()
     data = body.json_object(("role", "valid_days"))
     role = body.choice(data, "role", users.ROLES)
-    days = body.integer(data, "valid_days", low=1, high=MAX_VALID_DAYS, default=DEFAULT_VALID_DAYS)
+    db = context.db()
+    limits = account_settings.get(db)
+    days = body.integer(
+        data, "valid_days", low=1, high=limits.invite_max_days, default=limits.invite_days
+    )
     now = context.now()
     invite, token = invites.create(
-        context.db(),
+        db,
         role,
         created_by=admin["_id"],
         created_by_name=admin["username"],

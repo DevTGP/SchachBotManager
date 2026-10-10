@@ -16,6 +16,7 @@ from sbm_runner.players import PlayerFactory, plain_player
 from sbm_runner.recovery import recover_expired
 from sbm_runner.retries import retry_or_abort, retry_or_reject
 from sbm_runner.shutdown import Shutdown
+from sbm_runner.stopper import Stopper
 from sbm_runner.verification.pipeline import Verifier, run_verification
 
 log = logging.getLogger(__name__)
@@ -68,6 +69,7 @@ class Worker:
         job = self._claim()
         if job is None:
             return False
+        stopper = Stopper()
         heartbeat = Heartbeat(
             self._db,
             job["_id"],
@@ -75,9 +77,10 @@ class Worker:
             lease=self._config.lease,
             interval=self._config.heartbeat,
             now=self._now,
+            on_lost=stopper.stop,
         )
         with heartbeat:
-            self._work(job)
+            self._work(job, stopper)
         return True
 
     def _claim(self) -> dict | None:
@@ -102,11 +105,11 @@ class Worker:
             or claim(jobs.VERIFICATION)
         )
 
-    def _work(self, job: dict) -> None:
+    def _work(self, job: dict, stopper: Stopper) -> None:
         if job["type"] == jobs.VERIFICATION:
             self._verify(job)
         else:
-            self._play(job)
+            self._play(job, stopper)
 
     def _verify(self, job: dict) -> None:
         try:
@@ -119,9 +122,9 @@ class Worker:
             log.exception("verification job %s failed (attempt %d)", job["_id"], job["attempts"])
             retry_or_reject(self._db, job, self._config, self._now())
 
-    def _play(self, job: dict) -> None:
+    def _play(self, job: dict, stopper: Stopper) -> None:
         try:
-            run_job(self._db, job, players=self._players, now=self._now)
+            run_job(self._db, job, players=self._players, now=self._now, stopper=stopper)
         except Shutdown:
             # Stopping is not the match's fault: it starts over and the attempt does not count.
             matches.requeue(self._db, job["payload"]["match_id"])

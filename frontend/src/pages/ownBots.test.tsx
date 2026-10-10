@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import type { Bot } from "../api/types";
-import { BOTS, CODER } from "../test/fixtures";
+import { BOTS, CODER, CODER_LIMITS } from "../test/fixtures";
 import { type ApiCall, mockApi, renderRoute } from "../test/render";
 
 function own(id: string, name: string, version: string, status: Bot["status"]): Bot {
@@ -52,6 +52,7 @@ describe("my bots page", () => {
     const api = mockApi({
       "/session": { user: CODER },
       "/account/bots": { items: [SHARP_NEW, SHARP_OLD] },
+      "/account/limits": CODER_LIMITS,
       "/bots": { items: [...BOTS, SHARP_NEW, FOREIGN] },
       "/matches": { match_ids: ["665f00000000000000000101", "665f00000000000000000102"] },
     });
@@ -88,6 +89,7 @@ describe("my bots page", () => {
     mockApi({
       "/session": { user: CODER },
       "/account/bots": { items: [SHARP_NEW] },
+      "/account/limits": { ...CODER_LIMITS, max_initial_ms: 600_000, games_per_day: 50 },
       "/bots": { items: BOTS },
       "/matches": Response.json(
         { code: "invalid_parameter", message: "too long", field: "initial_time_ms" },
@@ -98,7 +100,11 @@ describe("my bots page", () => {
 
     await user.click(await screen.findByRole("button", { name: "Add to queue" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "The time must be between 1 and 300 seconds.",
+      "The time must be between 1 and 600 seconds.",
+    );
+    expect(screen.getByRole("spinbutton", { name: "Time (s)" })).toHaveAttribute("max", "600");
+    expect(screen.getByText(/at most 600 seconds plus 5 seconds/)).toHaveTextContent(
+      "At most 10 games at once and 50 games a day.",
     );
   });
 
@@ -106,6 +112,7 @@ describe("my bots page", () => {
     mockApi({
       "/session": { user: CODER },
       "/account/bots": { items: [BLUNT] },
+      "/account/limits": CODER_LIMITS,
       "/bots": { items: BOTS },
     });
     renderRoute("/account/bots");

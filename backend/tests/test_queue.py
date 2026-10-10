@@ -37,6 +37,7 @@ def test_higher_priority_goes_first(client, enqueue):
     urgent = enqueue(now=NOW - timedelta(minutes=1), priority=500)
     queue = client.get("/api/v1/queue").json
     assert queue["waiting"][0]["match"]["id"] == str(urgent)
+    assert [entry["priority"] for entry in queue["waiting"]] == [500, 100]
 
 
 def test_running_match_delays_the_waiting_ones(client, db, enqueue):
@@ -113,6 +114,7 @@ def test_games_of_people_run_beside_the_queue(client, db, reference_bots, enqueu
 
     assert [entry["match"]["id"] for entry in queue["running"]] == [str(game)]
     assert queue["running"][0]["match"]["type"] == "human"
+    assert queue["running"][0]["priority"] == 0
     assert queue["running"][0]["estimated_end"] == "2026-05-01T12:05:00.000Z"
     assert queue["waiting"][0]["match"]["id"] == str(waiting)
     assert queue["waiting"][0]["estimated_start"] == "2026-05-01T12:00:00.000Z"

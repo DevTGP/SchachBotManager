@@ -1,5 +1,12 @@
 import { getJson, sendJson } from "./client";
-import type { ApiToken, CreatedApiToken, CurrentUser, Rating, SessionState } from "./types";
+import type {
+  ApiToken,
+  CoderLimits,
+  CreatedApiToken,
+  CurrentUser,
+  Rating,
+  SessionState,
+} from "./types";
 
 export async function fetchSession(signal?: AbortSignal): Promise<CurrentUser | null> {
   const state = await getJson<SessionState>("/session", undefined, signal);
@@ -46,6 +53,11 @@ export function changePassword(currentPassword: string, newPassword: string): Pr
 /** The own rating from rated games against bots (E117); also in the public ranking (E118). */
 export function fetchOwnRating(signal?: AbortSignal): Promise<Rating> {
   return getJson<Rating>("/account/rating", undefined, signal);
+}
+
+/** The limits for uploads and own matches now in force (E154). */
+export function fetchLimits(signal?: AbortSignal): Promise<CoderLimits> {
+  return getJson("/account/limits", undefined, signal);
 }
 
 export async function fetchTokens(signal?: AbortSignal): Promise<ApiToken[]> {

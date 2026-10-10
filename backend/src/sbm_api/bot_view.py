@@ -1,12 +1,13 @@
 """Bots as the API shows them (schemas Bot and BotDetail); source and owner stay hidden (E15).
 
 The detail lists the versions of the name the viewer may see (E95). Owner and admins also get
-the details: files, runtime versions and the verification report.
+the details: files, runtime versions, the report of the upload and those of rechecks (E153).
 """
 
-from sbm_store import bots, ratings, users, verification_reports
+from sbm_store import bots, jobs, ratings, users, verification_reports
 
 from sbm_api import context
+from sbm_api.rating_start import rating_start
 from sbm_api.report_view import report_view
 from sbm_api.timestamps import optional_timestamp, timestamp
 
@@ -22,7 +23,7 @@ def bot_view(bot: dict) -> dict:
         # Reference bots and bots from before E95 have none.
         "description": bot.get("description") or "",
         # Bots without a counted match have no rating stored yet (E103).
-        "rating": ratings.current(bot),
+        "rating": ratings.current(bot, rating_start()),
         "created_at": timestamp(bot["created_at"]),
     }
 
@@ -67,5 +68,11 @@ def _details(bot: dict) -> dict:
         "rejection": (
             {"stage": rejection["stage"], "reason": rejection["reason"]} if rejection else None
         ),
+        "overridden_at": optional_timestamp(bot.get("overridden_at")),
         "report": report_view(report) if report else None,
+        "rechecks": [
+            report_view(recheck) for recheck in verification_reports.rechecks_of(db, bot["_id"])
+        ],
+        # Uploads have their own pending verification; it shows in the status.
+        "recheck_pending": bot["status"] not in bots.PIPELINE and jobs.verifying(db, bot["_id"]),
     }

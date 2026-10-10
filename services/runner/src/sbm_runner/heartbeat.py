@@ -14,7 +14,11 @@ log = logging.getLogger(__name__)
 
 
 class Heartbeat:
-    """Use as a context manager around the work on one job."""
+    """Use as a context manager around the work on one job.
+
+    on_lost is called from the heartbeat thread once the worker no longer holds the job, e.g.
+    because an admin cancelled it (E152).
+    """
 
     def __init__(
         self,
@@ -25,6 +29,7 @@ class Heartbeat:
         lease: timedelta,
         interval: timedelta,
         now: Callable[[], datetime],
+        on_lost: Callable[[], None] = lambda: None,
     ) -> None:
         self._db = db
         self._job_id = job_id
@@ -32,6 +37,7 @@ class Heartbeat:
         self._lease = lease
         self._interval = interval
         self._now = now
+        self._on_lost = on_lost
         self._stopped = threading.Event()
         self._thread = threading.Thread(target=self._run, name="heartbeat", daemon=True)
 
@@ -54,5 +60,6 @@ class Heartbeat:
                 log.warning("cannot renew the lease of job %s: %s", self._job_id, error)
                 continue
             if not held:
-                log.error("job %s is no longer held by %s", self._job_id, self._worker_id)
+                log.warning("job %s is no longer held by %s", self._job_id, self._worker_id)
+                self._on_lost()
                 return

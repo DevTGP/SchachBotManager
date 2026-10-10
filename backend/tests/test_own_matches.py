@@ -5,10 +5,9 @@ from datetime import timedelta
 import pytest
 from bson import ObjectId
 from sbm.referee import STANDARD_FEN
-from sbm_store import bots, matches
+from sbm_store import bots, coder_settings, matches
+from sbm_store.coder_settings import CoderSettings
 from sbm_store.names import MATCHES
-
-from sbm_api import rate_limit
 
 from accounts import CSRF
 from bot_uploads import store_bot, verify
@@ -92,6 +91,22 @@ def test_tight_limits(own, db, reference_bots, body, field):
     assert db[MATCHES].count_documents({}) == 0
 
 
+def test_the_limits_and_the_priority_are_settings(own, db, reference_bots):
+    coder_settings.save(
+        db,
+        CoderSettings(games_per_request=2, max_initial_ms=600_000, max_increment_ms=0, priority=30),
+    )
+    coder, bot = own
+    random = reference_bots[0]
+
+    assert enqueue(coder, bot, random, games=3).json["field"] == "games"
+    assert enqueue(coder, bot, random, increment_ms=1).json["field"] == "increment_ms"
+    response = enqueue(coder, bot, random, initial_time_ms=600_000, games=2)
+    assert response.status_code == 201
+    match = matches.get(db, ObjectId(response.json["match_ids"][0]))
+    assert match["queue"]["priority"] == 30
+
+
 def test_any_discipline_in_use_beyond_the_free_limits(own, db, reference_bots):
     coder, bot = own
     classical = store_discipline(db, "Classical", initial_time_ms=3_600_000, increment_ms=30_000)
@@ -121,8 +136,8 @@ def test_archived_disciplines_are_out(own, db, reference_bots):
     assert (response.status_code, response.json["field"]) == (400, "discipline_id")
 
 
-def test_games_are_limited_per_day(own, reference_bots, monkeypatch, clock):
-    monkeypatch.setattr(rate_limit, "GAMES_LIMIT", 5)
+def test_games_are_limited_per_day(own, db, reference_bots, clock):
+    coder_settings.save(db, CoderSettings(games_per_day=5))
     coder, bot = own
     random = reference_bots[0]
     assert enqueue(coder, bot, random, games=3).status_code == 201

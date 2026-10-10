@@ -27,6 +27,10 @@ def queue_view(db: Database, now: datetime) -> dict:
         for job in waiting_jobs
         if _has_match(job, found)
     ]
+    # The job decides the order; interactive games have none of their own and show 0 (E152).
+    priorities = {
+        job["payload"]["match_id"]: job["priority"] for job in running_jobs + waiting_jobs
+    }
     duration = RecentDurations(db)
     running_times, waiting_times = schedule(
         running, waiting, slots=settings.parallelism, now=now, duration=duration
@@ -37,13 +41,13 @@ def queue_view(db: Database, now: datetime) -> dict:
     return {
         "paused": settings.paused,
         "running": [
-            _entry(match, 0, times)
+            _entry(match, 0, times, priorities.get(match["_id"], 0))
             for match, times in zip(
                 running + interactive, running_times + interactive_times, strict=True
             )
         ],
         "waiting": [
-            _entry(match, position, times)
+            _entry(match, position, times, priorities[match["_id"]])
             for position, ((match, _), times) in enumerate(
                 zip(waiting, waiting_times, strict=True), start=1
             )
@@ -56,11 +60,12 @@ def _has_match(job: dict, found: dict) -> bool:
     return job["payload"]["match_id"] in found
 
 
-def _entry(match: dict, position: int, times: tuple[datetime, datetime]) -> dict:
+def _entry(match: dict, position: int, times: tuple[datetime, datetime], priority: int) -> dict:
     start, end = times
     return {
         "match": match_summary(match),
         "position": position,
+        "priority": priority,
         "estimated_start": timestamp(start),
         "estimated_end": timestamp(end),
     }

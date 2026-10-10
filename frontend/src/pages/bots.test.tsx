@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 import type { Bot } from "../api/types";
 import { folderFile } from "../test/files";
-import { ADMIN, BOTS, botDetail, CODER, SHARP_ID } from "../test/fixtures";
+import { ADMIN, BOTS, botDetail, CODER, CODER_LIMITS, SHARP_ID } from "../test/fixtures";
 import { type ApiCall, mockApi, renderRoute } from "../test/render";
 
 const OWN: Bot[] = [
@@ -29,6 +29,7 @@ describe("upload page", () => {
     const api = mockApi({
       "/session": { user: CODER },
       "/account/bots": { items: OWN },
+      "/account/limits": { ...CODER_LIMITS, uploads_per_day: 3 },
       "/bots": (_url: URL, call: ApiCall) =>
         call.method === "POST" ? botDetail({ status: "uploaded" }) : { items: BOTS },
       [`/bots/${SHARP_ID}`]: botDetail({ status: "uploaded" }),
@@ -39,6 +40,11 @@ describe("upload page", () => {
       "href",
       "/account/bots",
     );
+    expect(
+      await screen.findByText(
+        "The bot is checked and tested before it may play. At most 3 uploads a day.",
+      ),
+    ).toBeVisible();
     const folder = screen.getByLabelText("Folder");
     expect(folder).toHaveAttribute("webkitdirectory");
     await user.upload(

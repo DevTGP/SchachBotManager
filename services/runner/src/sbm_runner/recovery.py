@@ -13,7 +13,8 @@ log = logging.getLogger(__name__)
 
 
 def recover_expired(db: Database, config: RunnerConfig, now: datetime) -> int:
-    """Returns how many jobs it freed or gave up; a given-up verification rejects its bot.
+    """Returns how many jobs it freed or gave up; a given-up verification rejects its bot
+    unless it was a recheck (E153).
 
     A freed job's match is left as it is; the worker that claims the job next resets it (see
     game.run_job). Only the holder of a job touches its match, so recovery cannot reset a game

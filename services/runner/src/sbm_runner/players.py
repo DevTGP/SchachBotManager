@@ -32,4 +32,26 @@ def plain_player(bot: dict) -> Player:
     if module is None:
         raise UnsupportedBot(f"bot {bot['_id']} needs the sandbox, and this runner has none")
     # The reference bots log nothing worth keeping; their stderr is dropped.
-    return ProcessPlayer(bot["name"], [sys.executable, "-m", f"sbm.bots.{module}"], log=None)
+    return PlainPlayer(bot["name"], [sys.executable, "-m", f"sbm.bots.{module}"], log=None)
+
+
+class PlainPlayer(ProcessPlayer):
+    """stop kills the bot from another thread when the match is cancelled (E152); a bot started
+    after that is killed at once. Only the process: the reference bots start no others, and
+    close ends the group."""
+
+    _stopping = False
+
+    def start(self) -> None:
+        super().start()
+        if self._stopping:
+            self._kill_process()
+
+    def stop(self) -> None:
+        self._stopping = True
+        self._kill_process()
+
+    def _kill_process(self) -> None:
+        process = self._process
+        if process is not None and process.poll() is None:
+            process.kill()

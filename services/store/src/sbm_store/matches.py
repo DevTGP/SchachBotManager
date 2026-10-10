@@ -169,9 +169,10 @@ def requeue(db: Database, match_id: ObjectId) -> None:
     )
 
 
-def abort(db: Database, match_id: ObjectId, detail: str, now: datetime) -> None:
-    """Gives up a match that failed for infrastructure reasons too often; it does not count."""
-    db[MATCHES].update_one(
+def abort(db: Database, match_id: ObjectId, detail: str, now: datetime) -> bool:
+    """Gives up a match that failed for infrastructure reasons too often, or that an admin
+    cancelled (E152); it does not count. False if the match had ended already."""
+    result = db[MATCHES].update_one(
         {"_id": match_id, "status": {"$in": [QUEUED, RUNNING]}},
         {
             "$set": {
@@ -183,6 +184,12 @@ def abort(db: Database, match_id: ObjectId, detail: str, now: datetime) -> None:
             }
         },
     )
+    return result.modified_count == 1
+
+
+def set_priority(db: Database, match_id: ObjectId, priority: int) -> None:
+    """Mirrors the priority of the match's job (E152)."""
+    db[MATCHES].update_one({"_id": match_id}, {"$set": {"queue.priority": priority}})
 
 
 def recent_durations_ms(db: Database, discipline_name: str, limit: int) -> list[int]:
