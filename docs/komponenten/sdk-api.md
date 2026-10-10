@@ -158,8 +158,8 @@ Jeder Aufruf aus Python/Java/C#/JS in den Kern kostet einen festen Betrag, unabh
 - Das Fenster ist das Programm `sbm-viewer` (C++, SDL3 und Dear ImGui, Quellen unter `sdk/viewer/`), gebaut mit dem Kern und in jedem SDK-Paket mitgeliefert (Python: `sbm/bin`). Das SDK startet es als eigenen Prozess und schickt ihm die Partie zeilenweise als JSON nach viewer-v1 (`spec/protocol/viewer-v1/`); kein Binding enthält eigenen GUI-Code.
 - Ein Fenster je Programm für alle Partien, wählbar in einer Liste. Brett aus Sicht des Bots, beide Uhren, Züge in SAN, zum gewählten Zug Bedenkzeit, `info` und Log-Zeilen. Tasten: ←/→, Pos1/Ende, F (Brett drehen), Mausrad über dem Brett; „Live“ folgt der laufenden Partie.
 - Das Fenster schließt sich nur von Hand oder mit dem Programm; das Programm wartet am Ende, bis es geschlossen ist (Strg+C beendet das Warten).
-- Python: `sbm.viewer.open_window()` öffnet das Fenster; `Game` meldet Start, Züge und Ende, das Log jede Zeile. Ohne mitgeliefertes Programm gibt es eine Warnung und kein Fenster.
-- Auf dem Server öffnet sich nie ein Fenster: Die Server-Images bauen das Paket ohne Viewer (`SBM_VIEWER=OFF`). Wann das Fenster lokal aufgeht, ist offen (O21).
+- Python: `sbm.run(MyBot, viewer=True)` bzw. `sbm.play(..., viewer=True)` öffnet das Fenster vor der ersten Partie, bei `play` eines für alle Partien (E108); Standard ist aus. Darunter liegt `sbm.viewer.open_window()`; `Game` meldet Start, Züge und Ende, das Log jede Zeile. Ohne mitgeliefertes Programm gibt es eine Warnung und kein Fenster.
+- Auf dem Server öffnet sich nie ein Fenster: Die Server-Images bauen das Paket ohne Viewer (`SBM_VIEWER=OFF`), und die Sandbox setzt `SBM_NO_VIEWER`, das das Fenster unabhängig vom Code zuhält (E108).
 
 ## Tests
 

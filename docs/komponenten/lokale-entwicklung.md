@@ -82,7 +82,7 @@ Ohne VS Code gilt dieselbe Reihenfolge: erst die Arena mit `tcp` im Terminal, da
 
 ### Viewer-Fenster (E106, E107)
 
-`sbm.viewer.open_window()` vor `sbm.run` oder `sbm.play` öffnet ein Fenster, in dem alle Partien des Programms live mitlaufen. Mit ←/→, Pos1/Ende oder dem Mausrad über dem Brett springt man durch die Züge, „Live“ folgt wieder der laufenden Partie, F dreht das Brett. Zum gewählten Zug zeigt das Fenster Bedenkzeit, Suchinfo und die Log-Zeilen des Bots. Am Ende wartet das Programm, bis das Fenster geschlossen ist; Strg+C oder das Beenden in der IDE schließt es ebenfalls. In der Arena schließt sich das Fenster, wenn die Arena den Bot nach der Partie beendet. Wie das Fenster später im Code eingeschaltet wird, ist offen (O21).
+`viewer=True` in `sbm.run` oder `sbm.play` öffnet ein Fenster (E108), in dem alle Partien des Programms live mitlaufen. Mit ←/→, Pos1/Ende oder dem Mausrad über dem Brett springt man durch die Züge, „Live“ folgt wieder der laufenden Partie, F dreht das Brett. Zum gewählten Zug zeigt das Fenster Bedenkzeit, Suchinfo und die Log-Zeilen des Bots. Am Ende wartet das Programm, bis das Fenster geschlossen ist; Strg+C oder das Beenden in der IDE schließt es ebenfalls. In der Arena schließt sich das Fenster, wenn die Arena den Bot nach der Partie beendet. Ist `SBM_NO_VIEWER` gesetzt, bleibt es zu, etwa in Tests; auf dem Server setzt die Sandbox die Variable.
 
 Das Programm `sbm-viewer` steckt in jedem Wheel. Wer das SDK aus dem Repo baut, baut es mit (dauert beim ersten Mal einige Minuten, holt SDL3 und Dear ImGui); `-C cmake.define.SBM_VIEWER=OFF` lässt es weg. Unter Linux braucht der Build die X11-Header (`libx11-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libxfixes-dev`).
 
