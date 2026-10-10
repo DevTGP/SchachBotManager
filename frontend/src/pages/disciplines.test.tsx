@@ -3,7 +3,15 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import type { Bot, StoredDiscipline } from "../api/types";
-import { ADMIN, BOTS, CODER, CODER_LIMITS, queue, storedDiscipline } from "../test/fixtures";
+import {
+  ADMIN,
+  BOTS,
+  CODER,
+  CODER_LIMITS,
+  ownMatches,
+  queue,
+  storedDiscipline,
+} from "../test/fixtures";
 import { type ApiCall, mockApi, renderRoute } from "../test/render";
 
 const BLITZ = storedDiscipline();
@@ -102,7 +110,7 @@ describe("games under a discipline", () => {
       "/bots": { items: BOTS },
       "/queue": queue(),
       "/disciplines": { items: [BLITZ, OLD] },
-      "/admin/matches": { match_ids: ["m1"] },
+      "/admin/matches": { match_ids: ["m1"], series_id: null },
     });
     renderRoute("/admin");
 
@@ -121,6 +129,7 @@ describe("games under a discipline", () => {
       games: 1,
       alternate: false,
       priority: 100,
+      rated: true,
     });
   });
 
@@ -132,7 +141,7 @@ describe("games under a discipline", () => {
       "/account/limits": CODER_LIMITS,
       "/bots": { items: [...BOTS, SHARP] },
       "/disciplines": { items: [BLITZ] },
-      "/matches": { match_ids: ["m1", "m2"] },
+      "/matches": ownMatches({ match_ids: ["m1", "m2"], series_id: "s1" }),
     });
     renderRoute("/account/bots");
 
@@ -147,6 +156,7 @@ describe("games under a discipline", () => {
       discipline_id: BLITZ.id,
       games: 2,
       alternate: true,
+      rated: true,
     });
   });
 });

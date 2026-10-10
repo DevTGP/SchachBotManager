@@ -1,8 +1,10 @@
 from datetime import timedelta
 
+from bson import ObjectId
 from conftest import BLITZ, START_FEN, T0
 
 from sbm_store import matches
+from sbm_store.discipline import Discipline
 from sbm_store.enqueue import enqueue_match
 
 MOVE = {
@@ -103,3 +105,80 @@ def test_summaries_by_id(db, reference_bots):
     match_id = enqueue(db, *reference_bots)
 
     assert matches.summaries(db, [match_id])[match_id]["ply_count"] == 0
+
+
+def test_filters_by_opponent_discipline_and_requester(db, reference_bots):
+    white, black = reference_bots
+    rated = Discipline("Rated", initial_time_ms=60_000, discipline_id=ObjectId())
+    account = ObjectId()
+    pair = enqueue(db, white, black)
+    reverse = enqueue_match(
+        db, black, white, rated, start_fen=START_FEN, now=T0 + timedelta(minutes=1)
+    )
+    own = enqueue_match(
+        db,
+        black,
+        black,
+        BLITZ,
+        start_fen=START_FEN,
+        now=T0 + timedelta(minutes=2),
+        created_by=account,
+    )
+
+    def ids(query):
+        return [item["_id"] for item in matches.page(db, query, limit=10, offset=0)[0]]
+
+    both = matches.match_filter(bot_id=white["_id"], opponent_id=black["_id"])
+    assert ids(both) == [reverse, pair]
+    assert ids(matches.match_filter(bot_id=black["_id"], opponent_id=black["_id"])) == [own]
+    assert ids(matches.match_filter(discipline_id=rated.discipline_id)) == [reverse]
+    assert ids(matches.match_filter(created_by=account)) == [own]
+
+
+def test_optional_fields_stay_out_unless_set(db, reference_bots):
+    match = matches.get(db, enqueue(db, *reference_bots))
+
+    assert not {"series", "created_by", "counted"} & match.keys()
+
+
+def test_a_series_reads_in_its_order(db, reference_bots):
+    white, black = reference_bots
+    series_id = ObjectId()
+    second = enqueue_match(
+        db,
+        black,
+        white,
+        BLITZ,
+        start_fen=START_FEN,
+        now=T0,
+        series=matches.series_place(series_id, 2, 2),
+    )
+    first = enqueue_match(
+        db,
+        white,
+        black,
+        BLITZ,
+        start_fen=START_FEN,
+        now=T0,
+        series=matches.series_place(series_id, 1, 2),
+        created_by=ObjectId(),
+        counted=True,
+    )
+    enqueue(db, white, black)
+
+    games = matches.of_series(db, series_id)
+
+    assert [game["_id"] for game in games] == [first, second]
+    assert games[0]["series"] == {"id": series_id, "index": 1, "games": 2}
+    assert matches.get(db, first)["counted"] is True
+
+
+def test_rated_false_keeps_a_rated_discipline_unrated(db, reference_bots):
+    rated = Discipline("Rated", initial_time_ms=60_000, discipline_id=ObjectId())
+
+    def match(**options):
+        match_id = enqueue_match(db, *reference_bots, rated, start_fen=START_FEN, now=T0, **options)
+        return matches.get(db, match_id)
+
+    assert match()["rated"] is True
+    assert match(rated=False)["rated"] is False

@@ -175,10 +175,16 @@ def waiting(db: Database, job_type: str, limit: int) -> tuple[list[dict], int]:
     return items, db[JOBS].count_documents(query)
 
 
-def cancel_match(db: Database, match_id: ObjectId, now: datetime) -> dict | None:
-    """Cancels the queued or running job of a match; None if it has none (any more)."""
+def cancel_match(
+    db: Database, match_id: ObjectId, now: datetime, *, running: bool = True
+) -> dict | None:
+    """Cancels the queued or running job of a match; None if it has none (any more).
+
+    running=False leaves a job alone that a runner has taken already (E157).
+    """
+    statuses = [QUEUED, RUNNING] if running else [QUEUED]
     return db[JOBS].find_one_and_update(
-        {"type": MATCH, "payload.match_id": match_id, "status": {"$in": [QUEUED, RUNNING]}},
+        {"type": MATCH, "payload.match_id": match_id, "status": {"$in": statuses}},
         {"$set": {"status": CANCELLED, "lease_until": None, "finished_at": now}},
     )
 
@@ -195,6 +201,12 @@ def set_match_priority(db: Database, match_id: ObjectId, priority: int) -> bool:
 def verifying(db: Database, bot_id: ObjectId) -> bool:
     """Whether a verification of the bot is queued or running, a recheck included."""
     query = {"type": VERIFICATION, "payload.bot_id": bot_id, "status": {"$in": [QUEUED, RUNNING]}}
+    return db[JOBS].count_documents(query, limit=1) > 0
+
+
+def running_match(db: Database, match_id: ObjectId) -> bool:
+    """Whether a runner holds the job of the match."""
+    query = {"type": MATCH, "payload.match_id": match_id, "status": RUNNING}
     return db[JOBS].count_documents(query, limit=1) > 0
 
 

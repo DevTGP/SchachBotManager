@@ -13,6 +13,7 @@ describe("matchOrder", () => {
       alternate: false,
       priority: 100,
       max_moves: 500,
+      rated: true,
     });
   });
 
@@ -28,5 +29,9 @@ describe("matchOrder", () => {
     expect(order.initial_time_ms).toBe(20_000);
     expect(order.increment_ms).toBe(500);
     expect(order.start_fen).toBe("8/8/8/8/8/8/8/K6k w - - 0 1");
+  });
+
+  it("passes the wish for an unrated game", () => {
+    expect(matchOrder({ ...DEFAULT_FORM, white: "w", black: "b", rated: false }).rated).toBe(false);
   });
 });

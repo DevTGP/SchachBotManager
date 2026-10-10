@@ -219,6 +219,7 @@ describe("bot page", () => {
     mockApi({
       "/session": { user: ADMIN },
       [`/bots/${SHARP_ID}`]: botDetail({ status: "verified" }),
+      [`/bots/${SHARP_ID}/opponents`]: { items: [] },
       [`/admin/bots/${SHARP_ID}`]: () =>
         Response.json({ code: "bot_playing", message: "busy" }, { status: 409 }),
     });

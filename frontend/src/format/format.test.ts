@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { playersLabel, sideLabel } from "./botLabel";
 import { formatClock, formatSpent } from "./clock";
+import { formatPoints } from "./points";
 import { formatRatingChange } from "./rating";
 import { formatResult } from "./result";
 import { formatScore } from "./score";
@@ -107,5 +108,14 @@ describe("formatRatingChange", () => {
     expect(formatRatingChange({ before: 2800, after: 2830 })).toBe("2800 → 2830 (+30)");
     expect(formatRatingChange({ before: 2400, after: 2370 })).toBe("2400 → 2370 (−30)");
     expect(formatRatingChange({ before: 2500, after: 2500 })).toBe("2500 → 2500 (±0)");
+  });
+});
+
+describe("formatPoints", () => {
+  it("writes half points as ½", () => {
+    expect(formatPoints(0)).toBe("0");
+    expect(formatPoints(0.5)).toBe("½");
+    expect(formatPoints(3)).toBe("3");
+    expect(formatPoints(6.5)).toBe("6½");
   });
 });

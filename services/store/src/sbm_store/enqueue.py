@@ -20,6 +20,10 @@ def enqueue_match(
     start_fen: str,
     now: datetime,
     priority: int = DEFAULT_PRIORITY,
+    rated: bool = True,
+    series: dict | None = None,
+    created_by: ObjectId | None = None,
+    counted: bool = False,
 ) -> ObjectId:
     """Creates the match, then its job; the match id is returned.
 
@@ -27,7 +31,16 @@ def enqueue_match(
     starts and shows as queued in the match list, which is harmless.
     """
     match = matches.new_match(
-        white, black, discipline, start_fen=start_fen, priority=priority, now=now
+        white,
+        black,
+        discipline,
+        start_fen=start_fen,
+        priority=priority,
+        now=now,
+        rated=rated,
+        series=series,
+        created_by=created_by,
+        counted=counted,
     )
     matches.insert(db, match)
     jobs.insert(db, jobs.new_match_job(match["_id"], priority=priority, now=now))

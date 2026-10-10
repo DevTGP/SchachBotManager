@@ -28,10 +28,18 @@ def match_summary(match: dict) -> dict:
         "result": match["result"],
         "termination": match["termination"],
         "ply_count": ply_count,
+        "series": series_place(match.get("series")),
         "created_at": timestamp(match["created_at"]),
         "started_at": optional_timestamp(match["started_at"]),
         "finished_at": optional_timestamp(match["finished_at"]),
     }
+
+
+def series_place(series: dict | None) -> dict | None:
+    """Where the match stands in its series (E155)."""
+    if series is None:
+        return None
+    return {"id": str(series["id"]), "index": series["index"], "games": series["games"]}
 
 
 def discipline(snapshot: dict) -> dict:

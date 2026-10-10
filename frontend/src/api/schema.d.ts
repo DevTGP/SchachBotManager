@@ -31,7 +31,7 @@ export interface paths {
         /** Matches, newest first, without their moves. */
         get: operations["list_matches"];
         put?: never;
-        /** Puts single games between two verified bots into the queue, at least one of them the account's own (E98). At most 20 games a day per account; they start after the matches of admins. */
+        /** Puts single games between two verified bots into the queue, at least one of them the account's own (E98). The games a day per account are limited (E154); they start after the matches of admins. Two or more games form a series (E155). */
         post: operations["enqueue_own_matches"];
         delete?: never;
         options?: never;
@@ -71,6 +71,61 @@ export interface paths {
         get: operations["get_match_pgn"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/matches/{match_id}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                match_id: components["parameters"]["MatchId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Takes a waiting single game the account set out of the queue (E157). The match ends as aborted; a game counted for the daily limit is given back while its day lasts. */
+        post: operations["withdraw_own_match"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/series/{series_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                series_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** The games of one request with two or more games, in order, and the score (E155). */
+        get: operations["get_series"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/positions/from-pgn": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The FEN after some half-moves of a game in a PGN, as a start position (coders and admins, E159). Nothing is stored. */
+        post: operations["position_from_pgn"];
         delete?: never;
         options?: never;
         head?: never;
@@ -126,6 +181,25 @@ export interface paths {
         };
         /** One file of an uploaded bot as a download (owner and admins, E97). Bots that are not public are not found for others. */
         get: operations["get_bot_file"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bots/{bot_id}/opponents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** The record of a bot against every other bot it finished single games with, rated or not, most games first (E161). Visible like the bot. */
+        get: operations["get_bot_opponents"];
         put?: never;
         post?: never;
         delete?: never;
@@ -972,8 +1046,10 @@ export interface components {
             white: components["schemas"]["Side"];
             black: components["schemas"]["Side"];
             discipline: components["schemas"]["Discipline"];
-            /** @description Played under a stored discipline from the standard position between two different bots, or by a person with an account against a bot; only such matches count for the rating (E100, E103, E117). */
+            /** @description Played under a stored discipline from the standard position between two different bots, or by a person with an account against a bot, unless asked otherwise; only such matches count for the rating (E100, E103, E117, E158). */
             rated: boolean;
+            /** @description The series of the match if it was queued with others in one request (E155); null otherwise. */
+            series: components["schemas"]["SeriesPlace"] | null;
             /** @description null until the match ends. */
             result: components["schemas"]["result"] | null;
             /** @description null until the match ends. */
@@ -1002,6 +1078,31 @@ export interface components {
             start_fen: string;
             moves: components["schemas"]["Move"][];
         } & components["schemas"]["MatchFields"];
+        /** @description Where a match stands in its series (E155). */
+        SeriesPlace: {
+            id: components["schemas"]["Id"];
+            /** @description 1 for the first game. */
+            index: number;
+            games: number;
+        };
+        /** @description A bot of a series with its points: 1 a win, 0.5 a draw; aborted and open games do not count (E155). */
+        SeriesBot: {
+            bot_id: components["schemas"]["Id"];
+            name: string;
+            version: string | null;
+            points: number;
+        };
+        /** @description The games of one request with two or more games (E155); a is white in the first game. */
+        Series: {
+            id: components["schemas"]["Id"];
+            games: number;
+            a: components["schemas"]["SeriesBot"];
+            b: components["schemas"]["SeriesBot"];
+            /** @description Finished games, the ones in the score. */
+            counted: number;
+            /** @description The games still stored, in order. */
+            matches: components["schemas"]["MatchSummary"][];
+        };
         MatchPage: {
             items: components["schemas"]["MatchSummary"][];
             /** @description Matches matching the filter. */
@@ -1174,6 +1275,19 @@ export interface components {
              */
             status?: "verified" | "retired";
         };
+        /** @description The record of a bot against one other bot from its point of view (E161). */
+        Opponent: {
+            bot_id: components["schemas"]["Id"];
+            name: string;
+            version: string | null;
+            games: number;
+            wins: number;
+            draws: number;
+            losses: number;
+        };
+        OpponentList: {
+            items: components["schemas"]["Opponent"][];
+        };
         BotList: {
             items: components["schemas"]["Bot"][];
         };
@@ -1337,8 +1451,13 @@ export interface components {
             max_moves: number;
             /** @description Start position; null or missing for the standard position. */
             start_fen?: string | null;
+            /**
+             * @description false: none of the games is rated; true rates them where E100 and E103 allow it (E158).
+             * @default true
+             */
+            rated: boolean;
         };
-        /** @description Like EnqueueRequest with tighter limits: from the standard position, at most 10 games, and free times only with the default move limit up to 5 min + 5 s (E98, E100). */
+        /** @description Like EnqueueRequest with tighter limits from the settings of coders (E98, E154): a limited number of games, and free times only with the default move limit up to a limited time. Games from another than the standard position are not rated (E100, E159). */
         OwnMatchRequest: {
             white_bot_id: components["schemas"]["Id"];
             black_bot_id: components["schemas"]["Id"];
@@ -1354,9 +1473,32 @@ export interface components {
              * @default false
              */
             alternate: boolean;
+            /** @description Start position; null or missing for the standard position. */
+            start_fen?: string | null;
+            /**
+             * @description false: none of the games is rated; true rates them where E100 and E103 allow it (E158).
+             * @default true
+             */
+            rated: boolean;
         };
         EnqueuedMatches: {
             match_ids: components["schemas"]["Id"][];
+            /** @description The series of a request with two or more games, otherwise null (E155). */
+            series_id: components["schemas"]["Id"] | null;
+        };
+        /** @description A start position from a recorded game, as with sbm-arena --replay (E69, E159). */
+        PgnPositionRequest: {
+            pgn: string;
+            /**
+             * @description Number of the game in the PGN.
+             * @default 1
+             */
+            game: number;
+            /** @description Half-moves to play from its start; null or missing for all of them. */
+            plies?: number | null;
+        };
+        Position: {
+            fen: string;
         };
         /** @description A game against a verified bot from the standard position: a discipline in use, or free times up to 30 min + 30 s (E115). */
         PlayRequest: {
@@ -1730,6 +1872,12 @@ export interface operations {
                 bot_id?: components["schemas"]["Id"];
                 /** @description bots: only matches between two bots (type single); players: only games of people in the browser and of remote bots (types human and remote, E119). */
                 kind?: "bots" | "players";
+                /** @description Only matches played under this stored discipline (E156). */
+                discipline_id?: components["schemas"]["Id"];
+                /** @description Only with bot_id: only matches of these two bots against each other (E156). */
+                opponent_id?: components["schemas"]["Id"];
+                /** @description true: only matches the signed-in account set with POST /matches or POST /admin/matches (E156); needs a session. */
+                mine?: boolean;
                 /** @description Page size. */
                 limit?: components["parameters"]["Limit"];
                 /** @description Number of items to skip. */
@@ -1751,6 +1899,7 @@ export interface operations {
                 };
             };
             400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
         };
     };
     enqueue_own_matches: {
@@ -1830,6 +1979,88 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
+        };
+    };
+    withdraw_own_match: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                match_id: components["parameters"]["MatchId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The match is aborted. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["MatchState"];
+        };
+    };
+    get_series: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                series_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The series. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Series"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    position_from_pgn: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PgnPositionRequest"];
+            };
+        };
+        responses: {
+            /** @description The position. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Position"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
         };
     };
     list_bots: {
@@ -1970,6 +2201,30 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    get_bot_opponents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The opponents. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpponentList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
         };
     };

@@ -23,6 +23,7 @@ import { GamePage } from "./pages/play/GamePage";
 import { PlaySetupPage } from "./pages/play/PlaySetupPage";
 import { QueuePage } from "./pages/QueuePage";
 import { RatingsPage } from "./pages/RatingsPage";
+import { SeriesPage } from "./pages/series/SeriesPage";
 import { StartPage } from "./pages/StartPage";
 import { UploadPage } from "./pages/upload/UploadPage";
 import { RequireRole } from "./session/RequireRole";
@@ -39,6 +40,7 @@ export const routes: RouteObject[] = [
       { index: true, element: <StartPage /> },
       { path: "matches", element: <MatchesPage /> },
       { path: "matches/:id", element: <MatchPage /> },
+      { path: "series/:id", element: <SeriesPage /> },
       { path: "queue", element: <QueuePage /> },
       { path: "bots", element: <BotsPage /> },
       { path: "play", element: <PlaySetupPage /> },

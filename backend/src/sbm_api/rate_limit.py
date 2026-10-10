@@ -5,7 +5,7 @@ Login, redeeming links and changing the password share one counter, so a guesser
 by switching between them. The address comes from the proxies in front (SBM_PROXY_HOPS).
 """
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from flask import request
 from sbm_store import coder_settings, rate_limits
@@ -47,3 +47,10 @@ def count_games(user: dict, games: int) -> None:
     if count.requests > coder_settings.get(db).games_per_day:
         rate_limits.give_back(db, key, now=now, window=GAMES_WINDOW, amount=games)
         raise too_many_attempts(now, count.resets_at)
+
+
+def give_back_games(user: dict, games: int, *, set_at: datetime) -> None:
+    """Games withdrawn before they started (E157); only while the window they were set in
+    lasts, since a later window never counted them."""
+    key = f"matches:{user['_id']}"
+    rate_limits.give_back(context.db(), key, now=set_at, window=GAMES_WINDOW, amount=games)

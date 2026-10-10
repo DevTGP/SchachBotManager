@@ -67,7 +67,12 @@
     "allKinds": "Alle Partien",
     "kindBots": "Bot gegen Bot",
     "kindPlayers": "Mit Spielern",
-    "empty": "Keine Partien gefunden."
+    "empty": "Keine Partien gefunden.",
+    "opponent": "Gegner",
+    "allOpponents": "Alle Gegner",
+    "discipline": "Disziplin",
+    "allDisciplines": "Alle Disziplinen",
+    "mine": "Von mir angesetzt"
   },
   "matchTable": {
     "players": "Partie",
@@ -197,7 +202,16 @@
     "rechecks": "Neuprüfungen",
     "override": "Trotzdem freigeben",
     "overrideWarning": "Der Bot gilt dann als geprüft und darf spielen, obwohl die Prüfung ihn abgelehnt hat. Der Grund der Ablehnung bleibt sichtbar.",
-    "overrideConfirm": "Ja, trotzdem freigeben"
+    "overrideConfirm": "Ja, trotzdem freigeben",
+    "play": "Spielen",
+    "playPredecessor": "Gegen Vorgänger spielen",
+    "record": "Bilanz",
+    "noRecord": "Noch keine beendeten Partien gegen andere Bots.",
+    "opponent": "Gegner",
+    "games": "Partien",
+    "wins": "Siege",
+    "draws": "Remis",
+    "losses": "Niederlagen"
   },
   "upload": {
     "title": "Bot hochladen",
@@ -231,7 +245,10 @@
     "opponent": "Gegner",
     "ownColor": "Dein Bot spielt",
     "noVerified": "Sobald einer deiner Bots geprüft ist, kannst du hier Partien für ihn ansetzen.",
-    "limits": "Freie Zeiten höchstens {{initialSeconds}} Sekunden plus {{incrementSeconds}} Sekunden je Zug; Disziplinen ohne diese Grenze. Höchstens {{games}} Partien auf einmal und {{gamesPerDay}} Partien am Tag. Deine Partien starten nach denen, die Admins ansetzen."
+    "limits": "Freie Zeiten höchstens {{initialSeconds}} Sekunden plus {{incrementSeconds}} Sekunden je Zug; Disziplinen ohne diese Grenze. Höchstens {{games}} Partien auf einmal und {{gamesPerDay}} Partien am Tag. Deine Partien starten nach denen, die Admins ansetzen.",
+    "waitingTitle": "Wartende Partien",
+    "withdraw": "Zurückziehen",
+    "noWaiting": "Keine deiner Partien wartet."
   },
   "ownMatchError": {
     "initial_time_ms": "Die Zeit muss zwischen 1 und {{initialSeconds}} Sekunden liegen.",
@@ -258,7 +275,7 @@
     "nameTaken": "Eine andere Disziplin hat diesen Namen schon.",
     "choose": "Disziplin",
     "freeTimes": "Freie Zeiten (ungewertet)",
-    "ratedHint": "Gewertet werden nur Partien mit einer Disziplin aus der Grundstellung."
+    "ratedHint": "Gewertet werden nur Partien zweier verschiedener Bots mit einer Disziplin aus der Grundstellung."
   },
   "disciplineError": {
     "name": "Der Name muss 1 bis 40 Zeichen ohne Steuerzeichen haben.",
@@ -587,5 +604,27 @@
     "min_win": "Der kleinste Gewinn darf den Gewinn bei gleichem Rating nicht übersteigen.",
     "max_win": "Der größte Gewinn darf nicht unter dem Gewinn bei gleichem Rating liegen.",
     "priority": "Die Priorität liegt zwischen 0 und 99."
+  },
+  "series": {
+    "title": "Serie",
+    "counted": "{{counted}} von {{games}} Partien beendet",
+    "place": "Partie {{index}} von {{games}} einer Serie",
+    "view": "Serie ansehen"
+  },
+  "startPosition": {
+    "fromPgn": "Aus PGN",
+    "pgn": "PGN",
+    "game": "Partie Nr.",
+    "plies": "Halbzüge",
+    "allPlies": "alle",
+    "apply": "FEN einsetzen"
+  },
+  "pgnError": {
+    "pgn": "Die PGN lässt sich nicht lesen.",
+    "game": "Eine Partie mit dieser Nummer gibt es in der PGN nicht.",
+    "plies": "Die Partie hat weniger Halbzüge."
+  },
+  "matchForm": {
+    "rated": "Gewertet"
   }
 }

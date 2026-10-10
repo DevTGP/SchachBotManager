@@ -11,6 +11,7 @@ import type {
   StoredDiscipline,
   User,
 } from "../api/types";
+import type { ApiCall } from "./render";
 
 export const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -73,6 +74,7 @@ export function summary(overrides: Partial<MatchSummary> = {}): MatchSummary {
     created_at: "2026-05-01T11:59:00.000Z",
     started_at: "2026-05-01T12:00:00.000Z",
     finished_at: "2026-05-01T12:05:00.000Z",
+    series: null,
     ...overrides,
   };
 }
@@ -231,4 +233,13 @@ export function botDetail(overrides: Partial<BotDetail> = {}): BotDetail {
             },
           },
   };
+}
+
+/** /matches for a page that lists the account's waiting games and may queue new ones. */
+export function ownMatches(
+  posted: unknown,
+  waiting: MatchSummary[] = [],
+): (url: URL, call: ApiCall) => unknown {
+  return (_url, call) =>
+    call.method === "POST" ? posted : { items: waiting, total: waiting.length };
 }

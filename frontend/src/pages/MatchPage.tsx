@@ -7,6 +7,7 @@ import { useApi } from "../hooks/useApi";
 import { POLL_MATCH_MS } from "../hooks/polling";
 import { Viewer } from "../viewer/Viewer";
 import { MatchRepeat } from "./admin/MatchRepeat";
+import { MatchSeries } from "./MatchSeries";
 
 /** Moves can still come; only then the viewer asks again (E76). */
 function isLive(match: Match | undefined): boolean {
@@ -25,6 +26,7 @@ export function MatchPage() {
       {(data) => (
         <>
           <Viewer match={data} live={isLive(data)} />
+          <MatchSeries place={data.series} />
           <MatchRepeat match={data} />
         </>
       )}

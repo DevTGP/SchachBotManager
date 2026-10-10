@@ -152,7 +152,7 @@ Nach M7, Turniere erst nach M4 Schritt 3 (E150). Drei Schritte:
 2. Einzelspiele: fehlende Teile ergänzen.
 3. Turniere auf dem gemeinsamen Modell für Wettbewerbe aus M4; Formate offen (O24).
 
-Stand: Schritt 1 ist umgesetzt (E151–E154).
+Stand: Schritt 1 ist umgesetzt (E151–E154), Schritt 2 ebenso (E155–E161).
 
 ### M7 – Mensch gegen Bot, lokaler Bot gegen Web-API (P2)
 

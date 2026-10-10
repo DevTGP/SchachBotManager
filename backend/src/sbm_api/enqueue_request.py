@@ -1,6 +1,7 @@
 """The body of POST /admin/matches: which games to queue, checked as the referee would (E85).
 
-enqueue puts the games of a parsed request into the queue, also for POST /matches (E98).
+enqueue puts the games of a parsed request into the queue, also for POST /matches (E98); two or
+more games form a series (E155).
 """
 
 from dataclasses import dataclass
@@ -10,7 +11,7 @@ from bson import ObjectId
 from pymongo.database import Database
 from sbm.arena.time_control import format_time_control
 from sbm.referee import STANDARD_FEN, MatchSettings
-from sbm_store import bots
+from sbm_store import bots, matches
 from sbm_store.discipline import DEFAULT_MAX_MOVES, Discipline
 from sbm_store.enqueue import DEFAULT_PRIORITY, enqueue_match
 
@@ -28,6 +29,7 @@ FIELDS = (
     "priority",
     "max_moves",
     "start_fen",
+    "rated",
 )
 
 
@@ -40,6 +42,7 @@ class EnqueueRequest:
     games: int
     alternate: bool
     priority: int
+    rated: bool = True
 
 
 def parse(db: Database) -> EnqueueRequest:
@@ -48,7 +51,7 @@ def parse(db: Database) -> EnqueueRequest:
     black = verified_bot(db, data, "black_bot_id")
     discipline = discipline_request.chosen(db, data) or free_times(data)
     start_fen = body.string(data, "start_fen", max_length=100, default=None) or STANDARD_FEN
-    _check_settings(discipline, start_fen)
+    check_settings(discipline, start_fen)
     return EnqueueRequest(
         white=white,
         black=black,
@@ -57,6 +60,7 @@ def parse(db: Database) -> EnqueueRequest:
         games=body.integer(data, "games", low=1, high=100, default=1),
         alternate=body.boolean(data, "alternate", default=False),
         priority=body.integer(data, "priority", low=0, high=1000, default=DEFAULT_PRIORITY),
+        rated=body.boolean(data, "rated", default=True),
     )
 
 
@@ -72,11 +76,37 @@ def free_times(data: dict) -> Discipline:
     )
 
 
-def enqueue(db: Database, order: EnqueueRequest, *, now: datetime) -> list[ObjectId]:
-    """Queues the games in order; the colours swap after each game if asked."""
+@dataclass(frozen=True)
+class Enqueued:
+    """The queued games and their series, None for a single game (E155)."""
+
+    match_ids: list[ObjectId]
+    series_id: ObjectId | None
+
+    def response(self) -> dict:
+        return {
+            "match_ids": [str(match_id) for match_id in self.match_ids],
+            "series_id": None if self.series_id is None else str(self.series_id),
+        }
+
+
+def enqueue(
+    db: Database,
+    order: EnqueueRequest,
+    *,
+    now: datetime,
+    created_by: ObjectId,
+    counted: bool = False,
+) -> Enqueued:
+    """Queues the games in order; the colours swap after each game if asked.
+
+    created_by is the account that set them, counted whether the daily limit paid (E156).
+    """
     white, black = order.white, order.black
+    series_id = ObjectId() if order.games > 1 else None
     ids = []
-    for _ in range(order.games):
+    for index in range(1, order.games + 1):
+        series = None if series_id is None else matches.series_place(series_id, index, order.games)
         ids.append(
             enqueue_match(
                 db,
@@ -86,11 +116,15 @@ def enqueue(db: Database, order: EnqueueRequest, *, now: datetime) -> list[Objec
                 start_fen=order.start_fen,
                 now=now,
                 priority=order.priority,
+                rated=order.rated,
+                series=series,
+                created_by=created_by,
+                counted=counted,
             )
         )
         if order.alternate:
             white, black = black, white
-    return ids
+    return Enqueued(ids, series_id)
 
 
 def verified_bot(db: Database, data: dict, field: str) -> dict:
@@ -100,7 +134,7 @@ def verified_bot(db: Database, data: dict, field: str) -> dict:
     return bot
 
 
-def _check_settings(discipline: Discipline, start_fen: str) -> None:
+def check_settings(discipline: Discipline, start_fen: str) -> None:
     """The referee's checks, so no queued match fails to start later."""
     try:
         MatchSettings(

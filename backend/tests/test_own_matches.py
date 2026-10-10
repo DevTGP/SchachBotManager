@@ -155,3 +155,36 @@ def test_games_are_limited_per_day(own, db, reference_bots, clock):
 
 def test_needs_an_account(client, reference_bots):
     assert enqueue(client, *reference_bots).status_code == 401
+
+
+def rated_request(client, bot, other, discipline, **body):
+    request = {
+        "white_bot_id": str(bot["_id"]),
+        "black_bot_id": str(other["_id"]),
+        "discipline_id": str(discipline["_id"]),
+    } | body
+    return client.post("/api/v1/matches", json=request, headers=CSRF)
+
+
+def test_rated_games_may_be_set_unrated(own, db, reference_bots):
+    coder, bot = own
+    rapid = store_discipline(db, "Rapid")
+
+    response = rated_request(coder, bot, reference_bots[0], rapid, rated=False)
+
+    match = matches.get(db, ObjectId(response.json["match_ids"][0]))
+    assert match["rated"] is False
+    assert match["created_by"] == bot["owner_id"]
+    assert match["counted"] is True
+
+
+def test_another_start_position_is_unrated(own, db, reference_bots):
+    coder, bot = own
+    rapid = store_discipline(db, "Rapid")
+    fen = "4k3/8/8/8/8/8/8/4K2R w K - 0 1"
+
+    response = rated_request(coder, bot, reference_bots[0], rapid, start_fen=fen)
+
+    assert response.status_code == 201
+    match = matches.get(db, ObjectId(response.json["match_ids"][0]))
+    assert (match["start_fen"], match["rated"]) == (fen, False)

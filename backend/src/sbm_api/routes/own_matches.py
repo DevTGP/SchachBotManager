@@ -15,5 +15,7 @@ def enqueue_own_matches():
     order = own_match_request.parse(db, user)
     # Counted once the request is valid, so a mistake costs no games.
     rate_limit.count_games(user, order.games)
-    ids = enqueue_request.enqueue(db, order, now=context.now())
-    return {"match_ids": [str(match_id) for match_id in ids]}, 201
+    enqueued = enqueue_request.enqueue(
+        db, order, now=context.now(), created_by=user["_id"], counted=True
+    )
+    return enqueued.response(), 201

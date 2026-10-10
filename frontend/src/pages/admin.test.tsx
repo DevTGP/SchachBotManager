@@ -53,7 +53,7 @@ describe("admin games", () => {
       "/session": { user: ADMIN },
       "/bots": { items: BOTS },
       "/queue": queue(),
-      "/admin/matches": { match_ids: ["m1", "m2", "m3"] },
+      "/admin/matches": { match_ids: ["m1", "m2", "m3"], series_id: "s1" },
     });
     renderRoute("/admin");
     const games = await screen.findByRole("spinbutton", { name: "Games" });
@@ -65,6 +65,7 @@ describe("admin games", () => {
     await user.click(screen.getByRole("button", { name: "Add to queue" }));
 
     expect(await screen.findByText("3 games queued.")).toBeVisible();
+    expect(screen.getByRole("link", { name: "View series" })).toHaveAttribute("href", "/series/s1");
     const post = api.calls.find((call) => call.url.pathname === "/api/v1/admin/matches");
     expect(post?.body).toEqual({
       white_bot_id: BOTS[0]!.id,
@@ -75,6 +76,7 @@ describe("admin games", () => {
       alternate: true,
       priority: 100,
       max_moves: 500,
+      rated: true,
     });
   });
 
@@ -175,7 +177,7 @@ describe("admin queue interventions", () => {
       "/session": { user: ADMIN },
       [`/matches/${ended.id}`]: ended,
       [`/admin/matches/${ended.id}/repeat`]: Response.json(
-        { match_ids: [RUNNING.id] },
+        { match_ids: [RUNNING.id], series_id: null },
         { status: 201 },
       ),
       [`/matches/${RUNNING.id}`]: match({ id: RUNNING.id, status: "queued", result: null }),

@@ -1,8 +1,8 @@
 """The body of POST /matches: games an account sets for its own bots (E98).
 
-Tighter than the admin's request: from the standard position, a limited number of games, and
-behind the admin's matches in the queue. Any discipline in use may be chosen (E100); free times
-have the default move limit. The limits are settings of coders (E154).
+Tighter than the admin's request: a limited number of games, behind the admin's matches in the
+queue. Any discipline in use may be chosen (E100); free times have the default move limit. The
+limits are settings of coders (E154). Another start position makes the games unrated (E159).
 """
 
 from pymongo.database import Database
@@ -13,7 +13,7 @@ from sbm_store.coder_settings import CoderSettings
 from sbm_store.discipline import DEFAULT_MAX_MOVES, Discipline
 
 from sbm_api import body, discipline_request
-from sbm_api.enqueue_request import EnqueueRequest, verified_bot
+from sbm_api.enqueue_request import EnqueueRequest, check_settings, verified_bot
 from sbm_api.errors import invalid_parameter
 
 FIELDS = (
@@ -24,6 +24,8 @@ FIELDS = (
     "increment_ms",
     "games",
     "alternate",
+    "start_fen",
+    "rated",
 )
 
 
@@ -35,14 +37,17 @@ def parse(db: Database, user: dict) -> EnqueueRequest:
     if user["_id"] not in (white.get("owner_id"), black.get("owner_id")):
         raise invalid_parameter("white_bot_id", "one of the bots must be your own")
     discipline = discipline_request.chosen(db, data) or free_times(data, limits)
+    start_fen = body.string(data, "start_fen", max_length=100, default=None) or STANDARD_FEN
+    check_settings(discipline, start_fen)
     return EnqueueRequest(
         white=white,
         black=black,
         discipline=discipline,
-        start_fen=STANDARD_FEN,
+        start_fen=start_fen,
         games=body.integer(data, "games", low=1, high=limits.games_per_request, default=1),
         alternate=body.boolean(data, "alternate", default=False),
         priority=limits.priority,
+        rated=body.boolean(data, "rated", default=True),
     )
 
 

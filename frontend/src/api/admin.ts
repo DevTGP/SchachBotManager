@@ -12,6 +12,7 @@ import type {
   DisciplineRequest,
   DisciplineUpdate,
   EnqueueRequest,
+  EnqueuedMatches,
   EstimateSettings,
   Invite,
   OneTimeLink,
@@ -53,9 +54,9 @@ export function revokeInvite(id: string): Promise<undefined> {
 export type MatchOrder = Pick<EnqueueRequest, "white_bot_id" | "black_bot_id"> &
   Partial<Omit<EnqueueRequest, "white_bot_id" | "black_bot_id">>;
 
-export async function enqueueMatches(order: MatchOrder): Promise<string[]> {
-  const result = await sendJson<{ match_ids: string[] }>("POST", "/admin/matches", order);
-  return result.match_ids;
+/** The queued games and, for two or more, their series (E155). */
+export function enqueueMatches(order: MatchOrder): Promise<EnqueuedMatches> {
+  return sendJson("POST", "/admin/matches", order);
 }
 
 export async function setQueuePaused(paused: boolean): Promise<boolean> {
@@ -82,7 +83,7 @@ export function cancelMatch(id: string): Promise<undefined> {
 
 /** Queues an ended single game again with the bots and discipline as they are now (E152). */
 export async function repeatMatch(id: string): Promise<string> {
-  const result = await sendJson<{ match_ids: string[] }>(
+  const result = await sendJson<EnqueuedMatches>(
     "POST",
     `/admin/matches/${encodeURIComponent(id)}/repeat`,
   );

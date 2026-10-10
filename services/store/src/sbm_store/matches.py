@@ -32,6 +32,7 @@ SUMMARY_FIELDS = (
     "queue",
     "result",
     "termination",
+    "series",
     "created_at",
     "started_at",
     "finished_at",
@@ -60,9 +61,18 @@ def new_match(
     start_fen: str,
     priority: int,
     now: datetime,
+    rated: bool = True,
+    series: dict | None = None,
+    created_by: ObjectId | None = None,
+    counted: bool = False,
 ) -> dict:
-    """A queued single game between two bot documents; a bot against itself is never rated."""
-    return {
+    """A queued single game between two bot documents; a bot against itself is never rated.
+
+    rated=False keeps a game unrated that would count (E158). series places the game in a
+    series (E155); created_by is the account that set it, counted whether its daily limit paid
+    for it (E156). The optional fields are left out when unset, which keeps their indexes small.
+    """
+    match = {
         "_id": ObjectId(),
         "schema_version": SCHEMA_VERSION,
         "type": "single",
@@ -71,7 +81,7 @@ def new_match(
         "black": side(black),
         "status": QUEUED,
         "queue": {"priority": priority},
-        "rated": is_rated(discipline, start_fen) and white["_id"] != black["_id"],
+        "rated": rated and is_rated(discipline, start_fen) and white["_id"] != black["_id"],
         "start_fen": start_fen,
         "moves": [],
         "result": None,
@@ -81,6 +91,18 @@ def new_match(
         "started_at": None,
         "finished_at": None,
     }
+    if series is not None:
+        match["series"] = series
+    if created_by is not None:
+        match["created_by"] = created_by
+    if counted:
+        match["counted"] = True
+    return match
+
+
+def series_place(series_id: ObjectId, index: int, games: int) -> dict:
+    """Where a game stands in its series; index counts from 1 (E155)."""
+    return {"id": series_id, "index": index, "games": games}
 
 
 def insert(db: Database, match: dict) -> None:
@@ -96,12 +118,35 @@ def summaries(db: Database, match_ids: list[ObjectId]) -> dict[ObjectId, dict]:
     return {match["_id"]: match for match in cursor}
 
 
-def match_filter(status: str | None = None, bot_id: ObjectId | None = None) -> dict:
+def of_series(db: Database, series_id: ObjectId) -> list[dict]:
+    """The summaries of a series' games in their order (E155)."""
+    cursor = db[MATCHES].find({"series.id": series_id}, SUMMARY_PROJECTION).sort("series.index")
+    return list(cursor)
+
+
+def match_filter(
+    status: str | None = None,
+    bot_id: ObjectId | None = None,
+    *,
+    opponent_id: ObjectId | None = None,
+    discipline_id: ObjectId | None = None,
+    created_by: ObjectId | None = None,
+) -> dict:
+    """opponent_id narrows the games of bot_id to those against that bot (E156)."""
     query: dict = {}
     if status is not None:
         query["status"] = status
-    if bot_id is not None:
+    if bot_id is not None and opponent_id is not None:
+        query["$or"] = [
+            {"white.bot_id": bot_id, "black.bot_id": opponent_id},
+            {"white.bot_id": opponent_id, "black.bot_id": bot_id},
+        ]
+    elif bot_id is not None:
         query["$or"] = [{"white.bot_id": bot_id}, {"black.bot_id": bot_id}]
+    if discipline_id is not None:
+        query["discipline_snapshot.discipline_id"] = discipline_id
+    if created_by is not None:
+        query["created_by"] = created_by
     return query
 
 
