@@ -148,9 +148,9 @@ Vor M6 und parallel zu M4 (E110). Drei Schritte (E111):
 2. Mensch gegen Bot – umgesetzt: Browser-Protokoll play-v1, `HumanPlayer`, Seiten `/play` und `/play/:id`, Gäste gegen jeden geprüften Bot (E114), Grenzen je Adresse, Konto und Token auf `/admin/play`, Rolle `player` (E115). Interaktive Partien sind öffentlich, in `/matches` filterbar und laufend in der Queue (E119, vorher nicht öffentlich). Gewertet werden Partien angemeldeter Konten unter einer Disziplin (E117); das Rating steht auf der Kontoseite und in der Rangliste, filterbar nach Bots und Spielern (E118).
 3. Remote-Bot – umgesetzt: API-Tokens für Coder, `POST /remote/matches`, Transport `remote` im Python-SDK (E116); die übrigen Sprachen folgen mit M5.
 
-Offen ist die Abnahme auf dem Server.
+Danach: `sbm.play` startet Partien per Code, lokal oder gegen einen Bot auf dem Server; Version 0.2.0 des SDK (E120).
 
-Abnahme (Vorschlag): Ein Gast spielt im Browser eine vollständige Partie gegen einen hochgeladenen Bot; ein lokaler Python-Bot spielt mit Token gegen einen Bot auf dem Server; Abbrüche (Verbindung weg, Sitz nicht eingenommen, Runner gestoppt) enden als `aborted`, ohne die Queue zu verzögern.
+Abnahme: Ein Gast spielt im Browser eine vollständige Partie gegen einen hochgeladenen Bot; ein lokaler Python-Bot spielt mit Token gegen einen Bot auf dem Server; Abbrüche (Verbindung weg, Sitz nicht eingenommen, Runner gestoppt) enden als `aborted`, ohne die Queue zu verzögern. Zusätzlich geprüft: `start.py` der Vorlage lokal und `sbm.play` mit zwei Partien gegen den Server. Abgenommen auf dem Server am 10. Oktober 2026.
 
 ### M8 – Härtung und Betrieb (P3)
 
