@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Message from the SDK to the viewer",
+  "description": "Every line the viewer reads on stdin.",
+  "oneOf": [
+    { "$ref": "start.schema.json" },
+    { "$ref": "move.schema.json" },
+    { "$ref": "log.schema.json" },
+    { "$ref": "game_over.schema.json" }
+  ]
+}

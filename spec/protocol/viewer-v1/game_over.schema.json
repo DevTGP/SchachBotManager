@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "game_over (SDK to viewer)",
+  "description": "End of the game, the same message as the referee's game_over; the SDK passes it on unchanged. A final move the viewer has not seen yet arrives as move before it. The window stays open until the user closes it.",
+  "$ref": "../v1/game_over.schema.json"
+}

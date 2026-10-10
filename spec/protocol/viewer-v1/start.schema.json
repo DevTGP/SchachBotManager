@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "start (SDK to viewer)",
+  "description": "Begins a game in the viewer window (E106). The SDK sends it when the referee's init arrives; later games of the same window start again with start.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "start" },
+    "v": {
+      "description": "Version of the viewer messages; the SDK and the viewer ship in the same package.",
+      "const": 1
+    },
+    "bot": { "$ref": "../v1/common.schema.json#/$defs/name" },
+    "color": {
+      "description": "Color of the bot; the viewer shows this side at the bottom.",
+      "$ref": "../v1/common.schema.json#/$defs/color"
+    },
+    "opponent": { "$ref": "../v1/common.schema.json#/$defs/name" },
+    "start_fen": { "$ref": "../v1/common.schema.json#/$defs/fen" },
+    "initial_time_ms": { "$ref": "../v1/common.schema.json#/$defs/milliseconds" },
+    "increment_ms": { "$ref": "../v1/common.schema.json#/$defs/milliseconds" },
+    "discipline": { "$ref": "../v1/common.schema.json#/$defs/name" }
+  },
+  "required": ["type", "v", "bot", "color", "opponent", "start_fen", "initial_time_ms", "increment_ms"],
+  "additionalProperties": false
+}

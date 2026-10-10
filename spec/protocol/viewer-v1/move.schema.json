@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "move (SDK to viewer)",
+  "description": "One half-move of the game, in order and without gaps.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "move" },
+    "ply": {
+      "description": "Number of this half-move since start_fen, starting at 1.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "move": { "$ref": "../v1/common.schema.json#/$defs/uci" },
+    "fen": {
+      "description": "Position after the move. The viewer adopts it if its own board disagrees.",
+      "$ref": "../v1/common.schema.json#/$defs/fen"
+    },
+    "by": {
+      "description": "Whether the bot or its opponent played the move.",
+      "enum": ["bot", "opponent"]
+    },
+    "white_ms": {
+      "description": "White's remaining time after the move, as far as the SDK knows it.",
+      "$ref": "../v1/common.schema.json#/$defs/milliseconds"
+    },
+    "black_ms": { "$ref": "../v1/common.schema.json#/$defs/milliseconds" },
+    "elapsed_ms": {
+      "description": "Thinking time of the bot for its own move, measured by the SDK.",
+      "$ref": "../v1/common.schema.json#/$defs/milliseconds"
+    },
+    "info": {
+      "description": "Search information the bot sent with its move.",
+      "$ref": "../v1/move.schema.json#/properties/info"
+    }
+  },
+  "required": ["type", "ply", "move", "fen", "by"],
+  "additionalProperties": false
+}

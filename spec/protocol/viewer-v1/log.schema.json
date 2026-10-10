@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "log (SDK to viewer)",
+  "description": "One line of the bot's log. The viewer attaches it to the half-moves known when it arrived.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "log" },
+    "level": { "enum": ["debug", "info", "warn", "error"] },
+    "text": { "type": "string", "maxLength": 4096 },
+    "time": {
+      "description": "Local wall-clock time of the line, as written to the log.",
+      "type": "string",
+      "pattern": "^[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}(?!\\n)$"
+    }
+  },
+  "required": ["type", "level", "text", "time"],
+  "additionalProperties": false
+}
