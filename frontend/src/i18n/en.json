@@ -67,7 +67,12 @@
     "allKinds": "All games",
     "kindBots": "Bot against bot",
     "kindPlayers": "With players",
-    "empty": "No games found."
+    "empty": "No games found.",
+    "opponent": "Opponent",
+    "allOpponents": "All opponents",
+    "discipline": "Discipline",
+    "allDisciplines": "All disciplines",
+    "mine": "Set by me"
   },
   "matchTable": {
     "players": "Game",
@@ -197,7 +202,16 @@
     "rechecks": "Rechecks",
     "override": "Verify anyway",
     "overrideWarning": "The bot then counts as verified and may play although the verification rejected it. The reason for the rejection stays visible.",
-    "overrideConfirm": "Yes, verify anyway"
+    "overrideConfirm": "Yes, verify anyway",
+    "play": "Play",
+    "playPredecessor": "Play against the predecessor",
+    "record": "Record",
+    "noRecord": "No finished games against other bots yet.",
+    "opponent": "Opponent",
+    "games": "Games",
+    "wins": "Wins",
+    "draws": "Draws",
+    "losses": "Losses"
   },
   "upload": {
     "title": "Upload a bot",
@@ -231,7 +245,10 @@
     "opponent": "Opponent",
     "ownColor": "Your bot plays",
     "noVerified": "Once one of your bots is verified, you can schedule games for it here.",
-    "limits": "Free times at most {{initialSeconds}} seconds plus {{incrementSeconds}} seconds a move; disciplines without this limit. At most {{games}} games at once and {{gamesPerDay}} games a day. Your games start after those set by admins."
+    "limits": "Free times at most {{initialSeconds}} seconds plus {{incrementSeconds}} seconds a move; disciplines without this limit. At most {{games}} games at once and {{gamesPerDay}} games a day. Your games start after those set by admins.",
+    "waitingTitle": "Waiting games",
+    "withdraw": "Withdraw",
+    "noWaiting": "None of your games is waiting."
   },
   "ownMatchError": {
     "initial_time_ms": "The time must be between 1 and {{initialSeconds}} seconds.",
@@ -258,7 +275,7 @@
     "nameTaken": "Another discipline already has this name.",
     "choose": "Discipline",
     "freeTimes": "Free times (unrated)",
-    "ratedHint": "Only games under a discipline from the standard position are rated."
+    "ratedHint": "Only games between two different bots under a discipline from the standard position are rated."
   },
   "disciplineError": {
     "name": "The name must have 1 to 40 characters without control characters.",
@@ -587,5 +604,27 @@
     "min_win": "The smallest gain must not exceed the gain at equal rating.",
     "max_win": "The largest gain must not be below the gain at equal rating.",
     "priority": "The priority lies between 0 and 99."
+  },
+  "series": {
+    "title": "Series",
+    "counted": "{{counted}} of {{games}} games finished",
+    "place": "Game {{index}} of {{games}} in a series",
+    "view": "View series"
+  },
+  "startPosition": {
+    "fromPgn": "From PGN",
+    "pgn": "PGN",
+    "game": "Game no.",
+    "plies": "Half-moves",
+    "allPlies": "all",
+    "apply": "Insert FEN"
+  },
+  "pgnError": {
+    "pgn": "The PGN cannot be read.",
+    "game": "The PGN has no game with this number.",
+    "plies": "The game has fewer half-moves."
+  },
+  "matchForm": {
+    "rated": "Rated"
   }
 }

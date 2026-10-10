@@ -112,7 +112,16 @@ Zu beachten:
 
 Vom Admin oder Besitzer angesetzt (z. B. Version gegen Version), ungewertet oder nur fürs Rating.
 
-Seit E100 wählt man eine Disziplin oder freie Zeiten. Nur Partien mit Disziplin aus der Grundstellung sind `rated` und zählen fürs Rating (E103); freie Zeiten und andere Startstellungen nicht. Für Coder gilt die Grenze von 5 min + 5 s nur bei freien Zeiten (E98).
+Seit E100 wählt man eine Disziplin oder freie Zeiten. Nur Partien mit Disziplin aus der Grundstellung sind `rated` und zählen fürs Rating (E103); freie Zeiten und andere Startstellungen nicht. Für Coder gilt die Grenze von 5 min + 5 s nur bei freien Zeiten (E98); die Grenzen stehen seit E154 in den Einstellungen.
+
+Seit M6 Schritt 2 (E155–E161):
+
+- **Serie:** Mehrere Partien einer Anfrage bilden eine Serie mit eigener Seite `/series/:id` und Stand (Sieg 1, Remis ½); jede Partie verlinkt sie (E155).
+- **Ungewertet wählbar:** Kästchen „Gewertet“ in beiden Formularen; abgewählt bleibt jede Partie der Anfrage ungewertet (E158).
+- **Startstellungen** auch für Coder, als FEN oder aus einer PGN über `POST /positions/from-pgn`; solche Partien sind ungewertet (E159).
+- **Zurückziehen:** Coder nehmen wartende eigene Partien unter „Meine Bots“ aus der Queue und bekommen sie aufs Tageslimit zurück (E157).
+- **Filter** unter `/matches` nach Disziplin, Gegner und eigenen Partien (E156); **Bilanz** gegen jeden Gegner auf der Bot-Seite (E161).
+- **Schnellstart:** Links „Spielen“ und „Gegen Vorgänger spielen“ in der Versionstabelle führen zum vorbelegten Formular (E160).
 
 ## Rating
 

@@ -118,3 +118,11 @@ button.link {
   font-weight: 600;
   border-bottom: 2px solid var(--accent);
 }
+
+.from-pgn summary {
+  cursor: pointer;
+}
+
+.from-pgn > :not(summary) {
+  margin-top: 0.5rem;
+}

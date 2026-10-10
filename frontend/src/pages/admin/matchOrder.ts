@@ -13,6 +13,8 @@ export interface MatchForm {
   priority: string;
   maxMoves: string;
   startFen: string;
+  /** The wish for a rated game; the API decides (E158). */
+  rated: boolean;
 }
 
 export const DEFAULT_FORM: Omit<MatchForm, "white" | "black"> = {
@@ -24,6 +26,7 @@ export const DEFAULT_FORM: Omit<MatchForm, "white" | "black"> = {
   priority: "100",
   maxMoves: "500",
   startFen: "",
+  rated: true,
 };
 
 /** The request body; the API checks the ranges and the position. */
@@ -43,6 +46,7 @@ export function matchOrder(form: MatchForm): MatchOrder {
     games: Number(form.games),
     alternate: form.alternate,
     priority: Number(form.priority),
+    rated: form.rated,
     ...(fen ? { start_fen: fen } : {}),
   };
 }

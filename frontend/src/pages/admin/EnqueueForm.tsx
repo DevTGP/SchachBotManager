@@ -1,31 +1,43 @@
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
 
 import { enqueueMatches } from "../../api/admin";
-import type { Bot, StoredDiscipline } from "../../api/types";
+import type { Bot, EnqueuedMatches, StoredDiscipline } from "../../api/types";
 import { DisciplineSelect } from "../../components/DisciplineSelect";
 import { FormError } from "../../components/FormError";
 import { NumberField } from "../../components/NumberField";
+import { QueuedNotice } from "../../components/QueuedNotice";
+import { RatedField } from "../../components/RatedField";
+import { StartPositionField } from "../../components/StartPositionField";
 import { botLabel } from "../../format/botLabel";
 import { useSubmit } from "../../hooks/useSubmit";
 import { DEFAULT_FORM, type MatchForm, matchOrder } from "./matchOrder";
 
-/** Puts games between two bots into the queue, under a discipline or free times (E85, E100). */
+/**
+ * Puts games between two bots into the queue, under a discipline or free times (E85, E100);
+ * white and black may come preset, e.g. from the bot page (E160).
+ */
 export function EnqueueForm({
   bots,
   disciplines,
+  white,
+  black,
 }: {
   bots: Bot[];
   disciplines: StoredDiscipline[];
+  white?: string;
+  black?: string;
 }) {
   const { t } = useTranslation();
   const { pending, error, submit } = useSubmit();
-  const [queued, setQueued] = useState<number | undefined>(undefined);
-  const [form, setForm] = useState<MatchForm>({
-    ...DEFAULT_FORM,
-    white: bots[0]?.id ?? "",
-    black: bots[1]?.id ?? bots[0]?.id ?? "",
+  const [queued, setQueued] = useState<EnqueuedMatches | undefined>(undefined);
+  const [form, setForm] = useState<MatchForm>(() => {
+    const known = (id: string | undefined) => bots.find((bot) => bot.id === id)?.id;
+    return {
+      ...DEFAULT_FORM,
+      white: known(white) ?? bots[0]?.id ?? "",
+      black: known(black) ?? bots[1]?.id ?? bots[0]?.id ?? "",
+    };
   });
 
   function set<K extends keyof MatchForm>(field: K, value: MatchForm[K]) {
@@ -36,8 +48,7 @@ export function EnqueueForm({
     event.preventDefault();
     setQueued(undefined);
     void submit(async () => {
-      const ids = await enqueueMatches(matchOrder(form));
-      setQueued(ids.length);
+      setQueued(await enqueueMatches(matchOrder(form)));
     });
   }
 
@@ -111,21 +122,10 @@ export function EnqueueForm({
         />
         {t("admin.alternate")}
       </label>
-      <label>
-        {t("admin.startFen")}
-        <input
-          value={form.startFen}
-          placeholder={t("admin.startFenHint")}
-          onChange={(event) => set("startFen", event.target.value)}
-        />
-      </label>
-      <p className="hint">{t("disciplines.ratedHint")}</p>
+      <StartPositionField value={form.startFen} onChange={(fen) => set("startFen", fen)} />
+      <RatedField checked={form.rated} onChange={(rated) => set("rated", rated)} />
       <FormError error={error} />
-      {queued !== undefined && (
-        <p role="status">
-          {t("admin.queued", { count: queued })} <Link to="/queue">{t("nav.queue")}</Link>
-        </p>
-      )}
+      {queued && <QueuedNotice queued={queued} />}
       <button type="submit" className="primary" disabled={pending || bots.length === 0}>
         {t("admin.enqueue")}
       </button>

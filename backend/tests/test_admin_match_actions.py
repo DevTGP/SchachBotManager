@@ -207,3 +207,16 @@ def test_not_repeatable_with_an_archived_discipline(admin, db, reference_bots):
 
     assert response.status_code == 409
     assert response.json["code"] == "not_repeatable"
+
+
+def test_repeat_keeps_an_unrated_game_unrated(admin, db, reference_bots):
+    stored = disciplines.snapshot(store_discipline(db, "Rapid"))
+    old = enqueue_match(db, *reference_bots, stored, start_fen=STANDARD_FEN, now=NOW, rated=False)
+    matches.abort(db, old, "runner gone", NOW)
+
+    new_id = admin.post(path(old, "/repeat"), headers=CSRF).json["match_ids"][0]
+
+    new = matches.get(db, ObjectId(new_id))
+    assert new["rated"] is False
+    assert new["created_by"] == db["users"].find_one({"username": "admin"})["_id"]
+    assert "series" not in new

@@ -66,3 +66,14 @@ def test_the_match_mirrors_the_priority(db, reference_bots):
     matches.set_priority(db, match_id, 7)
 
     assert matches.get(db, match_id)["queue"] == {"priority": 7}
+
+
+def test_a_requester_cancels_only_while_queued(db, reference_bots):
+    queued = enqueue(db, reference_bots)
+    taken = enqueue(db, reference_bots, priority=200)
+    jobs.claim(db, jobs.MATCH, "w1", now=T0, lease=LEASE)
+
+    assert jobs.cancel_match(db, taken, T0, running=False) is None
+    assert job_of(db, taken)["status"] == jobs.RUNNING
+    assert jobs.cancel_match(db, queued, T0, running=False)["status"] == jobs.QUEUED
+    assert job_of(db, queued)["status"] == jobs.CANCELLED

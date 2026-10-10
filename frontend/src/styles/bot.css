@@ -15,3 +15,7 @@
   max-height: 32rem;
   overflow: auto;
 }
+
+.series-score {
+  font-size: 1.25rem;
+}

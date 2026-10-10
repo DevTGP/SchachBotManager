@@ -1,5 +1,5 @@
 import { apiUrl, getBytes, getJson, sendForm, sendJson } from "./client";
-import type { Bot, BotDetail, OwnBotUpdate, OwnMatchRequest } from "./types";
+import type { Bot, BotDetail, EnqueuedMatches, OwnBotUpdate, OwnMatchRequest } from "./types";
 
 /** A bot as the upload page collects it; paths are relative with /. */
 export interface BotUpload {
@@ -63,8 +63,12 @@ export function botSourceUrl(id: string): string {
 export type OwnMatchOrder = Pick<OwnMatchRequest, "white_bot_id" | "black_bot_id"> &
   Partial<Omit<OwnMatchRequest, "white_bot_id" | "black_bot_id">>;
 
-/** Games of an own bot, with the tighter limits for coders (E98). */
-export async function enqueueOwnMatches(order: OwnMatchOrder): Promise<string[]> {
-  const result = await sendJson<{ match_ids: string[] }>("POST", "/matches", order);
-  return result.match_ids;
+/** Games of an own bot, with the tighter limits for coders (E98); two or more form a series. */
+export function enqueueOwnMatches(order: OwnMatchOrder): Promise<EnqueuedMatches> {
+  return sendJson("POST", "/matches", order);
+}
+
+/** Takes a waiting game the account set out of the queue (E157). */
+export function withdrawOwnMatch(matchId: string): Promise<void> {
+  return sendJson("POST", `/matches/${encodeURIComponent(matchId)}/withdraw`);
 }

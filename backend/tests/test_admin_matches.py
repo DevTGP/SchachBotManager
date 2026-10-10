@@ -35,6 +35,7 @@ def test_queue_games_with_alternating_colours(admin, db, reference_bots):
         "black": "Material",
         "discipline": "180+2",
         "games": 3,
+        "rated": True,
     }
 
 

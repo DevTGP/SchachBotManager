@@ -12,11 +12,13 @@ import { BotChecks } from "./BotChecks";
 import { BotDelete } from "./BotDelete";
 import { BotDescription } from "./BotDescription";
 import { BotFiles } from "./BotFiles";
+import { BotOpponents } from "./BotOpponents";
 import { BotOwnerSwitch } from "./BotOwnerSwitch";
 import { BotRechecks } from "./BotRechecks";
 import { BotStatusSwitch } from "./BotStatusSwitch";
 import { BotSummary } from "./BotSummary";
 import { BotVersions } from "./BotVersions";
+import { playLink } from "./playLink";
 import { ReportView } from "./ReportView";
 
 /** Its verification is still running (E92). */
@@ -43,6 +45,11 @@ export function BotPage() {
     <ApiContent state={bot}>
       {(data) => {
         const isOwner = !!user && !data.builtin && data.details?.owner === user.username;
+        const viewer = { isOwner, isAdmin: user?.role === "admin" };
+        const play =
+          data.status === "verified"
+            ? (other: string) => playLink(data.id, other, viewer)
+            : undefined;
         return (
           <>
             <h1>{botLabel(data)}</h1>
@@ -65,7 +72,8 @@ export function BotPage() {
             <p>
               <Link to={`/matches?bot=${data.id}`}>{t("bot.matches")}</Link>
             </p>
-            <BotVersions versions={data.versions} current={data.id} />
+            <BotVersions versions={data.versions} current={data.id} play={play} />
+            <BotOpponents key={`opponents-${data.id}`} botId={data.id} />
             {data.details && data.details.files.length > 0 && (
               <BotFiles key={data.id} botId={data.id} files={data.details.files} />
             )}

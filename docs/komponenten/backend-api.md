@@ -177,6 +177,22 @@ Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 
 
 - Neue Fehlercodes: `match_state` (409, Partie im falschen Zustand oder kein Einzelspiel), `not_repeatable` (409, Bot nicht mehr `verified` oder Disziplin archiviert), `bot_state` (409, Override eines nicht abgelehnten Bots).
 
+Einzelspiele (Schritt 2, E155–E161):
+
+| Datei | Aufgabe |
+|-------|---------|
+| `enqueue_request.py`, `own_match_request.py` | `rated` (Standard `true`, E158); `POST /matches` nimmt zusätzlich `start_fen` (E159) |
+| `routes/admin_matches.py`, `routes/own_matches.py` | legen ab zwei Partien eine Serie an und setzen `created_by`, eigene Partien auch `counted`; Antwort mit `match_ids` und `series_id` (E155, E156) |
+| `routes/admin_match_actions.py` | Wiederholen übernimmt `rated` und setzt den Admin als Ansetzer; `series_id` ist dort immer `null` (E156, E158) |
+| `routes/series.py`, `series_view.py` | `GET /series/{id}`: beide Bots mit Punkten, Partien in Reihenfolge, Zahl der gezählten Partien (E155) |
+| `match_view.py` | zusätzlich `series` (`id`, `index`, `games`) oder `null` je Partie (E155) |
+| `routes/matches.py` | `GET /matches` filtert zusätzlich nach `discipline_id`, `opponent_id` (nur mit `bot_id`, sonst 400) und `mine=true` (Ansetzer, braucht eine Sitzung) (E156) |
+| `routes/own_match_actions.py`, `rate_limit.give_back_games` | `POST /matches/{id}/withdraw`: wartende eigene Partie zurückziehen, Tageslimit im Fenster des Ansetzens zurückgeben (E157) |
+| `routes/positions.py` | `POST /positions/from-pgn`: FEN aus PGN, Partie und Halbzügen über `sbm.arena.replay`, ohne Speichern und ohne Prozess (E159) |
+| `routes/bot_opponents.py` | `GET /bots/{id}/opponents`: Bilanz gegen jeden Gegner-Bot aus beendeten Partien (E161); Abfrage in `sbm_store.opponents` |
+
+- `POST /matches/{id}/withdraw` nutzt `match_state` (409) für laufende und beendete Partien und 404 für fremde.
+
 ## Rollen und Rechte
 
 | Rolle | Darf |

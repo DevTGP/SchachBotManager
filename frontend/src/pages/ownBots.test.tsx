@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import type { Bot } from "../api/types";
-import { BOTS, CODER, CODER_LIMITS } from "../test/fixtures";
+import { BOTS, CODER, CODER_LIMITS, ownMatches } from "../test/fixtures";
 import { type ApiCall, mockApi, renderRoute } from "../test/render";
 
 function own(id: string, name: string, version: string, status: Bot["status"]): Bot {
@@ -54,7 +54,10 @@ describe("my bots page", () => {
       "/account/bots": { items: [SHARP_NEW, SHARP_OLD] },
       "/account/limits": CODER_LIMITS,
       "/bots": { items: [...BOTS, SHARP_NEW, FOREIGN] },
-      "/matches": { match_ids: ["665f00000000000000000101", "665f00000000000000000102"] },
+      "/matches": ownMatches({
+        match_ids: ["665f00000000000000000101", "665f00000000000000000102"],
+        series_id: "665f00000000000000000201",
+      }),
     });
     renderRoute("/account/bots");
 
@@ -81,6 +84,7 @@ describe("my bots page", () => {
       increment_ms: 1_000,
       games: 2,
       alternate: true,
+      rated: true,
     });
   });
 
@@ -91,9 +95,11 @@ describe("my bots page", () => {
       "/account/bots": { items: [SHARP_NEW] },
       "/account/limits": { ...CODER_LIMITS, max_initial_ms: 600_000, games_per_day: 50 },
       "/bots": { items: BOTS },
-      "/matches": Response.json(
-        { code: "invalid_parameter", message: "too long", field: "initial_time_ms" },
-        { status: 400 },
+      "/matches": ownMatches(
+        Response.json(
+          { code: "invalid_parameter", message: "too long", field: "initial_time_ms" },
+          { status: 400 },
+        ),
       ),
     });
     renderRoute("/account/bots");

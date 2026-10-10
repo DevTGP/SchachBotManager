@@ -12,6 +12,10 @@ export interface OwnMatchForm {
   incrementSeconds: string;
   games: string;
   alternate: boolean;
+  /** FEN, or "" for the standard position; another one makes the games unrated (E159). */
+  startFen: string;
+  /** The wish for a rated game; the API decides (E158). */
+  rated: boolean;
 }
 
 export const DEFAULT_OWN_FORM: Omit<OwnMatchForm, "own" | "opponent"> = {
@@ -21,10 +25,13 @@ export const DEFAULT_OWN_FORM: Omit<OwnMatchForm, "own" | "opponent"> = {
   incrementSeconds: "1",
   games: "2",
   alternate: true,
+  startFen: "",
+  rated: true,
 };
 
 /** The request body; the API checks the ranges and that one bot is the own one. */
 export function ownMatchOrder(form: OwnMatchForm): OwnMatchOrder {
+  const fen = form.startFen.trim();
   const [white, black] =
     form.ownColor === "white" ? [form.own, form.opponent] : [form.opponent, form.own];
   const conditions = form.discipline
@@ -39,5 +46,7 @@ export function ownMatchOrder(form: OwnMatchForm): OwnMatchOrder {
     ...conditions,
     games: Number(form.games),
     alternate: form.alternate,
+    rated: form.rated,
+    ...(fen ? { start_fen: fen } : {}),
   };
 }

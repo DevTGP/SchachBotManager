@@ -61,11 +61,20 @@ def repeat_match(match_id: str):
     black = _verified_bot(db, match["black"])
     discipline = _current_discipline(db, match["discipline_snapshot"])
     priority = (match.get("queue") or {}).get("priority", DEFAULT_PRIORITY)
+    # The wish for an unrated game carries over (E158); the repeat is the admin's match (E156).
     new_id = enqueue_match(
-        db, white, black, discipline, start_fen=match["start_fen"], now=now, priority=priority
+        db,
+        white,
+        black,
+        discipline,
+        start_fen=match["start_fen"],
+        now=now,
+        priority=priority,
+        rated=match.get("rated", False),
+        created_by=admin["_id"],
     )
     admin_audit.record(admin, "match.repeat", new_id, {"from": str(match["_id"])})
-    return {"match_ids": [str(new_id)]}, 201
+    return {"match_ids": [str(new_id)], "series_id": None}, 201
 
 
 def _single_match(db: Database, match_id: str) -> dict:

@@ -150,6 +150,20 @@ Lädt `/disciplines` nicht, bieten die Formulare nur freie Zeiten an.
 | `src/components/FormError.tsx` | zusätzlich `values` für Texte mit eingesetzten Grenzen (E154) |
 | `src/pages/admin/RecheckLanguage.tsx` | `/admin`: alle verifizierten und abgelehnten Bots einer Sprache erneut prüfen, meldet die Zahl der eingereihten Prüfungen (E153) |
 
+## Einzelspiele (Stand M6, E155–E161)
+
+| Datei | Inhalt |
+|-------|--------|
+| `src/pages/series/SeriesPage.tsx`, `src/format/points.ts` | `/series/:id`: beide Bots mit Punkten (½ als Zeichen), Zahl der beendeten Partien und die Partien in Reihenfolge (E155) |
+| `src/pages/MatchSeries.tsx` | Partieseite: „Partie 2 von 3 einer Serie“ mit Link auf die Serie (E155) |
+| `src/components/QueuedNotice.tsx` | Bestätigung nach dem Ansetzen in beiden Formularen, mit Link auf die Serie (E155) |
+| `src/components/RatedField.tsx` | Kästchen „Gewertet“ in beiden Formularen (E158) |
+| `src/components/StartPositionField.tsx`, `src/api/positions.ts` | FEN-Feld mit aufklappbarem Teil „Aus PGN“ (Partie, Halbzüge), setzt die FEN aus `POST /positions/from-pgn` ein (E159) |
+| `src/pages/MatchesPage.tsx` | `/matches`: zusätzlich Filter Gegner (nur mit Bot), Disziplin und für Coder und Admins „Von mir angesetzt“, alle in der URL (`opponent`, `discipline`, `mine`) (E156) |
+| `src/pages/ownBots/OwnWaitingMatches.tsx` | „Meine Bots“: wartende eigene Partien mit „Zurückziehen“ (E157) |
+| `src/pages/bot/BotOpponents.tsx` | Bot-Seite: Tabelle „Bilanz“ mit Link auf `/matches?bot=…&opponent=…` (E161) |
+| `src/pages/bot/playLink.ts`, `BotVersions.tsx` | Links „Spielen“ und „Gegen Vorgänger spielen“; das Formular auf `/account/bots` (`own`, `opponent`) bzw. `/admin` (`white`, `black`) übernimmt die Bots aus der Adresse (E160) |
+
 ## Zu beachten
 
 - **Zustand über URLs:** Jede Ansicht (Partie, Zugnummer, Saison, Filter) ist verlinkbar.

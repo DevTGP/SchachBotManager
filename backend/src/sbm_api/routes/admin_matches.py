@@ -13,12 +13,13 @@ def enqueue_matches():
     admin = require_admin()
     db, now = context.db(), context.now()
     order = enqueue_request.parse(db)
-    ids = enqueue_request.enqueue(db, order, now=now)
+    enqueued = enqueue_request.enqueue(db, order, now=now, created_by=admin["_id"])
     details = {
         "white": order.white["name"],
         "black": order.black["name"],
         "discipline": order.discipline.name,
         "games": order.games,
+        "rated": order.rated,
     }
     admin_audit.record(admin, "match.enqueue", None, details)
-    return {"match_ids": [str(match_id) for match_id in ids]}, 201
+    return enqueued.response(), 201

@@ -46,6 +46,24 @@
             "description": "bots: only matches between two bots (type single); players: only games of people in the browser and of remote bots (types human and remote, E119).",
             "schema": { "enum": ["bots", "players"] }
           },
+          {
+            "name": "discipline_id",
+            "in": "query",
+            "description": "Only matches played under this stored discipline (E156).",
+            "schema": { "$ref": "#/components/schemas/Id" }
+          },
+          {
+            "name": "opponent_id",
+            "in": "query",
+            "description": "Only with bot_id: only matches of these two bots against each other (E156).",
+            "schema": { "$ref": "#/components/schemas/Id" }
+          },
+          {
+            "name": "mine",
+            "in": "query",
+            "description": "true: only matches the signed-in account set with POST /matches or POST /admin/matches (E156); needs a session.",
+            "schema": { "type": "boolean" }
+          },
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Offset" }
         ],
@@ -56,13 +74,14 @@
               "application/json": { "schema": { "$ref": "#/components/schemas/MatchPage" } }
             }
           },
-          "400": { "$ref": "#/components/responses/BadRequest" }
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" }
         }
       },
       "post": {
         "operationId": "enqueue_own_matches",
         "security": [{ "session": [] }],
-        "summary": "Puts single games between two verified bots into the queue, at least one of them the account's own (E98). At most 20 games a day per account; they start after the matches of admins.",
+        "summary": "Puts single games between two verified bots into the queue, at least one of them the account's own (E98). The games a day per account are limited (E154); they start after the matches of admins. Two or more games form a series (E155).",
         "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
         "requestBody": {
           "required": true,
@@ -113,6 +132,72 @@
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/matches/{match_id}/withdraw": {
+      "parameters": [{ "$ref": "#/components/parameters/MatchId" }],
+      "post": {
+        "operationId": "withdraw_own_match",
+        "security": [{ "session": [] }],
+        "summary": "Takes a waiting single game the account set out of the queue (E157). The match ends as aborted; a game counted for the daily limit is given back while its day lasts.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "responses": {
+          "204": { "description": "The match is aborted." },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/MatchState" }
+        }
+      }
+    },
+    "/series/{series_id}": {
+      "parameters": [
+        {
+          "name": "series_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "get": {
+        "operationId": "get_series",
+        "summary": "The games of one request with two or more games, in order, and the score (E155).",
+        "responses": {
+          "200": {
+            "description": "The series.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Series" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/positions/from-pgn": {
+      "post": {
+        "operationId": "position_from_pgn",
+        "security": [{ "session": [] }],
+        "summary": "The FEN after some half-moves of a game in a PGN, as a start position (coders and admins, E159). Nothing is stored.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/PgnPositionRequest" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The position.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Position" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
         }
       }
     },
@@ -243,6 +328,30 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthenticated" },
           "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/bots/{bot_id}/opponents": {
+      "parameters": [
+        {
+          "name": "bot_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "get": {
+        "operationId": "get_bot_opponents",
+        "summary": "The record of a bot against every other bot it finished single games with, rated or not, most games first (E161). Visible like the bot.",
+        "responses": {
+          "200": {
+            "description": "The opponents.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/OpponentList" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
           "404": { "$ref": "#/components/responses/NotFound" }
         }
       }
@@ -1660,8 +1769,12 @@
           "black": { "$ref": "#/components/schemas/Side" },
           "discipline": { "$ref": "#/components/schemas/Discipline" },
           "rated": {
-            "description": "Played under a stored discipline from the standard position between two different bots, or by a person with an account against a bot; only such matches count for the rating (E100, E103, E117).",
+            "description": "Played under a stored discipline from the standard position between two different bots, or by a person with an account against a bot, unless asked otherwise; only such matches count for the rating (E100, E103, E117, E158).",
             "type": "boolean"
+          },
+          "series": {
+            "description": "The series of the match if it was queued with others in one request (E155); null otherwise.",
+            "oneOf": [{ "$ref": "#/components/schemas/SeriesPlace" }, { "type": "null" }]
           },
           "result": {
             "description": "null until the match ends.",
@@ -1688,6 +1801,7 @@
           "black",
           "discipline",
           "rated",
+          "series",
           "result",
           "termination",
           "ply_count",
@@ -1733,6 +1847,51 @@
         },
         "required": ["start_fen", "moves"],
         "unevaluatedProperties": false
+      },
+      "SeriesPlace": {
+        "description": "Where a match stands in its series (E155).",
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Id" },
+          "index": { "description": "1 for the first game.", "type": "integer", "minimum": 1 },
+          "games": { "type": "integer", "minimum": 2 }
+        },
+        "required": ["id", "index", "games"],
+        "additionalProperties": false
+      },
+      "SeriesBot": {
+        "description": "A bot of a series with its points: 1 a win, 0.5 a draw; aborted and open games do not count (E155).",
+        "type": "object",
+        "properties": {
+          "bot_id": { "$ref": "#/components/schemas/Id" },
+          "name": { "type": "string" },
+          "version": { "type": ["string", "null"] },
+          "points": { "type": "number", "minimum": 0, "multipleOf": 0.5 }
+        },
+        "required": ["bot_id", "name", "version", "points"],
+        "additionalProperties": false
+      },
+      "Series": {
+        "description": "The games of one request with two or more games (E155); a is white in the first game.",
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Id" },
+          "games": { "type": "integer", "minimum": 2 },
+          "a": { "$ref": "#/components/schemas/SeriesBot" },
+          "b": { "$ref": "#/components/schemas/SeriesBot" },
+          "counted": {
+            "description": "Finished games, the ones in the score.",
+            "type": "integer",
+            "minimum": 0
+          },
+          "matches": {
+            "description": "The games still stored, in order.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/MatchSummary" }
+          }
+        },
+        "required": ["id", "games", "a", "b", "counted", "matches"],
+        "additionalProperties": false
       },
       "MatchPage": {
         "type": "object",
@@ -2055,6 +2214,29 @@
           }
         },
         "minProperties": 1,
+        "additionalProperties": false
+      },
+      "Opponent": {
+        "description": "The record of a bot against one other bot from its point of view (E161).",
+        "type": "object",
+        "properties": {
+          "bot_id": { "$ref": "#/components/schemas/Id" },
+          "name": { "type": "string" },
+          "version": { "type": ["string", "null"] },
+          "games": { "type": "integer", "minimum": 1 },
+          "wins": { "type": "integer", "minimum": 0 },
+          "draws": { "type": "integer", "minimum": 0 },
+          "losses": { "type": "integer", "minimum": 0 }
+        },
+        "required": ["bot_id", "name", "version", "games", "wins", "draws", "losses"],
+        "additionalProperties": false
+      },
+      "OpponentList": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/Opponent" } }
+        },
+        "required": ["items"],
         "additionalProperties": false
       },
       "BotList": {
@@ -2382,13 +2564,18 @@
             "description": "Start position; null or missing for the standard position.",
             "type": ["string", "null"],
             "maxLength": 100
+          },
+          "rated": {
+            "description": "false: none of the games is rated; true rates them where E100 and E103 allow it (E158).",
+            "type": "boolean",
+            "default": true
           }
         },
         "required": ["white_bot_id", "black_bot_id"],
         "additionalProperties": false
       },
       "OwnMatchRequest": {
-        "description": "Like EnqueueRequest with tighter limits: from the standard position, at most 10 games, and free times only with the default move limit up to 5 min + 5 s (E98, E100).",
+        "description": "Like EnqueueRequest with tighter limits from the settings of coders (E98, E154): a limited number of games, and free times only with the default move limit up to a limited time. Games from another than the standard position are not rated (E100, E159).",
         "type": "object",
         "properties": {
           "white_bot_id": { "$ref": "#/components/schemas/Id" },
@@ -2397,13 +2584,23 @@
             "description": "A discipline that is not archived; null or missing for free times.",
             "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }]
           },
-          "initial_time_ms": { "type": "integer", "minimum": 1000, "maximum": 300000 },
-          "increment_ms": { "type": "integer", "minimum": 0, "maximum": 5000, "default": 0 },
-          "games": { "type": "integer", "minimum": 1, "maximum": 10, "default": 1 },
+          "initial_time_ms": { "type": "integer", "minimum": 1000 },
+          "increment_ms": { "type": "integer", "minimum": 0, "default": 0 },
+          "games": { "type": "integer", "minimum": 1, "default": 1 },
           "alternate": {
             "description": "Swap colours after every game.",
             "type": "boolean",
             "default": false
+          },
+          "start_fen": {
+            "description": "Start position; null or missing for the standard position.",
+            "type": ["string", "null"],
+            "maxLength": 100
+          },
+          "rated": {
+            "description": "false: none of the games is rated; true rates them where E100 and E103 allow it (E158).",
+            "type": "boolean",
+            "default": true
           }
         },
         "required": ["white_bot_id", "black_bot_id"],
@@ -2416,9 +2613,39 @@
             "type": "array",
             "items": { "$ref": "#/components/schemas/Id" },
             "minItems": 1
+          },
+          "series_id": {
+            "description": "The series of a request with two or more games, otherwise null (E155).",
+            "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }]
           }
         },
-        "required": ["match_ids"],
+        "required": ["match_ids", "series_id"],
+        "additionalProperties": false
+      },
+      "PgnPositionRequest": {
+        "description": "A start position from a recorded game, as with sbm-arena --replay (E69, E159).",
+        "type": "object",
+        "properties": {
+          "pgn": { "type": "string", "minLength": 1, "maxLength": 65536 },
+          "game": {
+            "description": "Number of the game in the PGN.",
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          },
+          "plies": {
+            "description": "Half-moves to play from its start; null or missing for all of them.",
+            "type": ["integer", "null"],
+            "minimum": 0
+          }
+        },
+        "required": ["pgn"],
+        "additionalProperties": false
+      },
+      "Position": {
+        "type": "object",
+        "properties": { "fen": { "type": "string" } },
+        "required": ["fen"],
         "additionalProperties": false
       },
       "PlayRequest": {
