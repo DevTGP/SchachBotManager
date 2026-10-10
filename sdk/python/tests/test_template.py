@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -117,8 +118,15 @@ def test_start_script_plays_without_arguments(tmp_path):
     # A short time keeps the test fast; the script is otherwise unchanged.
     script = script.replace('time="60+1"', 'time="5+0"')
     (tmp_path / "start.py").write_text(script, encoding="utf-8")
+    # No window in the test; otherwise the script would wait for it to be closed.
+    environment = {**os.environ, "SBM_NO_VIEWER": "1"}
     done = subprocess.run(
-        [sys.executable, "start.py"], capture_output=True, text=True, timeout=120, cwd=tmp_path
+        [sys.executable, "start.py"],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        cwd=tmp_path,
+        env=environment,
     )
     assert done.returncode == 0, done.stderr
     assert "game 2/2 (local-2)" in done.stderr

@@ -7,6 +7,7 @@ the user closes it; ending the process (e.g. in the IDE) closes it too.
 
 import atexit
 import contextlib
+import os
 import subprocess
 import threading
 
@@ -15,6 +16,10 @@ from sbm.log import Log
 from sbm.records import GameInfo
 from sbm.viewer import messages
 from sbm.viewer.process import encode, program_path, start_process
+
+# Set to a non-empty value, it keeps the window shut whatever the code asks for; the sandbox on
+# the server sets it (E108).
+DISABLE_VARIABLE = "SBM_NO_VIEWER"
 
 
 class ViewerWindow:
@@ -103,11 +108,13 @@ def active_window() -> ViewerWindow | None:
 def open_window() -> ViewerWindow | None:
     """Opens the viewer window of this program, or returns the open one.
 
-    None if the package carries no viewer (e.g. on the server) or it cannot start; the bot then
+    None if SBM_NO_VIEWER is set, the package carries no viewer or it cannot start; the bot then
     runs without a window.
     """
     if (window := active_window()) is not None:
         return window
+    if os.environ.get(DISABLE_VARIABLE):
+        return None
     path = program_path()
     if not path.is_file():
         if not _State.missing_reported:

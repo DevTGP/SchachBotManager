@@ -9,6 +9,7 @@ from sbm.channel import Channel, ProtocolError, open_stdio, open_tcp
 from sbm.game import BotError, Game, describe, guarded
 from sbm.log import Log
 from sbm.options import Options, OptionsError, RemoteOptions, parse_options
+from sbm.viewer import open_window
 
 
 class RemoteError(Exception):
@@ -60,16 +61,19 @@ def _play(bot: type[Bot], options: Options) -> None:
             sys.exit(1)
 
 
-def run(bot: type[Bot]) -> None:
+def run(bot: type[Bot], viewer: bool = False) -> None:
     """Creates one instance of the bot class and plays one game with it.
 
     Transport and log level come from the command line or environment (E61): --tcp [PORT],
     --log-level LEVEL, --log-file PATH or SBM_TRANSPORT, SBM_PORT, SBM_LOG_LEVEL, SBM_LOG_FILE.
     --remote URL with SBM_TOKEN and --opponent NAME plays against a bot on the server (E116).
+    viewer=True shows the game in the viewer window; the program then ends once it is closed (E108).
     An exception from the bot is logged at ERROR and ends the process with exit code 1 (E49).
     """
     if not (isinstance(bot, type) and issubclass(bot, Bot)):
         raise TypeError(f"run: bot must be a subclass of sbm.Bot, not {bot!r}")
+    if not isinstance(viewer, bool):
+        raise TypeError(f"run: viewer must be True or False, not {viewer!r}")
     try:
         options = parse_options(sys.argv[1:], os.environ)
     except OptionsError as error:
@@ -81,6 +85,8 @@ def run(bot: type[Bot]) -> None:
         except OSError as error:
             sys.exit(f"sbm: cannot open the log file: {error}")
     log.configure(options.log_level, file)
+    if viewer:
+        open_window()
     try:
         _play(bot, options)
     finally:

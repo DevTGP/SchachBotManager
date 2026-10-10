@@ -18,6 +18,7 @@ from sbm.game import BotError, describe
 from sbm.log import Log, set_ply
 from sbm.options import COLORS, DEFAULT_TIME
 from sbm.records import PlayedGame
+from sbm.viewer import open_window
 
 TOKEN_VARIABLE = "SBM_TOKEN"
 COLOR_NAMES = ("white", "black")
@@ -151,6 +152,7 @@ def play(
     time: str | None = None,
     discipline: str | None = None,
     games: int = 1,
+    viewer: bool = False,
 ) -> list[PlayedGame]:
     """Plays games of the bot class against opponent and returns them in order (E120).
 
@@ -158,16 +160,22 @@ def play(
     server against the bot of that name on the site, with token or SBM_TOKEN.
     color is the own color in the first game (white, black or random); colors then alternate.
     time is SECONDS+INCREMENT (default 60+1), discipline a discipline on the server instead.
+    viewer=True shows all games in one viewer window; after the last one the program waits until
+    it is closed (E108).
     Wrong arguments raise InvalidArgumentError or TypeError; an exception of the bot, a refused
     game or a lost connection is logged at ERROR and ends the process with exit code 1.
     """
     color, games = _check(bot, opponent, color, time, games)
+    if not isinstance(viewer, bool):
+        raise TypeError(f"play: viewer must be True or False, not {viewer!r}")
     if server:
         round_ = _remote(bot, opponent, server, token, time, discipline)
     else:
         round_ = _local(bot, opponent, time, discipline)
     failures = _failures(server)
     first = random.choice((WHITE, BLACK)) if color == "random" else COLOR_NAMES.index(color)
+    if viewer:
+        open_window()
     played: list[PlayedGame] = []
     try:
         for number in range(1, games + 1):
