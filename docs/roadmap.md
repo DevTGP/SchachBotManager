@@ -125,13 +125,17 @@ Abnahme je Sprache: Alle API-Vektoren bestanden, Bot der Sprache spielt regulär
 
 ### M6 – Turniere, voller Adminbereich (P2)
 
-Nach M7 (E110).
-
 | Inhalt | Ergebnis |
 |--------|----------|
 | Turnierformate (Round-Robin, Schweizer, K.-o.), Wiederholung, Anmeldung | Konfigurierbar |
 | Adminbereich vollständig: jede Einstellung über die Website (E13), Nutzer, Invites, Overrides, Neuprüfung, Audit-Log | Kein Parameter mehr nur in Dateien |
 | Einzelspiele (auch Version gegen Version) | Ansetzbar durch Besitzer/Admin |
+
+Nach M7, Turniere erst nach M4 Schritt 3 (E150). Drei Schritte:
+
+1. Adminbereich: Audit-Log-Ansicht, Eingriffe in die Queue (Priorität, Abbruch wartender und laufender Partien, Neuansetzen), Neuprüfung (nur Bericht) und Override abgelehnter Bots, Einstellungen in der Datenbank auf `/admin/settings`.
+2. Einzelspiele: fehlende Teile ergänzen.
+3. Turniere auf dem gemeinsamen Modell für Wettbewerbe aus M4; Formate offen (O24).
 
 ### M7 – Mensch gegen Bot, lokaler Bot gegen Web-API (P2)
 
