@@ -44,7 +44,9 @@
     "bot_verifying": "The bot is being verified. Please wait until that is done.",
     "bot_playing": "The bot is playing a game. Please try again once it has ended.",
     "no_capacity": "All places for games are taken. Please try again in a few minutes.",
-    "too_many_games": "Finish your running game first."
+    "too_many_games": "Finish your running game first.",
+    "match_state": "The game is not in a state that allows this (any more). Please reload the page.",
+    "not_repeatable": "The game cannot be repeated: a bot is no longer verified or the discipline is archived."
   },
   "start": {
     "intro": "Chess bots compete against each other here. All games are public.",
@@ -446,7 +448,15 @@
     "auditDetails": "Details",
     "auditEmpty": "No entries.",
     "auditFilterTarget": "Only entries about this target",
-    "auditClearTarget": "Remove target {{target}}"
+    "auditClearTarget": "Remove target {{target}}",
+    "queueRunningShort": "running",
+    "queueEmpty": "The queue is empty.",
+    "setPriority": "Set",
+    "toFront": "To the front",
+    "cancelMatch": "Cancel game",
+    "cancelConfirm": "Really cancel",
+    "cancelKeep": "Keep",
+    "repeatMatch": "Repeat game"
   },
   "notFound": {
     "title": "Page not found",

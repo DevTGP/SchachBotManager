@@ -854,6 +854,71 @@
         }
       }
     },
+    "/admin/matches/{match_id}": {
+      "parameters": [{ "$ref": "#/components/parameters/MatchId" }],
+      "patch": {
+        "operationId": "update_match_priority",
+        "security": [{ "session": [] }],
+        "summary": "Changes the priority of a waiting single game (admin, E152); higher starts first.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/MatchPriority" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The priority now in force.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/MatchPriority" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/MatchState" }
+        }
+      }
+    },
+    "/admin/matches/{match_id}/cancel": {
+      "parameters": [{ "$ref": "#/components/parameters/MatchId" }],
+      "post": {
+        "operationId": "cancel_match",
+        "security": [{ "session": [] }],
+        "summary": "Takes a waiting single game out of the queue or stops a running one (admin, E152). The match ends as aborted and does not count.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "responses": {
+          "204": { "description": "The match is aborted." },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/MatchState" }
+        }
+      }
+    },
+    "/admin/matches/{match_id}/repeat": {
+      "parameters": [{ "$ref": "#/components/parameters/MatchId" }],
+      "post": {
+        "operationId": "repeat_match",
+        "security": [{ "session": [] }],
+        "summary": "Queues an ended single game again: same bots, colours, start position and priority, under the discipline as it is now (admin, E152).",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "responses": {
+          "201": {
+            "description": "The new match.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/EnqueuedMatches" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/MatchState" }
+        }
+      }
+    },
     "/admin/play-settings": {
       "get": {
         "operationId": "get_play_settings",
@@ -1102,6 +1167,10 @@
         "description": "A reference bot (code builtin_bot), a bot still being verified (code bot_verifying) or a bot in a running match (code bot_playing) cannot be deleted.",
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
       },
+      "MatchState": {
+        "description": "The match is not a single game or not in a state that allows this (code match_state), or it cannot be queued again because a bot is no longer verified or its discipline is archived (code not_repeatable).",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
       "TooLarge": {
         "description": "The request is larger than 3 MiB (code too_large).",
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
@@ -1158,7 +1227,9 @@
               "bot_verifying",
               "bot_playing",
               "no_capacity",
-              "too_many_games"
+              "too_many_games",
+              "match_state",
+              "not_repeatable"
             ]
           },
           "message": {
@@ -1772,9 +1843,15 @@
             "description": "When the match should start; for running matches when it started.",
             "$ref": "#/components/schemas/Timestamp"
           },
-          "estimated_end": { "$ref": "#/components/schemas/Timestamp" }
+          "estimated_end": { "$ref": "#/components/schemas/Timestamp" },
+          "priority": {
+            "description": "Higher starts first (E152); 0 for interactive games, which have their own runner.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          }
         },
-        "required": ["match", "position", "estimated_start", "estimated_end"],
+        "required": ["match", "position", "estimated_start", "estimated_end", "priority"],
         "additionalProperties": false
       },
       "Queue": {
@@ -2207,6 +2284,14 @@
           "paused": { "type": "boolean" }
         },
         "required": ["paused"],
+        "additionalProperties": false
+      },
+      "MatchPriority": {
+        "type": "object",
+        "properties": {
+          "priority": { "type": "integer", "minimum": 0, "maximum": 1000 }
+        },
+        "required": ["priority"],
         "additionalProperties": false
       }
     }

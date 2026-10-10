@@ -140,6 +140,8 @@ Lädt `/disciplines` nicht, bieten die Formulare nur freie Zeiten an.
 | Datei | Inhalt |
 |-------|--------|
 | `src/pages/admin/AdminAuditPage.tsx` | `/admin/audit`: Audit-Log mit Filtern nach Akteur, Aktion, Zeitraum und Ziel in der URL, Klick auf ein Ziel filtert danach, Seitenwechsel (E151) |
+| `src/pages/admin/AdminQueueTable.tsx`, `QueueEntryActions.tsx` | `/admin`: Queue mit Priorität; bei wartenden Einzelspielen Priorität setzen und „Nach vorn“, bei wartenden und laufenden Abbrechen mit Rückfrage (E152) |
+| `src/pages/admin/MatchRepeat.tsx` | Partieseite, nur Admins: beendete oder abgebrochene Einzelspiele erneut einreihen, danach die neue Partie (E152) |
 
 ## Zu beachten
 

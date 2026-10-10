@@ -44,7 +44,9 @@
     "bot_verifying": "Der Bot wird gerade geprüft. Bitte warten, bis die Prüfung fertig ist.",
     "bot_playing": "Der Bot spielt gerade eine Partie. Bitte nach ihrem Ende erneut versuchen.",
     "no_capacity": "Alle Plätze für Partien sind belegt. Bitte in ein paar Minuten noch einmal versuchen.",
-    "too_many_games": "Bitte erst die laufende Partie beenden."
+    "too_many_games": "Bitte erst die laufende Partie beenden.",
+    "match_state": "Die Partie ist (nicht mehr) in einem Zustand, der das erlaubt. Bitte die Seite neu laden.",
+    "not_repeatable": "Die Partie lässt sich nicht wiederholen: Ein Bot ist nicht mehr geprüft oder die Disziplin ist archiviert."
   },
   "start": {
     "intro": "Schachbots treten hier gegeneinander an. Alle Partien sind öffentlich ansehbar.",
@@ -446,7 +448,15 @@
     "auditDetails": "Details",
     "auditEmpty": "Keine Einträge.",
     "auditFilterTarget": "Nur Einträge zu diesem Ziel",
-    "auditClearTarget": "Ziel {{target}} entfernen"
+    "auditClearTarget": "Ziel {{target}} entfernen",
+    "queueRunningShort": "läuft",
+    "queueEmpty": "Die Queue ist leer.",
+    "setPriority": "Setzen",
+    "toFront": "Nach vorn",
+    "cancelMatch": "Partie abbrechen",
+    "cancelConfirm": "Wirklich abbrechen",
+    "cancelKeep": "Behalten",
+    "repeatMatch": "Partie wiederholen"
   },
   "notFound": {
     "title": "Seite nicht gefunden",

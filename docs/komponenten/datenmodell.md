@@ -126,6 +126,11 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 - `api_tokens`: `user_id`, `name`, `token_hash` (eindeutig), `created_at`, `last_used_at`, `revoked_at` (`sbm_store.api_tokens`, Migration `0111_api_tokens`, E116).
 - `users.role` kennt zusätzlich `player` (E103, E115).
 
+## Stand M6 (E150–E169)
+
+- `jobs.status` kennt zusätzlich `cancelled`: Ein Admin hat die Partie abgebrochen (E152). `lease_until` wird geleert, `finished_at` gesetzt; ein Runner, der den Job hielt, kann ihn nicht mehr verlängern.
+- Migration `0150_job_matches` legt einen dünn besetzten Index auf `payload.match_id` von `jobs` an, für Abbrechen und Ändern der Priorität (`sbm_store.jobs.cancel_match`, `set_match_priority`); `sbm_store.matches.set_priority` hält `queue.priority` der Partie gleich.
+
 ## Zu beachten
 
 - **Tabellen sind abgeleitete Daten.** Sie müssen jederzeit aus `matches` neu berechenbar sein (Reparaturwerkzeug für Admins).
@@ -134,4 +139,3 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 - **Schema-Versionierung:** Feld `schema_version` pro Dokument und Migrationsskripte im Repo.
 - **Löschen:** Nutzer und Bots werden deaktiviert statt gelöscht, damit die Spielhistorie konsistent bleibt; personenbezogene Felder müssen separat entfernbar sein.
 - **Backups:** siehe [deployment.md](deployment.md).
-

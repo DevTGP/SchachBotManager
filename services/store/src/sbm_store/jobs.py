@@ -21,6 +21,8 @@ QUEUED = "queued"
 RUNNING = "running"
 DONE = "done"
 FAILED = "failed"
+# Stopped by an admin (E152); the runner notices it when it renews the lease.
+CANCELLED = "cancelled"
 
 # Higher priority first, then first come, first served.
 START_ORDER = [("priority", DESCENDING), ("created_at", ASCENDING), ("_id", ASCENDING)]
@@ -160,3 +162,20 @@ def waiting(db: Database, job_type: str, limit: int) -> tuple[list[dict], int]:
     query = {"type": job_type, "status": QUEUED}
     items = list(db[JOBS].find(query).sort(START_ORDER).limit(limit))
     return items, db[JOBS].count_documents(query)
+
+
+def cancel_match(db: Database, match_id: ObjectId, now: datetime) -> dict | None:
+    """Cancels the queued or running job of a match; None if it has none (any more)."""
+    return db[JOBS].find_one_and_update(
+        {"type": MATCH, "payload.match_id": match_id, "status": {"$in": [QUEUED, RUNNING]}},
+        {"$set": {"status": CANCELLED, "lease_until": None, "finished_at": now}},
+    )
+
+
+def set_match_priority(db: Database, match_id: ObjectId, priority: int) -> bool:
+    """Changes the priority of a match's queued job; False if it is not queued (any more)."""
+    result = db[JOBS].update_one(
+        {"type": MATCH, "payload.match_id": match_id, "status": QUEUED},
+        {"$set": {"priority": priority}},
+    )
+    return result.matched_count == 1

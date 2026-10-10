@@ -166,6 +166,10 @@ Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 
 |-------|---------|
 | `routes/admin_audit_log.py`, `audit_view.py` | `GET /admin/audit`: Audit-Log neueste zuerst, Filter `actor`, `action`, `target`, `since`, `until` (UTC-Tage, einschließlich), dazu alle Akteure und Aktionen (E151); Abfrage in `sbm_store.audit` |
 | `params.py` | zusätzlich `optional_date` für Datumsfilter im Format `2026-10-10` |
+| `routes/admin_match_actions.py` | `PATCH /admin/matches/{id}` (Priorität einer wartenden Partie), `POST /admin/matches/{id}/cancel`, `POST /admin/matches/{id}/repeat`, nur für Einzelspiele, je mit Eintrag im Audit-Log (E152) |
+| `queue_view.py` | zusätzlich `priority` je Eintrag aus dem Job, für interaktive Partien 0 (E152) |
+
+- Neue Fehlercodes: `match_state` (409, Partie im falschen Zustand oder kein Einzelspiel), `not_repeatable` (409, Bot nicht mehr `verified` oder Disziplin archiviert).
 
 ## Rollen und Rechte
 

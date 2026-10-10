@@ -9,6 +9,7 @@ from sbm_store.migrations import (
     m0006_ratings,
     m0110_play_origin,
     m0111_api_tokens,
+    m0150_job_matches,
 )
 
 MIGRATIONS = [
@@ -21,4 +22,6 @@ MIGRATIONS = [
     # M7 numbers its migrations from 0110 on, beside M4 (E110).
     ("0110_play_origin", m0110_play_origin.apply),
     ("0111_api_tokens", m0111_api_tokens.apply),
+    # M6 numbers its migrations from 0150 on (E150).
+    ("0150_job_matches", m0150_job_matches.apply),
 ]

@@ -1,9 +1,9 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import type { AuditEntry, Invite, User } from "../api/types";
-import { ADMIN, BOTS, CODER, queue, user as account } from "../test/fixtures";
+import { ADMIN, BOTS, CODER, match, queue, summary, user as account } from "../test/fixtures";
 import { type ApiCall, mockApi, renderRoute } from "../test/render";
 
 const NO_CONTENT = () => new Response(null, { status: 204 });
@@ -86,6 +86,117 @@ describe("admin games", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("The position is invalid.");
   });
 });
+
+describe("admin queue interventions", () => {
+  const RUNNING = summary({ id: "665f00000000000000000011", status: "running", result: null });
+  const FIRST = summary({ id: "665f00000000000000000012", status: "queued", result: null });
+  const SECOND = summary({ id: "665f00000000000000000013", status: "queued", result: null });
+
+  function entry(game: typeof FIRST, position: number, priority: number) {
+    const time = "2026-05-01T12:00:00.000Z";
+    return { match: game, position, priority, estimated_start: time, estimated_end: time };
+  }
+
+  function mockQueue() {
+    return mockApi({
+      "/session": { user: ADMIN },
+      "/bots": { items: BOTS },
+      "/queue": queue({
+        running: [entry(RUNNING, 0, 100)],
+        waiting: [entry(FIRST, 1, 300), entry(SECOND, 2, 100)],
+        waiting_total: 2,
+      }),
+      [`/admin/matches/${SECOND.id}`]: (_url: URL, call: ApiCall) => call.body,
+      [`/admin/matches/${RUNNING.id}/cancel`]: NO_CONTENT,
+    });
+  }
+
+  function rowOf(position: string) {
+    return screen.getByRole("cell", { name: position }).closest("tr")!;
+  }
+
+  it("moves a waiting game to the front", async () => {
+    const user = userEvent.setup();
+    const api = mockQueue();
+    renderRoute("/admin");
+    await screen.findByRole("cell", { name: "2" });
+    expect(within(rowOf("1")).queryByRole("button", { name: "To the front" })).toBeNull();
+
+    await user.click(within(rowOf("2")).getByRole("button", { name: "To the front" }));
+
+    const patch = await waitForCall(api.calls, "PATCH");
+    expect(patch.url.pathname).toBe(`/api/v1/admin/matches/${SECOND.id}`);
+    expect(patch.body).toEqual({ priority: 301 });
+  });
+
+  it("sets a priority", async () => {
+    const user = userEvent.setup();
+    const api = mockQueue();
+    renderRoute("/admin");
+    await screen.findByRole("cell", { name: "2" });
+    const row = rowOf("2");
+
+    await user.clear(within(row).getByRole("spinbutton", { name: "Priority" }));
+    await user.type(within(row).getByRole("spinbutton", { name: "Priority" }), "50");
+    await user.click(within(row).getByRole("button", { name: "Set" }));
+
+    expect((await waitForCall(api.calls, "PATCH")).body).toEqual({ priority: 50 });
+  });
+
+  it("cancels a running game after asking", async () => {
+    const user = userEvent.setup();
+    const api = mockQueue();
+    renderRoute("/admin");
+    const row = (await screen.findByRole("cell", { name: "running" })).closest("tr")!;
+    expect(within(row).queryByRole("spinbutton")).toBeNull();
+
+    await user.click(within(row).getByRole("button", { name: "Cancel game" }));
+    await user.click(within(row).getByRole("button", { name: "Keep" }));
+    await user.click(within(row).getByRole("button", { name: "Cancel game" }));
+    await user.click(within(row).getByRole("button", { name: "Really cancel" }));
+
+    const post = await waitForCall(api.calls, "POST");
+    expect(post.url.pathname).toBe(`/api/v1/admin/matches/${RUNNING.id}/cancel`);
+  });
+
+  it("repeats an ended game", async () => {
+    const user = userEvent.setup();
+    const ended = match({ id: "665f00000000000000000014" });
+    const api = mockApi({
+      "/session": { user: ADMIN },
+      [`/matches/${ended.id}`]: ended,
+      [`/admin/matches/${ended.id}/repeat`]: Response.json(
+        { match_ids: [RUNNING.id] },
+        { status: 201 },
+      ),
+      [`/matches/${RUNNING.id}`]: match({ id: RUNNING.id, status: "queued", result: null }),
+    });
+    const { router } = renderRoute(`/matches/${ended.id}`);
+
+    await user.click(await screen.findByRole("button", { name: "Repeat game" }));
+
+    expect((await waitForCall(api.calls, "POST")).url.pathname).toBe(
+      `/api/v1/admin/matches/${ended.id}/repeat`,
+    );
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/matches/${RUNNING.id}`));
+  });
+
+  it("offers no repeat to coders", async () => {
+    mockApi({ "/session": { user: CODER }, [`/matches/${FIRST.id}`]: match() });
+    renderRoute(`/matches/${FIRST.id}`);
+    await screen.findByRole("heading", { name: "Random 1.0.0 – Material 1.0.0" });
+    expect(screen.queryByRole("button", { name: "Repeat game" })).toBeNull();
+  });
+});
+
+async function waitForCall(calls: ApiCall[], method: string): Promise<ApiCall> {
+  let found: ApiCall | undefined;
+  await waitFor(() => {
+    found = calls.find((call) => call.method === method);
+    expect(found).toBeDefined();
+  });
+  return found!;
+}
 
 describe("admin users", () => {
   it("deactivates an account and creates a reset link", async () => {
