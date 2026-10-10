@@ -80,6 +80,12 @@ Ohne VS Code gilt dieselbe Reihenfolge: erst die Arena mit `tcp` im Terminal, da
 
 `start.py` der Vorlage ruft `sbm.play(TemplateBot, "material", games=2)` auf; `python start.py` oder „Partien aus start.py“ in VS Code spielt ohne Argumente. Der eigene Bot läuft dabei in einem Thread des Skripts, Haltepunkte greifen also ohne Arena; die Uhr läuft weiter und der Bot wird nicht eingefroren. Mit `server` und `token` spielt derselbe Aufruf gegen einen Bot der Website (siehe unten). Anleitung: `sdk/python/docs/spielen-per-code.md`.
 
+### Viewer-Fenster (E106, E107)
+
+`sbm.viewer.open_window()` vor `sbm.run` oder `sbm.play` öffnet ein Fenster, in dem alle Partien des Programms live mitlaufen. Mit ←/→, Pos1/Ende oder dem Mausrad über dem Brett springt man durch die Züge, „Live“ folgt wieder der laufenden Partie, F dreht das Brett. Zum gewählten Zug zeigt das Fenster Bedenkzeit, Suchinfo und die Log-Zeilen des Bots. Am Ende wartet das Programm, bis das Fenster geschlossen ist; Strg+C oder das Beenden in der IDE schließt es ebenfalls. In der Arena schließt sich das Fenster, wenn die Arena den Bot nach der Partie beendet. Wie das Fenster später im Code eingeschaltet wird, ist offen (O21).
+
+Das Programm `sbm-viewer` steckt in jedem Wheel. Wer das SDK aus dem Repo baut, baut es mit (dauert beim ersten Mal einige Minuten, holt SDL3 und Dear ImGui); `-C cmake.define.SBM_VIEWER=OFF` lässt es weg. Unter Linux braucht der Build die X11-Header (`libx11-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libxfixes-dev`).
+
 ## Lokaler Bot gegen die Web-API
 
 Umgesetzt für Python (E116):

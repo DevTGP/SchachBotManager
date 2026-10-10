@@ -106,7 +106,7 @@ Reihenfolge in fünf Schritten (E99): (1) Disziplinen mit Admin-Seite und Auswah
 
 Abnahme: Zwei aufeinanderfolgende Saisons laufen ohne manuellen Eingriff durch, inklusive Auf-/Abstieg, neu einsteigendem Bot und einem während der Saison zurückgezogenen Bot.
 
-Vor Schritt 3 kommt als eigener Schritt der grafische Viewer im SDK (E106), zuerst für Python.
+Vor Schritt 3 kommt als eigener Schritt der grafische Viewer im SDK (E106), zuerst für Python; umgesetzt (E107).
 
 ### Grafischer Viewer im SDK (E106)
 
@@ -117,7 +117,7 @@ Vor Schritt 3 kommt als eigener Schritt der grafische Viewer im SDK (E106), zuer
 | Einbettung in die Wheels, Start aus dem Python-SDK | Ein `pip install` genügt weiterhin |
 | Lebensdauer | Fenster schließt nur von Hand oder mit dem Programm; das Programm endet erst nach dem letzten Fenster |
 
-Offen vor der Umsetzung: Aktivierung und weitere Einzelheiten (O21).
+Umgesetzt (E107): Programm `sbm-viewer` unter `sdk/viewer/`, Protokoll viewer-v1, Start über `sbm.viewer.open_window()`, Einbettung in die Wheels, CI-Job `viewer`. Offen ist nur, wann das Fenster aufgeht; das kommt mit der Festlegung im Code (O21).
 
 Abnahme: Ein Python-Bot aus der Vorlage öffnet beim lokalen Lauf ein Fenster, das die Partie live zeigt, sich nach dem Ende vor- und zurückspulen lässt und erst von Hand geschlossen wird; auf dem Server geht nie ein Fenster auf.
 

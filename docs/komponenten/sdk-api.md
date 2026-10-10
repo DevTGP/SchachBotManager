@@ -152,12 +152,14 @@ Jeder Aufruf aus Python/Java/C#/JS in den Kern kostet einen festen Betrag, unabh
 - Lokal: Konsole (optional Datei) mit Zeitstempel, Zugnummer, Stufe, z. B. `14:03:12.517 [ply 12] INFO  depth 6`. Server: `stderr`, mengenbegrenzt gespeichert, nur für Besitzer/Admin einsehbar
 - Die Disziplin legt für den Server eine maximale Stufe und Menge fest; wie die Stufe den Bot erreicht, ist offen (O19)
 
-## Grafischer Viewer (E106)
+## Grafischer Viewer (E106, E107)
 
-- Lokal öffnet das SDK ein Fenster, in dem die Partie live mitläuft und sich Zug für Zug zurück- und vorspulen lässt; dazu die Log-Zeilen des Bots je Zug.
-- Das Fenster ist ein eigenes Viewer-Programm in C++, gebaut mit dem Kern und in jedem SDK-Paket mitgeliefert. Das SDK startet es als eigenen Prozess und schickt ihm die Partie zeilenweise als JSON; kein Binding enthält eigenen GUI-Code.
-- Es schließt sich nur von Hand oder mit dem Programm; `run` kehrt erst zurück, wenn alle Fenster geschlossen sind.
-- Auf dem Server öffnet sich nie ein Fenster. Aktivierung und weitere Einzelheiten sind offen (O21).
+- Lokal öffnet das SDK ein Fenster, in dem die Partien des Bot-Programms live mitlaufen und sich Zug für Zug zurück- und vorspulen lassen; dazu die Log-Zeilen des Bots je Zug.
+- Das Fenster ist das Programm `sbm-viewer` (C++, SDL3 und Dear ImGui, Quellen unter `sdk/viewer/`), gebaut mit dem Kern und in jedem SDK-Paket mitgeliefert (Python: `sbm/bin`). Das SDK startet es als eigenen Prozess und schickt ihm die Partie zeilenweise als JSON nach viewer-v1 (`spec/protocol/viewer-v1/`); kein Binding enthält eigenen GUI-Code.
+- Ein Fenster je Programm für alle Partien, wählbar in einer Liste. Brett aus Sicht des Bots, beide Uhren, Züge in SAN, zum gewählten Zug Bedenkzeit, `info` und Log-Zeilen. Tasten: ←/→, Pos1/Ende, F (Brett drehen), Mausrad über dem Brett; „Live“ folgt der laufenden Partie.
+- Das Fenster schließt sich nur von Hand oder mit dem Programm; das Programm wartet am Ende, bis es geschlossen ist (Strg+C beendet das Warten).
+- Python: `sbm.viewer.open_window()` öffnet das Fenster; `Game` meldet Start, Züge und Ende, das Log jede Zeile. Ohne mitgeliefertes Programm gibt es eine Warnung und kein Fenster.
+- Auf dem Server öffnet sich nie ein Fenster: Die Server-Images bauen das Paket ohne Viewer (`SBM_VIEWER=OFF`). Wann das Fenster lokal aufgeht, ist offen (O21).
 
 ## Tests
 

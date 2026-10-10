@@ -32,7 +32,7 @@ Maßgeblich sind die Schemas unter `spec/protocol/v1/`; die Tabelle fasst sie zu
 | B → R | `move` | `move` (UCI); optional `info` |
 | B → R | `resign` | Aufgabe; nur als Antwort auf `turn` statt `move` |
 | R → B | `error` | `code`, `message`; Diagnose eines Protokollverstoßes, danach folgt `game_over` |
-| R → B | `game_over` | `result`, `termination`; danach kurze Frist bis zum Beenden |
+| R → B | `game_over` | `result`, `termination`; dazu nur gemeinsam `last_move` (letzter Zug oder `null`), `fen` und `ply` der Endstellung; der Referee sendet sie immer, damit der Viewer auch einen letzten Zug des Gegners zeigt (E107). Ältere Referees lassen sie weg; danach kurze Frist bis zum Beenden |
 
 `info` in `move` (alle Felder optional, öffentlich im Viewer, E33):
 

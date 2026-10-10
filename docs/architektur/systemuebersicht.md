@@ -79,7 +79,8 @@ SchachBotManager/
 │   └── scheduler/
 ├── sdk/
 │   ├── core/                C++-Schachkern + C-Schnittstelle
-│   ├── python/              Binding, Referee-Kern (sbm.referee), lokale Arena (sbm.arena, E65), Referenzbots (sbm.bots, E68)
+│   ├── python/              Binding, Referee-Kern (sbm.referee), lokale Arena (sbm.arena, E65), Referenzbots (sbm.bots, E68), Anbindung des Viewers (sbm.viewer, E107)
+│   ├── viewer/              Viewer-Programm sbm-viewer (C++, SDL3, Dear ImGui), in jedem SDK-Paket mitgeliefert (E106, E107)
 │   ├── cpp/  java/  csharp/  javascript/   Bindings
 ├── templates/               Vorlagenprojekte je Sprache mit Debug-Konfiguration (python/, E69)
 ├── tools/
