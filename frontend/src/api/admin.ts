@@ -1,5 +1,7 @@
 import { getJson, sendJson } from "./client";
 import type {
+  AuditPage,
+  AuditQuery,
   BotDetail,
   BotUpdate,
   CreatedInvite,
@@ -81,4 +83,9 @@ export function fetchPlaySettings(signal?: AbortSignal): Promise<PlaySettings> {
 /** The limits of games against people and remote bots (E115). */
 export function updatePlaySettings(settings: PlaySettings): Promise<PlaySettings> {
   return sendJson("PUT", "/admin/play-settings", settings);
+}
+
+/** The audit log, newest first; the filters are optional (E151). */
+export function fetchAuditEntries(query: AuditQuery, signal?: AbortSignal): Promise<AuditPage> {
+  return getJson("/admin/audit", query, signal);
 }

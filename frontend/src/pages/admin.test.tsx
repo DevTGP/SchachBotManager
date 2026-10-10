@@ -2,7 +2,7 @@ import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
-import type { Invite, User } from "../api/types";
+import type { AuditEntry, Invite, User } from "../api/types";
 import { ADMIN, BOTS, CODER, queue, user as account } from "../test/fixtures";
 import { type ApiCall, mockApi, renderRoute } from "../test/render";
 
@@ -179,5 +179,39 @@ describe("admin invites", () => {
     await user.click(within(row).getByRole("button", { name: "Revoke" }));
     await expect.poll(() => screen.queryByRole("cell", { name: "admin" })).toBeNull();
     expect(api.calls.at(-2)?.method).toBe("DELETE");
+  });
+});
+
+describe("admin audit log", () => {
+  it("lists entries and filters by action and target", async () => {
+    const user = userEvent.setup();
+    const entry: AuditEntry = {
+      id: "665f0000000000000000d001",
+      at: "2026-05-01T12:00:00.000Z",
+      actor: "admin",
+      action: "bot.update",
+      target: "665f0000000000000000b001",
+      details: { status: "disabled", games: 2 },
+    };
+    const api = mockApi({
+      "/session": { user: ADMIN },
+      "/admin/audit": {
+        items: [entry],
+        total: 1,
+        actions: ["bot.update", "invite.create"],
+        actors: ["admin", "cli"],
+      },
+    });
+    renderRoute("/admin/audit");
+
+    expect(await screen.findByText("status=disabled, games=2")).toBeVisible();
+    await user.selectOptions(screen.getByRole("combobox", { name: "Action" }), "bot.update");
+    await expect.poll(() => api.requests.at(-1)?.searchParams.get("action")).toBe("bot.update");
+    await user.click(screen.getByRole("button", { name: entry.target! }));
+    await expect.poll(() => api.requests.at(-1)?.searchParams.get("target")).toBe(entry.target);
+    expect(api.requests.at(-1)?.searchParams.get("action")).toBe("bot.update");
+
+    await user.click(screen.getByRole("button", { name: `Remove target ${entry.target}` }));
+    await expect.poll(() => api.requests.at(-1)?.searchParams.get("target")).toBeNull();
   });
 });

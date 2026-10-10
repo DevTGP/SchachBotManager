@@ -160,6 +160,13 @@ Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 
 - `require_coder` schützt Upload, eigene Bots, eigene Partien und Tokens; die Rolle `player` bekommt dort 403.
 - Neue Fehlercodes: `no_capacity` (503), `too_many_games` (429).
 
+### Stand M6 (E150–E169)
+
+| Datei | Aufgabe |
+|-------|---------|
+| `routes/admin_audit_log.py`, `audit_view.py` | `GET /admin/audit`: Audit-Log neueste zuerst, Filter `actor`, `action`, `target`, `since`, `until` (UTC-Tage, einschließlich), dazu alle Akteure und Aktionen (E151); Abfrage in `sbm_store.audit` |
+| `params.py` | zusätzlich `optional_date` für Datumsfilter im Format `2026-10-10` |
+
 ## Rollen und Rechte
 
 | Rolle | Darf |

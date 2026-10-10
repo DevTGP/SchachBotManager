@@ -918,6 +918,58 @@
           "403": { "$ref": "#/components/responses/Forbidden" }
         }
       }
+    },
+    "/admin/audit": {
+      "get": {
+        "operationId": "list_audit_entries",
+        "security": [{ "session": [] }],
+        "summary": "Entries of the audit log, newest first, with the actions and actors that occur (admin, E151).",
+        "parameters": [
+          {
+            "name": "actor",
+            "in": "query",
+            "description": "Only entries of this actor: a username, or cli for the command line.",
+            "schema": { "type": "string", "minLength": 1, "maxLength": 64 }
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "description": "Only entries with this action, such as bot.update.",
+            "schema": { "type": "string", "minLength": 1, "maxLength": 64 }
+          },
+          {
+            "name": "target",
+            "in": "query",
+            "description": "Only entries about this target, usually the id of a bot, account, invite or discipline.",
+            "schema": { "type": "string", "minLength": 1, "maxLength": 64 }
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "description": "Only entries from this day on (UTC).",
+            "schema": { "type": "string", "format": "date" }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "description": "Only entries up to and including this day (UTC).",
+            "schema": { "type": "string", "format": "date" }
+          },
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Offset" }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of entries.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/AuditPage" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
     }
   },
   "components": {
@@ -1842,6 +1894,46 @@
           }
         },
         "required": ["id", "username", "role", "active", "created_at", "last_login_at"],
+        "additionalProperties": false
+      },
+      "AuditEntry": {
+        "description": "One action of an admin or of the command line (E85).",
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Id" },
+          "at": { "$ref": "#/components/schemas/Timestamp" },
+          "actor": { "type": "string" },
+          "action": { "type": "string" },
+          "target": {
+            "description": "What the action changed, usually an id; null if it has no single target.",
+            "type": ["string", "null"]
+          },
+          "details": {
+            "description": "Fields of the action as recorded, such as the new status of a bot.",
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": ["id", "at", "actor", "action", "target", "details"],
+        "additionalProperties": false
+      },
+      "AuditPage": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/AuditEntry" } },
+          "total": { "description": "Entries matching the filter.", "type": "integer", "minimum": 0 },
+          "actions": {
+            "description": "Every action in the log, sorted.",
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "actors": {
+            "description": "Every actor in the log, sorted.",
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "required": ["items", "total", "actions", "actors"],
         "additionalProperties": false
       },
       "UserList": {

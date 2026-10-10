@@ -135,6 +135,12 @@ Lädt `/disciplines` nicht, bieten die Formulare nur freie Zeiten an.
 - Die Rolle `player` sieht weder „Meine Bots“ noch Tokens; `RequireRole role="coder"` schützt die Coder-Seiten.
 - Der Vite-Entwicklungsserver reicht `/api/v1/play/socket` an `SBM_GATEWAY_URL` weiter (Standard `ws://127.0.0.1:8001`).
 
+## Adminbereich (Stand M6, E150–E169)
+
+| Datei | Inhalt |
+|-------|--------|
+| `src/pages/admin/AdminAuditPage.tsx` | `/admin/audit`: Audit-Log mit Filtern nach Akteur, Aktion, Zeitraum und Ziel in der URL, Klick auf ein Ziel filtert danach, Seitenwechsel (E151) |
+
 ## Zu beachten
 
 - **Zustand über URLs:** Jede Ansicht (Partie, Zugnummer, Saison, Filter) ist verlinkbar.

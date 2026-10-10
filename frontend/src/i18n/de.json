@@ -434,7 +434,19 @@
     "commandLine": "Kommandozeile",
     "expires": "Gültig bis",
     "revoke": "Zurückziehen",
-    "play": "Spielen"
+    "play": "Spielen",
+    "audit": "Protokoll",
+    "auditActor": "Wer",
+    "auditAction": "Aktion",
+    "auditAll": "Alle",
+    "auditSince": "Von",
+    "auditUntil": "Bis",
+    "auditAt": "Zeit",
+    "auditTarget": "Ziel",
+    "auditDetails": "Details",
+    "auditEmpty": "Keine Einträge.",
+    "auditFilterTarget": "Nur Einträge zu diesem Ziel",
+    "auditClearTarget": "Ziel {{target}} entfernen"
   },
   "notFound": {
     "title": "Seite nicht gefunden",

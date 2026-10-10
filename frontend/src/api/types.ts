@@ -4,6 +4,9 @@ type Schemas = components["schemas"];
 type Query<Name extends keyof operations> = NonNullable<operations[Name]["parameters"]["query"]>;
 
 export type ApiToken = Schemas["ApiToken"];
+export type AuditEntry = Schemas["AuditEntry"];
+export type AuditPage = Schemas["AuditPage"];
+export type AuditQuery = Query<"list_audit_entries">;
 export type CreatedApiToken = Schemas["CreatedApiToken"];
 
 export type Bot = Schemas["Bot"];

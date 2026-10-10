@@ -5,6 +5,7 @@ import { AccountPage } from "./pages/account/AccountPage";
 import { InvitePage } from "./pages/account/InvitePage";
 import { LoginPage } from "./pages/account/LoginPage";
 import { ResetPasswordPage } from "./pages/account/ResetPasswordPage";
+import { AdminAuditPage } from "./pages/admin/AdminAuditPage";
 import { AdminDisciplinesPage } from "./pages/admin/AdminDisciplinesPage";
 import { AdminInvitesPage } from "./pages/admin/AdminInvitesPage";
 import { AdminLayout } from "./pages/admin/AdminLayout";
@@ -79,6 +80,7 @@ export const routes: RouteObject[] = [
           { path: "invites", element: <AdminInvitesPage /> },
           { path: "disciplines", element: <AdminDisciplinesPage /> },
           { path: "play", element: <AdminPlayPage /> },
+          { path: "audit", element: <AdminAuditPage /> },
         ],
       },
       { path: "*", element: <NotFoundPage /> },

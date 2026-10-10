@@ -615,6 +615,23 @@ export interface paths {
         patch: operations["update_queue"];
         trace?: never;
     };
+    "/admin/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Entries of the audit log, newest first, with the actions and actors that occur (admin, E151). */
+        get: operations["list_audit_entries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1003,6 +1020,28 @@ export interface components {
             active: boolean;
             created_at: components["schemas"]["Timestamp"];
             last_login_at: components["schemas"]["Timestamp"] | null;
+        };
+        /** @description One action of an admin or of the command line (E85). */
+        AuditEntry: {
+            id: components["schemas"]["Id"];
+            at: components["schemas"]["Timestamp"];
+            actor: string;
+            action: string;
+            /** @description What the action changed, usually an id; null if it has no single target. */
+            target: string | null;
+            /** @description Fields of the action as recorded, such as the new status of a bot. */
+            details: {
+                [key: string]: unknown;
+            };
+        };
+        AuditPage: {
+            items: components["schemas"]["AuditEntry"][];
+            /** @description Entries matching the filter. */
+            total: number;
+            /** @description Every action in the log, sorted. */
+            actions: string[];
+            /** @description Every actor in the log, sorted. */
+            actors: string[];
         };
         UserList: {
             items: components["schemas"]["User"][];
@@ -2472,6 +2511,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["QueueUpdate"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    list_audit_entries: {
+        parameters: {
+            query?: {
+                /** @description Only entries of this actor: a username, or cli for the command line. */
+                actor?: string;
+                /** @description Only entries with this action, such as bot.update. */
+                action?: string;
+                /** @description Only entries about this target, usually the id of a bot, account, invite or discipline. */
+                target?: string;
+                /** @description Only entries from this day on (UTC). */
+                since?: string;
+                /** @description Only entries up to and including this day (UTC). */
+                until?: string;
+                /** @description Page size. */
+                limit?: components["parameters"]["Limit"];
+                /** @description Number of items to skip. */
+                offset?: components["parameters"]["Offset"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page of entries. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditPage"];
                 };
             };
             400: components["responses"]["BadRequest"];

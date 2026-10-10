@@ -434,7 +434,19 @@
     "commandLine": "Command line",
     "expires": "Valid until",
     "revoke": "Revoke",
-    "play": "Play"
+    "play": "Play",
+    "audit": "Log",
+    "auditActor": "Who",
+    "auditAction": "Action",
+    "auditAll": "All",
+    "auditSince": "From",
+    "auditUntil": "To",
+    "auditAt": "Time",
+    "auditTarget": "Target",
+    "auditDetails": "Details",
+    "auditEmpty": "No entries.",
+    "auditFilterTarget": "Only entries about this target",
+    "auditClearTarget": "Remove target {{target}}"
   },
   "notFound": {
     "title": "Page not found",

@@ -16,6 +16,7 @@ ADMIN_ROUTES = [
     ("patch", f"/api/v1/admin/bots/{USER}", {"status": "disabled"}),
     ("delete", f"/api/v1/admin/bots/{USER}", None),
     ("patch", "/api/v1/admin/queue", {"paused": True}),
+    ("get", "/api/v1/admin/audit", None),
 ]
 
 

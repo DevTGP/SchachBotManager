@@ -16,6 +16,7 @@ from sbm_api.routes import (
     account_bots,
     account_rating,
     account_tokens,
+    admin_audit_log,
     admin_bots,
     admin_disciplines,
     admin_invites,
@@ -68,6 +69,7 @@ BLUEPRINTS = (
     admin_matches,
     admin_play,
     admin_queue,
+    admin_audit_log,
 )
 
 
