@@ -44,6 +44,12 @@ skip = "*-musllinux_*"
 archs = ["auto64"]
 test-extras = ["dev"]
 test-command = "pytest {project}/sdk/python/tests"
+# Every wheel carries the viewer program (E106).
+test-environment = { SBM_REQUIRE_VIEWER = "1" }
+
+# SDL3 in the viewer needs the X11 headers to build with a window system.
+[tool.cibuildwheel.linux]
+before-all = "dnf install -y libX11-devel libXext-devel libXcursor-devel libXi-devel libXrandr-devel libXfixes-devel"
 
 [tool.cibuildwheel.macos.environment]
 MACOSX_DEPLOYMENT_TARGET = "11.0"

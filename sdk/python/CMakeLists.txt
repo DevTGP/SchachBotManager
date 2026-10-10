@@ -50,3 +50,29 @@ install(TARGETS _core LIBRARY DESTINATION sbm)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/_core.pyi ${CMAKE_CURRENT_BINARY_DIR}/py.typed
     DESTINATION sbm
 )
+
+# The viewer program (E106) is built as a project of its own and shipped in sbm/bin, so that a
+# bot can open its window without anything else installed. Off for packages that never open a
+# window, e.g. the runner image.
+option(SBM_VIEWER "Build the viewer program into the package" ON)
+if(SBM_VIEWER)
+    include(ExternalProject)
+    set(viewer_prefix ${CMAKE_CURRENT_BINARY_DIR}/viewer-install)
+    ExternalProject_Add(sbm_viewer
+        SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../viewer
+        BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/viewer
+        CMAKE_ARGS
+            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_INSTALL_PREFIX=${viewer_prefix}
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
+            -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}
+            -DSBM_VIEWER_BUILD_TESTS=OFF
+            -DSBM_VIEWER_INSTALL_DIR=bin
+            -DSBM_VIEWER_LICENSE_DIR=bin/licenses
+        BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release
+        INSTALL_COMMAND ${CMAKE_COMMAND} --install <BINARY_DIR> --config Release
+        # The inner build is incremental; without this, changes to the viewer would be missed.
+        BUILD_ALWAYS ON
+    )
+    install(DIRECTORY ${viewer_prefix}/bin/ DESTINATION sbm/bin USE_SOURCE_PERMISSIONS)
+endif()

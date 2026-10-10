@@ -17,7 +17,8 @@ declare -A areas=(
   [services]='^(sdk/core/|sdk/python/|services/|backend/|spec/)'
   [sandbox]='^(sandbox/|deploy/python\.Dockerfile|sdk/core/|sdk/python/|services/)'
   [frontend]='^(frontend/|spec/web/)'
-  [native_format]='^(sdk/\.clang-format$|sdk/core/(include|src|tests)/|sdk/python/src/native/)'
+  [viewer]='^(sdk/core/|sdk/viewer/|sdk/python/(CMakeLists\.txt|src/sbm/viewer/|tests/(test_)?viewer)|spec/protocol/)'
+  [native_format]='^(sdk/\.clang-format$|sdk/core/(include|src|tests)/|sdk/python/src/native/|sdk/viewer/(src|tests)/)'
 )
 everything='^(\.github/workflows/ci\.yml|\.github/scripts/changed-areas\.sh)$'
 

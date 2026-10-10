@@ -11,7 +11,7 @@ RUN apt-get update \
 WORKDIR /src
 COPY sdk/core sdk/core
 COPY sdk/python sdk/python
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /wheels ./sdk/python
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /wheels -C cmake.define.SBM_VIEWER=OFF ./sdk/python
 COPY services/store services/store
 COPY services/runner services/runner
 COPY services/gateway services/gateway
@@ -40,7 +40,7 @@ RUN apt-get update \
 WORKDIR /src
 COPY sdk/core sdk/core
 COPY sdk/python sdk/python
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /wheels ./sdk/python
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /wheels -C cmake.define.SBM_VIEWER=OFF ./sdk/python
 
 # Without a compiler: this tree becomes the read-only root of every Python bot.
 FROM python:3.14.8-slim-trixie AS bot-python

@@ -28,6 +28,7 @@ jobs:
       sandbox: ${{ steps.areas.outputs.sandbox }}
       frontend: ${{ steps.areas.outputs.frontend }}
       native_format: ${{ steps.areas.outputs.native_format }}
+      viewer: ${{ steps.areas.outputs.viewer }}
     steps:
       # The whole history without file contents, so the base commit of the push is there.
       - uses: actions/checkout@v5
@@ -157,9 +158,11 @@ jobs:
           python-version: ${{ matrix.python }}
 
       # The annotation plugin reports each failing test as an annotation of the run, which is
-      # readable without signing in, unlike the job logs.
+      # readable without signing in, unlike the job logs. The viewer has a job of its own.
       - name: Build and install the package with the core
-        run: pip install "./sdk/python[dev]" pytest-github-actions-annotate-failures==0.4.2
+        run: >-
+          pip install -C cmake.define.SBM_VIEWER=OFF "./sdk/python[dev]"
+          pytest-github-actions-annotate-failures==0.4.2
 
       - name: Lint
         run: |
@@ -192,7 +195,8 @@ jobs:
 
       - name: Install the SDK and the services
         run: >-
-          pip install ./sdk/python ./services/store "./services/runner[dev]"
+          pip install -C cmake.define.SBM_VIEWER=OFF ./sdk/python
+          ./services/store "./services/runner[dev]"
           "./services/gateway[dev]" "./backend[dev]"
           pytest-github-actions-annotate-failures==0.4.2
 
@@ -259,6 +263,44 @@ jobs:
       - name: Build (type check and bundle)
         run: npm run build
 
+  viewer:
+    name: Viewer (${{ matrix.os }})
+    needs: changes
+    if: needs.changes.outputs.viewer == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+
+      # The model needs no window; SDL3 is built once, below, as part of the package.
+      - name: Build and test the viewer model
+        run: |
+          cmake -S sdk/viewer -B build/viewer -DCMAKE_BUILD_TYPE=Release -DSBM_VIEWER_BUILD_APP=OFF
+          cmake --build build/viewer --config Release --parallel
+          ctest --test-dir build/viewer -C Release --output-on-failure
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install the X11 headers
+        if: runner.os == 'Linux'
+        run: >-
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends
+          libx11-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libxfixes-dev
+
+      - name: Build and install the package with the viewer
+        run: pip install "./sdk/python[dev]" pytest-github-actions-annotate-failures==0.4.2
+
+      # Without a display: the program test runs the window with SDL's offscreen driver.
+      - name: Test the SDK client and the packaged program
+        env:
+          SBM_REQUIRE_VIEWER: "1"
+        run: pytest sdk/python -k viewer
+
   native-format:
     name: Native format
     needs: changes
@@ -277,5 +319,6 @@ jobs:
       - name: Check formatting
         run: >
           find sdk/core/include sdk/core/src sdk/core/tests sdk/python/src/native
+          sdk/viewer/src sdk/viewer/tests
           \( -name '*.h' -o -name '*.c' -o -name '*.hpp' -o -name '*.cpp' \)
           -exec clang-format --dry-run --Werror {} +
