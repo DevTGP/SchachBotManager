@@ -29,5 +29,7 @@ def test_error_message_is_cut():
 
 
 def test_game_over():
-    assert violations("game_over", game_over("*", "startup_timeout")) == []
-    assert violations("game_over", game_over("1/2-1/2", "max_moves")) == []
+    start = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    after = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1"
+    assert violations("game_over", game_over("*", "startup_timeout", None, start, 0)) == []
+    assert violations("game_over", game_over("1/2-1/2", "max_moves", "e2e4", after, 1)) == []

@@ -28,9 +28,27 @@
         "max_moves",
         "aborted"
       ]
+    },
+    "last_move": {
+      "description": "Last move of the game, or null if none was played. Lets the bot show the final position, e.g. after the opponent's mating move (E106).",
+      "oneOf": [{ "$ref": "common.schema.json#/$defs/uci" }, { "type": "null" }]
+    },
+    "fen": {
+      "description": "Final position of the game.",
+      "$ref": "common.schema.json#/$defs/fen"
+    },
+    "ply": {
+      "description": "Number of half-moves played since start_fen.",
+      "type": "integer",
+      "minimum": 0
     }
   },
   "required": ["type", "result", "termination"],
+  "dependentRequired": {
+    "last_move": ["fen", "ply"],
+    "fen": ["last_move", "ply"],
+    "ply": ["last_move", "fen"]
+  },
   "additionalProperties": false,
   "allOf": [
     {

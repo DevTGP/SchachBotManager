@@ -230,12 +230,16 @@ class Match:
         return loss(color, termination, f"{violation.code}: {violation.message}")
 
     def _announce(self, outcome: Outcome) -> None:
+        last_move = self._moves[-1].uci if self._moves else None
+        message = referee_messages.game_over(
+            outcome.result, outcome.termination, last_move, self._board.fen(), len(self._moves)
+        )
         for color in (WHITE, BLACK):
             if color in self._silent:
                 continue
             with contextlib.suppress(PlayerClosed):
                 self._players[color].resume()
-            self._send(color, referee_messages.game_over(outcome.result, outcome.termination))
+            self._send(color, message)
 
     def _send(self, color: int, message: dict) -> None:
         if color in self._silent:

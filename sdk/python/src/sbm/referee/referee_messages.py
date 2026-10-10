@@ -41,5 +41,13 @@ def error(code: str, message: str) -> dict:
     return {"type": "error", "code": code, "message": message[:MAX_ERROR_MESSAGE_LENGTH]}
 
 
-def game_over(result: str, termination: str) -> dict:
-    return {"type": "game_over", "result": result, "termination": termination}
+def game_over(result: str, termination: str, last_move: str | None, fen: str, ply: int) -> dict:
+    """The final position lets the bot show the game to its end (E106)."""
+    return {
+        "type": "game_over",
+        "result": result,
+        "termination": termination,
+        "last_move": last_move,
+        "fen": fen,
+        "ply": ply,
+    }

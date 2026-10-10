@@ -46,7 +46,18 @@ def test_fools_mate():
     assert (record.black.sdk, record.black.lang) == ("2.1.0-beta", "cpp")
     assert white.sent_types() == ["init", "turn", "turn", "game_over"]
     assert black.sent_types() == ["init", "turn", "turn", "game_over"]
-    assert black.sent[-1] == {"type": "game_over", "result": "0-1", "termination": "checkmate"}
+    assert (
+        black.sent[-1]
+        == white.sent[-1]
+        == {
+            "type": "game_over",
+            "result": "0-1",
+            "termination": "checkmate",
+            "last_move": "d8h4",
+            "fen": record.moves[-1].fen,
+            "ply": 4,
+        }
+    )
 
 
 def test_init_and_turn_messages():
@@ -114,6 +125,8 @@ def test_timeout():
     assert ending(record) == ("0-1", "timeout")
     assert white.sent_types() == ["init", "turn"]
     assert black.sent_types() == ["init", "game_over"]
+    final = black.sent[-1]
+    assert (final["last_move"], final["fen"], final["ply"]) == (None, record.start_fen, 0)
 
 
 def test_waiting_line_after_the_deadline_is_a_timeout():
