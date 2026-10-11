@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "sbm-gateway"
 version = "0.1.0"
-description = "WebSocket gateway: connects browsers and remote bots with the games of the play runner"
+description = "Gateway: connects browsers and remote bots with the games of the play runner and streams running matches to viewers"
 license = "MIT-0"
 requires-python = ">=3.12"
 # No database access: the runner tells the gateway which seats exist (gateway.md).

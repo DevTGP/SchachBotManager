@@ -41,6 +41,15 @@ class RunningGateway:
     def relay(self) -> "RelayEnd":
         return RelayEnd(socket.create_connection(("127.0.0.1", self.gateway.relay_port), TIMEOUT))
 
+    def live(self) -> "LiveEnd":
+        return LiveEnd(socket.create_connection(("127.0.0.1", self.gateway.live_port), TIMEOUT))
+
+    def watch(self, target: str, method: str = "GET", headers: str = "") -> "WatchEnd":
+        connection = socket.create_connection(("127.0.0.1", self.gateway.watch_port), TIMEOUT)
+        request = f"{method} {target} HTTP/1.1\r\nHost: sbm\r\n{headers}\r\n"
+        connection.sendall(request.encode("latin-1"))
+        return WatchEnd(connection)
+
     def stop(self) -> None:
         asyncio.run_coroutine_threadsafe(self.gateway.stop(), self.loop).result(TIMEOUT)
         self.loop.call_soon_threadsafe(self.loop.stop)
@@ -72,6 +81,84 @@ class RelayEnd:
         self.connection.close()
 
 
+class LiveEnd:
+    """The runner's side of a live connection."""
+
+    def __init__(self, connection: socket.socket) -> None:
+        self.connection = connection
+
+    def send(self, message: dict) -> None:
+        self.connection.sendall(json.dumps(message).encode() + b"\n")
+
+    def open(self, match_id: str = MATCH_ID) -> None:
+        self.send({"type": "open", "v": 1, "match_id": match_id})
+
+    def move(self, ply: int) -> None:
+        self.send({"type": "move", "move": move(ply)})
+
+    def end(self) -> None:
+        self.send({"type": "end"})
+
+    def closed(self) -> bool:
+        """True once the gateway closed the connection."""
+        return self.connection.recv(1) == b""
+
+    def close(self) -> None:
+        self.connection.close()
+
+
+class WatchEnd:
+    """A viewer's HTTP connection: the status, the headers, then events one by one."""
+
+    def __init__(self, connection: socket.socket) -> None:
+        self.connection = connection
+        self.reader = connection.makefile("rb")
+        status_line = self.reader.readline().decode("latin-1")
+        self.status = int(status_line.split(" ")[1])
+        self.headers: dict[str, str] = {}
+        while (line := self.reader.readline().decode("latin-1").rstrip("\r\n")) != "":
+            name, _, value = line.partition(":")
+            self.headers[name.strip().lower()] = value.strip()
+
+    def body(self) -> dict:
+        return json.loads(self.reader.read(int(self.headers["content-length"])))
+
+    def event(self) -> dict[str, str] | None:
+        """The fields of the next event (comments and retry left out); None at the end."""
+        fields: dict[str, str] = {}
+        while True:
+            line = self.reader.readline().decode()
+            if not line:
+                return None
+            line = line.rstrip("\n")
+            if line == "":
+                if fields:
+                    return fields
+                continue
+            name, _, value = line.partition(": ")
+            if name and name != "retry":
+                fields[name] = value
+
+    def comment(self) -> str:
+        return self.reader.readline().decode().rstrip("\n")
+
+    def close(self) -> None:
+        self.reader.close()
+        self.connection.close()
+
+
+def move(ply: int) -> dict:
+    return {
+        "ply": ply,
+        "uci": "e2e4",
+        "san": "e4",
+        "fen": "8/8/8/8/8/8/8/8 w - - 0 1",
+        "spent_ms": 10,
+        "clock_ms": 1000,
+        "info": None,
+    }
+
+
 def join(client: ClientConnection, match_id: str = MATCH_ID, seat: str = SEAT) -> None:
     client.send(json.dumps({"type": "join", "v": 1, "match_id": match_id, "seat": seat}))
 
@@ -83,7 +170,15 @@ def receive(client: ClientConnection) -> dict:
 @pytest.fixture
 def config() -> GatewayConfig:
     return replace(
-        GatewayConfig(), socket_host="127.0.0.1", socket_port=0, relay_port=0, join_wait_seconds=2
+        GatewayConfig(),
+        socket_host="127.0.0.1",
+        socket_port=0,
+        relay_port=0,
+        live_port=0,
+        watch_host="127.0.0.1",
+        watch_port=0,
+        join_wait_seconds=2,
+        feed_wait_seconds=0.5,
     )
 
 

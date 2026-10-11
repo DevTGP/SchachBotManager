@@ -16,10 +16,13 @@ async def run(config: GatewayConfig) -> None:
     gateway = Gateway(config)
     await gateway.start()
     log.info(
-        "gateway listening: clients on port %d, relay on %s:%d",
+        "gateway listening: clients on port %d, relay on %s:%d, live on %s:%d, viewers on port %d",
         gateway.socket_port,
         config.relay_host,
         gateway.relay_port,
+        config.live_host,
+        gateway.live_port,
+        gateway.watch_port,
     )
     stop = asyncio.Event()
     loop = asyncio.get_running_loop()
