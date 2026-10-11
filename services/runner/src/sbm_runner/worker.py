@@ -1,4 +1,5 @@
-"""The runner's main loop: recover, claim, then play a match or verify a bot, one at a time."""
+"""The runner's main loop: recover, advance the leagues, claim, then play a match or verify a bot,
+one at a time."""
 
 import logging
 import time
@@ -7,11 +8,12 @@ from datetime import UTC, datetime
 
 from pymongo.database import Database
 from pymongo.errors import PyMongoError
-from sbm_store import jobs, matches, queue_settings, rating_recount, ratings
+from sbm_store import jobs, matches, queue_order, queue_settings, rating_recount, ratings
 
 from sbm_runner.config import RunnerConfig
 from sbm_runner.game import run_job
 from sbm_runner.heartbeat import Heartbeat
+from sbm_runner.league_tick import advance_leagues
 from sbm_runner.players import PlayerFactory, plain_player
 from sbm_runner.recovery import recover_expired
 from sbm_runner.retries import retry_or_abort, retry_or_reject
@@ -64,6 +66,7 @@ class Worker:
         """Does one round of work; False if there was nothing to do."""
         recover_expired(self._db, self._config, self._now())
         self._recount_ratings()
+        advance_leagues(self._db, self._now())
         if queue_settings.get(self._db).paused:
             return False
         job = self._claim()
@@ -84,25 +87,31 @@ class Worker:
         return True
 
     def _claim(self) -> dict | None:
-        """Matches first; a verification that waited too long goes ahead (E89)."""
+        """Matches first, competitions taking turns (E134); a verification that waited too long
+        goes ahead (E89)."""
         now = self._now()
+        lease = self._config.lease
+        worker_id = self._config.worker_id
 
-        def claim(job_type: str, created_before: datetime | None = None) -> dict | None:
+        def claim_match() -> dict | None:
+            return queue_order.claim_match(self._db, worker_id, now=now, lease=lease)
+
+        def claim_verification(created_before: datetime | None = None) -> dict | None:
             return jobs.claim(
                 self._db,
-                job_type,
-                self._config.worker_id,
+                jobs.VERIFICATION,
+                worker_id,
                 now=now,
-                lease=self._config.lease,
+                lease=lease,
                 created_before=created_before,
             )
 
         if self._verifier is None:
-            return claim(jobs.MATCH)
+            return claim_match()
         return (
-            claim(jobs.VERIFICATION, now - self._config.verification_wait)
-            or claim(jobs.MATCH)
-            or claim(jobs.VERIFICATION)
+            claim_verification(now - self._config.verification_wait)
+            or claim_match()
+            or claim_verification()
         )
 
     def _work(self, job: dict, stopper: Stopper) -> None:
