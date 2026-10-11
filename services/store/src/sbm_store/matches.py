@@ -10,7 +10,7 @@ from bson import ObjectId
 from pymongo import DESCENDING
 from pymongo.database import Database
 
-from sbm_store.discipline import Discipline, is_rated
+from sbm_store.discipline import STANDARD_FEN, Discipline, is_rated
 from sbm_store.names import MATCHES
 
 SCHEMA_VERSION = 1
@@ -19,6 +19,10 @@ RUNNING = "running"
 FINISHED = "finished"
 ABORTED = "aborted"
 STATUSES = (QUEUED, RUNNING, FINISHED, ABORTED)
+SINGLE = "single"
+LEAGUE = "league"
+# A league game not played because a bot withdrew (E136).
+FORFEIT = "forfeit_withdrawn"
 
 NEWEST_FIRST = [("created_at", DESCENDING), ("_id", DESCENDING)]
 SUMMARY_FIELDS = (
@@ -33,6 +37,7 @@ SUMMARY_FIELDS = (
     "result",
     "termination",
     "series",
+    "context",
     "created_at",
     "started_at",
     "finished_at",
@@ -75,7 +80,7 @@ def new_match(
     match = {
         "_id": ObjectId(),
         "schema_version": SCHEMA_VERSION,
-        "type": "single",
+        "type": SINGLE,
         "discipline_snapshot": discipline.to_document(),
         "white": side(white),
         "black": side(black),
@@ -98,6 +103,33 @@ def new_match(
     if counted:
         match["counted"] = True
     return match
+
+
+def new_league_match(
+    white: dict, black: dict, discipline: Discipline, *, context: dict, priority: int, now: datetime
+) -> dict:
+    """A queued league game from the standard position (E134); context places it.
+
+    white and black are bot documents or season entries with _id, name and version.
+    """
+    match = new_match(white, black, discipline, start_fen=STANDARD_FEN, priority=priority, now=now)
+    match.update(type=LEAGUE, context=context)
+    return match
+
+
+def league_context(
+    season: dict, league_name: str, *, tier: int, round_number: int, board: int
+) -> dict:
+    """Where a league game stands; tier, round and board count from 1."""
+    return {
+        "league_id": season["league_id"],
+        "league_name": league_name,
+        "season_id": season["_id"],
+        "season_number": season["number"],
+        "tier": tier,
+        "round": round_number,
+        "board": board,
+    }
 
 
 def series_place(series_id: ObjectId, index: int, games: int) -> dict:
@@ -131,8 +163,11 @@ def match_filter(
     opponent_id: ObjectId | None = None,
     discipline_id: ObjectId | None = None,
     created_by: ObjectId | None = None,
+    season_id: ObjectId | None = None,
+    tier: int | None = None,
 ) -> dict:
-    """opponent_id narrows the games of bot_id to those against that bot (E156)."""
+    """opponent_id narrows the games of bot_id to those against that bot (E156); tier the games
+    of season_id to one tier (E137)."""
     query: dict = {}
     if status is not None:
         query["status"] = status
@@ -147,6 +182,10 @@ def match_filter(
         query["discipline_snapshot.discipline_id"] = discipline_id
     if created_by is not None:
         query["created_by"] = created_by
+    if season_id is not None:
+        query["context.season_id"] = season_id
+        if tier is not None:
+            query["context.tier"] = tier
     return query
 
 
@@ -230,6 +269,28 @@ def abort(db: Database, match_id: ObjectId, detail: str, now: datetime) -> bool:
         },
     )
     return result.modified_count == 1
+
+
+def forfeit(db: Database, match: dict, loser_id: ObjectId, now: datetime) -> bool:
+    """Ends a waiting league game unplayed: the opponent of loser_id wins, unrated (E136).
+
+    False if the match is no longer queued, e.g. because a runner started it.
+    """
+    result = "0-1" if match["white"]["bot_id"] == loser_id else "1-0"
+    updated = db[MATCHES].update_one(
+        {"_id": match["_id"], "status": QUEUED},
+        {
+            "$set": {
+                "status": FINISHED,
+                "rated": False,
+                "result": result,
+                "termination": FORFEIT,
+                "termination_detail": "the opponent withdrew from the league",
+                "finished_at": now,
+            }
+        },
+    )
+    return updated.modified_count == 1
 
 
 def set_priority(db: Database, match_id: ObjectId, priority: int) -> None:

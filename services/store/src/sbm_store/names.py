@@ -17,3 +17,7 @@ DISCIPLINES = "disciplines"
 API_TOKENS = "api_tokens"
 # GridFS bucket for the uploaded files of bots (E82): bot_files.files and bot_files.chunks.
 BOT_FILES = "bot_files"
+# Leagues, their seasons and the registrations of bots (E131, E132, E136).
+LEAGUES = "leagues"
+SEASONS = "seasons"
+REGISTRATIONS = "registrations"

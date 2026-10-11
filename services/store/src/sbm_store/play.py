@@ -112,6 +112,7 @@ def new_play_match(
 def new_play_job(match_id: ObjectId, *, now: datetime) -> dict:
     job = jobs.new_match_job(match_id, priority=0, now=now)
     job["type"] = PLAY_JOB
+    del job["competition"]
     return job
 
 

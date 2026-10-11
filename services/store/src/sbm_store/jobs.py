@@ -24,17 +24,27 @@ FAILED = "failed"
 # Stopped by an admin (E152); the runner notices it when it renews the lease.
 CANCELLED = "cancelled"
 
+# The competition of single games; a league's is league:<id> (E134, queue_order).
+SINGLE = "single"
+
 # Higher priority first, then first come, first served.
 START_ORDER = [("priority", DESCENDING), ("created_at", ASCENDING), ("_id", ASCENDING)]
 
 
-def new_match_job(match_id: ObjectId, *, priority: int, now: datetime) -> dict:
+def league_competition(league_id: ObjectId) -> str:
+    return f"league:{league_id}"
+
+
+def new_match_job(
+    match_id: ObjectId, *, priority: int, now: datetime, competition: str = SINGLE
+) -> dict:
     return {
         "_id": ObjectId(),
         "schema_version": SCHEMA_VERSION,
         "type": MATCH,
         "payload": {"match_id": match_id},
         "priority": priority,
+        "competition": competition,
         "status": QUEUED,
         "not_before": now,
         "lease_until": None,
@@ -48,6 +58,7 @@ def new_match_job(match_id: ObjectId, *, priority: int, now: datetime) -> dict:
 def new_verification_job(bot_id: ObjectId, *, now: datetime) -> dict:
     job = new_match_job(bot_id, priority=VERIFICATION_PRIORITY, now=now)
     job.update(type=VERIFICATION, payload={"bot_id": bot_id})
+    del job["competition"]
     return job
 
 
@@ -89,6 +100,25 @@ def claim(
             "$inc": {"attempts": 1},
         },
         sort=START_ORDER,
+        return_document=ReturnDocument.AFTER,
+    )
+
+
+def claim_job(
+    db: Database, job_id: ObjectId, worker_id: str, *, now: datetime, lease: timedelta
+) -> dict | None:
+    """Takes one queued job and notes when (queue_order); None if someone else was faster."""
+    return db[JOBS].find_one_and_update(
+        {"_id": job_id, "status": QUEUED},
+        {
+            "$set": {
+                "status": RUNNING,
+                "worker_id": worker_id,
+                "lease_until": now + lease,
+                "claimed_at": now,
+            },
+            "$inc": {"attempts": 1},
+        },
         return_document=ReturnDocument.AFTER,
     )
 

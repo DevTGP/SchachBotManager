@@ -129,6 +129,14 @@ def all_by_name(db: Database) -> list[dict]:
     return list(db[BOTS].find().sort([("name_key", ASCENDING), ("version_no", ASCENDING)]))
 
 
+def by_ids(db: Database, bot_ids: list[ObjectId], *, status: str | None = None) -> dict:
+    """The bots with these ids by id, only those with status if it is given."""
+    query: dict = {"_id": {"$in": bot_ids}}
+    if status is not None:
+        query["status"] = status
+    return {bot["_id"]: bot for bot in db[BOTS].find(query)}
+
+
 def of_owner(db: Database, owner_id: ObjectId) -> list[dict]:
     """The bots of a user, newest first."""
     return list(
