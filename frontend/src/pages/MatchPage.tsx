@@ -1,27 +1,21 @@
 import { useParams } from "react-router";
 
-import { fetchMatch } from "../api/endpoints";
 import type { Match } from "../api/types";
 import { ApiContent } from "../components/ApiContent";
-import { useApi } from "../hooks/useApi";
-import { POLL_MATCH_MS } from "../hooks/polling";
+import { useLiveMatch } from "../hooks/useLiveMatch";
 import { Viewer } from "../viewer/Viewer";
 import { MatchRepeat } from "./admin/MatchRepeat";
 import { MatchLeague } from "./MatchLeague";
 import { MatchSeries } from "./MatchSeries";
 
-/** Moves can still come; only then the viewer asks again (E76). */
+/** Moves can still come; the viewer follows them (E76, E142). */
 function isLive(match: Match | undefined): boolean {
   return match?.status === "queued" || match?.status === "running";
 }
 
 export function MatchPage() {
   const { id = "" } = useParams();
-  const match = useApi(
-    (signal) => fetchMatch(id, signal),
-    id,
-    (data) => (isLive(data) ? POLL_MATCH_MS : undefined),
-  );
+  const match = useLiveMatch(id);
   return (
     <ApiContent state={match}>
       {(data) => (

@@ -65,6 +65,14 @@ export function fetchMatch(id: string, signal?: AbortSignal): Promise<Match> {
   return getJson(`/matches/${encodeURIComponent(id)}`, undefined, signal);
 }
 
+/**
+ * The event stream of a running match on the gateway, from the move after `after` on (E142):
+ * events `move` with a Move and the ply as id, then `end`. Not part of the API's openapi.
+ */
+export function matchLiveUrl(id: string, after: number): string {
+  return apiUrl(`/matches/${encodeURIComponent(id)}/live`, { after });
+}
+
 export function matchPgnUrl(id: string): string {
   return apiUrl(`/matches/${encodeURIComponent(id)}/pgn`);
 }

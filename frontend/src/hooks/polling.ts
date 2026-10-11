@@ -1,6 +1,8 @@
-// No live channel in M2 (E76): pages with running matches ask the API again in these intervals.
+// Pages with changing data ask the API again in these intervals. A running match in the viewer
+// gets its moves from the gateway's event stream instead and is asked about only without it
+// (E142).
 
-/** A running match in the viewer. */
+/** A queued match, or a running one without the event stream. */
 export const POLL_MATCH_MS = 2_000;
 
 /** Lists and the queue. */
