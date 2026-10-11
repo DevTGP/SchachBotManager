@@ -3,7 +3,14 @@
 import random
 from datetime import timedelta
 
-from sbm_store import league_setup, leagues, registrations, season_start, seasons
+from sbm_store import (
+    competition_entrants,
+    league_setup,
+    leagues,
+    registrations,
+    season_start,
+    seasons,
+)
 
 from stored_disciplines import store_discipline
 from stored_games import NOW
@@ -19,13 +26,17 @@ def store_league(db, name: str = "Liga", discipline: dict | None = None, **setti
 
 
 def register(db, league: dict, entrants: list[dict]) -> None:
-    for bot in entrants:
-        entry = registrations.new_registration(league["_id"], bot["_id"], created_by=None, now=NOW)
+    """entrants are bot or account documents (E182)."""
+    for holder in entrants:
+        fields = competition_entrants.fields(holder)
+        entry = registrations.new_registration(
+            league["_id"], fields["bot_id"], user_id=fields["user_id"], created_by=None, now=NOW
+        )
         assert registrations.insert(db, entry)
 
 
 def start_season(db, league: dict, entrants: list[dict]) -> dict:
-    """Registers the bots, releases the first season and starts it; returns it."""
+    """Registers the bots or accounts, releases the first season and starts it; returns it."""
     register(db, league, entrants)
     assert league_setup.start(db, league["_id"], NOW)
     started = season_start.start_due(db, NOW + timedelta(seconds=1), random.Random(1))

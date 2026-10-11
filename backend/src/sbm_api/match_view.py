@@ -1,5 +1,7 @@
 """Matches as the API shows them (schemas MatchSummary, Match, Move)."""
 
+from sbm_api import context
+from sbm_api.readiness_view import readiness_view
 from sbm_api.timestamps import optional_timestamp, timestamp
 
 DISCIPLINE_FIELDS = (
@@ -31,10 +33,16 @@ def match_summary(match: dict) -> dict:
         "series": series_place(match.get("series")),
         "league": league_place(match.get("context")),
         "tournament": tournament_place(match.get("context")),
+        "readiness": _readiness(match.get("readiness")),
         "created_at": timestamp(match["created_at"]),
         "started_at": optional_timestamp(match["started_at"]),
         "finished_at": optional_timestamp(match["finished_at"]),
     }
+
+
+def _readiness(readiness: dict | None) -> dict | None:
+    """Only a released game reads the clock, whether its accounts are present (E183)."""
+    return None if readiness is None else readiness_view(readiness, context.now())
 
 
 def series_place(series: dict | None) -> dict | None:

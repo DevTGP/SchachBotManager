@@ -43,6 +43,8 @@ LEAGUE_STATE = "league_state"
 # Tournaments (E172, E179).
 TOURNAMENT_STATE = "tournament_state"
 ALREADY_REGISTERED = "already_registered"
+# Accounts in leagues and tournaments (E182).
+USER_STATE = "user_state"
 
 
 class ApiError(Exception):

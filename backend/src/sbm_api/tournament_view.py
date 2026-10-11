@@ -2,10 +2,10 @@
 TournamentDetail, EditionSummary, TournamentRegistration, E180)."""
 
 from pymongo.database import Database
-from sbm_store import bots, disciplines, editions, registrations, tournaments
+from sbm_store import disciplines, editions, participants, registrations, tournaments
 
 from sbm_api import recurrence_request
-from sbm_api.league_view import league_bot
+from sbm_api.participant_view import holders, participant
 from sbm_api.timestamps import optional_timestamp, timestamp
 
 TOURNAMENT = registrations.TOURNAMENT
@@ -55,39 +55,41 @@ def tournament_detail(db: Database, tournament: dict) -> dict:
     found = editions.of_tournament(db, tournament["_id"])
     playing = _playing(found[0] if found else None)
     entries = registrations.active_of_league(db, tournament["_id"], target_type=TOURNAMENT)
-    entered = bots.by_ids(db, [entry["bot_id"] for entry in entries])
+    entered = holders(db, entries)
     return tournament_view(db, tournament) | {
         "editions": [edition_summary(edition) for edition in found],
         "registrations": [
-            registration_view(entry, tournament, entered[entry["bot_id"]], playing)
+            registration_view(entry, tournament, entered[participants.key(entry)], playing)
             for entry in entries
-            if entry["bot_id"] in entered
+            if participants.key(entry) in entered
         ],
     }
 
 
-def bot_registrations(db: Database, bot: dict) -> list[dict]:
-    entries = registrations.active_of_bot(db, bot["_id"], target_type=TOURNAMENT)
+def bot_registrations(db: Database, holder: dict) -> list[dict]:
+    """The tournaments a participant is registered for; holder has its entry fields."""
+    entries = registrations.active_of_bot(db, participants.key(holder), target_type=TOURNAMENT)
     ids = [entry["target_id"] for entry in entries]
     found = tournaments.by_ids(db, ids)
     latest = editions.latest_of(db, ids)
     return [
         registration_view(
-            entry, found[entry["target_id"]], bot, _playing(latest.get(entry["target_id"]))
+            entry, found[entry["target_id"]], holder, _playing(latest.get(entry["target_id"]))
         )
         for entry in entries
         if entry["target_id"] in found
     ]
 
 
-def registration_view(entry: dict, tournament: dict, bot: dict, playing: set) -> dict:
-    """playing holds the bots of the running edition that have not withdrawn."""
+def registration_view(entry: dict, tournament: dict, holder: dict, playing: set) -> dict:
+    """holder has the participant's entry fields; playing holds the participants of the running
+    edition that have not withdrawn."""
     return {
         "tournament_id": str(tournament["_id"]),
         "tournament_name": tournament["name"],
-        "bot": league_bot({"bot_id": bot["_id"], "name": bot["name"], "version": bot["version"]}),
+        "bot": participant(holder),
         "created_at": timestamp(entry["created_at"]),
-        "playing": bot["_id"] in playing,
+        "playing": participants.key(holder) in playing,
     }
 
 
@@ -99,7 +101,7 @@ def edition_summary(edition: dict) -> dict:
         "status": edition["status"],
         "starts_after": optional_timestamp(edition["starts_after"]),
         "participants": len(edition["participants"]),
-        "winner": None if winner is None else league_bot(winner),
+        "winner": None if winner is None else participant(winner),
         "started_at": optional_timestamp(edition["started_at"]),
         "finished_at": optional_timestamp(edition["finished_at"]),
     }
@@ -118,7 +120,7 @@ def _playing(edition: dict | None) -> set:
     if edition is None or edition["status"] != editions.RUNNING:
         return set()
     withdrawn = set(edition["withdrawn"])
-    return {entry["bot_id"] for entry in edition["participants"]} - withdrawn
+    return {participants.key(entry) for entry in edition["participants"]} - withdrawn
 
 
 def _discipline_names(db: Database) -> dict:

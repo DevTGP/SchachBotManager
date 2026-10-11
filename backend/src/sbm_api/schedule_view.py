@@ -2,7 +2,7 @@
 
 from sbm_store.season_schedule import Round
 
-from sbm_api.league_view import league_bot
+from sbm_api.participant_view import participant
 
 
 def schedule_view(tier: int, rounds: list[Round]) -> dict:
@@ -12,7 +12,7 @@ def schedule_view(tier: int, rounds: list[Round]) -> dict:
 def _round(each: Round) -> dict:
     return {
         "round": each.number,
-        "bye": None if each.bye is None else league_bot(each.bye),
+        "bye": None if each.bye is None else participant(each.bye),
         "games": [_game(game) for game in each.games],
     }
 
@@ -21,8 +21,8 @@ def _game(game: dict) -> dict:
     return {
         "match_id": str(game["_id"]),
         "board": game["context"]["board"],
-        "white": league_bot(game["white"]),
-        "black": league_bot(game["black"]),
+        "white": participant(game["white"]),
+        "black": participant(game["black"]),
         "status": game["status"],
         "result": game.get("result"),
         "termination": game.get("termination"),

@@ -9,7 +9,7 @@ from pymongo.database import Database
 from sbm_store.names import BOTS, DISCIPLINES, INVITES, LEAGUES, MATCHES, TOURNAMENTS, USERS
 
 # The first part of an action names the kind of its target; registering in a league or a
-# tournament targets a bot.
+# tournament targets a bot or, for the actions on accounts, an account (E182).
 KINDS = {
     "bot": "bot",
     "match": "match",
@@ -25,6 +25,12 @@ BOT_ACTIONS = {
     "league.deregister",
     "tournament.register",
     "tournament.deregister",
+}
+USER_ACTIONS = {
+    "league.register_account",
+    "league.deregister_account",
+    "tournament.register_account",
+    "tournament.deregister_account",
 }
 COLLECTIONS = {
     "bot": BOTS,
@@ -44,6 +50,8 @@ def target_kind(entry: dict) -> str | None:
     action = entry["action"]
     if action in BOT_ACTIONS:
         return "bot"
+    if action in USER_ACTIONS:
+        return "user"
     return KINDS.get(action.split(".", 1)[0])
 
 

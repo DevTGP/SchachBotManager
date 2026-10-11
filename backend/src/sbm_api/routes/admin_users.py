@@ -1,9 +1,10 @@
-"""Admin: list accounts, change role or active flag, create a reset link (E83, E85)."""
+"""Admin: list accounts, change role or active flag, create a reset link (E83, E85). A
+deactivated account leaves its leagues and tournaments (E182)."""
 
 from datetime import timedelta
 
 from flask import Blueprint
-from sbm_store import password_resets, sessions, users
+from sbm_store import password_resets, registrations, sessions, users, withdrawal
 
 from sbm_api import admin_audit, body, context
 from sbm_api.current_user import require_admin
@@ -44,6 +45,7 @@ def update_user(user_id: str):
         raise not_found("no such account")
     if not user["active"]:
         sessions.delete_for_user(db, target)
+        withdrawal.withdraw_everywhere(db, target, registrations.DEACTIVATED, context.now())
     admin_audit.record(admin, "user.update", target, fields)
     return user_view(user)
 

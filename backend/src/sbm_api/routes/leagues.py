@@ -1,7 +1,7 @@
 """GET /leagues, /leagues/{league_id}, /seasons/{season_id} and /bots/{bot_id}/leagues (E137)."""
 
 from flask import Blueprint
-from sbm_store import bots, leagues, seasons
+from sbm_store import bots, competition_entrants, leagues, seasons
 
 from sbm_api import context
 from sbm_api.bot_access import visible_bot
@@ -41,4 +41,4 @@ def get_season(season_id: str):
 def get_bot_leagues(bot_id: str):
     db = context.db()
     bot = visible_bot(bots.get(db, object_id(bot_id, "bot_id")), current_user())
-    return {"items": bot_registrations(db, bot)}
+    return {"items": bot_registrations(db, competition_entrants.fields(bot))}

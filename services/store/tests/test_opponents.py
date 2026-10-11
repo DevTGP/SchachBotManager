@@ -66,3 +66,14 @@ def test_only_finished_games_against_other_bots(db):
     db[MATCHES].update_one({"_id": human}, {"$set": {"type": "human"}})
 
     assert opponents.records(db, me["_id"]) == []
+
+
+def test_leaves_out_league_games_against_accounts(db):
+    me = bot("Me")
+    account = {"_id": ObjectId(), "user_id": ObjectId(), "name": "alice"}
+    context = {"season_id": ObjectId(), "tier": 1, "round": 1, "board": 1}
+    match = matches.new_league_match(me, account, BLITZ, context=context, priority=0, now=T0)
+    match.update(status=matches.FINISHED, result="1-0")
+    matches.insert(db, match)
+
+    assert opponents.records(db, me["_id"]) == []

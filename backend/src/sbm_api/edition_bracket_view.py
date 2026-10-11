@@ -5,16 +5,16 @@ A duel keeps every game it laid out; an aborted game is replaced by a later entr
 phase and number, and only the last one counts for the points. The game list shows all of them.
 """
 
-from sbm_store import edition_games
+from sbm_store import edition_games, participants
 from sbm_store.league_table import SCORES
 
-from sbm_api.league_view import league_bot
+from sbm_api.participant_view import participant
 
 
 def bracket_view(edition: dict, games: list[dict]) -> list[dict]:
     """games are the edition's matches (edition_games.of_edition)."""
     found = {game["_id"]: game for game in games}
-    entries = {entry["bot_id"]: entry for entry in edition["participants"]}
+    entries = {participants.key(entry): entry for entry in edition["participants"]}
     return [_duel(duel, found, entries) for duel in edition["duels"]]
 
 
@@ -41,23 +41,23 @@ def _side(side: dict | None, latest, found: dict) -> dict | None:
     if side is None:
         return None
     return {
-        "bot": league_bot(side),
+        "bot": participant(side),
         "seed": side["seed"],
-        "points": _points(side["bot_id"], latest, found, edition_games.REGULAR),
-        "tiebreak_points": _points(side["bot_id"], latest, found, edition_games.TIEBREAK),
+        "points": _points(participants.key(side), latest, found, edition_games.REGULAR),
+        "tiebreak_points": _points(participants.key(side), latest, found, edition_games.TIEBREAK),
     }
 
 
-def _points(bot_id, latest, found: dict, phase: str) -> float:
+def _points(key, latest, found: dict, phase: str) -> float:
     total = 0.0
     for entry in latest:
         match = found.get(entry["match_id"])
         if entry["phase"] != phase or match is None:
             continue
         white, black = SCORES.get(match["result"], (0.0, 0.0))
-        if entry["white"] == bot_id:
+        if entry["white"] == key:
             total += white
-        elif entry["black"] == bot_id:
+        elif entry["black"] == key:
             total += black
     return total
 
@@ -67,8 +67,8 @@ def _game(entry: dict, match: dict, entries: dict) -> dict:
         "match_id": str(entry["match_id"]),
         "phase": entry["phase"],
         "game": entry["game"],
-        "white": league_bot(entries[entry["white"]]),
-        "black": league_bot(entries[entry["black"]]),
+        "white": participant(entries[entry["white"]]),
+        "black": participant(entries[entry["black"]]),
         "status": match["status"],
         "result": match.get("result"),
         "termination": match.get("termination"),

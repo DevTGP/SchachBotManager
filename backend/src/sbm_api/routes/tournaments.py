@@ -2,7 +2,7 @@
 /bots/{bot_id}/tournaments and /bots/{bot_id}/editions (E180)."""
 
 from flask import Blueprint
-from sbm_store import bot_editions, bots, edition_games, editions, tournaments
+from sbm_store import bot_editions, bots, competition_entrants, edition_games, editions, tournaments
 
 from sbm_api import context
 from sbm_api.bot_access import visible_bot
@@ -48,7 +48,7 @@ def get_edition_rounds(edition_id: str):
 def get_bot_tournaments(bot_id: str):
     db = context.db()
     bot = visible_bot(bots.get(db, object_id(bot_id, "bot_id")), current_user())
-    return {"items": bot_registrations(db, bot)}
+    return {"items": bot_registrations(db, competition_entrants.fields(bot))}
 
 
 @blueprint.get("/bots/<bot_id>/editions")

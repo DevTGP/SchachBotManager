@@ -2,9 +2,10 @@
 SeasonSummary, LeagueRegistration, E137)."""
 
 from pymongo.database import Database
-from sbm_store import bots, disciplines, leagues, registrations, seasons
+from sbm_store import disciplines, leagues, participants, registrations, seasons
 
 from sbm_api import recurrence_request
+from sbm_api.participant_view import holders, participant
 from sbm_api.timestamps import optional_timestamp, timestamp
 
 
@@ -36,35 +37,39 @@ def league_view(db: Database, league: dict, discipline_name: str | None = None) 
 def league_detail(db: Database, league: dict) -> dict:
     running = _running(db, league["_id"])
     entries = registrations.active_of_league(db, league["_id"])
-    found = bots.by_ids(db, [entry["bot_id"] for entry in entries])
+    found = holders(db, entries)
     return league_view(db, league) | {
         "seasons": [season_summary(season) for season in seasons.of_league(db, league["_id"])],
         "registrations": [
-            registration_view(entry, league, found[entry["bot_id"]], running)
+            registration_view(entry, league, found[participants.key(entry)], running)
             for entry in entries
-            if entry["bot_id"] in found
+            if participants.key(entry) in found
         ],
     }
 
 
-def bot_registrations(db: Database, bot: dict) -> list[dict]:
-    entries = registrations.active_of_bot(db, bot["_id"])
+def bot_registrations(db: Database, holder: dict) -> list[dict]:
+    """The leagues a participant is registered for; holder has its entry fields."""
+    entries = registrations.active_of_bot(db, participants.key(holder))
     found = leagues.by_ids(db, [entry["target_id"] for entry in entries])
     return [
-        registration_view(entry, found[entry["target_id"]], bot, _running(db, entry["target_id"]))
+        registration_view(
+            entry, found[entry["target_id"]], holder, _running(db, entry["target_id"])
+        )
         for entry in entries
         if entry["target_id"] in found
     ]
 
 
-def registration_view(entry: dict, league: dict, bot: dict, running: dict | None) -> dict:
-    """running is the league's running season, if any: the tier is the bot's tier there."""
+def registration_view(entry: dict, league: dict, holder: dict, running: dict | None) -> dict:
+    """holder has the participant's entry fields; running is the league's running season, if
+    any: the tier is the participant's tier there."""
     return {
         "league_id": str(league["_id"]),
         "league_name": league["name"],
-        "bot": league_bot({"bot_id": bot["_id"], "name": bot["name"], "version": bot["version"]}),
+        "bot": participant(holder),
         "created_at": timestamp(entry["created_at"]),
-        "tier": None if running is None else seasons.tier_of(running, bot["_id"]),
+        "tier": None if running is None else seasons.tier_of(running, participants.key(holder)),
     }
 
 
@@ -85,11 +90,6 @@ def settings_view(settings: dict) -> dict:
     return {field: settings[field] for field in leagues.SETTINGS} | {
         "discipline_id": str(settings["discipline_id"])
     }
-
-
-def league_bot(bot: dict) -> dict:
-    """A bot as the season or registration knows it (schema LeagueBot)."""
-    return {"bot_id": str(bot["bot_id"]), "name": bot["name"], "version": bot.get("version")}
 
 
 def _running(db: Database, league_id) -> dict | None:

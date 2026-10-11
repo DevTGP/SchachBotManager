@@ -3,10 +3,11 @@
 from bson import ObjectId
 from pymongo.database import Database
 
-from sbm_store.matches import FINISHED
+from sbm_store.matches import BOTS_ONLY, FINISHED
 from sbm_store.names import MATCHES
 
-# Games against people, from outside or against itself say nothing about a pairing of bots.
+# Games against people, from outside or against itself say nothing about a pairing of bots;
+# BOTS_ONLY also leaves out league and tournament games against accounts (E182).
 EXCLUDED_TYPES = ["human", "remote"]
 
 
@@ -21,6 +22,7 @@ def records(db: Database, bot_id: ObjectId) -> list[dict]:
                 "type": {"$nin": EXCLUDED_TYPES},
                 "$or": [{"white.bot_id": bot_id}, {"black.bot_id": bot_id}],
                 "$expr": {"$ne": ["$white.bot_id", "$black.bot_id"]},
+                **BOTS_ONLY,
             }
         },
         {"$sort": {"finished_at": -1, "_id": -1}},

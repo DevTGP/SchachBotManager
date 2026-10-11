@@ -36,7 +36,13 @@ def test_the_owner_registers_a_verified_bot_once(login, db):
     again = register(client, league, bot)
 
     assert first.status_code == 201
-    assert first.json["bot"] == {"bot_id": str(bot["_id"]), "name": "Sharp", "version": "1.0.0"}
+    assert first.json["bot"] == {
+        "kind": "bot",
+        "bot_id": str(bot["_id"]),
+        "user_id": None,
+        "name": "Sharp",
+        "version": "1.0.0",
+    }
     assert first.json["tier"] is None
     assert (again.status_code, again.json["code"]) == (409, "already_registered")
     listed = client.get(f"/api/v1/bots/{bot['_id']}/leagues").json["items"]

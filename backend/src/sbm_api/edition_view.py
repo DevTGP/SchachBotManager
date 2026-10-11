@@ -5,11 +5,11 @@ final result it stored. The counts of games come from the matches either way.
 """
 
 from pymongo.database import Database
-from sbm_store import edition_games, edition_tables, matches, tournaments
+from sbm_store import edition_games, edition_tables, matches, participants, tournaments
 
 from sbm_api.edition_bracket_view import bracket_view
-from sbm_api.league_view import league_bot
 from sbm_api.match_view import discipline
+from sbm_api.participant_view import participant
 from sbm_api.timestamps import optional_timestamp
 from sbm_api.tournament_view import settings_view
 
@@ -60,10 +60,10 @@ def _tiebreak_discipline(settings: dict) -> dict:
 
 def _participant(edition: dict, entry: dict) -> dict:
     return {
-        "bot": league_bot(entry),
+        "bot": participant(entry),
         "seed": entry["seed"],
         "rating": entry["rating"],
-        "withdrawn": entry["bot_id"] in edition["withdrawn"],
+        "withdrawn": participants.key(entry) in edition["withdrawn"],
     }
 
 
@@ -73,10 +73,10 @@ def _table(db: Database, edition: dict, games: list[dict]) -> list[dict]:
         rows = final["table"]
     else:
         rows = [row.to_edition_document() for row in edition_tables.table(db, edition, games)]
-    return [row | {"bot": league_bot(row["bot"])} for row in rows]
+    return [row | {"bot": participant(row["bot"])} for row in rows]
 
 
 def _placements(edition: dict) -> list[dict]:
     final = edition["final"]
     places = final["placements"] if final is not None else edition_tables.placements(edition)
-    return [each | {"bot": league_bot(each["bot"])} for each in places]
+    return [each | {"bot": participant(each["bot"])} for each in places]

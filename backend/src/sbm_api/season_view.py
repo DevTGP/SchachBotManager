@@ -7,8 +7,9 @@ it stored, with the outcomes, and the counts of its matches.
 from pymongo.database import Database
 from sbm_store import leagues, season_tables, seasons
 
-from sbm_api.league_view import league_bot, settings_view
+from sbm_api.league_view import settings_view
 from sbm_api.match_view import discipline
+from sbm_api.participant_view import participant
 from sbm_api.timestamps import optional_timestamp
 
 
@@ -55,4 +56,4 @@ def _tiers(db: Database, season: dict) -> list[dict]:
 
 
 def _row(row: dict) -> dict:
-    return row | {"bot": league_bot(row["bot"])}
+    return row | {"bot": participant(row["bot"])}

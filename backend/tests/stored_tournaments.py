@@ -4,6 +4,7 @@ import random
 from datetime import timedelta
 
 from sbm_store import (
+    competition_entrants,
     edition_progress,
     edition_start,
     editions,
@@ -34,10 +35,13 @@ def store_tournament(
 
 
 def enter(db, tournament: dict, entrants: list[dict]) -> None:
-    for bot in entrants:
+    """entrants are bot or account documents (E182)."""
+    for holder in entrants:
+        fields = competition_entrants.fields(holder)
         entry = registrations.new_registration(
             tournament["_id"],
-            bot["_id"],
+            fields["bot_id"],
+            user_id=fields["user_id"],
             created_by=None,
             now=NOW,
             target_type=registrations.TOURNAMENT,
