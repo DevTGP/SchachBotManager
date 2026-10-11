@@ -60,7 +60,7 @@ sbm-arena tcp material --no-clock --replay partien.pgn --replay-game 3 --replay-
 | Reproduzierbarkeit | Start aus beliebiger FEN (`--fen`) oder aus einer PGN-Partie nach N Halbzügen (`--replay`, E69); die Bots erhalten nur die Stellung, Wiederholungen davor zählen nicht |
 | Ausgaben | Log-Bibliothek des SDK mit Stufen (siehe [sdk-api.md](sdk-api.md)); Stufe per `--log-level`/`SBM_LOG_LEVEL`, Logdatei per `--log-file`/`SBM_LOG_FILE` (E61); `print` landet auf stderr, stdout gehört dem Protokoll |
 | Datendateien | Lokal im Ordner `data/` neben dem Bot-Skript; `load_data(name)` liest sie dort wie auf dem Server (E62) |
-| Server-Fehler nachstellen | Partie vom Server als PGN herunterladen und mit `--replay` bis zur Fehlstellung abspielen; der Download kommt mit dem Partie-Viewer (M2) |
+| Server-Fehler nachstellen | Partie vom Server als PGN herunterladen und mit `--replay` bis zur Fehlstellung abspielen; der Download steht auf der Partieseite (`GET /matches/{id}/pgn`) |
 | IDE-Einrichtung | Vorlagenprojekt je Sprache unter `templates/` mit fertiger Debug-Konfiguration (E69), siehe unten |
 | Limits lokal prüfen | Optionaler Modus, der den Bot mit derselben Sandbox-Konfiguration wie der Server startet (nur unter Linux) |
 | Regeln lokal prüfen | Statischer Analyzer als CLI, identisch zur Serverprüfung (siehe [statische-analyse.md](statische-analyse.md)) |

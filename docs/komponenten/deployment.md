@@ -7,7 +7,7 @@
 | `frontend` | `local-web` + intern | Liefert den statischen SPA-Build aus, reicht `/api` an `api` und `/api/v1/play/socket` als WebSocket an `gateway` weiter; einziger Dienst, auf den der Proxy zeigt |
 | `gateway` | intern + `relay` | WebSockets interaktiver Partien, ohne Rechte und ohne Datenbankzugang; Relay-Port nur im Netz `relay` (E112) |
 | `api` | intern | Flask hinter WSGI-Server; kann keine Prozesse starten |
-| `scheduler` | intern | Genau eine Instanz |
+| `scheduler` | – | Nicht vorhanden: Saisonstart und -ende sowie Rückzüge prüft der Runner in jeder Runde (E132, E136) |
 | `runner` | intern | Container mit erweiterten Rechten (A13), startet Bots über nsjail und führt auch die Verifikation aus (E81); Parallelität aus den Einstellungen in der DB |
 | `runner-play` | intern + `relay` | Dasselbe Image und dieselben Rechte wie `runner`, Rolle `play`: spielt nur interaktive Partien, bis `PLAY_SLOTS` gleichzeitig (E111) |
 | `mongo` | intern | Als Replica Set (Einzelknoten, ab M4, E75), Authentifizierung aktiv, Daten auf einem Volume |
@@ -33,9 +33,9 @@ Welche Angaben wohin gehören, steht unter „Stand M2“.
 
 | Workflow | Auslöser | Schritte |
 |----------|----------|----------|
-| CI | Pull Request, Push, manuell; je Job nur bei Änderungen in seinem Bereich (E79) | Lint + Tests je Paket (Backend, Frontend, Dienste, Kern, Bindings), Kernvektoren, Binding-Tests, Kreuztest über die Arena, Analyzer-Tests |
+| CI | Pull Request, Push, manuell; je Job nur bei Änderungen in seinem Bereich (E79) | Spezifikation und Testvektoren, Header und Build des Kerns, Python-SDK mit Vorlage, Format des nativen Codes, Dienste und API gegen MongoDB, Negativ-Suite der Sandbox, Frontend, Viewer; Jobs im Einzelnen in [tests-und-ci.md](../entwicklung/tests-und-ci.md) |
 | Deploy | Nach grüner CI auf `master`, nur bei Änderungen am Stack (E79), oder manuell | Per SSH auf den Server, Stack-Dateien setzen, `docker compose` baut die Images dort und startet die Dienste neu; Migrationen laufen beim Start; Health-Check |
-| SDK-Release | Tag `sdk-vX.Y.Z` | Kern für Windows/Linux/macOS bauen, Pakete je Sprache mit eingebetteten Binaries erzeugen und veröffentlichen, Doku erzeugen |
+| SDK-Release | Tag `vX.Y.Z` oder manuell (`wheels.yml`, E70) | Wheels des Python-SDK samt Kern und Viewer für Windows, Linux und macOS bauen und testen; beim Tag auf PyPI veröffentlichen (Umgebung `pypi`). Pakete weiterer Sprachen kommen mit M5 |
 
 Pfadfilter im Monorepo, damit eine Änderung am Frontend nicht alle SDK-Tests auslöst (E79, `.github/scripts/changed-areas.sh`). Die Wheels des Python-SDK baut `wheels.yml` nur bei einem Tag `v*` oder von Hand.
 
@@ -55,7 +55,7 @@ Pfadfilter im Monorepo, damit eine Änderung am Frontend nicht alle SDK-Tests au
 
 ## Stand M2
 
-Umgesetzt unter `deploy/` und `.github/workflows/deploy.yml` (E78). Es laufen `mongo`, `api`, `runner` und `frontend`; `scheduler` und das Replica Set (E75) folgen später. Seit M3 Schritt 2 startet der Runner jeden Bot in nsjail (E86, E87). Einen eigenen `verifier` gibt es nicht (E81); seit Schritt 3 verifiziert der Runner hochgeladene Bots (E89, E92).
+Umgesetzt unter `deploy/` und `.github/workflows/deploy.yml` (E78). Es laufen `mongo`, `api`, `runner` und `frontend`, seit M7 auch `gateway` und `runner-play` (E111, E112); das Replica Set (E75) folgt später, einen `scheduler` gibt es nicht (E132). Seit M3 Schritt 2 startet der Runner jeden Bot in nsjail (E86, E87). Einen eigenen `verifier` gibt es nicht (E81); seit Schritt 3 verifiziert der Runner hochgeladene Bots (E89, E92).
 
 | Datei | Inhalt |
 |-------|--------|
