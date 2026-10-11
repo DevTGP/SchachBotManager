@@ -29,6 +29,7 @@ def match_summary(match: dict) -> dict:
         "termination": match["termination"],
         "ply_count": ply_count,
         "series": series_place(match.get("series")),
+        "league": league_place(match.get("context")),
         "created_at": timestamp(match["created_at"]),
         "started_at": optional_timestamp(match["started_at"]),
         "finished_at": optional_timestamp(match["finished_at"]),
@@ -40,6 +41,21 @@ def series_place(series: dict | None) -> dict | None:
     if series is None:
         return None
     return {"id": str(series["id"]), "index": series["index"], "games": series["games"]}
+
+
+def league_place(context: dict | None) -> dict | None:
+    """Where a league game stands (E134); other matches have no context."""
+    if context is None:
+        return None
+    return {
+        "league_id": str(context["league_id"]),
+        "league_name": context["league_name"],
+        "season_id": str(context["season_id"]),
+        "season_number": context["season_number"],
+        "tier": context["tier"],
+        "round": context["round"],
+        "board": context["board"],
+    }
 
 
 def discipline(snapshot: dict) -> dict:

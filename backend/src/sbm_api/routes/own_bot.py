@@ -1,7 +1,10 @@
-"""PATCH /bots/{bot_id}: the owner changes the description or retires the bot (E95, E96)."""
+"""PATCH /bots/{bot_id}: the owner changes the description or retires the bot (E95, E96).
+
+A retired bot leaves its leagues (E136).
+"""
 
 from flask import Blueprint
-from sbm_store import bots
+from sbm_store import bots, league_withdrawal, registrations
 
 from sbm_api import body, bot_description, context
 from sbm_api.bot_access import owned_bot
@@ -29,4 +32,6 @@ def update_own_bot(bot_id: str):
     changed = bots.change_by_owner(db, bot["_id"], description=description, retired=retired)
     if changed is None:
         raise invalid_parameter("status", f"a {bot['status']} bot cannot switch")
+    if retired:
+        league_withdrawal.withdraw(db, bot["_id"], registrations.RETIRED, context.now())
     return bot_detail_view(changed, user)

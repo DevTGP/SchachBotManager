@@ -4,7 +4,7 @@ interactive games under way (E119)."""
 from datetime import datetime
 
 from pymongo.database import Database
-from sbm_store import jobs, matches, play, queue_settings
+from sbm_store import jobs, matches, play, queue_order, queue_settings
 
 from sbm_api.match_view import match_summary
 from sbm_api.queue_estimate import RecentDurations, schedule
@@ -16,7 +16,8 @@ MAX_WAITING = 200
 def queue_view(db: Database, now: datetime) -> dict:
     settings = queue_settings.get(db)
     running_jobs = jobs.running(db, jobs.MATCH)
-    waiting_jobs, waiting_total = jobs.waiting(db, jobs.MATCH, MAX_WAITING)
+    # Waiting jobs in the order the runner takes them across competitions (E134).
+    waiting_jobs, waiting_total = queue_order.waiting(db, MAX_WAITING)
     found = matches.summaries(
         db, [job["payload"]["match_id"] for job in running_jobs + waiting_jobs]
     )

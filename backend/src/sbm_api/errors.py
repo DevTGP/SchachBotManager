@@ -38,6 +38,9 @@ MATCH_STATE = "match_state"
 NOT_REPEATABLE = "not_repeatable"
 # Override of a bot that is not rejected (E153).
 BOT_STATE = "bot_state"
+# Leagues (E131, E136).
+LEAGUE_STATE = "league_state"
+ALREADY_REGISTERED = "already_registered"
 
 
 class ApiError(Exception):
