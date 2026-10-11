@@ -62,7 +62,9 @@ Alle Pfade relativ zu `backend/src/sbm_api/`.
 | `play_request.py` | Body von `POST /play`: geprüfter oder zufälliger Bot, Disziplin oder freie Zeit bis 30 min + 30 s (E114, E162) |
 | `remote_request.py` | Body von `POST /remote/matches`: Gegner und Disziplin per Name (E116) |
 | `discipline_request.py` | Bodys von `POST`/`PATCH /admin/disciplines`; `chosen` liest `discipline_id` einer Partie-Anfrage (E100) |
-| `league_request.py` | Bodys von `POST`/`PATCH /admin/leagues` (E131) |
+| `league_request.py` | Bodys von `POST`/`PATCH /admin/leagues` (E131); Kalender statt Pause (E171) |
+| `tournament_request.py` | Bodys von `POST`/`PATCH /admin/tournaments`; Format nur beim Anlegen (E172) |
+| `recurrence_request.py` | Kalender in den Bodys von Ligen und Turnieren und seine Ausgabe (Schema `Recurrence`, E171) |
 | `bot_choice.py` | Bot-Wahl als Id oder `"random"`; `check_pool`, `draw`, `pairings`, `label` (E162) |
 | `bot_description.py` | `check`: Beschreibung als reiner Text, Zeilenenden als LF (E95) |
 | `settings_groups.py` | Die vier Gruppen von `/admin/settings` mit Store-Modul und Typ; `PROBLEMS` für Regeln zwischen Feldern (E154) |
@@ -71,7 +73,7 @@ Alle Pfade relativ zu `backend/src/sbm_api/`.
 
 | Modul | Aufgabe |
 |-------|---------|
-| `match_view.py` | `match_summary`, `match_detail`, `series_place`, `side`; `termination_detail` bleibt intern |
+| `match_view.py` | `match_summary`, `match_detail`, `series_place`, `tournament_place` (E178), `side`; `termination_detail` bleibt intern |
 | `bot_view.py` | `bot_view`, `bot_detail_view`; Details (Dateien, Report, Neuprüfungen) nur für Besitzer und Admins (E95, E153, E164) |
 | `report_view.py` | Prüfbericht (Schema `VerificationReport`); Ids von Bot und Job bleiben intern (E92) |
 | `series_view.py` | Serie mit Punkten und Partien (Schema `Series`, E155) |
@@ -82,6 +84,11 @@ Alle Pfade relativ zu `backend/src/sbm_api/`.
 | `season_view.py` | Saison mit Tabellen: laufend aus den Partien berechnet, beendet aus `final` (Schema `Season`, E135, E137) |
 | `schedule_view.py` | Spielplan einer Stufe nach Runden mit spielfreiem Bot (Schema `SeasonSchedule`, E138) |
 | `bot_season_view.py` | Saison eines Bots mit Stufe, Platz und Ausgang (Schema `BotSeason`, E139) |
+| `tournament_view.py` | Turnier, Ausgaben und Anmeldungen (Schemas `Tournament`, `TournamentDetail`, `EditionSummary`, `TournamentRegistration`, E180) |
+| `edition_view.py` | Ausgabe mit Teilnehmern, Tabelle bzw. Baum und Platzierungen; laufend aus den Partien, beendet aus `final` (Schema `Edition`, E177, E180) |
+| `edition_rounds_view.py` | Partien eines Rundenturniers oder Schweizer Systems nach Runde und Brett; K.-o. liefert eine leere Liste (Schema `EditionRounds`, E180) |
+| `edition_bracket_view.py` | K.-o.-Baum mit Duellen, Punkten und Partien je Phase (Schemas `Duel`, `DuelSide`, `DuelGame`, E176, E180) |
+| `bot_edition_view.py` | Ausgabe eines Bots mit Setzplatz, Platz oder Punkten (Schema `BotEdition`, E180) |
 | `rating_history_view.py` | Rating-Verlauf je Disziplin, meistgespielte zuerst (Schema `DisciplineRatingHistory`, E140) |
 | `bot_record_view.py` | Bilanz gesamt und je Disziplin, freie Bedenkzeit zuletzt (Schema `BotRecord`, E141) |
 | `user_view.py` | `current_user_view`, `session_view`, `user_view`; der Hash geht nie hinaus |
@@ -122,6 +129,7 @@ Alle unter `routes/`; je Modul ein Blueprint mit dem Modulnamen.
 | `routes/disciplines.py` | `GET /disciplines`, `/disciplines/{id}` (E100) |
 | `routes/ratings.py` | `GET /ratings`, `/ratings/players`, gesamt oder je Disziplin (E103, E118, E163) |
 | `routes/leagues.py` | `GET /leagues`, `/leagues/{id}`, `/seasons/{id}`, `/bots/{id}/leagues` (E137) |
+| `routes/tournaments.py` | `GET /tournaments`, `/tournaments/{id}`, `/editions/{id}`, `/editions/{id}/rounds`, `/bots/{id}/tournaments`, `/bots/{id}/editions` (E180) |
 
 ### Routen: Sitzung und eigenes Konto
 
@@ -139,6 +147,7 @@ Alle unter `routes/`; je Modul ein Blueprint mit dem Modulnamen.
 | `routes/own_matches.py` | `POST /matches` für Coder (E98) |
 | `routes/own_match_actions.py` | `POST /matches/{id}/withdraw` (E157) |
 | `routes/league_registrations.py` | `POST /leagues/{id}/registrations`, `DELETE …/registrations/{bot_id}` durch Besitzer oder Admin; Abmelden in laufender Saison ist ein Rückzug (E136) |
+| `routes/tournament_registrations.py` | `POST /tournaments/{id}/registrations`, `DELETE …/registrations/{bot_id}` durch Besitzer oder Admin; Abmelden in laufender Ausgabe ist ein Rückzug; Admins an fremden Bots ins Audit (`tournament.register`, `tournament.deregister`) (E179) |
 | `routes/play.py` | `POST /play`: Gast oder Konto gegen einen geprüften Bot (E114) |
 | `routes/remote.py` | `POST /remote/matches` mit API-Token (E116) |
 
@@ -153,7 +162,8 @@ Jede Route beginnt mit `require_admin()`; jede ändernde schreibt mit `admin_aud
 | `routes/admin_bots.py` | Sperren/Freigeben (`bot.update`), endgültig löschen (`bot.delete`) (E93, E105) |
 | `routes/admin_bot_checks.py` | Neuprüfung eines Bots (`bot.recheck`) oder einer Sprache (`bot.recheck_language`), Override (`bot.override`) (E153) |
 | `routes/admin_disciplines.py` | Disziplinen anlegen (`discipline.create`), ändern und archivieren (`discipline.update`) (E100) |
-| `routes/admin_leagues.py` | Ligen anlegen (`league.create`), ändern und archivieren (`league.update`), erste Saison freigeben (`league.start`); nie löschen (E131, E132) |
+| `routes/admin_leagues.py` | Ligen anlegen (`league.create`), ändern und archivieren (`league.update`), wartende Saison starten (`league.start`); nie löschen (E131, E132, E171) |
+| `routes/admin_tournaments.py` | Turniere anlegen (`tournament.create`), ändern und archivieren (`tournament.update`), wartende Ausgabe starten (`tournament.start`); nie löschen (E171, E172) |
 | `routes/admin_matches.py` | `POST /admin/matches` (`match.enqueue`) (E71, E85) |
 | `routes/admin_match_actions.py` | Priorität (`match.priority`), Abbrechen (`match.cancel`), Wiederholen (`match.repeat`) (E152) |
 | `routes/admin_play.py` | Grenzen interaktiver Partien (`play.settings`) (E115) |

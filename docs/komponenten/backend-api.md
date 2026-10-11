@@ -234,6 +234,26 @@ Zufall, Rating je Disziplin, Ersteller (E162–E164):
 | `routes/ratings.py`, `routes/account_rating.py` | Rangliste gesamt oder je Disziplin (`discipline_id`), eigenes Gesamtrating (E163) |
 | `owner_names.py`, `bot_view.py` | `owner` je Bot: Nutzername des Besitzers, einmal je Anfrage für alle Bots geladen, `null` bei Referenzbots (E164) |
 
+### Stand M6, Schritt 3 (E170–E180)
+
+| Endpunkt | Aufgabe |
+|----------|---------|
+| `GET /tournaments`, `GET /tournaments/{id}` | Öffentlich: alle Turniere nach Name mit Zahl der Anmeldungen und letzter Ausgabe; im Detail alle Ausgaben, neueste zuerst, und die Anmeldungen mit Kennzeichen `playing` für Teilnehmer der laufenden Ausgabe (`routes/tournaments.py`, `tournament_view.py`) |
+| `GET /editions/{id}` | Öffentlich: Ausgabe mit Schnappschuss und Disziplinen, Teilnehmern nach Setzplatz, Fortschritt (Runde, Partien, beendete), Tabelle (Rundenturnier, Schweizer System; laufend aus den Partien, beendet gespeichert) oder Turnierbaum mit den Partien je Duell und Platzierung (K.-o.) (`edition_view.py`, `edition_bracket_view.py`) |
+| `GET /editions/{id}/rounds` | Öffentlich: Runden mit Partien nach Brett und Freilos bzw. spielfreiem Bot; K.-o. und geplante Ausgaben ergeben eine leere Liste (`edition_rounds_view.py`) |
+| `GET /bots/{id}/tournaments`, `GET /bots/{id}/editions` | Öffentlich: aktive Anmeldungen eines Bots bzw. Ausgaben dieser Version mit Setzplatz, Platz und Punkten (`bot_edition_view.py`, `sbm_store.bot_editions`) |
+| `POST /tournaments/{id}/registrations`, `DELETE /tournaments/{id}/registrations/{bot_id}` | Wie bei Ligen; Abmelden während einer Ausgabe macht den Bot zum zurückgezogenen (`routes/tournament_registrations.py`, `sbm_store.tournament_withdrawal`). Audit `tournament.register` bzw. `tournament.deregister` für fremde Bots |
+| `POST /admin/tournaments`, `PATCH /admin/tournaments/{id}` | Turnier anlegen (mit Ausgabe 1 `planned`) bzw. ändern, archivieren, wiederherstellen; `format` nur beim Anlegen; Prüfung in `tournament_request.py`, Kalender in `recurrence_request.py`; Audit `tournament.create`, `tournament.update` |
+| `POST /admin/tournaments/{id}/start` | Startet die geplante Ausgabe jetzt (setzt `starts_after`); Audit `tournament.start` |
+| `POST /admin/leagues/{id}/start` | Seit E171 auch für weitere Saisons ohne Kalender und zum Vorziehen eines Termins |
+| `GET /matches` | zusätzlich `edition_id`; `kind=bots` umfasst auch Turnierpartien |
+
+- Ligen nehmen `recurrence` statt `pause_minutes`; ein geänderter Kalender berechnet den Start der geplanten Saison bzw. Ausgabe neu (`league_setup.follow_calendar`, `tournament_setup.follow_calendar`).
+- Partien enthalten zusätzlich `tournament` (Turnier, Ausgabe mit Nummer, Format, Runde, Brett, Phase, Partie) oder `null` (`match_view.tournament_place`).
+- Zurückziehen, Sperren und Löschen eines Bots beenden auch seine Turnier-Anmeldungen (`sbm_store.withdrawal`).
+- Audit-Ziele kennen `tournament` (`audit_targets.py`).
+- Neuer Fehlercode `tournament_state` (409: Turnier archiviert, keine wartende oder schon fällige Ausgabe). `league_state` bedeutet beim Start jetzt: keine wartende oder schon fällige Saison.
+
 ## Rollen und Rechte
 
 | Rolle | Darf |

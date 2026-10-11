@@ -79,8 +79,8 @@ Alle Pfade relativ zu `services/store/src/sbm_store/`.
 |-------|---------|
 | `leagues.py` | Collection `leagues`: Einstellungen je Liga, Name eindeutig über `name_key`, archivieren statt löschen; `NameTaken` (E131) |
 | `seasons.py` | Collection `seasons`: `planned → running → finished`, Freigabe, fällige Saisons, Aufstellung in `tiers`, Kopie der Einstellungen samt `discipline_snapshot`, Endtabellen in `final` (E132) |
-| `registrations.py` | Collection `registrations`: höchstens eine aktive Anmeldung je Bot und Liga (dünner eindeutiger Index), Abmelden behält das Dokument als `left` (E136) |
-| `league_setup.py` | Liga mit erster Saison anlegen und diese freigeben (E131, E132) |
+| `registrations.py` | Collection `registrations`: höchstens eine aktive Anmeldung je Bot und Liga bzw. Turnier (`target_type`, dünner eindeutiger Index), Abmelden behält das Dokument als `left` (E136, E179) |
+| `league_setup.py` | Liga mit erster Saison anlegen, eine wartende Saison von Hand starten, nach einem geänderten Kalender den Start neu berechnen (`follow_calendar`) (E131, E132, E171) |
 | `league_lineup.py` | Reine Funktionen: Aufstellung in Stufen beim Start, Auf- und Abstieg am Ende (E133) |
 | `league_pairing.py` | Reine Funktionen: Rundenturnier nach Berger je Stufe, wiederholt nach `games_per_pairing` (E134) |
 | `league_table.py` | Reine Funktionen: Tabelle einer Stufe aus ihren Partien mit Feinwertung und Los; kampflose Siege zählen nicht für Feinwertung (E135) |
@@ -88,9 +88,31 @@ Alle Pfade relativ zu `services/store/src/sbm_store/`.
 | `season_schedule.py` | Runden einer Stufe mit Partien nach Brett und spielfreiem Bot (E138) |
 | `bot_seasons.py` | Gestartete Saisons eines Bots mit seiner Tabellenzeile, Endtabelle oder aktuell (E139) |
 | `season_start.py` | Fällige Saisons starten und Spielplan anlegen; wiederholbar nach einem Absturz (E132–E134) |
-| `season_end.py` | Saisons mit lauter beendeten Partien abschließen und die nächste anlegen (E132, E133, E135) |
+| `season_end.py` | Saisons mit lauter beendeten Partien abschließen und die nächste nach dem Kalender anlegen (E132, E133, E135, E171) |
 | `league_withdrawal.py` | Rückzug eines Bots: Anmeldungen beenden, wartende Partien kampflos werten, `sweep` je Runde (E136) |
+| `recurrence.py` | Kalender `{first_start, interval_hours}` oder `None`: nächster Termin ab einem Zeitpunkt; ohne Kalender wartet die nächste Saison bzw. Ausgabe auf einen Admin (E171) |
+| `withdrawal.py` | `withdraw_everywhere`: Rückzug aus allen Ligen und Turnieren beim Zurückziehen, Sperren oder Löschen (E136, E179) |
 | `queue_order.py` | Abrufreihenfolge der Partien: Priorität, dann der Wettbewerb, der am längsten nicht dran war, dann Alter; `claim_match` für den Runner, `order` für die Queue-Ansicht (E134) |
+
+### Turniere (E170–E180)
+
+| Modul | Aufgabe |
+|-------|---------|
+| `tournaments.py` | Collection `tournaments`: Einstellungen je Turnier, Name eindeutig über `name_key`, archivieren statt löschen, `settings` als Schnappschuss für eine Ausgabe (E172) |
+| `editions.py` | Collection `editions`: `planned → running → finished`, fällige Ausgaben, Teilnehmer mit Setzplatz, Plan in `rounds` bzw. `duels`, `revision` für Änderungen ohne Transaktion, Endstand in `final` (E173) |
+| `tournament_setup.py` | Turnier mit erster Ausgabe anlegen, eine wartende Ausgabe von Hand starten, Kalender folgen (`create`, `start`, `follow_calendar`; E171, E172) |
+| `edition_start.py` | Fällige Ausgaben starten: Teilnehmer aus den Anmeldungen, gesetzt nach Rating der Disziplin, Gleichstand per Los; zu wenige Teilnehmer lassen sie warten (E173–E176) |
+| `edition_round_robin.py` | Plan des Rundenturniers mit allen Partien beim Start, Runden wie bei den Ligen (`league_pairing`) (E174) |
+| `swiss_pairing.py` | Reine Funktionen: Paarung einer Schweizer Runde nach Punkten und Setzplatz, ohne Wiederholung soweit möglich, Freilos an den Schwächsten ohne Freilos (E175) |
+| `swiss_rounds.py` | Nächste Schweizer Runde, sobald die laufende beendet ist; Freilos zählt einen Punkt (E175) |
+| `knockout_bracket.py` | Reine Funktionen: Baumgröße als nächste Zweierpotenz, erste Runde nach Setzplätzen mit Freilosen für die Besten, Platzierungen (E176) |
+| `knockout_duels.py` | Partien eines Duells, Entscheidung nach regulären Partien, Tiebreak-Paaren und Armageddon (Farbe per Los, Remis reicht Schwarz), nächste Runde (E176) |
+| `edition_games.py` | Fehlende Partien des Plans samt Jobs anlegen; jede geplante Partie nennt ihre Id, damit das wiederholbar ist (E174–E178) |
+| `edition_progress.py` | `advance_running`: je laufender Ausgabe fehlende Partien anlegen, Partien zurückgezogener Bots kampflos werten, Schweizer Runden und K.-o.-Duelle weiterführen, fertige Ausgaben beenden (E174–E177) |
+| `edition_tables.py` | Tabelle eines Rundenturniers oder Schweizer Systems (Feinwertung wie bei Ligen plus Buchholz), Platzierungen im K.-o., Endstand mit Sieger (E177) |
+| `edition_end.py` | Ausgabe abschließen und die nächste nach dem Kalender anlegen (E171, E177) |
+| `tournament_withdrawal.py` | Rückzug aus Turnieren: Anmeldungen beenden, in laufenden Ausgaben als zurückgezogen markieren, wartende Partien kampflos werten (E179) |
+| `bot_editions.py` | Gestartete Ausgaben einer Bot-Version mit Setzplatz, Platz oder Punkten (E180) |
 
 ### Konten und Admin
 
@@ -135,13 +157,14 @@ Alle Pfade relativ zu `services/store/src/sbm_store/`.
 | `0151_job_bots` | Dünner Index auf `jobs.payload.bot_id` (E153) |
 | `0152_single_games` | Dünne Indizes für Serien, `created_by` und Disziplin in `matches` (E155, E156) |
 | `0153_discipline_ratings` | Entfernt Index und Einzelwerte `rating`, fordert eine Neuberechnung an, falls verbuchte Partien existieren (E163) |
+| `0154_tournaments` | Indizes für Turniere, Ausgaben und Partien einer Ausgabe; rechnet `pause_minutes` der Ligen in einen Kalender um und entfernt es aus Saisons (E171–E173) |
 
 ## Ablauf
 
 **Partie aus der Queue bis zur Wertung** (Aufrufer: Web-API bzw. `sbm-enqueue`, dann `services/runner`):
 
 1. `enqueue.enqueue_match` baut die Partie mit `matches.new_match` (`rated` über `discipline.is_rated`) und speichert sie, danach den Job aus `jobs.new_match_job`.
-2. Der Runner prüft `queue_settings.get(...).paused` und holt mit `queue_order.claim_match` die nächste Partie: Priorität absteigend, bei gleicher Priorität der Wettbewerb (Liga oder alle Einzelspiele), der am längsten nicht dran war, darin die älteste (E134). Der Abruf selbst ist `jobs.claim`; er setzt `running`, Lease und `attempts + 1`.
+2. Der Runner prüft `queue_settings.get(...).paused` und holt mit `queue_order.claim_match` die nächste Partie: Priorität absteigend, bei gleicher Priorität der Wettbewerb (Liga, Turnier oder alle Einzelspiele), der am längsten nicht dran war, darin die älteste (E134). Der Abruf selbst ist `jobs.claim`; er setzt `running`, Lease und `attempts + 1`.
 3. `matches.start` setzt die Partie auf `running`; während des Spiels schreibt `matches.append_move` jeden Zug, `jobs.extend` verlängert die Lease. `extend` gibt `False`, wenn der Job abgebrochen wurde (E152).
 4. Ende: `matches.finish`, dann `jobs.complete`. Bei Infrastrukturfehlern `matches.requeue` und `jobs.retry`, nach zu vielen Versuchen `matches.abort` und `jobs.fail`. Abgelaufene Leases räumen `jobs.expired`, `requeue_expired` und `fail_expired` auf.
 5. Vor dem nächsten Job: `rating_recount.run_if_requested`, sonst `ratings.count_pending`. Dieses liest die Regel (`rating_settings.get`), repariert die zuletzt verbuchte Partie, beansprucht für die nächste die Nummer `seq` (eindeutiger Index aus `0006`) und schreibt danach beide Seiten über `rating_values`.

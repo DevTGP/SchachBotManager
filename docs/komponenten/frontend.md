@@ -216,6 +216,26 @@ Einheitliche Darstellung nach der Durchsicht aller Seiten:
 
 Namen von Bots stehen nirgends mehr mit Version; eine Spalte „Version“ haben nur Botliste, Rangliste, „Meine Bots“, Bilanz und Versionen eines Bots. Ein Test (`src/i18n/keys.test.ts`) prüft, dass `de.json` und `en.json` dieselben Schlüssel haben.
 
+
+## Turniere und Kalender (Stand M6, E170–E180)
+
+| Datei | Inhalt |
+|-------|--------|
+| `src/api/tournaments.ts`, `src/api/adminTournaments.ts` | Turniere, Ausgaben, Runden, Turniere und Ausgaben eines Bots, An- und Abmelden; Anlegen, Ändern und Starten für Admins |
+| `src/pages/tournaments/TournamentsPage.tsx` | `/tournaments` („Turniere“) in der Hauptnavigation: Name, Format, Disziplin, Angemeldete, Stand der letzten Ausgabe |
+| `src/pages/tournaments/TournamentPage.tsx`, `NextEdition.tsx`, `TournamentFacts.tsx`, `TournamentEditions.tsx`, `TournamentRegistrations.tsx`, `TournamentRegisterForm.tsx` | `/tournaments/:id`: wann die nächste Ausgabe beginnt (oder dass sie auf einen Admin wartet), Einstellungen samt Kalender, Ausgaben mit Sieger, Anmeldungen; Coder und Admins melden eigene geprüfte Bots an, Admins melden jeden ab |
+| `src/pages/tournaments/EditionPage.tsx`, `EditionState.tsx`, `EditionParticipants.tsx` | `/editions/:id`: Stand, Teilnehmer mit Setzplatz und Rating, Link auf `/matches?edition=…`; fragt nach, solange die Ausgabe läuft |
+| `src/pages/tournaments/EditionTable.tsx`, `EditionRoundsSection.tsx` | Rundenturnier und Schweizer System: Tabelle mit Platz (bei Rückzug „–“), Siegen samt kampflosen, Freilosen, Punkten und Buchholz; Runden über `GET /editions/{id}/rounds` |
+| `src/pages/tournaments/KnockoutBracket.tsx`, `KnockoutPlacements.tsx` | K.-o.: Baum je Runde mit Duellen, Punkten, Tiebreak und Armageddon, die Partien je Duell aufklappbar; Platzierungen nach dem Ende |
+| `src/components/ScheduleRounds.tsx` | Runden als aufklappbare Abschnitte mit Fortschritt; gemeinsam mit dem Spielplan der Ligen (`TierSchedule.tsx`) |
+| `src/pages/admin/AdminTournamentsPage.tsx`, `TournamentEditor.tsx`, `tournamentForm.ts`, `startable.ts` | `/admin/tournaments`: Turniere anlegen (Format nur beim Anlegen) und ändern, Felder je Format, nächste Ausgabe starten, archivieren und wiederherstellen |
+| `src/pages/admin/RecurrenceField.tsx`, `recurrenceForm.ts`, `src/format/recurrence.ts`, `src/components/RecurrenceText.tsx` | Kalender für Ligen und Turniere: erster Termin in Ortszeit und Intervall in Stunden, Tagen oder Wochen; Anzeige als Text (E171). Der Liga-Editor nimmt ihn statt der Pause; „Jetzt starten“ startet jede wartende Saison, nicht nur die erste |
+| `src/pages/bot/BotTournaments.tsx`, `BotEditions.tsx` | Bot-Seite: Turniere des Bots mit An- und Abmelden; Ausgaben dieser Version mit Setzplatz, Platz oder Punkten und Ausgang |
+| `src/pages/MatchTournament.tsx` | Partieseite: Turnier, Ausgabe, Runde und bei K.-o. Duell und Phase |
+| `src/pages/MatchesPage.tsx` | `/matches`: Filter nach Ausgabe aus der URL (`edition`) mit Hinweis und „Alle Partien zeigen“ |
+
+Ungültige Einstellungen nennt das Formular je Feld (`tournamentError.*` bzw. `leagueError.*`).
+
 ## Zu beachten
 
 - **Zustand über URLs:** Jede Ansicht (Partie, Zugnummer, Saison, Filter) ist verlinkbar.

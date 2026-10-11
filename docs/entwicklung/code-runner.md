@@ -14,7 +14,7 @@ Der Runner unter `services/runner` (Paket `sbm-runner`, Modul `sbm_runner`) spie
 Lesereihenfolge:
 
 1. `cli.py` – Rollen, Sandbox, Spielerfabrik.
-2. `worker.py` – Hauptschleife des Queue-Runners: Wiederaufnahme, Ratings, Ligen, Abruf, Arbeit.
+2. `worker.py` – Hauptschleife des Queue-Runners: Wiederaufnahme, Ratings, Ligen, Turniere, Abruf, Arbeit.
 3. `game.py` mit `match_settings.py`, `recorder.py`, `players.py` – eine Partie.
 4. `heartbeat.py`, `stopper.py`, `retries.py`, `recovery.py`, `shutdown.py` – Leases und Fehlerfälle.
 5. `verification/pipeline.py` – ein Verifikationsjob.
@@ -31,8 +31,9 @@ Lesereihenfolge:
 | [`cli.py`](../../services/runner/src/sbm_runner/cli.py) | `sbm-runner`: Logging, Signal-Handler, Rolle `queue`/`play`, Start der Sandbox |
 | [`config.py`](../../services/runner/src/sbm_runner/config.py) | `RunnerConfig`: Abfrage-Intervall, Lease, Heartbeat, `max_attempts`, `retry_delay`, `verification_wait` (E89), `live_address` (E142); `default_worker_id` |
 | [`enqueue_cli.py`](../../services/runner/src/sbm_runner/enqueue_cli.py) | `sbm-enqueue`: baut eine `Discipline`, prüft sie mit `MatchSettings` des Referees und ruft `sbm_store.enqueue.enqueue_match`; `--discipline` holt eine gespeicherte Disziplin über `sbm_store.disciplines.by_name` und `snapshot` (E169) |
-| [`worker.py`](../../services/runner/src/sbm_runner/worker.py) | `Worker`: ein Job nach dem anderen; je Runde zuerst `advance_leagues`; Abrufreihenfolge alte Verifikation → Partie (über `sbm_store.queue_order.claim_match`: höchste Priorität, Wettbewerbe abwechselnd, E134) → Verifikation (E89); Ratings nach jeder Partie (E103), Neuberechnung vor dem Abruf (E105); `utc_now` |
+| [`worker.py`](../../services/runner/src/sbm_runner/worker.py) | `Worker`: ein Job nach dem anderen; je Runde zuerst `advance_leagues`, dann `advance_tournaments`; Abrufreihenfolge alte Verifikation → Partie (über `sbm_store.queue_order.claim_match`: höchste Priorität, Wettbewerbe abwechselnd, E134) → Verifikation (E89); Ratings nach jeder Partie (E103), Neuberechnung vor dem Abruf (E105); `utc_now` |
 | [`league_tick.py`](../../services/runner/src/sbm_runner/league_tick.py) | `advance_leagues`: je Runde Spielplan nach Absturz neu anlegen, Partien zurückgezogener Bots kampflos werten, fertige Saisons beenden, fällige starten (E132–E136); ein Fehler wird geloggt und hält den Runner nicht an |
+| [`tournament_tick.py`](../../services/runner/src/sbm_runner/tournament_tick.py) | `advance_tournaments`: je Runde `sbm_store.edition_progress.advance_running` (fehlende Partien, kampflose Siege, Schweizer Runden, K.-o.-Duelle, Ende), dann `edition_start.start_due` (E173–E177); ein Fehler wird geloggt und hält den Runner nicht an |
 | [`game.py`](../../services/runner/src/sbm_runner/game.py) | `run_job`: spielt die Partie eines Jobs mit dem Referee und speichert das Ergebnis; `bot_player` lässt nur Bots in `verified` spielen; sendet jeden Zug zusätzlich über `LiveFeed` an den Gateway (E142) |
 | [`match_settings.py`](../../services/runner/src/sbm_runner/match_settings.py) | `MatchSettings` des Referees aus `discipline_snapshot` und `start_fen` einer gespeicherten Partie |
 | [`players.py`](../../services/runner/src/sbm_runner/players.py) | `PlayerFactory`, `UnsupportedBot`, erlaubte Referenzbots (`BUILTIN_MODULES`), `plain_player`/`PlainPlayer` ohne Sandbox (E72) |
@@ -88,7 +89,7 @@ Zur Sandbox gehören außerhalb des Pakets [`sandbox/python.cfg`](../../sandbox/
 
 ### Partie aus der Queue
 
-1. `Worker.step` ruft `recover_expired` (`recovery.py`), `_recount_ratings` und `advance_leagues` (`league_tick.py`); ist die Queue pausiert (`queue_settings`), endet der Schritt.
+1. `Worker.step` ruft `recover_expired` (`recovery.py`), `_recount_ratings`, `advance_leagues` (`league_tick.py`) und `advance_tournaments` (`tournament_tick.py`); ist die Queue pausiert (`queue_settings`), endet der Schritt.
 2. `Worker._claim` holt eine Partie per `sbm_store.queue_order.claim_match` (höchste Priorität; bei Gleichstand der Wettbewerb mit dem ältesten `claimed_at`, darin die älteste Partie, E134), eine Verifikation per `sbm_store.jobs.claim`. Um ihn laufen `Heartbeat` und `Stopper`.
 3. `game.run_job` lädt die Partie, setzt eine von einem toten Worker hinterlassene `running`-Partie zurück und baut beide Spieler über `bot_player` und die `PlayerFactory`.
 4. Für einen hochgeladenen Bot ruft `Sandbox.player` beim Start des `JailPlayer` `checkout.checkout`: frische Kopie aus GridFS, die nsjail als `/bot` einhängt. Referenzbots bekommen das leere Verzeichnis `no_files`.

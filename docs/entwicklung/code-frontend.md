@@ -36,8 +36,10 @@ Pfade relativ zu `frontend/src/`.
 | `api/client.ts` | `fetch`-Hülle: `getJson`, `getBytes`, `sendJson`, `sendForm`, `apiUrl`; `ApiError` mit `code`, `status`, `field`, `path`; Netzfehler als Code `network`; Header `X-SBM-CSRF: 1` bei jeder Änderung (E84) |
 | `api/endpoints.ts` | Lesende öffentliche Endpunkte: Partien, Serien, Gegner, Bots, Ratings, Queue, Disziplinen |
 | `api/account.ts` | Sitzung, Anmeldung, Einladung, Passwort, eigenes Rating, Grenzen, API-Tokens |
-| `api/admin.ts` | Nutzer, Einladungen, Partien ansetzen, Queue-Eingriffe, Bot-Sperre und -Löschung, Neuprüfung, Disziplinen, Ligen anlegen, ändern und Saison freigeben, Play-Grenzen, Einstellungen, Audit-Log |
+| `api/admin.ts` | Nutzer, Einladungen, Partien ansetzen, Queue-Eingriffe, Bot-Sperre und -Löschung, Neuprüfung, Disziplinen, Ligen anlegen, ändern und wartende Saison starten (E171), Play-Grenzen, Einstellungen, Audit-Log |
 | `api/leagues.ts` | Ligen, Liga mit Anmeldungen, Saison mit Tabellen, Ligen eines Bots; Bot an- und abmelden (E136, E137); Spielplan einer Stufe und Saisons eines Bots (E138, E139) |
+| `api/tournaments.ts` | Turniere, Turnier mit Ausgaben und Anmeldungen, Ausgabe, Runden einer Ausgabe, Turniere und Ausgaben eines Bots; Bot an- und abmelden (E170–E180) |
+| `api/adminTournaments.ts` | Turnier anlegen, ändern und wartende Ausgabe starten (E170–E172) |
 | `api/botHistory.ts` | Rating-Verlauf und Bilanz eines Bots (E140, E141) |
 | `api/bots.ts` | Upload als `FormData`, Bot, eigene Bots, Dateien und ZIP, eigene Partien ansetzen und zurückziehen |
 | `api/play.ts` | `startGame`: `POST /play`, Antwort mit Sitz-Token (E114) |
@@ -70,7 +72,7 @@ Pfade relativ zu `frontend/src/`.
 
 | Modul | Aufgabe |
 |-------|---------|
-| `components/Layout.tsx` | Kopf mit Hauptnavigation (`NAV`), `AccountNav`, Sprachumschalter, `Outlet` |
+| `components/Layout.tsx` | Kopf mit Hauptnavigation (`NAV`, seit E170 mit „Turniere“), `AccountNav`, Sprachumschalter, `Outlet` |
 | `components/AccountNav.tsx` | Anmelden für Gäste; „Meine Bots“ (nicht für `player`), Verwaltung für Admins, Konto; Abmelden über `session/useLogout.ts` |
 | `components/LanguageSwitch.tsx` | Knöpfe Deutsch/Englisch |
 | `components/ApiContent.tsx` | Daten aus `useApi` rendern, sonst Fehler oder Laden |
@@ -89,9 +91,11 @@ Pfade relativ zu `frontend/src/`.
 | `components/BotPicker.tsx`, `DisciplineSelect.tsx` | Bot nach Name, dann Version, mit „Zufall“ (E162, E165; bis E165 `BotOptions.tsx`); Disziplin oder freie Zeiten (E100) |
 | `components/matchFields/` | `MatchFields` mit `ColorSelect` und `conditions.ts`: gemeinsame Felder für Admin, Coder und `/play` (Varianten `admin`, `coder`, `play`, E167) |
 | `components/StartPositionField.tsx` | FEN-Feld mit „Aus PGN“ (E159) |
+| `components/ScheduleRounds.tsx` | Runden als aufklappbare Abschnitte mit Partien, offen die erste nicht beendete; gemeinsam für Spielplan einer Liga und Runden eines Turniers (E138, E180) |
+| `components/RecurrenceText.tsx` | Kalender als Text in Ortszeit: Intervall mit erstem Start oder Start durch Admins (E171) |
 | `components/QueuedNotice.tsx` | Bestätigung nach dem Ansetzen, Link auf die Serie (E155) |
 | `components/CopyButton.tsx`, `OneTimeLinkBox.tsx` | In die Zwischenablage kopieren; einmal sichtbarer Link (E83) |
-| `format/*.ts` | Reine Formatierer: `pairing` (Seiten alphabetisch, Ergebnis gedreht, `compareSides`, E165), `botGroups` (Versionen je Name), `clock`, `dateTime`, `duration` (Sekunden/Minuten mit Komma ↔ ms, E168), `points` (½), `rating` (2500 → 2550, ohne Partien „–“), `result`, `score` (Sicht von Weiß), `timeControl` („3 min + 2 s“, E168); `botLabel` ist seit E165 entfallen |
+| `format/*.ts` | Reine Formatierer: `pairing` (Seiten alphabetisch, Ergebnis gedreht, `compareSides`, E165), `botGroups` (Versionen je Name), `clock`, `dateTime`, `duration` (Sekunden/Minuten mit Komma ↔ ms, E168), `points` (½), `recurrence` (Intervall als größte passende Einheit, E171, E180), `rating` (2500 → 2550, ohne Partien „–“), `result`, `score` (Sicht von Weiß), `timeControl` („3 min + 2 s“, E168); `botLabel` ist seit E165 entfallen |
 | `chess/fen.ts` | Felder der FEN lesen: Seite am Zug, Zugnummer, Materialbilanz, Felder eines UCI-Zugs; keine Regeln |
 | `upload/selection.ts` | Welche Dateien eines Ordners hochgeladen werden, Grenzen 100 Dateien und 1 MB (E92) |
 | `upload/version.ts` | Muster für Name und Version, Vorschlag der nächsten Patch-Version |
@@ -123,14 +127,15 @@ Pfade relativ zu `frontend/src/`.
 
 | Bereich | Module |
 |---------|--------|
-| Öffentlich | `StartPage` (Idee des Projekts, keine Abfragen, E166), `MatchesPage` (Filter in der URL, E156, E119), `MatchPage` (Viewer mit `useLiveMatch`, folgt laufenden Partien über den Live-Kanal), `MatchSeries` (Platz in der Serie), `QueuePage` (`QueueTable` in der Sicht `public`), `BotsPage`, `RatingsPage` mit `ranking.ts` (Bots und Spieler gemeinsam sortiert, E118, E163), `series/SeriesPage` (E155), `MatchLeague` (Liga, Saison und Runde einer Ligapartie), `NotFoundPage` |
+| Öffentlich | `StartPage` (Idee des Projekts, keine Abfragen, E166), `MatchesPage` (Filter in der URL, E156, E119), `MatchPage` (Viewer mit `useLiveMatch`, folgt laufenden Partien über den Live-Kanal), `MatchSeries` (Platz in der Serie), `QueuePage` (`QueueTable` in der Sicht `public`), `BotsPage`, `RatingsPage` mit `ranking.ts` (Bots und Spieler gemeinsam sortiert, E118, E163), `series/SeriesPage` (E155), `MatchLeague` (Liga, Saison und Runde einer Ligapartie), `MatchTournament` (Turnier, Ausgabe und Runde einer Turnierpartie, E178, E180), `NotFoundPage` |
 | Ligen (`leagues/`) | `LeaguesPage`, `LeaguePage` mit `LeagueFacts`, `LeagueSeasons`, `NextSeason`, `LeagueRegistrations` und `LeagueRegisterForm` (E136, E137), `SeasonPage` mit `TierTable` je Staffel (E134) und darin `TierSchedule` (E138) |
+| Turniere (`tournaments/`) | `TournamentsPage`, `TournamentPage` mit `TournamentFacts`, `TournamentEditions`, `NextEdition`, `TournamentRegistrations` und `TournamentRegisterForm`, `EditionPage` mit `EditionState`, `EditionParticipants`, `EditionTable` (Round-Robin und Schweizer System), `EditionRoundsSection`, `KnockoutBracket` und `KnockoutPlacements` (K.-o.) (E170–E180) |
 | Konto (`account/`) | `LoginPage`, `InvitePage` und `ResetPasswordPage` (Token aus `#`), `AccountPage` mit `OwnRating` (E117) und `ApiTokens` (E116) |
 | Upload (`upload/`) | `UploadPage` mit `FileDrop` (Ordner oder Dateien, auch per Ziehen, Name, Version, Beschreibung, E91), `SelectedFiles` (Hochgeladenes und Weggelassenes) |
-| Bot (`bot/`) | `BotPage` (fragt während Verifikation und Neuprüfung alle 3 s) mit `BotHeader` (Name, Version, Status), `BotActions` (Schnellstart, Besitzer) und `BotAdmin` (Eingriffe der Admins), `BotSummary`, `BotDescription`, `BotVersions` mit `playLink.ts` (E160), `BotOpponents` (E161), `BotFiles` mit `FileView` (nur UTF-8-Text, E97), `ReportView`, `ReportStages`, `FindingsTable`, `TestGamesTable`, `reportFacts.ts`, `BotRechecks` (E153), `BotLeagues` (Ligen des Bots), `BotSeasons` (E139), `BotRatingChart` mit `ratingChart.ts` (SVG, E140), `BotResults` (E141); Eingriffe `BotOwnerSwitch` (E96), `BotStatusSwitch` (E93), `BotChecks` (E153), `BotDelete` (E105) |
+| Bot (`bot/`) | `BotPage` (fragt während Verifikation und Neuprüfung alle 3 s) mit `BotHeader` (Name, Version, Status), `BotActions` (Schnellstart, Besitzer) und `BotAdmin` (Eingriffe der Admins), `BotSummary`, `BotDescription`, `BotVersions` mit `playLink.ts` (E160), `BotOpponents` (E161), `BotFiles` mit `FileView` (nur UTF-8-Text, E97), `ReportView`, `ReportStages`, `FindingsTable`, `TestGamesTable`, `reportFacts.ts`, `BotRechecks` (E153), `BotLeagues` (Ligen des Bots), `BotSeasons` (E139), `BotRatingChart` mit `ratingChart.ts` (SVG, E140), `BotResults` (E141), `BotTournaments` und `BotEditions` (E179, E180); Eingriffe `BotOwnerSwitch` (E96), `BotStatusSwitch` (E93), `BotChecks` (E153), `BotDelete` (E105) |
 | Meine Bots (`ownBots/`) | `OwnBotsPage`, `OwnBotGroups` (nach Name gruppiert), `OwnMatchForm` mit `ownMatchOrder.ts` und `ownLimits.ts` (E98, E154), `OwnWaitingMatches` (E157) |
 | Spielen (`play/`) | `PlaySetupPage` (`POST /play`, Sitz speichern, weiter zu `/play/:id`), `GamePage` (nimmt `createSocket` für Tests), `PlayBoard` (nur Züge aus `legal_moves`), `PromotionChoice`, `GameClock` |
-| Admin (`admin/`) | `AdminLayout` (Reiter, `RequireRole role="admin"`); Reiter „Queue“: `AdminMatchesPage` mit `QueueControl`, `AdminQueueTable` (`QueueTable` in der Sicht `admin`), `QueueEntryActions` (E152, E167), `EnqueueForm` mit `MatchFields` und `matchOrder.ts`; Reiter „Neuprüfung“: `RecheckLanguage` unter `/admin/rechecks` (E153); `MatchRepeat` (Partieseite, E152); `AdminUsersPage`; `AdminInvitesPage` mit `InviteForm`; `AdminDisciplinesPage` mit `DisciplineEditor` und `disciplineForm.ts` (E100); `AdminLeaguesPage` mit `LeagueEditor`, `TiebreakField` und `leagueForm.ts` (E131, E132); `AdminPlayPage` (E115); `AdminAuditPage` mit `AuditTable` (Ziel mit Namen, E151, E169); `AdminSettingsPage` mit `SettingsGroupFields` und `settingsFields.ts`, ein Speichern für alle Gruppen (E154, E168) |
+| Admin (`admin/`) | `AdminLayout` (Reiter, `RequireRole role="admin"`); Reiter „Queue“: `AdminMatchesPage` mit `QueueControl`, `AdminQueueTable` (`QueueTable` in der Sicht `admin`), `QueueEntryActions` (E152, E167), `EnqueueForm` mit `MatchFields` und `matchOrder.ts`; Reiter „Neuprüfung“: `RecheckLanguage` unter `/admin/rechecks` (E153); `MatchRepeat` (Partieseite, E152); `AdminUsersPage`; `AdminInvitesPage` mit `InviteForm`; `AdminDisciplinesPage` mit `DisciplineEditor` und `disciplineForm.ts` (E100); `AdminLeaguesPage` mit `LeagueEditor`, `TiebreakField` und `leagueForm.ts` (E131, E132, Kalender seit E171); `AdminTournamentsPage` mit `TournamentEditor`, `tournamentForm.ts` und `startable.ts` (E170, E172); `RecurrenceField` mit `recurrenceForm.ts` für Ligen und Turniere (E171); `AdminPlayPage` (E115); `AdminAuditPage` mit `AuditTable` (Ziel mit Namen, E151, E169); `AdminSettingsPage` mit `SettingsGroupFields` und `settingsFields.ts`, ein Speichern für alle Gruppen (E154, E168) |
 
 ## Ablauf
 
@@ -201,6 +206,7 @@ Vitest mit jsdom und Testing Library; Einrichtung in [`vite.config.ts`](../../fr
 | `test/fixtures.ts` | Testdaten: `START_FEN`, `OPENING`, `match()`, `summary()`, `side()`, `BOTS`, `botDetail()`, `queue()`, `storedDiscipline()`, `adminSettings()`, `CODER_LIMITS`, Konten `ADMIN`, `CODER`, `PLAYER`, `user()`, `ownMatches()` |
 | `test/leagues.ts` | Testdaten für Ligen: `LEAGUE_ID`, `SEASON_ID`, `league()`, `registration()`, `leagueDetail()`, `season()`, `schedule()`, `botSeason()` |
 | `test/fakeEventSource.ts` | `FakeEventSource` als Ersatz für `EventSource` (`vi.stubGlobal`): `open()`, `emit(type, data)`, `fail()`, `closed`, `url`, `FakeEventSource.latest()` |
+| `test/tournaments.ts` | Testdaten für Turniere: `TOURNAMENT_ID`, `EDITION_ID`, `tournament()`, `tournamentRegistration()`, `tournamentDetail()`, `swissEdition()`, `knockoutEdition()`, `botEdition()` |
 | `test/fakeSocket.ts` | `FakeSocket` als Ersatz für `WebSocket` (`vi.stubGlobal`): `open()`, `receive(msg)`, `drop(code)`, `sentMessages()`, `FakeSocket.latest()` |
 | `test/files.ts` | `folderFile`: Datei wie aus einer Ordnerauswahl (`webkitRelativePath`) |
 

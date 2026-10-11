@@ -150,9 +150,9 @@ Nach M7, Turniere erst nach M4 Schritt 3 (E150). Drei Schritte:
 
 1. Adminbereich: Audit-Log-Ansicht, Eingriffe in die Queue (Priorität, Abbruch wartender und laufender Partien, Neuansetzen), Neuprüfung (nur Bericht) und Override abgelehnter Bots, Einstellungen in der Datenbank auf `/admin/settings`.
 2. Einzelspiele: fehlende Teile ergänzen.
-3. Turniere auf dem gemeinsamen Modell für Wettbewerbe aus M4; Formate offen (O24).
+3. Turniere auf dem gemeinsamen Modell für Wettbewerbe aus M4: Rundenturnier, Schweizer System und K.-o. (E170); Ligen und Turniere wiederkehrend nach Kalender (E171).
 
-Stand: Schritt 1 ist umgesetzt (E151–E154), Schritt 2 ebenso (E155–E161).
+Stand: Schritt 1 ist umgesetzt (E151–E154), Schritt 2 ebenso (E155–E161), Schritt 3 ebenso (E170–E180, Migration `0154`).
 
 ### M7 – Mensch gegen Bot, lokaler Bot gegen Web-API (P2)
 

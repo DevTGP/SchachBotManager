@@ -51,7 +51,7 @@ Ressourcenlimitierte Disziplinen (Speicher, CPU, Dateigröße) sind zurückgeste
 | Stufenanzahl, Größe pro Stufe | Pyramide |
 | Spiele pro Paarung | 1, 2 (beide Farben) oder mehr |
 | Auf-/Absteiger pro Stufe | Anzahl |
-| Wiederholung | Saisonstart-Regel, Pause zwischen Saisons |
+| Wiederholung | Kalender: erster Termin und Intervall (E171) |
 | Punkte | Sieg / Remis / Niederlage |
 | Tiebreak-Reihenfolge | z. B. direkter Vergleich, Sonneborn-Berger, Anzahl Siege |
 | Mindestteilnehmer | Sonst startet die Saison nicht |
@@ -105,12 +105,12 @@ Die Abschnitte oben beschreiben das Ziel; umgesetzt ist es so:
 | `points` | `win`, `draw`, `loss` je 0 bis 10 in halben Punkten, Sieg > Niederlage, Sieg ≥ Remis ≥ Niederlage | 1, ½, 0 |
 | `tiebreaks` | Liste aus `wins`, `head_to_head`, `sonneborn_berger`, `fewer_moves` ohne Doppelte | die ersten drei |
 | `min_participants` | 2 bis 320 | 2 |
-| `pause_minutes` | 0 bis 43 200 | 60 |
+| `recurrence` | Kalender nach E171: keiner oder `first_start` und `interval_hours` (1 bis 8760); bis E171 stattdessen `pause_minutes` | keiner |
 | `priority` | 0 bis 1000 | 50 |
 | `archived` | ja/nein | nein |
 
 - **Struktur:** Alle Stufen sind gleich groß, Auf- und Abstieg gelten an jeder Grenze gleich (E131). Statt paralleler Gruppen gibt es die Warteliste; eine neue unterste Stufe entsteht durch eine höhere Stufenzahl. Änderungen der Einstellungen wirken ab dem nächsten Saisonstart.
-- **Saison:** `planned → running → finished` (E132). Die erste Saison gibt ein Admin auf `/admin/leagues` frei; jede weitere plant der Runner beim Abschluss mit `pause_minutes` Abstand. Eine fällige Saison startet, sobald genug Bots da sind. `registration_closed` entfällt, weil der Start Aufstellung und Spielplan in einem Schritt festschreibt.
+- **Saison:** `planned → running → finished` (E132). Die erste Saison gibt ein Admin auf `/admin/leagues` frei; jede weitere plant der Runner beim Abschluss nach dem Kalender (E171, bis dahin mit `pause_minutes` Abstand). Eine fällige Saison startet, sobald genug Bots da sind. `registration_closed` entfällt, weil der Start Aufstellung und Spielplan in einem Schritt festschreibt.
 - **Aufstellung (E133):** Setzliste aus der vorigen Saison, danach die Warteliste nach Anmeldezeit; von oben in Stufen geschnitten. Am Ende steigen je Grenze `promotions` Bots ab, weniger um die Zahl der Rückzüge in der Stufe; aufgefüllt wird von unten mit den Besten.
 - **Spielplan (E134):** Rundenturnier nach dem Kreisverfahren je Stufe, bei `games_per_pairing` > 1 wiederholt mit getauschten Farben. Alle Partien kommen beim Start in die Queue.
 - **Tabelle (E135):** aus den beendeten Partien berechnet; danach entscheiden die Kriterien aus `tiebreaks` und zuletzt ein beim Start gespeichertes Los. Beim Abschluss speichert die Saison die Endtabelle.
@@ -122,7 +122,26 @@ Die Abschnitte oben beschreiben das Ziel; umgesetzt ist es so:
 - **Liga-Verlauf (E139):** Die Bot-Seite listet die Saisons genau dieser Version mit Stufe, Platz, Punkten und Ausgang; eine laufende Saison mit dem aktuellen Platz.
 - **Historie (E140, E141):** Dazu kommen auf der Bot-Seite der Rating-Verlauf je Disziplin als Kurve und die Bilanz nach Ergebnis gesamt und je Disziplin.
 
+## Kalender (E171)
+
+Ligen und Turniere haben denselben Kalender `recurrence`: keiner (`null`) oder `first_start` (UTC) und `interval_hours` (1 bis 8760). Die Termine sind `first_start + k · interval_hours`.
+
+| Fall | Start der nächsten Saison oder Ausgabe |
+|------|----------------------------------------|
+| Mit Kalender, erste | Erster Termin ab jetzt |
+| Mit Kalender, weitere | Erster Termin nach dem Start der vorigen; ist er beim Ende der vorigen schon vorbei, sofort |
+| Ohne Kalender | Wartet auf einen Admin (`POST /admin/leagues/{id}/start` bzw. `/admin/tournaments/{id}/start`); 409, wenn nichts wartet oder die geplante schon fällig ist |
+| Kalender geändert | Start der geplanten Saison oder Ausgabe wird neu berechnet; ohne Kalender wartet sie wieder auf den Admin |
+
+- Der Start durch den Admin zieht auch einen späteren Termin vor.
+- Der Kalender gehört nicht zum Schnappschuss der laufenden Saison oder Ausgabe.
+- Er ersetzt `pause_minutes`; Migration `0154` rechnet bestehende Ligen um (`first_start` = Zeitpunkt der Migration, `interval_hours` = ⌈`pause_minutes`/60⌉, mindestens 1).
+- Die Oberfläche zeigt und nimmt Ortszeit; das Intervall wird in Stunden, Tagen oder Wochen eingegeben und in Stunden gespeichert.
+- Eine Liga, deren erste Saison noch nicht freigegeben ist, wartet weiter auf den Admin, auch wenn sie einen Kalender hat (E132).
+
 ## Turniere
+
+### Ziel
 
 | Parameter | Optionen |
 |-----------|----------|
@@ -133,12 +152,38 @@ Die Abschnitte oben beschreiben das Ziel; umgesetzt ist es so:
 | Formatdetails | Rundenzahl (Schweizer), Spiele pro Begegnung, Setzliste (Rating oder Zufall) |
 | Priorität in der Queue | Gewicht |
 
-Zu beachten:
-
-- **K.-o. braucht eine Remis-Auflösung** (z. B. Rückspiel mit vertauschten Farben, danach kürzere Zeitkontrolle, zuletzt Entscheidungspartie mit Remisvorteil) – einstellbar.
-- **Schweizer System** paart rundenweise: die nächste Runde entsteht erst, wenn die vorige vollständig gespielt ist.
 - Turniere haben keine Auswirkung auf Liga-Stufen.
 - Zieht sich ein Bot zurück, gilt die Regel aus E17 sinngemäß.
+
+### Stand M6, Schritt 3 (E170–E180)
+
+Ein Turnier ist wie eine Liga eine dauerhafte Konfiguration mit Anmeldungen; gespielt wird in **Ausgaben** (`editions`), so wie eine Liga in Saisons (E170). Keine Höchstzahl an Teilnehmern, keine Zulassungsbedingung, Setzliste immer nach Rating.
+
+| Feld | Bereich | Standard |
+|------|---------|----------|
+| `name` | 1 bis 40 Zeichen, ohne Rücksicht auf Groß- und Kleinschreibung eindeutig unter den Turnieren | – |
+| `discipline_id` | nicht archivierte Disziplin | – |
+| `format` | `round_robin`, `swiss`, `knockout`; nach dem Anlegen fest | – |
+| `games_per_pairing` | 1 bis 10; Rundenturnier und K.-o.-Duell | 2 |
+| `rounds` | 1 bis 20; nur Schweizer System, höchstens Teilnehmer − 1 gespielt | 5 |
+| `tiebreaks` | `wins`, `head_to_head`, `sonneborn_berger`, `fewer_moves`, `buchholz`; nicht bei K.-o. | je Format (E177) |
+| `tiebreak_discipline_id` | Disziplin für Tiebreak und Armageddon (nur K.-o.); leer = Turnierdisziplin | leer |
+| `tiebreak_pairs` | 0 bis 5 (nur K.-o.) | 1 |
+| `min_participants` | 2 bis 1024 | 2 |
+| `priority` | 0 bis 1000 | 40 |
+| `recurrence` | Kalender (E171) | keiner |
+| `archived` | ja/nein | nein |
+
+Alle Felder werden unabhängig vom Format gespeichert; was das Format nicht nutzt, bleibt wirkungslos. Punkte sind fest 1, ½, 0. Änderungen wirken ab der nächsten Ausgabe.
+
+- **Ausgaben (E173):** `planned → running → finished`. Ausgabe 1 entsteht mit dem Turnier. Eine fällige Ausgabe startet mit mindestens `min_participants` (und zwei) angemeldeten `verified` Bots und schreibt Schnappschuss (Einstellungen samt Disziplinen) und Teilnehmer fest: Setzliste nach Rating der Version in der Turnierdisziplin, bei Gleichstand nach Los. Spätere Anmeldungen spielen ab der nächsten Ausgabe. Am Ende entsteht die nächste `planned` nach dem Kalender. `revision` macht jeden Schritt des Runners bedingt, so dass ein Absturz nichts doppelt anlegt.
+- **Rundenturnier (E174):** Kreisverfahren wie bei Ligen, `games_per_pairing` Durchgänge mit getauschten Farben, alle Partien beim Start in der Queue.
+- **Schweizer System (E175):** Runde für Runde; die nächste wird gelost, wenn die laufende beendet ist. Eine Partie je Paarung. Paarung nach Punkten, dann Setzplatz, per Backtracking ohne Wiederholung (in der Punktgruppe obere gegen untere Hälfte), nur notfalls mit so wenigen Wiederholungen wie möglich. Freilos: 1 Punkt für den am schlechtesten stehenden Bot ohne bisheriges Freilos. Farben nach Ausgleich, dann Wechsel, dann Rang. Abgebrochene Partien zählen nicht und werden nicht wiederholt. Die vereinfachte Paarung ersetzt nicht die FIDE-Regel (Dutch).
+- **K.-o. (E176):** Baum mit der nächsten Zweierpotenz an Plätzen in Standard-Setzreihenfolge, Freilose für die Bestgesetzten. Ein Duell hat `games_per_pairing` Partien (der besser Gesetzte beginnt mit Weiß), bei Gleichstand 2 · `tiebreak_pairs` Partien in der Tiebreak-Disziplin, dann Armageddon mit Farben per Los, bei dem Schwarz ein Remis genügt. Abgebrochene Partien eines Duells werden neu angesetzt, ohne Grenze. Wer sich zurückzieht, verliert sein Duell; ein zurückgezogener Sieger kommt nicht weiter. Platz nach erreichter Runde (1, 2, 3, 5, 9 …).
+- **Tabellen (E177):** wie E135 mit Punkten 1, ½, 0; ein Freilos ist ein Punkt ohne Partie. Zusätzlich `buchholz` (Punkte der Gegner aus gespielten Partien). Standard im Rundenturnier `wins`, `head_to_head`, `sonneborn_berger`, im Schweizer System `buchholz`, `sonneborn_berger`, `wins`; danach das Los. Beim Ende speichert die Ausgabe Tabelle bzw. Platzierung.
+- **Partien (E178):** Typ `tournament`, `context` mit Turnier, Ausgabe, Format, Runde, Brett und beim K.-o. `phase` und `game`; alle gewertet (Tiebreak und Armageddon in ihrer Disziplin). Jobs tragen `competition` `tournament:<id>`. Eingriffe in die Queue (E152) bleiben auf Einzelspiele beschränkt.
+- **Anmeldung (E179):** wie bei Ligen über die Bot- und die Turnierseite; sie gilt für alle folgenden Ausgaben. Abmelden, Zurückziehen, Sperren und Löschen beenden sie; in einer laufenden Ausgabe enden die wartenden Partien des Bots kampflos. Partien eines gelöschten Bots werden nicht neu angelegt, der Gegner bekommt dafür keinen kampflosen Sieg.
+- **Seiten (E180):** Navigationspunkt „Turniere“ mit `/tournaments` und `/tournaments/:id`, Ausgabe `/editions/:id` mit Tabelle und Runden bzw. Turnierbaum und Platzierung, Admin-Seite `/admin/tournaments`, auf der Bot-Seite Anmeldungen und Turnierverlauf, unter `/matches` Filter nach Ausgabe.
 
 ## Einzelspiele
 
@@ -197,6 +242,8 @@ Eine gemeinsame Queue für alle Spiele aller Wettbewerbe.
 ### Prioritäten (Standard, einstellbar)
 
 Liga > Turnier > Einzelspiel > Verifikation. Spiele gegen Menschen und Remote-Bots laufen außerhalb dieser Reihenfolge mit eigener Kapazitätsgrenze (E24), weil ein wartender Mensch nicht hinter einer 60-Minuten-Partie anstehen kann; sie belegen dann zusätzlich Rechenzeit (R10).
+
+Umgesetzt sind die Standardwerte Admin-Einzelspiele 100, Ligen 50, Einzelspiele der Coder 50, Turniere 40 (E172); Turniere stehen damit hinter den Einzelspielen. Je Wettbewerb ist die Priorität einstellbar.
 
 ### Überwachung
 
