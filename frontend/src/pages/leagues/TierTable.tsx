@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import type { SeasonTier } from "../../api/types";
-import { sideLabel } from "../../format/botLabel";
+import { SideName } from "../../components/SideName";
 import { formatPoints } from "../../format/points";
 import { TierSchedule } from "./TierSchedule";
 
@@ -33,6 +33,7 @@ export function TierTable({
             <tr>
               <th>{t("ratings.rank")}</th>
               <th>{t("bots.name")}</th>
+              <th>{t("bots.version")}</th>
               <th className="number">{t("bot.games")}</th>
               <th className="number">{t("bot.wins")}</th>
               <th className="number">{t("bot.draws")}</th>
@@ -46,8 +47,9 @@ export function TierTable({
               <tr key={row.bot.bot_id}>
                 <td>{row.rank ?? "–"}</td>
                 <td>
-                  <Link to={`/bots/${row.bot.bot_id}`}>{sideLabel(row.bot)}</Link>
+                  <SideName side={row.bot} />
                 </td>
+                <td>{row.bot.version ?? "–"}</td>
                 <td className="number">{row.games}</td>
                 <td className="number">
                   {row.forfeit_wins > 0

@@ -3,6 +3,7 @@ import type { components, operations } from "./schema";
 type Schemas = components["schemas"];
 type Query<Name extends keyof operations> = NonNullable<operations[Name]["parameters"]["query"]>;
 
+export type AccountRating = Schemas["AccountRating"];
 export type AccountSettings = Schemas["AccountSettings"];
 export type AdminSettings = Schemas["AdminSettings"];
 export type ApiToken = Schemas["ApiToken"];

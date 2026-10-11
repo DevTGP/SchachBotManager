@@ -8,6 +8,7 @@ import { fetchLeagues } from "../../api/leagues";
 import type { League, LeagueRequest, LeagueUpdate } from "../../api/types";
 import { ApiContent } from "../../components/ApiContent";
 import { FormError } from "../../components/FormError";
+import { TableShell } from "../../components/TableShell";
 import { useApi } from "../../hooks/useApi";
 import { useSubmit } from "../../hooks/useSubmit";
 import { DEFAULT_LEAGUE_FORM, leagueForm } from "./leagueForm";
@@ -86,68 +87,62 @@ export function AdminLeaguesPage() {
       <h2>{t("leagues.title")}</h2>
       <FormError error={error} />
       <ApiContent state={leagues}>
-        {(items) =>
-          items.length === 0 ? (
-            <p className="muted">{t("leagues.empty")}</p>
-          ) : (
-            <div className="table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>{t("leagues.name")}</th>
-                    <th>{t("leagues.discipline")}</th>
-                    <th className="number">{t("leagues.registered")}</th>
-                    <th>{t("leagues.season")}</th>
-                    <th>{t("admin.actions")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((league) => (
-                    <tr key={league.id}>
-                      <td>
-                        <Link to={`/leagues/${league.id}`}>{league.name}</Link>
-                        {league.archived && ` (${t("leagues.archived")})`}
-                      </td>
-                      <td>{league.discipline_name}</td>
-                      <td className="number">{league.registered}</td>
-                      <td>
-                        {league.season &&
-                          t("leagues.seasonState", {
-                            number: league.season.number,
-                            status: t(`seasonStatus.${league.season.status}`),
-                          })}
-                      </td>
-                      <td className="inline-actions">
-                        <button type="button" disabled={pending} onClick={() => setEditing(league)}>
-                          {t("disciplines.editButton")}
-                        </button>
-                        {awaitsRelease(league) && (
-                          <button
-                            type="button"
-                            className="primary"
-                            disabled={pending}
-                            onClick={() => act(() => startLeague(league.id))}
-                          >
-                            {t("leagues.release")}
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          disabled={pending}
-                          onClick={() =>
-                            act(() => updateLeague(league.id, { archived: !league.archived }))
-                          }
-                        >
-                          {league.archived ? t("disciplines.restore") : t("disciplines.archive")}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )
-        }
+        {(items) => (
+          <TableShell rows={items.length} empty={t("leagues.empty")}>
+            <thead>
+              <tr>
+                <th>{t("leagues.name")}</th>
+                <th>{t("leagues.discipline")}</th>
+                <th className="number">{t("leagues.registered")}</th>
+                <th>{t("leagues.season")}</th>
+                <th>{t("admin.actions")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((league) => (
+                <tr key={league.id}>
+                  <td>
+                    <Link to={`/leagues/${league.id}`}>{league.name}</Link>
+                    {league.archived && ` (${t("leagues.archived")})`}
+                  </td>
+                  <td>{league.discipline_name}</td>
+                  <td className="number">{league.registered}</td>
+                  <td>
+                    {league.season &&
+                      t("leagues.seasonState", {
+                        number: league.season.number,
+                        status: t(`seasonStatus.${league.season.status}`),
+                      })}
+                  </td>
+                  <td className="inline-actions">
+                    <button type="button" disabled={pending} onClick={() => setEditing(league)}>
+                      {t("disciplines.editButton")}
+                    </button>
+                    {awaitsRelease(league) && (
+                      <button
+                        type="button"
+                        className="primary"
+                        disabled={pending}
+                        onClick={() => act(() => startLeague(league.id))}
+                      >
+                        {t("leagues.release")}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() =>
+                        act(() => updateLeague(league.id, { archived: !league.archived }))
+                      }
+                    >
+                      {league.archived ? t("disciplines.restore") : t("disciplines.archive")}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </TableShell>
+        )}
       </ApiContent>
     </section>
   );

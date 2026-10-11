@@ -33,7 +33,7 @@ describe("league pages", () => {
     expect(screen.getByText("The first season waits for an admin to release it.")).toBeVisible();
     expect(screen.getByText("Wins, Head-to-head, Lot")).toBeVisible();
     expect(screen.getByText("1 / ½ / 0")).toBeVisible();
-    const registered = screen.getByRole("link", { name: "Random 1.0.0" }).closest("tr")!;
+    const registered = screen.getByRole("link", { name: "Random" }).closest("tr")!;
     expect(registered).toHaveTextContent("from the next season");
 
     const choice = await screen.findByRole("combobox", { name: "Bot" });
@@ -70,11 +70,11 @@ describe("league pages", () => {
     renderRoute(`/seasons/${SEASON_ID}`);
 
     expect(await screen.findByRole("heading", { name: "Bundesliga – season 1" })).toBeVisible();
-    expect(screen.getByText("Blitz (3+2)")).toBeVisible();
-    const winner = screen.getByRole("link", { name: "Material 1.0.0" }).closest("tr")!;
+    expect(screen.getByText("Blitz (3 min + 2 s)")).toBeVisible();
+    const winner = screen.getByRole("link", { name: "Material" }).closest("tr")!;
     expect(within(winner).getByText("2 (1 by forfeit)")).toBeVisible();
     expect(within(winner).getByText("Stays")).toBeVisible();
-    const withdrawn = screen.getByRole("link", { name: "Random 1.0.0" }).closest("tr")!;
+    const withdrawn = screen.getByRole("link", { name: "Random" }).closest("tr")!;
     expect(within(withdrawn).getByText("–")).toBeVisible();
     expect(within(withdrawn).getByText("Withdrawn")).toBeVisible();
     expect(screen.getByRole("link", { name: "Games of the tier" })).toHaveAttribute(

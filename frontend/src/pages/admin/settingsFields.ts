@@ -1,5 +1,5 @@
 import type { SettingsGroups } from "../../api/admin";
-import { secondsToMs } from "./matchOrder";
+import { msToSeconds, secondsToMs } from "../../format/duration";
 
 /** One number of a group; times in milliseconds are typed in seconds. */
 export interface SettingsField<G extends keyof SettingsGroups> {
@@ -51,7 +51,7 @@ export function toForm<G extends keyof SettingsGroups>(
   return Object.fromEntries(
     fields.map(({ name, seconds }) => {
       const value = Number(values[name]);
-      return [name, String(seconds ? value / 1000 : value)];
+      return [name, seconds ? msToSeconds(value) : String(value)];
     }),
   );
 }

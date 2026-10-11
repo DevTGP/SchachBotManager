@@ -9,6 +9,7 @@
   --highlight: #e6efe9;
   --error: #a32020;
   --notice: #fff4d6;
+  --shadow: rgb(0 0 0 / 18%);
   --radius: 6px;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
@@ -30,6 +31,7 @@
     --highlight: #2a3a31;
     --error: #ff8a80;
     --notice: #3d3420;
+    --shadow: rgb(0 0 0 / 60%);
   }
 }
 
@@ -71,6 +73,32 @@ a.button {
   display: inline-block;
 }
 
+/* Buttons and selects share the height of text fields (forms.css). */
+button,
+select,
+a.button,
+input:not([type="checkbox"], [type="radio"], [type="file"]) {
+  min-height: 2.1rem;
+}
+
+button.small,
+a.button.small {
+  min-height: 0;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+/* Destructive actions: outlined in red, filled only at the step that confirms. */
+button.danger {
+  color: var(--error);
+  border-color: var(--error);
+}
+
+button.danger.confirm {
+  background: var(--error);
+  color: var(--surface);
+}
+
 button:disabled {
   cursor: default;
   opacity: 0.45;
@@ -110,8 +138,24 @@ th {
   font-variant-numeric: tabular-nums;
 }
 
+/*
+ * The covers scroll with the table and hide the shadows at an edge that is reached; the shadows
+ * stay at the edges of the box, so a hidden part shows as a shadow.
+ */
 .table-scroll {
   overflow-x: auto;
+  background:
+    linear-gradient(to right, var(--surface) 30%, transparent) left / 2rem 100% no-repeat local,
+    linear-gradient(to left, var(--surface) 30%, transparent) right / 2rem 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, var(--shadow), transparent) left / 0.75rem 100%
+      no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, var(--shadow), transparent) right / 0.75rem 100%
+      no-repeat scroll,
+    var(--surface);
+}
+
+.table-scroll table {
+  background: transparent;
 }
 
 .table-scroll th,
@@ -142,4 +186,173 @@ th {
   background: var(--notice);
   border-radius: var(--radius);
   padding: 0.5rem 0.75rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Links in tables that read as text: the row has a button to open it. */
+a.quiet {
+  color: inherit;
+  text-decoration: none;
+}
+
+a.quiet:hover,
+a.quiet:focus-visible {
+  text-decoration: underline;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.badge.status-running,
+.badge.ok {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.badge.status-aborted,
+.badge.bad {
+  color: var(--error);
+  border-color: var(--error);
+}
+
+/* A pairing: two name columns and the dash between them (E165). */
+.pairing-side {
+  min-width: 7rem;
+}
+
+td.pairing-dash {
+  padding-inline: 0;
+  color: var(--muted);
+}
+
+.side-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.piece-dot {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 50%;
+  border: 1px solid var(--muted);
+  flex: none;
+}
+
+.piece-dot.w {
+  background: #ffffff;
+}
+
+.piece-dot.b {
+  background: #1d1d1b;
+}
+
+td.row-actions {
+  text-align: right;
+  width: 1%;
+  white-space: nowrap;
+}
+
+td.row-actions > * + * {
+  margin-left: 0.5rem;
+}
+
+td.row-actions .inline-actions {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  vertical-align: middle;
+}
+
+.priority-input {
+  width: 5rem;
+}
+
+/* On phones the admin's actions go below "Open" instead of widening the table (M3). */
+@media (max-width: 600px) {
+  .queue-admin td.row-actions {
+    white-space: normal;
+  }
+
+  .queue-admin td.row-actions .inline-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin: 0.4rem 0 0;
+  }
+}
+
+.pill-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.pills button {
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 1rem;
+  margin: 0;
+}
+
+.details div {
+  display: contents;
+}
+
+.details dt {
+  color: var(--muted);
+}
+
+.details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.info-text {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+/* Target of an audit entry: kind, name and the button that filters by it (U13). */
+.audit-target {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.5rem;
+}
+
+.explore-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 0.5rem 0;
+  padding: 0;
+  list-style: none;
 }

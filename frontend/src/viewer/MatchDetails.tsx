@@ -4,7 +4,7 @@ import type { Match } from "../api/types";
 import { formatDateTime } from "../format/dateTime";
 import { formatRatingChange } from "../format/rating";
 import { formatResult } from "../format/result";
-import { formatTimeControl } from "../format/timeControl";
+import { disciplineLabel } from "../format/timeControl";
 import { useLocale } from "../hooks/useLocale";
 
 export function MatchDetails({ match }: { match: Match }) {
@@ -17,9 +17,19 @@ export function MatchDetails({ match }: { match: Match }) {
       t("viewer.termination"),
       match.termination ? t(`termination.${match.termination}`) : t("common.none"),
     ],
-    [t("viewer.discipline"), `${match.discipline.name} (${formatTimeControl(match.discipline)})`],
+    [t("viewer.discipline"), disciplineLabel(match.discipline, locale)],
     [t("viewer.rated"), match.rated ? t("viewer.ratedYes") : t("viewer.ratedNo")],
   ];
+  // Names stay without versions (E165); the versions of the bots are a fact of their own.
+  if (match.white.version || match.black.version) {
+    rows.push([
+      t("viewer.versions"),
+      t("viewer.versionsValue", {
+        white: match.white.version ?? t("common.none"),
+        black: match.black.version ?? t("common.none"),
+      }),
+    ]);
+  }
   // Present once the runner has counted the match (E103).
   if (match.white.rating) {
     rows.push([t("viewer.ratingWhite"), formatRatingChange(match.white.rating)]);

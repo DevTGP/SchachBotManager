@@ -4,19 +4,15 @@ import type { BotDetail } from "../../api/types";
 import { formatDateTime } from "../../format/dateTime";
 import { useLocale } from "../../hooks/useLocale";
 
+/** The facts beyond those in the heading (BotHeader): kind, dates, entry and versions used. */
 export function BotSummary({ bot }: { bot: BotDetail }) {
   const { t } = useTranslation();
   const locale = useLocale();
   const rows: [string, string][] = [
-    [t("bots.status"), t(`botStatus.${bot.status}`)],
-    [t("bots.language"), t(`language.${bot.language}`)],
     [t("bots.kind"), bot.builtin ? t("bots.builtin") : t("bots.uploaded")],
-    [t("bots.rating"), String(bot.rating.value)],
-    [t("bots.ratedGames"), String(bot.rating.games)],
     [t("bots.created"), formatDateTime(bot.created_at, locale)],
   ];
   const details = bot.details;
-  if (details?.owner) rows.push([t("bot.owner"), details.owner]);
   if (details?.entry) rows.push([t("bot.entry"), details.entry]);
   if (details?.sdk_version) rows.push([t("bot.sdk"), details.sdk_version]);
   if (details?.runtime_version) rows.push([t("bot.runtime"), details.runtime_version]);

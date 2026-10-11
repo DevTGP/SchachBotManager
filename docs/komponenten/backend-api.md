@@ -46,7 +46,7 @@ Dazu kommen Anmeldung, Konten und die Admin-Routen. Alle ändernden Anfragen bra
 | `POST /invites/redeem` | Einladung einlösen: Konto anlegen und anmelden |
 | `POST /password-resets/redeem` | Neues Passwort über den Link des Admins, beendet alle Sitzungen |
 | `PUT /account/password` | Eigenes Passwort ändern, beendet die anderen Sitzungen |
-| `GET /account/rating` | Eigenes Rating (`value`, `games`) aus gewerteten Partien gegen Bots, seit E163 das Gesamtrating; nur für den Inhaber, jede Rolle (E117) |
+| `GET /account/rating` | Eigenes Rating (`value`, `games`) aus gewerteten Partien gegen Bots, seit E163 das Gesamtrating, seit E169 mit `disciplines` (Rating je Disziplin, nach Name sortiert, archivierte eingeschlossen); nur für den Inhaber, jede Rolle (E117) |
 | `GET /admin/users`, `PATCH /admin/users/{id}` | Nutzer auflisten, Rolle oder Aktiv-Status ändern |
 | `POST /admin/users/{id}/password-reset` | Einmal-Link für ein neues Passwort |
 | `GET/POST /admin/invites`, `DELETE /admin/invites/{id}` | Offene Einladungen, neue Einladung, Einladung zurückziehen |
@@ -181,7 +181,7 @@ Die drei Bot-Routen sehen Bots wie `GET /bots/{id}`: ein für den Aufrufer verbo
 | `routes/remote.py`, `remote_request.py`, `token_auth.py` | `POST /remote/matches` mit API-Token; Gegner und Disziplin per Name (E116) |
 | `play_limits.py`, `play_view.py` | Plätze gesamt, gleichzeitige und tägliche Partien je Adresse (als Hash), Konto und Token; Antwort mit Sitz-Token und `socket_path` (E115) |
 | `routes/admin_play.py` | `GET`/`PUT /admin/play-settings`, Audit `play.settings` |
-| `routes/account_rating.py` | `GET /account/rating` (E117) |
+| `routes/account_rating.py` | `GET /account/rating` (E117), seit E169 mit den Ratings je Disziplin |
 | `routes/ratings.py` | zusätzlich `GET /ratings/players`, die Rangliste der Spieler (E118) |
 | `routes/account_tokens.py`, `token_view.py` | `GET`/`POST /account/tokens`, `DELETE /account/tokens/{id}` für Coder (E116) |
 
@@ -194,7 +194,7 @@ Die drei Bot-Routen sehen Bots wie `GET /bots/{id}`: ein für den Aufrufer verbo
 
 | Datei | Aufgabe |
 |-------|---------|
-| `routes/admin_audit_log.py`, `audit_view.py` | `GET /admin/audit`: Audit-Log neueste zuerst, Filter `actor`, `action`, `target`, `since`, `until` (UTC-Tage, einschließlich), dazu alle Akteure und Aktionen (E151); Abfrage in `sbm_store.audit` |
+| `routes/admin_audit_log.py`, `audit_view.py` | `GET /admin/audit`: Audit-Log neueste zuerst, Filter `actor`, `action`, `target`, `since`, `until` (UTC-Tage, einschließlich), dazu alle Akteure und Aktionen (E151); Abfrage in `sbm_store.audit`. Seit E169 je Eintrag `target_kind` und `target_label` (aktueller Name von Bot, Nutzer, Disziplin, Liga oder Partie, sonst `null`), aufgelöst in `audit_targets.py` |
 | `params.py` | zusätzlich `optional_date` für Datumsfilter im Format `2026-10-10` |
 | `routes/admin_match_actions.py` | `PATCH /admin/matches/{id}` (Priorität einer wartenden Partie), `POST /admin/matches/{id}/cancel`, `POST /admin/matches/{id}/repeat`, nur für Einzelspiele, je mit Eintrag im Audit-Log (E152) |
 | `queue_view.py` | zusätzlich `priority` je Eintrag aus dem Job, für interaktive Partien 0 (E152) |

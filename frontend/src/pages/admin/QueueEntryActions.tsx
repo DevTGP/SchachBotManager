@@ -40,11 +40,12 @@ export function QueueEntryActions({
 
   return (
     <>
-      <div className="inline-actions">
+      <span className="inline-actions">
         {waiting && (
-          <form className="inline-actions" onSubmit={applyPriority}>
+          <form className="inline-actions priority-form" onSubmit={applyPriority}>
             <input
               type="number"
+              className="priority-input"
               required
               min={0}
               max={MAX_PRIORITY}
@@ -53,7 +54,7 @@ export function QueueEntryActions({
               value={priority}
               onChange={(event) => setPriority(event.target.value)}
             />
-            <button type="submit" disabled={pending}>
+            <button type="submit" className="small" disabled={pending}>
               {t("admin.setPriority")}
             </button>
           </form>
@@ -61,6 +62,7 @@ export function QueueEntryActions({
         {waiting && front !== undefined && (
           <button
             type="button"
+            className="small"
             disabled={pending}
             onClick={() => run(() => setMatchPriority(entry.match.id, front))}
           >
@@ -71,21 +73,32 @@ export function QueueEntryActions({
           <>
             <button
               type="button"
+              className="small danger confirm"
               disabled={pending}
               onClick={() => run(() => cancelMatch(entry.match.id))}
             >
               {t("admin.cancelConfirm")}
             </button>
-            <button type="button" disabled={pending} onClick={() => setAsking(false)}>
+            <button
+              type="button"
+              className="small"
+              disabled={pending}
+              onClick={() => setAsking(false)}
+            >
               {t("admin.cancelKeep")}
             </button>
           </>
         ) : (
-          <button type="button" disabled={pending} onClick={() => setAsking(true)}>
+          <button
+            type="button"
+            className="small danger"
+            disabled={pending}
+            onClick={() => setAsking(true)}
+          >
             {t("admin.cancelMatch")}
           </button>
         )}
-      </div>
+      </span>
       <FormError error={error} />
     </>
   );

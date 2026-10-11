@@ -3,6 +3,7 @@ from datetime import timedelta
 from bson import ObjectId
 from sbm_store import audit
 
+from stored_disciplines import store_discipline
 from stored_games import NOW
 
 
@@ -30,6 +31,8 @@ def test_entries_newest_first_with_filter_choices(admin, db):
     assert page["actions"] == ["bot.update", "invite.create"]
     assert page["actors"] == ["admin", "cli"]
     assert page["items"][1]["target"] == str(bot_id)
+    assert (page["items"][1]["target_kind"], page["items"][1]["target_label"]) == ("bot", None)
+    assert (page["items"][0]["target_kind"], page["items"][0]["target_label"]) == (None, None)
     assert page["items"][1]["details"] == {"status": "disabled"}
     assert page["items"][1]["at"] == "2026-05-01T12:00:00.000Z"
 
@@ -71,3 +74,26 @@ def test_open_ended_periods(admin, db):
 
     assert entries(admin, "?until=9999-12-31")["total"] == 1
     assert entries(admin, "?since=0001-01-01")["total"] == 1
+
+
+def test_targets_by_kind_and_name(admin, db, reference_bots, enqueue):
+    random_bot, _ = reference_bots
+    match_id = enqueue()
+    blitz = store_discipline(db, "Blitz")
+    gone = ObjectId()
+    record(db, "league.register", target=random_bot["_id"], details={"league": "A"})
+    record(db, "match.cancel", target=match_id)
+    record(db, "discipline.update", target=blitz["_id"])
+    record(db, "bot.delete", target=gone, details={"name": "Gone", "version": 2})
+    record(db, "invite.revoke", target=ObjectId())
+
+    targets = [(item["target_kind"], item["target_label"]) for item in entries(admin)["items"]]
+
+    # Newest first; a match by its sides in alphabetical order (E165, E169).
+    assert targets == [
+        ("invite", None),
+        ("bot", "Gone"),
+        ("discipline", "Blitz"),
+        ("match", "Material - Random"),
+        ("bot", "Random"),
+    ]

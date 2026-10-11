@@ -3,23 +3,26 @@ import { Link, useSearchParams } from "react-router";
 
 import { fetchDisciplines } from "../api/endpoints";
 import { ApiContent } from "../components/ApiContent";
+import { type Pill, PillSelect } from "../components/PillSelect";
+import { SideName } from "../components/SideName";
+import { TableShell } from "../components/TableShell";
 import { useApi } from "../hooks/useApi";
-import { RANKING_FILTERS, loadRanking, type RankingRow } from "./ranking";
+import { RANKING_FILTERS, loadRanking, type RankingFilter, type RankingRow } from "./ranking";
 
 /**
  * Bots and players with at least one counted game, highest rating first (E103, E118), in one
  * discipline or overall (E163). Filter and discipline live in the URL (show, discipline), so
- * every view can be linked. Players have no link: there is no page of a player. Version and
- * creator have columns of their own (E164).
+ * every view can be linked; both are pills (E168). Players have no link: there is no page of a
+ * player. Version and creator have columns of their own (E164, E165).
  */
 export function RatingsPage() {
   const { t } = useTranslation();
   const [params, setParams] = useSearchParams();
   const filter = RANKING_FILTERS.find((value) => value === params.get("show"));
-  const discipline = params.get("discipline") ?? undefined;
+  const discipline = params.get("discipline") ?? "";
   const disciplines = useApi(fetchDisciplines, "disciplines");
   const ranking = useApi(
-    (signal) => loadRanking(filter, discipline, signal),
+    (signal) => loadRanking(filter, discipline || undefined, signal),
     `ratings/${filter}/${discipline}`,
   );
 
@@ -30,87 +33,90 @@ export function RatingsPage() {
     setParams(next);
   }
 
+  const disciplinePills: Pill<string>[] = [
+    { value: "", label: t("ratings.overall") },
+    ...(disciplines.data ?? []).map((item) => ({ value: item.id, label: item.name })),
+  ];
+  const filterPills: Pill<NonNullable<RankingFilter> | "">[] = [
+    { value: "", label: t("ratings.all") },
+    ...RANKING_FILTERS.map((value) => ({ value, label: t(`ratings.${value}`) })),
+  ];
+
   return (
     <>
       <h1>{t("ratings.title")}</h1>
       <p className="muted">{t("ratings.hint")}</p>
       <div className="filters">
-        <label>
-          {t("disciplines.choose")}
-          <select
-            value={discipline ?? ""}
-            onChange={(event) => choose("discipline", event.target.value)}
-          >
-            <option value="">{t("ratings.overall")}</option>
-            {(disciplines.data ?? []).map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          {t("ratings.show")}
-          <select value={filter ?? ""} onChange={(event) => choose("show", event.target.value)}>
-            <option value="">{t("ratings.all")}</option>
-            {RANKING_FILTERS.map((value) => (
-              <option key={value} value={value}>
-                {t(`ratings.${value}`)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <PillSelect
+          label={t("disciplines.choose")}
+          options={disciplinePills}
+          value={discipline}
+          onChange={(value) => choose("discipline", value)}
+        />
+        <PillSelect
+          label={t("ratings.show")}
+          options={filterPills}
+          value={filter ?? ""}
+          onChange={(value) => choose("show", value)}
+        />
       </div>
       {!discipline && <p className="hint">{t("ratings.overallHint")}</p>}
       <ApiContent state={ranking}>
-        {(rows) =>
-          rows.length === 0 ? (
-            <p className="muted">{t("ratings.empty")}</p>
-          ) : (
-            <div className="table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>{t("ratings.rank")}</th>
-                    <th>{t("ratings.name")}</th>
-                    <th>{t("bots.version")}</th>
-                    <th>{t("bots.owner")}</th>
-                    <th>{t("ratings.type")}</th>
-                    <th>{t("bots.rating")}</th>
-                    <th>{t("bots.ratedGames")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row, index) => (
-                    <tr key={rowKey(row)}>
-                      <td>{index + 1}</td>
-                      {row.kind === "bot" ? (
-                        <>
-                          <td>
-                            <Link to={`/bots/${row.bot.id}`}>{row.bot.name}</Link>
-                          </td>
-                          <td>{row.bot.version}</td>
-                          <td>{row.bot.owner ?? t("bots.builtin")}</td>
-                          <td>{t(`language.${row.bot.language}`)}</td>
-                        </>
-                      ) : (
-                        <>
-                          <td>{row.username}</td>
-                          <td>{t("common.none")}</td>
-                          <td>{t("common.none")}</td>
-                          <td>{t("ratings.player")}</td>
-                        </>
-                      )}
-                      <td>{row.rating.value}</td>
-                      <td>{row.rating.games}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )
-        }
+        {(rows) => (
+          <TableShell rows={rows.length} empty={<EmptyRanking />}>
+            <thead>
+              <tr>
+                <th className="number">{t("ratings.rank")}</th>
+                <th>{t("ratings.name")}</th>
+                <th className="optional">{t("bots.version")}</th>
+                <th className="optional">{t("bots.owner")}</th>
+                <th className="optional">{t("ratings.type")}</th>
+                <th className="number">{t("bots.rating")}</th>
+                <th className="number">{t("bots.ratedGames")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, index) => (
+                <tr key={rowKey(row)}>
+                  <td className="number">{index + 1}</td>
+                  {row.kind === "bot" ? (
+                    <>
+                      <td>
+                        <SideName
+                          side={{ bot_id: row.bot.id, name: row.bot.name, version: null }}
+                        />
+                      </td>
+                      <td className="optional">{row.bot.version}</td>
+                      <td className="optional">{row.bot.owner ?? t("bots.builtin")}</td>
+                      <td className="optional">{t(`language.${row.bot.language}`)}</td>
+                    </>
+                  ) : (
+                    <>
+                      <td>{row.username}</td>
+                      <td className="optional">{t("common.none")}</td>
+                      <td className="optional">{t("common.none")}</td>
+                      <td className="optional">{t("ratings.player")}</td>
+                    </>
+                  )}
+                  <td className="number">{row.rating.value}</td>
+                  <td className="number">{row.rating.games}</td>
+                </tr>
+              ))}
+            </tbody>
+          </TableShell>
+        )}
       </ApiContent>
+    </>
+  );
+}
+
+/** Before the first counted game: what fills the ranking and where to start one (G11). */
+function EmptyRanking() {
+  const { t } = useTranslation();
+  return (
+    <>
+      {t("ratings.empty")} <Link to="/matches">{t("nav.matches")}</Link> ·{" "}
+      <Link to="/play">{t("nav.play")}</Link>
     </>
   );
 }

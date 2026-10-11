@@ -1,10 +1,10 @@
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
 
 import { deregisterBot } from "../../api/leagues";
 import type { LeagueRegistration } from "../../api/types";
 import { FormError } from "../../components/FormError";
-import { sideLabel } from "../../format/botLabel";
+import { SideName } from "../../components/SideName";
+import { TableShell } from "../../components/TableShell";
 import { formatDateTime } from "../../format/dateTime";
 import { useLocale } from "../../hooks/useLocale";
 import { useSubmit } from "../../hooks/useSubmit";
@@ -40,44 +40,42 @@ export function LeagueRegistrations({
     <section>
       <h2>{t("leagues.registrations")}</h2>
       <FormError error={error} />
-      {registrations.length === 0 ? (
-        <p className="muted">{t("leagues.noRegistrations")}</p>
-      ) : (
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>{t("bots.name")}</th>
-                <th>{t("leagues.tier")}</th>
-                <th>{t("leagues.since")}</th>
-                {isAdmin && <th>{t("admin.actions")}</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {registrations.map((entry) => (
-                <tr key={entry.bot.bot_id}>
+      {
+        <TableShell rows={registrations.length} empty={t("leagues.noRegistrations")}>
+          <thead>
+            <tr>
+              <th>{t("bots.name")}</th>
+              <th>{t("bots.version")}</th>
+              <th>{t("leagues.tier")}</th>
+              <th>{t("leagues.since")}</th>
+              {isAdmin && <th>{t("admin.actions")}</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {registrations.map((entry) => (
+              <tr key={entry.bot.bot_id}>
+                <td>
+                  <SideName side={entry.bot} />
+                </td>
+                <td>{entry.bot.version ?? "–"}</td>
+                <td>{entry.tier ?? t("leagues.nextSeason")}</td>
+                <td>{formatDateTime(entry.created_at, locale)}</td>
+                {isAdmin && (
                   <td>
-                    <Link to={`/bots/${entry.bot.bot_id}`}>{sideLabel(entry.bot)}</Link>
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() => deregister(entry.bot.bot_id)}
+                    >
+                      {t("leagues.deregister")}
+                    </button>
                   </td>
-                  <td>{entry.tier ?? t("leagues.nextSeason")}</td>
-                  <td>{formatDateTime(entry.created_at, locale)}</td>
-                  {isAdmin && (
-                    <td>
-                      <button
-                        type="button"
-                        disabled={pending}
-                        onClick={() => deregister(entry.bot.bot_id)}
-                      >
-                        {t("leagues.deregister")}
-                      </button>
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </TableShell>
+      }
     </section>
   );
 }

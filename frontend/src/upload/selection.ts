@@ -21,12 +21,17 @@ export interface Selection {
   ignored: string[];
 }
 
+/** A path without the chosen folder in front; a plain name stays as it is. */
+export function insideFolder(path: string): string {
+  const parts = path.split("/");
+  return parts.length > 1 ? parts.slice(1).join("/") : path;
+}
+
 /** The path inside the chosen folder, or the plain name of a single file. */
 export function relativePath(file: File): string {
   // Some environments, such as jsdom, do not know the attribute at all.
   const relative: string | undefined = file.webkitRelativePath;
-  const parts = (relative ?? "").split("/");
-  return parts.length > 1 ? parts.slice(1).join("/") : file.name;
+  return relative ? insideFolder(relative) : file.name;
 }
 
 export function fileKind(path: string): FileKind | undefined {
@@ -36,10 +41,19 @@ export function fileKind(path: string): FileKind | undefined {
   return path.endsWith(".py") ? "source" : undefined;
 }
 
+/** A file and its path inside the chosen or dropped folder. */
+export interface FoundFile {
+  path: string;
+  file: File;
+}
+
 export function selectFiles(files: Iterable<File>): Selection {
+  return selectPaths(Array.from(files, (file) => ({ path: relativePath(file), file })));
+}
+
+export function selectPaths(found: Iterable<FoundFile>): Selection {
   const selection: Selection = { files: [], ignored: [] };
-  for (const file of files) {
-    const path = relativePath(file);
+  for (const { path, file } of found) {
     const kind = fileKind(path);
     if (kind) selection.files.push({ path, kind, file });
     else selection.ignored.push(path);

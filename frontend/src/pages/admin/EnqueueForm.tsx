@@ -3,13 +3,10 @@ import { useTranslation } from "react-i18next";
 
 import { enqueueMatches } from "../../api/admin";
 import type { Bot, EnqueuedMatches, StoredDiscipline } from "../../api/types";
-import { BotOptions } from "../../components/BotOptions";
-import { DisciplineSelect } from "../../components/DisciplineSelect";
+import { BotPicker } from "../../components/BotPicker";
 import { FormError } from "../../components/FormError";
-import { NumberField } from "../../components/NumberField";
+import { MatchFields } from "../../components/matchFields/MatchFields";
 import { QueuedNotice } from "../../components/QueuedNotice";
-import { RatedField } from "../../components/RatedField";
-import { StartPositionField } from "../../components/StartPositionField";
 import { useSubmit } from "../../hooks/useSubmit";
 import { DEFAULT_FORM, type MatchForm, matchOrder } from "./matchOrder";
 
@@ -41,8 +38,8 @@ export function EnqueueForm({
     };
   });
 
-  function set<K extends keyof MatchForm>(field: K, value: MatchForm[K]) {
-    setForm((current) => ({ ...current, [field]: value }));
+  function set(patch: Partial<MatchForm>) {
+    setForm((current) => ({ ...current, ...patch }));
   }
 
   function onSubmit(event: FormEvent) {
@@ -56,69 +53,22 @@ export function EnqueueForm({
   return (
     <form className="form" onSubmit={onSubmit}>
       <div className="form-row">
-        <label>
-          {t("viewer.white")}
-          <select value={form.white} onChange={(event) => set("white", event.target.value)}>
-            <BotOptions bots={bots} random />
-          </select>
-        </label>
-        <label>
-          {t("viewer.black")}
-          <select value={form.black} onChange={(event) => set("black", event.target.value)}>
-            <BotOptions bots={bots} random />
-          </select>
-        </label>
-      </div>
-      <div className="form-row">
-        <DisciplineSelect
-          disciplines={disciplines}
-          value={form.discipline}
-          onChange={(value) => set("discipline", value)}
+        <BotPicker
+          label={t("viewer.white")}
+          bots={bots}
+          value={form.white}
+          random
+          onChange={(white) => set({ white })}
         />
-        {!form.discipline && (
-          <>
-            <NumberField
-              label={t("admin.initialSeconds")}
-              value={form.initialSeconds}
-              step="any"
-              onChange={(value) => set("initialSeconds", value)}
-            />
-            <NumberField
-              label={t("admin.incrementSeconds")}
-              value={form.incrementSeconds}
-              step="any"
-              onChange={(value) => set("incrementSeconds", value)}
-            />
-            <NumberField
-              label={t("admin.maxMoves")}
-              value={form.maxMoves}
-              onChange={(value) => set("maxMoves", value)}
-            />
-          </>
-        )}
-      </div>
-      <div className="form-row">
-        <NumberField
-          label={t("admin.games")}
-          value={form.games}
-          onChange={(value) => set("games", value)}
-        />
-        <NumberField
-          label={t("admin.priority")}
-          value={form.priority}
-          onChange={(value) => set("priority", value)}
+        <BotPicker
+          label={t("viewer.black")}
+          bots={bots}
+          value={form.black}
+          random
+          onChange={(black) => set({ black })}
         />
       </div>
-      <label className="checkbox">
-        <input
-          type="checkbox"
-          checked={form.alternate}
-          onChange={(event) => set("alternate", event.target.checked)}
-        />
-        {t("admin.alternate")}
-      </label>
-      <StartPositionField value={form.startFen} onChange={(fen) => set("startFen", fen)} />
-      <RatedField checked={form.rated} onChange={(rated) => set("rated", rated)} />
+      <MatchFields variant="admin" disciplines={disciplines} form={form} onChange={set} />
       <FormError error={error} />
       {queued && <QueuedNotice queued={queued} />}
       <button type="submit" className="primary" disabled={pending || bots.length === 0}>

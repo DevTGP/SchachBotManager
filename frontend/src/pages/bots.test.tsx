@@ -46,7 +46,7 @@ describe("upload page", () => {
         "The bot is checked and tested before it may play. At most 3 uploads a day.",
       ),
     ).toBeVisible();
-    const folder = screen.getByLabelText("Folder");
+    const folder = screen.getByLabelText("Choose folder");
     expect(folder).toHaveAttribute("webkitdirectory");
     await user.upload(
       folder,
@@ -60,7 +60,7 @@ describe("upload page", () => {
     await user.type(screen.getByLabelText(/^Description/), "Plays e4.{Enter}Never resigns.");
     await user.click(screen.getByRole("button", { name: "Upload" }));
 
-    expect(await screen.findByRole("heading", { name: "Sharp 1.0.0" })).toBeVisible();
+    expect(await screen.findByRole("heading", { level: 1, name: "Sharp" })).toBeVisible();
     expect(router.state.location.pathname).toBe(`/bots/${SHARP_ID}`);
     expect(screen.getByText("The bot is being verified. This page updates itself.")).toBeVisible();
     const post = api.calls.find((call) => call.method === "POST");
@@ -89,7 +89,7 @@ describe("upload page", () => {
       "Choose a folder or files with at least one .py file.",
     );
 
-    await user.upload(screen.getByLabelText("Folder"), [folderFile("lib/eval.py")]);
+    await user.upload(screen.getByLabelText("Choose folder"), [folderFile("lib/eval.py")]);
     await user.click(screen.getByRole("button", { name: "Upload" }));
     expect(screen.getByRole("alert")).toHaveTextContent("The top folder needs a .py file");
     expect(api.calls.some((call) => call.method === "POST")).toBe(false);
@@ -106,9 +106,7 @@ describe("upload page", () => {
       ),
     });
     renderRoute("/bots/new");
-    await user.upload(await screen.findByLabelText("Or single .py files"), [
-      new File(["x"], "bot.py"),
-    ]);
+    await user.upload(await screen.findByLabelText("Choose files"), [new File(["x"], "bot.py")]);
     await user.type(screen.getByLabelText(/^Name/), "Sharp");
     await user.click(screen.getByRole("button", { name: "Upload" }));
 
@@ -130,8 +128,9 @@ describe("bot page", () => {
     mockApi({ "/session": { user: CODER }, [`/bots/${SHARP_ID}`]: botDetail() });
     renderRoute(`/bots/${SHARP_ID}`);
 
-    expect(await screen.findByRole("heading", { name: "Sharp 1.0.0" })).toBeVisible();
-    expect(screen.getByText("Rejected", { selector: "dd" })).toBeVisible();
+    expect(await screen.findByRole("heading", { level: 1, name: "Sharp" })).toBeVisible();
+    expect(screen.getByText("Version 1.0.0")).toBeVisible();
+    expect(screen.getByText("Rejected", { selector: ".badge" })).toBeVisible();
     expect(screen.getByText("Static analysis: 1 finding")).toBeVisible();
     expect(screen.getByText("1,234 bytes")).toBeVisible();
     const findings = screen.getByRole("table", { name: "Findings" });
@@ -168,8 +167,10 @@ describe("bot page", () => {
     renderRoute(`/bots/${SHARP_ID}`);
 
     await user.click(await screen.findByRole("button", { name: "Disable" }));
+    expect(api.calls.some((call) => call.method === "PATCH")).toBe(false);
+    await user.click(screen.getByRole("button", { name: "Really disable" }));
     expect(await screen.findByRole("button", { name: "Enable" })).toBeVisible();
-    expect(screen.getByText("Disabled", { selector: "dd" })).toBeVisible();
+    expect(screen.getByText("Disabled", { selector: ".badge" })).toBeVisible();
     const patch = api.calls.find((call) => call.method === "PATCH");
     expect(patch?.body).toEqual({ status: "disabled" });
   });
@@ -247,7 +248,7 @@ describe("bot page", () => {
       [`/bots/${SHARP_ID}`]: botDetail({ status: "verified" }),
     });
     renderRoute(`/bots/${SHARP_ID}`);
-    await screen.findByRole("heading", { name: "Sharp 1.0.0" });
+    await screen.findByRole("heading", { level: 1, name: "Sharp" });
     expect(screen.queryByRole("button", { name: "Delete for good" })).toBeNull();
   });
 

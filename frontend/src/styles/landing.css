@@ -1,0 +1,135 @@
+/* Start page that explains the project (D1, E166). */
+.landing section {
+  margin: 2.5rem 0;
+}
+
+.landing h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+}
+
+.landing-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  align-items: center;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.landing-hero h1 {
+  font-size: 2.2rem;
+  margin: 0 0 0.5rem;
+}
+
+.landing-lead {
+  font-size: 1.25rem;
+  color: var(--accent);
+}
+
+.landing-board {
+  max-width: 22rem;
+  justify-self: center;
+  width: 100%;
+  pointer-events: none;
+}
+
+.landing-steps,
+.landing-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-steps {
+  counter-reset: step;
+}
+
+.landing-steps li,
+.landing-features li {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.landing-steps li::before {
+  counter-increment: step;
+  content: counter(step);
+  display: inline-grid;
+  place-items: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  margin-bottom: 0.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+.landing-steps p,
+.landing-features p {
+  margin: 0;
+}
+
+.landing-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 2rem;
+}
+
+.landing-code {
+  margin: 0;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+}
+
+.landing-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.landing-node {
+  padding: 0.6rem 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  font-weight: 600;
+}
+
+.landing-node.referee {
+  background: var(--highlight);
+  border-color: var(--accent);
+}
+
+.landing-arrow {
+  color: var(--muted);
+  font-size: 1.5rem;
+}
+
+@media (max-width: 700px) {
+  .landing-hero,
+  .landing-split {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-hero h1 {
+    font-size: 1.7rem;
+  }
+
+  .landing-board {
+    max-width: 16rem;
+  }
+}

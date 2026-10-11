@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 
 import type { StoredDiscipline } from "../api/types";
-import { formatTimeControl } from "../format/timeControl";
+import { disciplineLabel } from "../format/timeControl";
+import { useLocale } from "../hooks/useLocale";
 
 /** A discipline in use, or "" for free times; only discipline games count for the rating (E100). */
 export function DisciplineSelect({
@@ -14,6 +15,7 @@ export function DisciplineSelect({
   onChange: (value: string) => void;
 }) {
   const { t } = useTranslation();
+  const locale = useLocale();
   return (
     <label>
       {t("disciplines.choose")}
@@ -23,7 +25,7 @@ export function DisciplineSelect({
           .filter((discipline) => !discipline.archived)
           .map((discipline) => (
             <option key={discipline.id} value={discipline.id}>
-              {`${discipline.name} (${formatTimeControl(discipline)})`}
+              {disciplineLabel(discipline, locale)}
             </option>
           ))}
       </select>

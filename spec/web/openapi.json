@@ -855,12 +855,12 @@
       "get": {
         "operationId": "get_own_rating",
         "security": [{ "session": [] }],
-        "summary": "The rating of the logged-in account from its rated games against bots (E117); public in /ratings/players once it has a rated game (E118).",
+        "summary": "The rating of the logged-in account from its rated games against bots (E117), overall and per discipline (E169); public in /ratings/players once it has a rated game (E118).",
         "responses": {
           "200": {
-            "description": "The rating; an account without rated games stands at the start.",
+            "description": "The rating; an account without rated games stands at the start and has no disciplines.",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/Rating" } }
+              "application/json": { "schema": { "$ref": "#/components/schemas/AccountRating" } }
             }
           },
           "401": { "$ref": "#/components/responses/Unauthenticated" }
@@ -2124,6 +2124,32 @@
         "required": ["value", "games"],
         "additionalProperties": false
       },
+      "AccountRating": {
+        "description": "The overall rating of an account and the disciplines it played rated games in, by name (E163, E169).",
+        "type": "object",
+        "properties": {
+          "value": { "type": "integer" },
+          "games": { "type": "integer", "minimum": 0 },
+          "disciplines": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DisciplineRating" }
+          }
+        },
+        "required": ["value", "games", "disciplines"],
+        "additionalProperties": false
+      },
+      "DisciplineRating": {
+        "description": "The rating in one discipline; archived disciplines count as well (E169).",
+        "type": "object",
+        "properties": {
+          "discipline_id": { "$ref": "#/components/schemas/Id" },
+          "name": { "type": "string" },
+          "value": { "type": "integer" },
+          "games": { "type": "integer", "minimum": 1 }
+        },
+        "required": ["discipline_id", "name", "value", "games"],
+        "additionalProperties": false
+      },
       "MatchFields": {
         "description": "The fields of MatchSummary, open for extension by Match.",
         "type": "object",
@@ -2799,13 +2825,24 @@
             "description": "What the action changed, usually an id; null if it has no single target.",
             "type": ["string", "null"]
           },
+          "target_kind": {
+            "description": "What kind of thing the target is, read from the action; null without a target (E169).",
+            "oneOf": [
+              { "type": "string", "enum": ["bot", "match", "user", "discipline", "league", "invite"] },
+              { "type": "null" }
+            ]
+          },
+          "target_label": {
+            "description": "The target by name as it is now: the name of a bot, user, discipline or league, the two sides of a match in alphabetical order; for a deleted bot the name recorded in details; null when nothing names it (E169).",
+            "type": ["string", "null"]
+          },
           "details": {
             "description": "Fields of the action as recorded, such as the new status of a bot.",
             "type": "object",
             "additionalProperties": true
           }
         },
-        "required": ["id", "at", "actor", "action", "target", "details"],
+        "required": ["id", "at", "actor", "action", "target", "target_kind", "target_label", "details"],
         "additionalProperties": false
       },
       "AuditPage": {

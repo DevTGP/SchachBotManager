@@ -22,7 +22,8 @@
     "none": "–",
     "previous": "Previous",
     "next": "Next",
-    "page": "{{from}}–{{to}} of {{total}}"
+    "page": "{{from}}–{{to}} of {{total}}",
+    "actions": "Actions"
   },
   "error": {
     "invalid_parameter": "The request is invalid.",
@@ -53,12 +54,66 @@
     "already_registered": "The bot is registered in this league already."
   },
   "start": {
-    "intro": "Chess bots compete against each other here. All games are public.",
-    "running": "Running games",
-    "noRunning": "No game is running right now.",
-    "recent": "Recently finished",
-    "noRecent": "No finished games yet.",
-    "allMatches": "All games"
+    "title": "Chess bots in competition",
+    "lead": "Write a program that plays chess and let it compete against the bots of others.",
+    "idea": "SchachBotManager plays the games itself: it schedules them, watches over rules and clock and stores every move. Taking part means caring about one thing only – how your bot finds its next move. All games are public and can be replayed move by move.",
+    "stepsTitle": "Four steps to the first game",
+    "steps": {
+      "write": {
+        "title": "Write a bot",
+        "text": "One method decides the move. The SDK brings board, move generator and clock; you need not program the rules yourself."
+      },
+      "test": {
+        "title": "Test locally",
+        "text": "The arena lets your bot play reference bots on your own computer; the viewer shows the games live and lets you rewind them."
+      },
+      "upload": {
+        "title": "Upload",
+        "text": "Invited coders upload the source code. The server checks it with a static analysis and short test games."
+      },
+      "compete": {
+        "title": "Compete",
+        "text": "Single games, leagues with promotion and relegation and soon tournaments. Every rated game moves your bot's rating."
+      }
+    },
+    "codeTitle": "This small a bot can be",
+    "codeText": "This bot moves at random – the weakest opponent imaginable, but a complete bot. Your search belongs in place of the random choice: evaluation, opening book, time management.",
+    "languages": "Python today; C++, Java, C# and JavaScript follow with the same terms.",
+    "flowTitle": "A referee between the bots",
+    "flowLabel": "White and Black talk only to the referee",
+    "flow": {
+      "white": "White bot",
+      "referee": "Referee",
+      "black": "Black bot"
+    },
+    "flowText": "The bots never talk to each other directly. Each runs in its own process with its own board and sends its moves to the referee, who alone decides on legality, time and result.",
+    "featuresTitle": "What is behind it",
+    "features": {
+      "core": {
+        "title": "One rule core for all",
+        "text": "Referee, arena and every SDK use the same core in C++. No bot plays by other rules."
+      },
+      "fair": {
+        "title": "Equal conditions",
+        "text": "The wall clock counts, with no allowance between languages. Outside its turn a bot is frozen and cannot think ahead."
+      },
+      "sandbox": {
+        "title": "Safely locked in",
+        "text": "Every bot runs in a sandbox without network and with fixed limits. The static analysis at upload is a second layer."
+      },
+      "public": {
+        "title": "Everything public",
+        "text": "Anyone can view games, tables and rankings without an account, running games live."
+      },
+      "human": {
+        "title": "Human against bot",
+        "text": "Play a bot yourself in the browser – rated when you have an account."
+      },
+      "remote": {
+        "title": "From your own computer",
+        "text": "Coders can also run their bot at home and play the bots of the website without uploading it."
+      }
+    }
   },
   "matches": {
     "title": "Games",
@@ -67,7 +122,7 @@
     "bot": "Bot",
     "allBots": "All bots",
     "kind": "Kind",
-    "allKinds": "All games",
+    "allKinds": "All",
     "kindBots": "Bot against bot",
     "kindPlayers": "With players",
     "empty": "No games found.",
@@ -85,8 +140,12 @@
     "result": "Result",
     "timeControl": "Time control",
     "moves": "Moves",
-    "termination": "End",
-    "date": "Date"
+    "termination": "Reason",
+    "date": "Date",
+    "open": "Open",
+    "created": "Queued: {{at}}",
+    "started": "Started: {{at}}",
+    "discipline": "Discipline"
   },
   "status": {
     "queued": "Waiting",
@@ -124,7 +183,6 @@
     "created": "Since",
     "rating": "Rating",
     "ratedGames": "Rated games",
-    "matches": "Games",
     "empty": "No bots yet."
   },
   "ratings": {
@@ -143,7 +201,8 @@
     "player": "Player"
   },
   "botChoice": {
-    "random": "Random"
+    "random": "Random",
+    "version": "Version of {{name}}"
   },
   "botStatus": {
     "uploaded": "Waiting for verification",
@@ -157,7 +216,6 @@
   "bot": {
     "verifying": "The bot is being verified. This page updates itself.",
     "matches": "Games of this bot",
-    "owner": "Owner",
     "entry": "Entry file",
     "sdk": "SDK",
     "runtime": "Runtime",
@@ -240,13 +298,18 @@
     "results": "Results by discipline",
     "noResults": "No finished games yet.",
     "freeTimes": "Free time control",
-    "total": "Total"
+    "total": "Total",
+    "versionValue": "Version {{version}}",
+    "ratingValue_one": "Rating {{value}} ({{count}} game)",
+    "ratingValue_other": "Rating {{value}} ({{count}} games)",
+    "admin": "Administration",
+    "details": "Details",
+    "disableConfirm": "Really disable",
+    "retireConfirm": "Really withdraw"
   },
   "upload": {
     "title": "Upload a bot",
     "intro": "Choose the folder of your bot, for example a copy of the Python template. Only .py files and files directly in data/ (for load_data) are uploaded; everything else stays on your computer.",
-    "folder": "Folder",
-    "singleFiles": "Or single .py files",
     "fileCount_one": "{{count}} file will be uploaded:",
     "fileCount_other": "{{count}} files will be uploaded:",
     "source": "source",
@@ -264,7 +327,10 @@
     "tooLarge": "The .py files and the data files may each be at most 1 MB in all.",
     "noEntry": "The top folder needs a .py file the bot starts with.",
     "ownLink": "All your bots and versions",
-    "review": "The bot is checked and tested before it may play."
+    "review": "The bot is checked and tested before it may play.",
+    "drop": "Drag the folder of your bot or single .py files here, or choose them.",
+    "chooseFolder": "Choose folder",
+    "chooseFiles": "Choose files"
   },
   "ownBots": {
     "title": "My bots",
@@ -277,7 +343,8 @@
     "limits": "Free times at most {{initialSeconds}} seconds plus {{incrementSeconds}} seconds a move; disciplines without this limit. At most {{games}} games at once and {{gamesPerDay}} games a day. Your games start after those set by admins.",
     "waitingTitle": "Waiting games",
     "withdraw": "Withdraw",
-    "noWaiting": "None of your games is waiting."
+    "noWaiting": "None of your games is waiting.",
+    "withdrawConfirm": "Really withdraw"
   },
   "ownMatchError": {
     "initial_time_ms": "The time must be between 1 and {{initialSeconds}} seconds.",
@@ -330,7 +397,9 @@
     "estimatedStart": "Starts approx.",
     "estimatedEnd": "Ends approx.",
     "more": "{{count}} more games are waiting.",
-    "estimateNote": "Times are estimated from the duration of earlier games with the same time control."
+    "estimateNote": "Times are estimated from the duration of earlier games with the same time control.",
+    "start": "Start",
+    "runningShort": "running"
   },
   "viewer": {
     "white": "White",
@@ -372,7 +441,9 @@
     "copyFen": "Copy FEN",
     "copyLink": "Copy link to this move",
     "copied": "Copied",
-    "keyboard": "Keyboard: ← → step, Home/End jump, Space plays."
+    "keyboard": "Keyboard: ← → step, Home/End jump, Space plays.",
+    "versions": "Versions",
+    "versionsValue": "White {{white}}, black {{black}}"
   },
   "fieldError": {
     "username": "The name does not follow the rules.",
@@ -403,7 +474,9 @@
   "login": {
     "title": "Log in",
     "submit": "Log in",
-    "inviteOnly": "Accounts are by invitation only. Watching needs no account."
+    "inviteOnly": "Accounts are by invitation only. Watching games, following the ranking and playing against bots yourself work without one.",
+    "intro": "With an account you upload bots, set up games for them and register them in leagues.",
+    "withoutTitle": "Without an account"
   },
   "account": {
     "title": "Account",
@@ -423,7 +496,9 @@
     "rating": "Rating",
     "ratingValue_one": "{{value}} after {{count}} rated game",
     "ratingValue_other": "{{value}} after {{count}} rated games",
-    "ratingHint": "Your games against bots under a discipline from the standard position are rated. After the first rated game, your name and rating appear in the public ranking. Like all games, yours are public."
+    "ratingHint": "Your games against bots under a discipline from the standard position are rated. After the first rated game, your name and rating appear in the public ranking. Like all games, yours are public.",
+    "ownMatches": "Matches I set up",
+    "ratingByDiscipline": "Rating per discipline"
   },
   "role": {
     "coder": "Coder",
@@ -447,7 +522,6 @@
   },
   "admin": {
     "title": "Admin",
-    "matches": "Games",
     "users": "Users",
     "invites": "Invitations",
     "disciplines": "Disciplines",
@@ -503,8 +577,7 @@
     "auditDetails": "Details",
     "auditEmpty": "No entries.",
     "auditFilterTarget": "Only entries about this target",
-    "auditClearTarget": "Remove target {{target}}",
-    "queueRunningShort": "running",
+    "auditClearTarget": "Remove target filter",
     "queueEmpty": "The queue is empty.",
     "setPriority": "Set",
     "toFront": "To the front",
@@ -518,11 +591,22 @@
     "rechecksQueued_one": "{{count}} recheck queued.",
     "rechecksQueued_other": "{{count}} rechecks queued.",
     "settings": "Settings",
-    "leagues": "Leagues"
+    "leagues": "Leagues",
+    "rechecks": "Rechecks",
+    "auditFilter": "Filter",
+    "auditDayHint": "From and until are days in UTC; until includes the day.",
+    "auditKind": {
+      "bot": "Bot",
+      "match": "Match",
+      "user": "User",
+      "discipline": "Discipline",
+      "league": "League",
+      "invite": "Invite"
+    }
   },
   "notFound": {
     "title": "Page not found",
-    "back": "To the home page"
+    "text": "There is no page at this address. The link may be out of date, or the game or bot was deleted."
   },
   "play": {
     "title": "Play against a bot",
@@ -583,7 +667,7 @@
   },
   "tokens": {
     "title": "API tokens",
-    "intro": "With a token your bot plays on your machine against bots on the server: python bot.py --remote URL --opponent NAME, with the token in SBM_TOKEN. Such games are not rated but public.",
+    "intro": "With a token, your bot plays on your computer against a bot on the server. Put the token in SBM_TOKEN and name the opponent. Such matches are not rated but can be watched by anyone.",
     "token": "Token",
     "copy": "Copy token",
     "created": "New token “{{name}}”",
@@ -594,7 +678,9 @@
     "lastUsed": "Last used",
     "never": "never",
     "revoke": "Revoke",
-    "create": "Create token"
+    "create": "Create token",
+    "copyCommand": "Copy command",
+    "revokeConfirm": "Really revoke"
   },
   "tokenError": {
     "name": "1 to 40 characters; an account has at most 10 tokens."
@@ -627,7 +713,10 @@
     "moves_per_game": "Moves per game without experience",
     "save": "Save",
     "saved": "Saved.",
-    "recountPending": "The ratings are being counted again."
+    "recountPending": "The ratings are being counted again.",
+    "changed": "changed",
+    "unsaved_one": "{{count}} section with unsaved changes",
+    "unsaved_other": "{{count}} sections with unsaved changes"
   },
   "settingsError": {
     "invite_days": "The default validity must not exceed the longest.",
@@ -757,5 +846,11 @@
     "tiebreaks": "Each tiebreak at most once.",
     "min_participants": "The minimum lies between 2 and 320.",
     "pause_minutes": "The pause lies between 0 and 43200 minutes."
+  },
+  "pairing": {
+    "version": "Version {{version}}"
+  },
+  "explore": {
+    "label": "Go on to"
   }
 }

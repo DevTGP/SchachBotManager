@@ -6,7 +6,7 @@ from bson import ObjectId
 from flask import Blueprint, request
 from sbm_store import audit
 
-from sbm_api import context
+from sbm_api import audit_targets, context
 from sbm_api.audit_view import audit_view
 from sbm_api.current_user import require_admin
 from sbm_api.errors import invalid_parameter
@@ -36,8 +36,12 @@ def list_audit_entries():
         limit=integer(args, "limit", default=20, low=1, high=100),
         offset=integer(args, "offset", default=0, low=0, high=1_000_000),
     )
+    targets = audit_targets.labels(db, items)
     return {
-        "items": [audit_view(entry) for entry in items],
+        "items": [
+            audit_view(entry, kind, label)
+            for entry, (kind, label) in zip(items, targets, strict=True)
+        ],
         "total": total,
         "actions": audit.actions(db),
         "actors": audit.actors(db),

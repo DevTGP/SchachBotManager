@@ -5,8 +5,8 @@ import { fetchOwnBots } from "../../api/bots";
 import { registerBot } from "../../api/leagues";
 import type { LeagueDetail } from "../../api/types";
 import { ApiContent } from "../../components/ApiContent";
+import { BotPicker } from "../../components/BotPicker";
 import { FormError } from "../../components/FormError";
-import { botLabel } from "../../format/botLabel";
 import { useApi } from "../../hooks/useApi";
 import { useSubmit } from "../../hooks/useSubmit";
 
@@ -41,16 +41,7 @@ export function LeagueRegisterForm({
           }
           return (
             <form className="form" onSubmit={onSubmit}>
-              <label>
-                {t("leagues.bot")}
-                <select value={botId} onChange={(event) => setChosen(event.target.value)}>
-                  {free.map((bot) => (
-                    <option key={bot.id} value={bot.id}>
-                      {botLabel(bot)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <BotPicker label={t("leagues.bot")} bots={free} value={botId} onChange={setChosen} />
               <p className="hint">{t("leagues.registerHint")}</p>
               <FormError error={error} />
               <div className="inline-actions">

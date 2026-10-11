@@ -33,9 +33,7 @@ describe("viewer", () => {
     mockApi({ [`/matches/${ID}`]: match() });
     renderRoute(`/matches/${ID}`);
 
-    expect(
-      await screen.findByRole("heading", { name: "Random 1.0.0 – Material 1.0.0" }),
-    ).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "Material – Random" })).toBeVisible();
     expect(currentMove()).toHaveTextContent("Nf3");
     expect(screen.getByText("Resignation")).toBeVisible();
     expect(screen.getByText("Rated").nextElementSibling).toHaveTextContent("No");
@@ -103,7 +101,7 @@ describe("viewer", () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     mockApi({ [`/matches/${ID}`]: match() });
     const { router } = renderRoute(`/matches/${ID}?ply=0`);
-    await screen.findByRole("heading", { name: "Random 1.0.0 – Material 1.0.0" });
+    await screen.findByRole("heading", { name: "Material – Random" });
 
     await user.selectOptions(screen.getByRole("combobox", { name: "Speed" }), "2");
     await user.click(screen.getByRole("button", { name: "Play" }));

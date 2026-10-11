@@ -1,19 +1,29 @@
 import type { Discipline } from "../api/types";
 
+// Number and unit stay on one line.
+const UNIT_SPACE = " ";
+
 /**
- * Base time in minutes and increment in seconds, as players write it: 3+2.
- * A base time under a minute is given in seconds instead: 20s+0.5.
+ * Base time and increment with their units, numbers in the reader's locale: "3 min + 2 s".
+ * A base time under a minute is given in seconds: "20 s + 0,5 s" (E168).
  */
 export function formatTimeControl(
   discipline: Pick<Discipline, "initial_time_ms" | "increment_ms">,
+  locale: string,
 ): string {
+  const number = new Intl.NumberFormat(locale, { maximumFractionDigits: 2 });
   const base = discipline.initial_time_ms;
-  const increment = trim(discipline.increment_ms / 1000);
-  return base < 60_000
-    ? `${trim(base / 1000)}s+${increment}`
-    : `${trim(base / 60_000)}+${increment}`;
+  const head =
+    base < 60_000
+      ? `${number.format(base / 1000)}${UNIT_SPACE}s`
+      : `${number.format(base / 60_000)}${UNIT_SPACE}min`;
+  return `${head} + ${number.format(discipline.increment_ms / 1000)}${UNIT_SPACE}s`;
 }
 
-function trim(value: number): string {
-  return String(Math.round(value * 100) / 100);
+/** A discipline as "Name (3 min + 2 s)" for selects and facts. */
+export function disciplineLabel(
+  discipline: Pick<Discipline, "name" | "initial_time_ms" | "increment_ms">,
+  locale: string,
+): string {
+  return `${discipline.name} (${formatTimeControl(discipline, locale)})`;
 }

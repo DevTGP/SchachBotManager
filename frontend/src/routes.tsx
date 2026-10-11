@@ -12,6 +12,7 @@ import { AdminLayout } from "./pages/admin/AdminLayout";
 import { AdminLeaguesPage } from "./pages/admin/AdminLeaguesPage";
 import { AdminMatchesPage } from "./pages/admin/AdminMatchesPage";
 import { AdminPlayPage } from "./pages/admin/AdminPlayPage";
+import { RecheckLanguage } from "./pages/admin/RecheckLanguage";
 import { AdminSettingsPage } from "./pages/admin/AdminSettingsPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
 import { BotPage } from "./pages/bot/BotPage";
@@ -91,6 +92,7 @@ export const routes: RouteObject[] = [
           { path: "disciplines", element: <AdminDisciplinesPage /> },
           { path: "leagues", element: <AdminLeaguesPage /> },
           { path: "play", element: <AdminPlayPage /> },
+          { path: "rechecks", element: <RecheckLanguage /> },
           { path: "audit", element: <AdminAuditPage /> },
           { path: "settings", element: <AdminSettingsPage /> },
         ],

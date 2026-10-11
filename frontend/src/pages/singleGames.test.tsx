@@ -83,7 +83,7 @@ describe("matches page filters", () => {
     });
     renderRoute("/matches?mine=true");
 
-    await screen.findByText("0–1");
+    await screen.findByRole("link", { name: "Open" });
     expect(screen.queryByRole("checkbox", { name: "Set by me" })).toBeNull();
   });
 });
@@ -116,13 +116,13 @@ describe("series", () => {
     renderRoute(`/series/${SERIES_ID}`);
 
     expect(await screen.findByRole("heading", { name: "Series" })).toBeVisible();
-    expect(screen.getByText("½ – 1½")).toBeVisible();
-    expect(screen.getByRole("link", { name: "Random 1.0.0" })).toHaveAttribute(
+    const score = screen.getByText("1½ – ½").closest("p")!;
+    expect(within(score).getByRole("link", { name: "Random" })).toHaveAttribute(
       "href",
       `/bots/${RANDOM.id}`,
     );
     expect(screen.getByText("2 of 2 games finished")).toBeVisible();
-    expect(screen.getAllByRole("link", { name: /–/ })).toHaveLength(2);
+    expect(screen.getAllByRole("link", { name: "Open" })).toHaveLength(2);
   });
 
   it("links a game to its series", async () => {
@@ -161,8 +161,9 @@ describe("own waiting games", () => {
     const section = (await screen.findByRole("heading", { name: "Waiting games" })).closest(
       "section",
     )!;
-    expect(await within(section).findByRole("link", { name: /Sharp 1\.0\.0/ })).toBeVisible();
+    expect(await within(section).findByText("Sharp")).toBeVisible();
     await user.click(within(section).getByRole("button", { name: "Withdraw" }));
+    await user.click(within(section).getByRole("button", { name: "Really withdraw" }));
 
     expect(await within(section).findByText("None of your games is waiting.")).toBeVisible();
     const post = api.calls.find((call) => call.method === "POST");
@@ -260,8 +261,8 @@ describe("quick start", () => {
     renderRoute(`/admin?white=${MATERIAL.id}&black=${RANDOM.id}`);
 
     await screen.findByRole("option", { name: "Material", selected: true });
-    expect(screen.getByRole("combobox", { name: "White" })).toHaveValue(MATERIAL.id);
-    expect(screen.getByRole("combobox", { name: "Black" })).toHaveValue(RANDOM.id);
+    expect(screen.getByRole("combobox", { name: "White" })).toHaveValue("Material");
+    expect(screen.getByRole("combobox", { name: "Black" })).toHaveValue("Random");
   });
 
   it("presets the own form from the address", async () => {
@@ -274,8 +275,13 @@ describe("quick start", () => {
     });
     renderRoute(`/account/bots?own=${OLDER_ID}&opponent=${SHARP_ID}`);
 
-    expect(await screen.findByRole("combobox", { name: "Your bot" })).toHaveValue(OLDER_ID);
-    expect(screen.getByRole("combobox", { name: "Opponent" })).toHaveValue(SHARP_ID);
+    expect(await screen.findByRole("combobox", { name: "Your bot" })).toHaveValue("Sharp");
+    expect(screen.getByRole("combobox", { name: "Opponent" })).toHaveValue("Sharp");
+    const versions = screen.getAllByRole("combobox", { name: "Version of Sharp" });
+    expect(versions.map((select) => (select as HTMLSelectElement).value)).toEqual([
+      OLDER_ID,
+      SHARP_ID,
+    ]);
   });
 
   it("leads the owner from a version to the own form", async () => {
@@ -341,7 +347,7 @@ describe("record", () => {
     });
     renderRoute(`/bots/${SHARP_ID}`);
 
-    const row = (await screen.findByRole("link", { name: "Material 1.0.0" })).closest("tr")!;
+    const row = (await screen.findByRole("link", { name: "Material" })).closest("tr")!;
     expect(within(row).getByRole("link", { name: "5" })).toHaveAttribute(
       "href",
       `/matches?bot=${SHARP_ID}&opponent=${MATERIAL.id}`,

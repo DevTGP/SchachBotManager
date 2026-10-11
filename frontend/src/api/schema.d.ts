@@ -616,7 +616,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The rating of the logged-in account from its rated games against bots (E117); public in /ratings/players once it has a rated game (E118). */
+        /** The rating of the logged-in account from its rated games against bots (E117), overall and per discipline (E169); public in /ratings/players once it has a rated game (E118). */
         get: operations["get_own_rating"];
         put?: never;
         post?: never;
@@ -1283,6 +1283,19 @@ export interface components {
             /** @description Rated matches counted so far, in all disciplines for the overall rating. */
             games: number;
         };
+        /** @description The overall rating of an account and the disciplines it played rated games in, by name (E163, E169). */
+        AccountRating: {
+            value: number;
+            games: number;
+            disciplines: components["schemas"]["DisciplineRating"][];
+        };
+        /** @description The rating in one discipline; archived disciplines count as well (E169). */
+        DisciplineRating: {
+            discipline_id: components["schemas"]["Id"];
+            name: string;
+            value: number;
+            games: number;
+        };
         /** @description The fields of MatchSummary, open for extension by Match. */
         MatchFields: {
             id: components["schemas"]["Id"];
@@ -1625,6 +1638,10 @@ export interface components {
             action: string;
             /** @description What the action changed, usually an id; null if it has no single target. */
             target: string | null;
+            /** @description What kind of thing the target is, read from the action; null without a target (E169). */
+            target_kind: ("bot" | "match" | "user" | "discipline" | "league" | "invite") | null;
+            /** @description The target by name as it is now: the name of a bot, user, discipline or league, the two sides of a match in alphabetical order; for a deleted bot the name recorded in details; null when nothing names it (E169). */
+            target_label: string | null;
             /** @description Fields of the action as recorded, such as the new status of a bot. */
             details: {
                 [key: string]: unknown;
@@ -3442,13 +3459,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description The rating; an account without rated games stands at the start. */
+            /** @description The rating; an account without rated games stands at the start and has no disciplines. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Rating"];
+                    "application/json": components["schemas"]["AccountRating"];
                 };
             };
             401: components["responses"]["Unauthenticated"];

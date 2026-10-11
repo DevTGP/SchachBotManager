@@ -1,5 +1,5 @@
 import type { DisciplineRequest, StoredDiscipline } from "../../api/types";
-import { secondsToMs } from "./matchOrder";
+import { msToSeconds, secondsToMs } from "../../format/duration";
 
 /** The discipline form as typed: times in seconds, the tolerance in milliseconds (E100). */
 export interface DisciplineForm {
@@ -23,9 +23,9 @@ export const DEFAULT_DISCIPLINE_FORM: DisciplineForm = {
 export function disciplineForm(discipline: StoredDiscipline): DisciplineForm {
   return {
     name: discipline.name,
-    initialSeconds: String(discipline.initial_time_ms / 1000),
-    incrementSeconds: String(discipline.increment_ms / 1000),
-    startupSeconds: String(discipline.startup_ms / 1000),
+    initialSeconds: msToSeconds(discipline.initial_time_ms),
+    incrementSeconds: msToSeconds(discipline.increment_ms),
+    startupSeconds: msToSeconds(discipline.startup_ms),
     toleranceMs: String(discipline.tolerance_ms),
     maxMoves: String(discipline.max_moves),
   };

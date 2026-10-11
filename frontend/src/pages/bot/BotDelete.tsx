@@ -37,7 +37,7 @@ export function BotDelete({ bot }: { bot: BotDetail }) {
         <>
           <p className="hint">{t("bot.deleteWarning")}</p>
           <p>
-            <button type="button" onClick={onDelete} disabled={pending}>
+            <button type="button" className="danger confirm" onClick={onDelete} disabled={pending}>
               {t("bot.deleteConfirm")}
             </button>{" "}
             <button type="button" onClick={() => setAsking(false)} disabled={pending}>
@@ -47,7 +47,7 @@ export function BotDelete({ bot }: { bot: BotDetail }) {
         </>
       ) : (
         <p>
-          <button type="button" onClick={() => setAsking(true)}>
+          <button type="button" className="danger" onClick={() => setAsking(true)}>
             {t("bot.delete")}
           </button>
         </p>

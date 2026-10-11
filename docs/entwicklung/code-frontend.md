@@ -63,27 +63,38 @@ Pfade relativ zu `frontend/src/`.
 | `styles/forms.css` | Eingabefelder und Formulare |
 | `styles/bot.css` | Bot-Seite: Beschreibung, Dateien, Report |
 | `styles/viewer.css` | Raster von Brett und Seitenleiste, Steuerung, Zugliste |
+| `styles/landing.css` | Startseite: Einleitung, Schritte, Abschnitte zur Idee (E166) |
 
 ### Gemeinsame Bausteine
 
 | Modul | Aufgabe |
 |-------|---------|
 | `components/Layout.tsx` | Kopf mit Hauptnavigation (`NAV`), `AccountNav`, Sprachumschalter, `Outlet` |
-| `components/AccountNav.tsx` | Anmelden für Gäste; „Meine Bots“ (nicht für `player`), Verwaltung für Admins, Konto |
+| `components/AccountNav.tsx` | Anmelden für Gäste; „Meine Bots“ (nicht für `player`), Verwaltung für Admins, Konto; Abmelden über `session/useLogout.ts` |
 | `components/LanguageSwitch.tsx` | Knöpfe Deutsch/Englisch |
 | `components/ApiContent.tsx` | Daten aus `useApi` rendern, sonst Fehler oder Laden |
 | `components/Loading.tsx`, `ErrorMessage.tsx` | Ladehinweis; Fehlercode als `error.<code>` |
 | `components/FormError.tsx` | Formularfehler: Feldregel aus `rules`, dann `fieldError`, dann `error.<code>`; bei `invalid_upload` Datei und Meldung |
-| `components/MatchTable.tsx`, `Pager.tsx` | Partientabelle; Blättern über `offset` |
+| `components/MatchTable.tsx`, `Pager.tsx` | Partientabelle mit Paarung, Ergebnis in derselben Reihenfolge und „Öffnen“ (E165); Blättern über `offset` |
+| `components/TableShell.tsx` | Tabelle mit Hinweis bei leerer Liste (E168) |
+| `components/Pairing.tsx`, `SideName.tsx` | `PairingHeader`/`PairingCells`: beide Seiten alphabetisch in eigenen Spalten mit „–“ dazwischen; Name einer Seite ohne Version, Bot als Link (E165) |
+| `components/OpenCell.tsx` | Knopf „Öffnen“ statt unterstrichener Zeile, `ActionsHeader` für die Spalte (E165) |
+| `components/QueueTable.tsx` | Eine Queue-Tabelle für alle: Sicht `public`, `admin` (Priorität, Eingriffe über `actions`) und `own` (E167) |
+| `components/PillSelect.tsx` | Pillenauswahl für wenige Optionen statt Dropdown (E168) |
+| `components/ConfirmButton.tsx` | Zweiter Klick bestätigt; für Sperren, Zurückziehen, Abmelden von Partien, Token widerrufen (E168) |
+| `components/StatusBadge.tsx`, `BotStatusBadge.tsx` | Status einer Partie bzw. eines Bots als Plakette (E168) |
+| `components/ExploreLinks.tsx` | Links zu Partien, Rangliste, Spielen und Start (404 und Login) |
 | `components/NumberField.tsx`, `PasswordFields.tsx`, `RatedField.tsx` | Zahlenfeld, Passwort doppelt (10–128 Zeichen), Kästchen „Gewertet“ (E158) |
-| `components/BotOptions.tsx`, `DisciplineSelect.tsx` | Optionen einer Bot-Auswahl mit „Zufall“ (E162); Disziplin oder freie Zeiten (E100) |
+| `components/BotPicker.tsx`, `DisciplineSelect.tsx` | Bot nach Name, dann Version, mit „Zufall“ (E162, E165; bis E165 `BotOptions.tsx`); Disziplin oder freie Zeiten (E100) |
+| `components/matchFields/` | `MatchFields` mit `ColorSelect` und `conditions.ts`: gemeinsame Felder für Admin, Coder und `/play` (Varianten `admin`, `coder`, `play`, E167) |
 | `components/StartPositionField.tsx` | FEN-Feld mit „Aus PGN“ (E159) |
 | `components/QueuedNotice.tsx` | Bestätigung nach dem Ansetzen, Link auf die Serie (E155) |
 | `components/CopyButton.tsx`, `OneTimeLinkBox.tsx` | In die Zwischenablage kopieren; einmal sichtbarer Link (E83) |
-| `format/*.ts` | Reine Formatierer: `botLabel` (Name Version), `clock`, `dateTime`, `points` (½), `rating` (2500 → 2550), `result`, `score` (Sicht von Weiß), `timeControl` (3+2) |
+| `format/*.ts` | Reine Formatierer: `pairing` (Seiten alphabetisch, Ergebnis gedreht, `compareSides`, E165), `botGroups` (Versionen je Name), `clock`, `dateTime`, `duration` (Sekunden/Minuten mit Komma ↔ ms, E168), `points` (½), `rating` (2500 → 2550, ohne Partien „–“), `result`, `score` (Sicht von Weiß), `timeControl` („3 min + 2 s“, E168); `botLabel` ist seit E165 entfallen |
 | `chess/fen.ts` | Felder der FEN lesen: Seite am Zug, Zugnummer, Materialbilanz, Felder eines UCI-Zugs; keine Regeln |
 | `upload/selection.ts` | Welche Dateien eines Ordners hochgeladen werden, Grenzen 100 Dateien und 1 MB (E92) |
 | `upload/version.ts` | Muster für Name und Version, Vorschlag der nächsten Patch-Version |
+| `upload/dropped.ts` | Gezogene Ordner und Dateien lesen; versteckte Ordner und `__pycache__` bleiben weg |
 
 ### Viewer (`viewer/`)
 
@@ -111,14 +122,14 @@ Pfade relativ zu `frontend/src/`.
 
 | Bereich | Module |
 |---------|--------|
-| Öffentlich | `StartPage` (laufende und letzte Partien), `MatchesPage` (Filter in der URL, E156, E119), `MatchPage` (Viewer, fragt nur laufende Partien nach), `MatchSeries` (Platz in der Serie), `QueuePage` mit `QueueTable`, `BotsPage`, `RatingsPage` mit `ranking.ts` (Bots und Spieler gemeinsam sortiert, E118, E163), `series/SeriesPage` (E155), `MatchLeague` (Liga, Saison und Runde einer Ligapartie), `NotFoundPage` |
+| Öffentlich | `StartPage` (Idee des Projekts, keine Abfragen, E166), `MatchesPage` (Filter in der URL, E156, E119), `MatchPage` (Viewer, fragt nur laufende Partien nach), `MatchSeries` (Platz in der Serie), `QueuePage` (`QueueTable` in der Sicht `public`), `BotsPage`, `RatingsPage` mit `ranking.ts` (Bots und Spieler gemeinsam sortiert, E118, E163), `series/SeriesPage` (E155), `MatchLeague` (Liga, Saison und Runde einer Ligapartie), `NotFoundPage` |
 | Ligen (`leagues/`) | `LeaguesPage`, `LeaguePage` mit `LeagueFacts`, `LeagueSeasons`, `NextSeason`, `LeagueRegistrations` und `LeagueRegisterForm` (E136, E137), `SeasonPage` mit `TierTable` je Staffel (E134) und darin `TierSchedule` (E138) |
 | Konto (`account/`) | `LoginPage`, `InvitePage` und `ResetPasswordPage` (Token aus `#`), `AccountPage` mit `OwnRating` (E117) und `ApiTokens` (E116) |
-| Upload (`upload/`) | `UploadPage` (Ordner oder Dateien, Name, Version, Beschreibung, E91), `SelectedFiles` (Hochgeladenes und Weggelassenes) |
-| Bot (`bot/`) | `BotPage` (fragt während Verifikation und Neuprüfung alle 3 s), `BotSummary`, `BotDescription`, `BotVersions` mit `playLink.ts` (E160), `BotOpponents` (E161), `BotFiles` mit `FileView` (nur UTF-8-Text, E97), `ReportView`, `ReportStages`, `FindingsTable`, `TestGamesTable`, `reportFacts.ts`, `BotRechecks` (E153), `BotLeagues` (Ligen des Bots), `BotSeasons` (E139), `BotRatingChart` mit `ratingChart.ts` (SVG, E140), `BotResults` (E141); Eingriffe `BotOwnerSwitch` (E96), `BotStatusSwitch` (E93), `BotChecks` (E153), `BotDelete` (E105) |
+| Upload (`upload/`) | `UploadPage` mit `FileDrop` (Ordner oder Dateien, auch per Ziehen, Name, Version, Beschreibung, E91), `SelectedFiles` (Hochgeladenes und Weggelassenes) |
+| Bot (`bot/`) | `BotPage` (fragt während Verifikation und Neuprüfung alle 3 s) mit `BotHeader` (Name, Version, Status), `BotActions` (Schnellstart, Besitzer) und `BotAdmin` (Eingriffe der Admins), `BotSummary`, `BotDescription`, `BotVersions` mit `playLink.ts` (E160), `BotOpponents` (E161), `BotFiles` mit `FileView` (nur UTF-8-Text, E97), `ReportView`, `ReportStages`, `FindingsTable`, `TestGamesTable`, `reportFacts.ts`, `BotRechecks` (E153), `BotLeagues` (Ligen des Bots), `BotSeasons` (E139), `BotRatingChart` mit `ratingChart.ts` (SVG, E140), `BotResults` (E141); Eingriffe `BotOwnerSwitch` (E96), `BotStatusSwitch` (E93), `BotChecks` (E153), `BotDelete` (E105) |
 | Meine Bots (`ownBots/`) | `OwnBotsPage`, `OwnBotGroups` (nach Name gruppiert), `OwnMatchForm` mit `ownMatchOrder.ts` und `ownLimits.ts` (E98, E154), `OwnWaitingMatches` (E157) |
 | Spielen (`play/`) | `PlaySetupPage` (`POST /play`, Sitz speichern, weiter zu `/play/:id`), `GamePage` (nimmt `createSocket` für Tests), `PlayBoard` (nur Züge aus `legal_moves`), `PromotionChoice`, `GameClock` |
-| Admin (`admin/`) | `AdminLayout` (Reiter, `RequireRole role="admin"`); `AdminMatchesPage` mit `QueueControl`, `AdminQueueTable`, `QueueEntryActions` (E152), `EnqueueForm` mit `matchOrder.ts`, `RecheckLanguage` (E153); `MatchRepeat` (Partieseite, E152); `AdminUsersPage`; `AdminInvitesPage` mit `InviteForm`; `AdminDisciplinesPage` mit `DisciplineEditor` und `disciplineForm.ts` (E100); `AdminLeaguesPage` mit `LeagueEditor`, `TiebreakField` und `leagueForm.ts` (E131, E132); `AdminPlayPage` (E115); `AdminAuditPage` (E151); `AdminSettingsPage` mit `SettingsGroupForm` und `settingsFields.ts` (E154) |
+| Admin (`admin/`) | `AdminLayout` (Reiter, `RequireRole role="admin"`); Reiter „Queue“: `AdminMatchesPage` mit `QueueControl`, `AdminQueueTable` (`QueueTable` in der Sicht `admin`), `QueueEntryActions` (E152, E167), `EnqueueForm` mit `MatchFields` und `matchOrder.ts`; Reiter „Neuprüfung“: `RecheckLanguage` unter `/admin/rechecks` (E153); `MatchRepeat` (Partieseite, E152); `AdminUsersPage`; `AdminInvitesPage` mit `InviteForm`; `AdminDisciplinesPage` mit `DisciplineEditor` und `disciplineForm.ts` (E100); `AdminLeaguesPage` mit `LeagueEditor`, `TiebreakField` und `leagueForm.ts` (E131, E132); `AdminPlayPage` (E115); `AdminAuditPage` mit `AuditTable` (Ziel mit Namen, E151, E169); `AdminSettingsPage` mit `SettingsGroupFields` und `settingsFields.ts`, ein Speichern für alle Gruppen (E154, E168) |
 
 ## Ablauf
 

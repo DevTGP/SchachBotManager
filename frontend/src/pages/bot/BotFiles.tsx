@@ -1,24 +1,18 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { botSourceUrl } from "../../api/bots";
 import type { BotFile } from "../../api/types";
 import { useLocale } from "../../hooks/useLocale";
 import { FileView } from "./FileView";
 
-/** The files for owner and admins: each one to read, all of them as a ZIP file (E97). */
+/** The files for owner and admins, each one to read (E97); the ZIP is in the bar of actions. */
 export function BotFiles({ botId, files }: { botId: string; files: BotFile[] }) {
   const { t } = useTranslation();
   const locale = useLocale();
   const [shown, setShown] = useState<string | undefined>(undefined);
   return (
-    <>
+    <section>
       <h2>{t("bot.files")}</h2>
-      <p>
-        <a className="button" href={botSourceUrl(botId)} download>
-          {t("bot.downloadZip")}
-        </a>
-      </p>
       <div className="table-scroll">
         <table>
           <thead>
@@ -49,6 +43,6 @@ export function BotFiles({ botId, files }: { botId: string; files: BotFile[] }) 
         </table>
       </div>
       {shown !== undefined && <FileView key={shown} botId={botId} path={shown} />}
-    </>
+    </section>
   );
 }

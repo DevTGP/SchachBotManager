@@ -7,7 +7,8 @@ from bson import ObjectId
 from sbm_api.timestamps import timestamp
 
 
-def audit_view(entry: dict) -> dict:
+def audit_view(entry: dict, kind: str | None, label: str | None) -> dict:
+    """An entry with the kind and name of its target from audit_targets.labels (E169)."""
     target = entry["target"]
     return {
         "id": str(entry["_id"]),
@@ -15,6 +16,8 @@ def audit_view(entry: dict) -> dict:
         "actor": entry["actor"],
         "action": entry["action"],
         "target": None if target is None else str(target),
+        "target_kind": kind,
+        "target_label": label,
         "details": _plain(entry.get("details") or {}),
     }
 

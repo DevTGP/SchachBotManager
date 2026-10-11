@@ -2,21 +2,21 @@ import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 
 import { fetchAuditEntries } from "../../api/admin";
-import type { AuditEntry } from "../../api/types";
 import { ApiContent } from "../../components/ApiContent";
 import { Pager } from "../../components/Pager";
-import { formatDateTime } from "../../format/dateTime";
 import { useApi } from "../../hooks/useApi";
-import { useLocale } from "../../hooks/useLocale";
+import { AuditTable } from "./AuditTable";
 
 const PAGE_SIZE = 25;
 const FILTERS = ["actor", "action", "target", "since", "until"] as const;
 type Filter = (typeof FILTERS)[number];
 
-/** The audit log with filters in the URL, so every view can be linked (E151). */
+/**
+ * The audit log with filters in the URL, so every view can be linked (E151); the days count in
+ * UTC (U12).
+ */
 export function AdminAuditPage() {
   const { t } = useTranslation();
-  const locale = useLocale();
   const [params, setParams] = useSearchParams();
   const filters = Object.fromEntries(
     FILTERS.map((name) => [name, params.get(name) || undefined]),
@@ -87,56 +87,15 @@ export function AdminAuditPage() {
         </label>
         {filters.target && (
           <button type="button" onClick={() => update("target", undefined)}>
-            {t("admin.auditClearTarget", { target: filters.target })}
+            {t("admin.auditClearTarget")}
           </button>
         )}
       </div>
+      <p className="hint">{t("admin.auditDayHint")}</p>
       <ApiContent state={entries}>
         {(page) => (
           <>
-            {page.items.length === 0 ? (
-              <p className="muted">{t("admin.auditEmpty")}</p>
-            ) : (
-              <div className="table-scroll">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>{t("admin.auditAt")}</th>
-                      <th>{t("admin.auditActor")}</th>
-                      <th>{t("admin.auditAction")}</th>
-                      <th>{t("admin.auditTarget")}</th>
-                      <th>{t("admin.auditDetails")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {page.items.map((entry) => (
-                      <tr key={entry.id}>
-                        <td>{formatDateTime(entry.at, locale)}</td>
-                        <td>{entry.actor}</td>
-                        <td>
-                          <code>{entry.action}</code>
-                        </td>
-                        <td>
-                          {entry.target && (
-                            <button
-                              type="button"
-                              className="link"
-                              title={t("admin.auditFilterTarget")}
-                              onClick={() => update("target", entry.target ?? undefined)}
-                            >
-                              {entry.target}
-                            </button>
-                          )}
-                        </td>
-                        <td>
-                          <code>{detailsText(entry)}</code>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <AuditTable entries={page.items} onTarget={(target) => update("target", target)} />
             <Pager
               offset={offset}
               limit={PAGE_SIZE}
@@ -153,10 +112,4 @@ export function AdminAuditPage() {
 /** A filter from a link stays selectable even if the log no longer lists it. */
 function withCurrent(values: string[], current: string | undefined): string[] {
   return current && !values.includes(current) ? [...values, current] : values;
-}
-
-function detailsText(entry: AuditEntry): string {
-  return Object.entries(entry.details)
-    .map(([key, value]) => `${key}=${typeof value === "string" ? value : JSON.stringify(value)}`)
-    .join(", ");
 }

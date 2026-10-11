@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import { setBotStatus } from "../../api/admin";
 import type { BotDetail } from "../../api/types";
+import { ConfirmButton } from "../../components/ConfirmButton";
 import { FormError } from "../../components/FormError";
 import { useSubmit } from "../../hooks/useSubmit";
 import { useSession } from "../../session/sessionContext";
@@ -30,9 +31,18 @@ export function BotStatusSwitch({ bot, onChange }: { bot: BotDetail; onChange: (
   return (
     <>
       <p>
-        <button type="button" onClick={onClick} disabled={pending}>
-          {next === "disabled" ? t("bot.disable") : t("bot.enable")}
-        </button>
+        {next === "disabled" ? (
+          <ConfirmButton
+            label={t("bot.disable")}
+            confirmLabel={t("bot.disableConfirm")}
+            onConfirm={onClick}
+            disabled={pending}
+          />
+        ) : (
+          <button type="button" onClick={onClick} disabled={pending}>
+            {t("bot.enable")}
+          </button>
+        )}
       </p>
       <FormError error={error} />
     </>

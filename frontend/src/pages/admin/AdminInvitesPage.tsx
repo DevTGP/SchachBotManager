@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { fetchInvites, fetchSettings, revokeInvite } from "../../api/admin";
 import { ApiContent } from "../../components/ApiContent";
 import { FormError } from "../../components/FormError";
+import { TableShell } from "../../components/TableShell";
 import { formatDateTime } from "../../format/dateTime";
 import { useApi } from "../../hooks/useApi";
 import { useLocale } from "../../hooks/useLocale";
@@ -34,40 +35,34 @@ export function AdminInvitesPage() {
       <h2>{t("admin.openInvites")}</h2>
       <FormError error={error} />
       <ApiContent state={invites}>
-        {(items) =>
-          items.length === 0 ? (
-            <p className="muted">{t("admin.noInvites")}</p>
-          ) : (
-            <div className="table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>{t("admin.role")}</th>
-                    <th>{t("admin.createdBy")}</th>
-                    <th className="optional">{t("admin.created")}</th>
-                    <th>{t("admin.expires")}</th>
-                    <th>{t("admin.actions")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((invite) => (
-                    <tr key={invite.id}>
-                      <td>{t(`role.${invite.role}`)}</td>
-                      <td>{invite.created_by ?? t("admin.commandLine")}</td>
-                      <td className="optional">{formatDateTime(invite.created_at, locale)}</td>
-                      <td>{formatDateTime(invite.expires_at, locale)}</td>
-                      <td>
-                        <button type="button" disabled={pending} onClick={() => revoke(invite.id)}>
-                          {t("admin.revoke")}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )
-        }
+        {(items) => (
+          <TableShell rows={items.length} empty={t("admin.noInvites")}>
+            <thead>
+              <tr>
+                <th>{t("admin.role")}</th>
+                <th>{t("admin.createdBy")}</th>
+                <th className="optional">{t("admin.created")}</th>
+                <th>{t("admin.expires")}</th>
+                <th>{t("admin.actions")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((invite) => (
+                <tr key={invite.id}>
+                  <td>{t(`role.${invite.role}`)}</td>
+                  <td>{invite.created_by ?? t("admin.commandLine")}</td>
+                  <td className="optional">{formatDateTime(invite.created_at, locale)}</td>
+                  <td>{formatDateTime(invite.expires_at, locale)}</td>
+                  <td>
+                    <button type="button" disabled={pending} onClick={() => revoke(invite.id)}>
+                      {t("admin.revoke")}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </TableShell>
+        )}
       </ApiContent>
     </section>
   );

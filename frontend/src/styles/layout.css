@@ -33,6 +33,25 @@
 
 .site-header nav.account-nav {
   flex: 0 1 auto;
+  align-items: center;
+}
+
+.account-nav button.link {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.account-nav button.link:hover {
+  color: var(--text);
+}
+
+.account-menu {
+  position: relative;
+}
+
+/* The toggle of the account menu only appears on phones (M1). */
+.account-toggle {
+  display: none;
 }
 
 .language-switch {
@@ -45,21 +64,53 @@
   font-size: 0.85rem;
 }
 
-/* On phones the links get a row of their own below brand and language switch. */
+/*
+ * On phones the main nav gets a row of its own below brand, language switch and account menu;
+ * the account links open as a menu below the user name (M1).
+ */
 @media (max-width: 600px) {
   .site-header nav {
     order: 1;
     flex-basis: 100%;
   }
 
-  .site-header nav.account-nav {
+  .site-header > nav.account-nav {
     order: 0;
     flex-basis: auto;
+  }
+
+  .site-header > nav.account-nav,
+  .account-menu {
     margin-left: auto;
   }
 
-  .language-switch {
-    margin-left: auto;
+  .account-toggle {
+    display: inline-block;
+  }
+
+  .account-toggle::after {
+    content: " ▾";
+  }
+
+  .account-menu nav.account-nav {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.4rem);
+    z-index: 10;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    min-width: 12rem;
+    padding: 0.75rem 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 12px var(--shadow);
+  }
+
+  .account-menu nav.account-nav.open {
+    display: flex;
   }
 }
 
@@ -69,17 +120,50 @@ main {
   padding: 1.25rem 16px 3rem;
 }
 
+/* Filters use the field style of forms: the label above the field (U9). */
 .filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
+  align-items: end;
+  gap: 0.75rem 1rem;
   margin-bottom: 1rem;
 }
 
-.filters label {
+.filters label:not(.checkbox),
+.filters .pill-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+}
+
+.filters label.checkbox {
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  min-height: 2.1rem;
+}
+
+/* On phones the filters form a grid of two; pills take a whole row. */
+@media (max-width: 600px) {
+  .filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .filters label:not(.checkbox) {
+    align-items: stretch;
+  }
+
+  .filters select,
+  .filters input:not([type="checkbox"]) {
+    width: 100%;
+  }
+
+  .filters .pill-field {
+    grid-column: 1 / -1;
+  }
 }
 
 .pager {
