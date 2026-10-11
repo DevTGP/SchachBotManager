@@ -80,6 +80,10 @@ Alle Pfade relativ zu `backend/src/sbm_api/`.
 | `discipline_view.py` | Disziplin (Schema `StoredDiscipline`) |
 | `league_view.py` | Liga, Saisons und Anmeldungen (Schemas `League`, `LeagueDetail`, `SeasonSummary`, `LeagueRegistration`, E137) |
 | `season_view.py` | Saison mit Tabellen: laufend aus den Partien berechnet, beendet aus `final` (Schema `Season`, E135, E137) |
+| `schedule_view.py` | Spielplan einer Stufe nach Runden mit spielfreiem Bot (Schema `SeasonSchedule`, E138) |
+| `bot_season_view.py` | Saison eines Bots mit Stufe, Platz und Ausgang (Schema `BotSeason`, E139) |
+| `rating_history_view.py` | Rating-Verlauf je Disziplin, meistgespielte zuerst (Schema `DisciplineRatingHistory`, E140) |
+| `bot_record_view.py` | Bilanz gesamt und je Disziplin, freie Bedenkzeit zuletzt (Schema `BotRecord`, E141) |
 | `user_view.py` | `current_user_view`, `session_view`, `user_view`; der Hash geht nie hinaus |
 | `invite_view.py` | Einladung ohne Token-Hash |
 | `token_view.py` | API-Token für die Kontoseite; der Token selbst nur einmal beim Anlegen (E116) |
@@ -111,6 +115,8 @@ Alle unter `routes/`; je Modul ein Blueprint mit dem Modulnamen.
 | `routes/positions.py` | `POST /positions/from-pgn` über `sbm.arena.replay`, ohne Speichern (E159) |
 | `routes/bots.py` | `GET /bots`, `GET /bots/{id}`, `POST /bots` (Upload für Coder, E91, E92) |
 | `routes/bot_opponents.py` | `GET /bots/{id}/opponents` (E161) |
+| `routes/bot_history.py` | `GET /bots/{id}/seasons`, `/rating-history` und `/record` (E139–E141) |
+| `routes/season_schedule.py` | `GET /seasons/{id}/schedule?tier=n` (E138) |
 | `routes/bot_source.py` | `GET /bots/{id}/file` und `/source`, nur Besitzer und Admins, immer als Download (E97) |
 | `routes/queue.py` | `GET /queue` mit Schätzung (E20) |
 | `routes/disciplines.py` | `GET /disciplines`, `/disciplines/{id}` (E100) |

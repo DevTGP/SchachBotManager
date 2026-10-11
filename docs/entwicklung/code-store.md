@@ -60,6 +60,8 @@ Alle Pfade relativ zu `services/store/src/sbm_store/`.
 | `discipline.py` | Dataclass `Discipline` als `discipline_snapshot` der Partie; `is_rated` (gespeicherte Disziplin und Grundstellung, E100) |
 | `disciplines.py` | Collection `disciplines`: anlegen, ändern, archivieren, `snapshot` für Partien; `NameTaken` bei doppeltem Namen (E100) |
 | `opponents.py` | Bilanz eines Bots gegen jeden Gegner per Aggregation (E161) |
+| `bot_record.py` | Siege, Remis, Niederlagen eines Bots je Disziplin per Aggregation; `Counts` (E141) |
+| `rating_history.py` | Rating vorher und nachher je verbuchter Partie eines Bots, nach Disziplin (E140) |
 
 ### Ratings
 
@@ -82,7 +84,9 @@ Alle Pfade relativ zu `services/store/src/sbm_store/`.
 | `league_lineup.py` | Reine Funktionen: Aufstellung in Stufen beim Start, Auf- und Abstieg am Ende (E133) |
 | `league_pairing.py` | Reine Funktionen: Rundenturnier nach Berger je Stufe, wiederholt nach `games_per_pairing` (E134) |
 | `league_table.py` | Reine Funktionen: Tabelle einer Stufe aus ihren Partien mit Feinwertung und Los; kampflose Siege zählen nicht für Feinwertung (E135) |
-| `season_tables.py` | Tabellen einer gestarteten Saison aus ihren Partien (E135) |
+| `season_tables.py` | Tabellen einer gestarteten Saison aus ihren Partien, auf Wunsch nur einer Stufe (E135) |
+| `season_schedule.py` | Runden einer Stufe mit Partien nach Brett und spielfreiem Bot (E138) |
+| `bot_seasons.py` | Gestartete Saisons eines Bots mit seiner Tabellenzeile, Endtabelle oder aktuell (E139) |
 | `season_start.py` | Fällige Saisons starten und Spielplan anlegen; wiederholbar nach einem Absturz (E132–E134) |
 | `season_end.py` | Saisons mit lauter beendeten Partien abschließen und die nächste anlegen (E132, E133, E135) |
 | `league_withdrawal.py` | Rückzug eines Bots: Anmeldungen beenden, wartende Partien kampflos werten, `sweep` je Runde (E136) |
@@ -124,6 +128,7 @@ Alle Pfade relativ zu `services/store/src/sbm_store/`.
 | `0005_disciplines` | Eindeutiger Index auf `disciplines.name_key` (E100) |
 | `0006_ratings` | Eindeutiger dünner Index auf `rating.seq`, Index für ausstehende Wertungen (E103) |
 | `0007_leagues` | Indizes für Ligen, Saisons und Anmeldungen; Partie-Jobs nennen ihren Wettbewerb (E131–E136) |
+| `0008_season_bots` | Index auf `tiers.entries.bot_id` von `seasons` (E139) |
 | `0110_play_origin` | Dünne Indizes auf `origin.ip_key`, `origin.user_id`, `origin.token_id` (E115) |
 | `0111_api_tokens` | Eindeutiger Index auf `token_hash`, Liste je Konto (E116) |
 | `0150_job_matches` | Dünner Index auf `jobs.payload.match_id` (E152) |

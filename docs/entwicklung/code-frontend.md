@@ -37,7 +37,8 @@ Pfade relativ zu `frontend/src/`.
 | `api/endpoints.ts` | Lesende öffentliche Endpunkte: Partien, Serien, Gegner, Bots, Ratings, Queue, Disziplinen |
 | `api/account.ts` | Sitzung, Anmeldung, Einladung, Passwort, eigenes Rating, Grenzen, API-Tokens |
 | `api/admin.ts` | Nutzer, Einladungen, Partien ansetzen, Queue-Eingriffe, Bot-Sperre und -Löschung, Neuprüfung, Disziplinen, Ligen anlegen, ändern und Saison freigeben, Play-Grenzen, Einstellungen, Audit-Log |
-| `api/leagues.ts` | Ligen, Liga mit Anmeldungen, Saison mit Tabellen, Ligen eines Bots; Bot an- und abmelden (E136, E137) |
+| `api/leagues.ts` | Ligen, Liga mit Anmeldungen, Saison mit Tabellen, Ligen eines Bots; Bot an- und abmelden (E136, E137); Spielplan einer Stufe und Saisons eines Bots (E138, E139) |
+| `api/botHistory.ts` | Rating-Verlauf und Bilanz eines Bots (E140, E141) |
 | `api/bots.ts` | Upload als `FormData`, Bot, eigene Bots, Dateien und ZIP, eigene Partien ansetzen und zurückziehen |
 | `api/play.ts` | `startGame`: `POST /play`, Antwort mit Sitz-Token (E114) |
 | `api/positions.ts` | `positionFromPgn`: FEN aus `POST /positions/from-pgn` (E159) |
@@ -111,10 +112,10 @@ Pfade relativ zu `frontend/src/`.
 | Bereich | Module |
 |---------|--------|
 | Öffentlich | `StartPage` (laufende und letzte Partien), `MatchesPage` (Filter in der URL, E156, E119), `MatchPage` (Viewer, fragt nur laufende Partien nach), `MatchSeries` (Platz in der Serie), `QueuePage` mit `QueueTable`, `BotsPage`, `RatingsPage` mit `ranking.ts` (Bots und Spieler gemeinsam sortiert, E118, E163), `series/SeriesPage` (E155), `MatchLeague` (Liga, Saison und Runde einer Ligapartie), `NotFoundPage` |
-| Ligen (`leagues/`) | `LeaguesPage`, `LeaguePage` mit `LeagueFacts`, `LeagueSeasons`, `NextSeason`, `LeagueRegistrations` und `LeagueRegisterForm` (E136, E137), `SeasonPage` mit `TierTable` je Staffel (E134) |
+| Ligen (`leagues/`) | `LeaguesPage`, `LeaguePage` mit `LeagueFacts`, `LeagueSeasons`, `NextSeason`, `LeagueRegistrations` und `LeagueRegisterForm` (E136, E137), `SeasonPage` mit `TierTable` je Staffel (E134) und darin `TierSchedule` (E138) |
 | Konto (`account/`) | `LoginPage`, `InvitePage` und `ResetPasswordPage` (Token aus `#`), `AccountPage` mit `OwnRating` (E117) und `ApiTokens` (E116) |
 | Upload (`upload/`) | `UploadPage` (Ordner oder Dateien, Name, Version, Beschreibung, E91), `SelectedFiles` (Hochgeladenes und Weggelassenes) |
-| Bot (`bot/`) | `BotPage` (fragt während Verifikation und Neuprüfung alle 3 s), `BotSummary`, `BotDescription`, `BotVersions` mit `playLink.ts` (E160), `BotOpponents` (E161), `BotFiles` mit `FileView` (nur UTF-8-Text, E97), `ReportView`, `ReportStages`, `FindingsTable`, `TestGamesTable`, `reportFacts.ts`, `BotRechecks` (E153), `BotLeagues` (Ligen des Bots); Eingriffe `BotOwnerSwitch` (E96), `BotStatusSwitch` (E93), `BotChecks` (E153), `BotDelete` (E105) |
+| Bot (`bot/`) | `BotPage` (fragt während Verifikation und Neuprüfung alle 3 s), `BotSummary`, `BotDescription`, `BotVersions` mit `playLink.ts` (E160), `BotOpponents` (E161), `BotFiles` mit `FileView` (nur UTF-8-Text, E97), `ReportView`, `ReportStages`, `FindingsTable`, `TestGamesTable`, `reportFacts.ts`, `BotRechecks` (E153), `BotLeagues` (Ligen des Bots), `BotSeasons` (E139), `BotRatingChart` mit `ratingChart.ts` (SVG, E140), `BotResults` (E141); Eingriffe `BotOwnerSwitch` (E96), `BotStatusSwitch` (E93), `BotChecks` (E153), `BotDelete` (E105) |
 | Meine Bots (`ownBots/`) | `OwnBotsPage`, `OwnBotGroups` (nach Name gruppiert), `OwnMatchForm` mit `ownMatchOrder.ts` und `ownLimits.ts` (E98, E154), `OwnWaitingMatches` (E157) |
 | Spielen (`play/`) | `PlaySetupPage` (`POST /play`, Sitz speichern, weiter zu `/play/:id`), `GamePage` (nimmt `createSocket` für Tests), `PlayBoard` (nur Züge aus `legal_moves`), `PromotionChoice`, `GameClock` |
 | Admin (`admin/`) | `AdminLayout` (Reiter, `RequireRole role="admin"`); `AdminMatchesPage` mit `QueueControl`, `AdminQueueTable`, `QueueEntryActions` (E152), `EnqueueForm` mit `matchOrder.ts`, `RecheckLanguage` (E153); `MatchRepeat` (Partieseite, E152); `AdminUsersPage`; `AdminInvitesPage` mit `InviteForm`; `AdminDisciplinesPage` mit `DisciplineEditor` und `disciplineForm.ts` (E100); `AdminLeaguesPage` mit `LeagueEditor`, `TiebreakField` und `leagueForm.ts` (E131, E132); `AdminPlayPage` (E115); `AdminAuditPage` (E151); `AdminSettingsPage` mit `SettingsGroupForm` und `settingsFields.ts` (E154) |
@@ -186,7 +187,7 @@ Vitest mit jsdom und Testing Library; Einrichtung in [`vite.config.ts`](../../fr
 | `test/setup.ts` | `jest-dom`-Matcher; vor jedem Test `localStorage` leeren und Sprache Englisch; danach `cleanup`, Mocks und Timer zurücksetzen |
 | `test/render.tsx` | `mockApi(responses)` ersetzt `fetch`: Antwort je Pfad ohne `/api/v1` und Query, als Wert, `Response` oder Funktion `(url, call)`; unbekannte Pfade geben 404 `not_found`. Liefert `requests` und `calls` (`ApiCall` mit `url`, `method`, `headers`, JSON-`body`, `form`). `renderRoute(path)` rendert die echten `routes` in einem Memory-Router und gibt `router` zurück |
 | `test/fixtures.ts` | Testdaten: `START_FEN`, `OPENING`, `match()`, `summary()`, `side()`, `BOTS`, `botDetail()`, `queue()`, `storedDiscipline()`, `adminSettings()`, `CODER_LIMITS`, Konten `ADMIN`, `CODER`, `PLAYER`, `user()`, `ownMatches()` |
-| `test/leagues.ts` | Testdaten für Ligen: `LEAGUE_ID`, `SEASON_ID`, `league()`, `registration()`, `leagueDetail()`, `season()` |
+| `test/leagues.ts` | Testdaten für Ligen: `LEAGUE_ID`, `SEASON_ID`, `league()`, `registration()`, `leagueDetail()`, `season()`, `schedule()`, `botSeason()` |
 | `test/fakeSocket.ts` | `FakeSocket` als Ersatz für `WebSocket` (`vi.stubGlobal`): `open()`, `receive(msg)`, `drop(code)`, `sentMessages()`, `FakeSocket.latest()` |
 | `test/files.ts` | `folderFile`: Datei wie aus einer Ordnerauswahl (`webkitRelativePath`) |
 
