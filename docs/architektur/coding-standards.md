@@ -21,6 +21,7 @@ Gilt für alle Pakete im Monorepo. Werkzeug-Konfigurationen liegen jeweils im Pa
 | C (Schnittstelle des Kerns) | C11-kompatible Header | wie C++ | über die Bindings |
 | Python (Werkzeuge, Backend, Dienste) | 3.12 | ruff (Lint und Format), Typannotationen | pytest |
 | Python-SDK (`sdk/python`) | 3.11 und neuer (E59); natives Modul C++20 mit nanobind (E58) | ruff wie oben; nativer Code mit clang-format wie der Kern | API-Vektoren und eigene Tests mit pytest |
-| TypeScript (Frontend) | strict | ESLint, Prettier | ab M2 festgelegt |
+| C++ (Viewer, `sdk/viewer`) | C++20, CMake; SDL3 und Dear ImGui (E107) | clang-format wie der Kern | Modelltests über CTest ohne Fenster; Programm im Python-SDK mit `--screenshot` |
+| TypeScript (Frontend) | strict | ESLint, Prettier (`frontend/eslint.config.js`, `frontend/.prettierrc.json`) | Vitest mit jsdom und Testing Library |
 | JSON (Spezifikation) | JSON Schema 2020-12 | 2 Leerzeichen Einrückung, von `tools/spec-check` geprüft; erzeugte Testvektoren mit einem Vektor je Zeile, Layout durch `tools/testvector-gen` festgelegt | – |
 

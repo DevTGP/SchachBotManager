@@ -74,19 +74,18 @@ SchachBotManager/
 ├── services/
 │   ├── store/               Gemeinsamer Datenbankzugriff, Migrationen (sbm-store, E75)
 │   ├── runner/              Match-Runner (Job-Consumer, Sandbox-Adapter), auch als Play-Runner (E111); Referee-Kern aus sdk/python (E65, E75)
-│   ├── gateway/             WebSocket-Gateway für interaktive Partien (sbm-gateway, E112)
-│   ├── verifier/            Pipeline + Analyzer je Sprache, ausgeführt vom Runner (E81)
-│   └── scheduler/
+│   └── gateway/             WebSocket-Gateway für interaktive Partien (sbm-gateway, E112)
 ├── sdk/
 │   ├── core/                C++-Schachkern + C-Schnittstelle
-│   ├── python/              Binding, Referee-Kern (sbm.referee), lokale Arena (sbm.arena, E65), Referenzbots (sbm.bots, E68), Anbindung des Viewers (sbm.viewer, E107)
-│   ├── viewer/              Viewer-Programm sbm-viewer (C++, SDL3, Dear ImGui), in jedem SDK-Paket mitgeliefert (E106, E107)
-│   ├── cpp/  java/  csharp/  javascript/   Bindings
+│   ├── python/              Binding, Referee-Kern (sbm.referee), lokale Arena (sbm.arena, E65), Referenzbots (sbm.bots, E68), statische Analyse (sbm.analysis, E90), Anbindung des Viewers (sbm.viewer, E107)
+│   └── viewer/              Viewer-Programm sbm-viewer (C++, SDL3, Dear ImGui), in jedem SDK-Paket mitgeliefert (E106, E107)
 ├── templates/               Vorlagenprojekte je Sprache mit Debug-Konfiguration (python/, E69)
 ├── tools/
 │   ├── spec-check/          Prüft alle JSON-Dateien unter spec/ (CI)
 │   └── testvector-gen/      Erzeugt die Testvektoren unter spec/testvectors/ (Entwicklungswerkzeug, E54)
 ├── sandbox/                 nsjail-Konfiguration und Laufzeitverzeichnisse je Sprache
 ├── deploy/                  docker-compose, Dockerfiles, Beispiel-Umgebungsdatei
-└── .github/workflows/
+└── .github/                 Workflows (ci, deploy, wheels) und Skripte der CI
 ```
+
+Die Verifikation hat kein eigenes Paket: Der Runner führt sie aus (E81, E89), die statische Analyse liegt im SDK (E90). Die SDKs für C++, Java, C# und JavaScript (`sdk/cpp/`, `sdk/java/`, `sdk/csharp/`, `sdk/javascript/`) kommen mit M5 (zurückgestellt, E110). Wie der Code in den vorhandenen Paketen aufgebaut ist, beschreiben die Code-Karten unter [`entwicklung/`](../entwicklung/README.md).

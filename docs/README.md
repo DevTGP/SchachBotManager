@@ -1,6 +1,6 @@
 # SchachBotManager – Konzeptdokumentation
 
-Stand: 2026-10-05, Revision 4 · Status: Konzept, vor Implementierungsbeginn · Vorherige Stände: `_archiv/`
+Stand: 2026-10-11 · Status: in Umsetzung, Stand je Meilenstein in [roadmap.md](roadmap.md) · Vorherige Stände: `_archiv/`
 
 ## Lesereihenfolge
 
@@ -18,6 +18,8 @@ Stand: 2026-10-05, Revision 4 · Status: Konzept, vor Implementierungsbeginn · 
 |-------|--------|
 | [komponenten/bot-protokoll.md](komponenten/bot-protokoll.md) | Sprachunabhängiges Protokoll Referee ↔ Bot |
 | [komponenten/sdk-api.md](komponenten/sdk-api.md) | Gemeinsamer C++-Kern, Bindings, Bot-API, Debug-Bibliothek |
+| [komponenten/kern-c-schnittstelle.md](komponenten/kern-c-schnittstelle.md) | C-Schnittstelle des Kerns |
+| [komponenten/viewer.md](komponenten/viewer.md) | Grafischer Viewer im SDK (`sbm-viewer`) |
 | [komponenten/match-runner.md](komponenten/match-runner.md) | Referee, Uhren, Einfrieren, Spielende-Regeln |
 | [komponenten/sandbox.md](komponenten/sandbox.md) | Isolation mit nsjail, Schutzgrenzen |
 | [komponenten/statische-analyse.md](komponenten/statische-analyse.md) | Code-Regeln pro Sprache |
@@ -29,3 +31,7 @@ Stand: 2026-10-05, Revision 4 · Status: Konzept, vor Implementierungsbeginn · 
 | [komponenten/lokale-entwicklung.md](komponenten/lokale-entwicklung.md) | Lokale Arena, Debugging, lokaler Bot gegen Web-API |
 | [komponenten/gateway.md](komponenten/gateway.md) | WebSocket-Gateway und Play-Runner für interaktive Partien |
 | [komponenten/deployment.md](komponenten/deployment.md) | GitHub Actions, Docker Compose, Betrieb |
+
+## Entwicklung
+
+Praktische Anleitung für die Arbeit am Code: Einrichtung, Rezepte für typische Änderungen, Tests und CI sowie eine Code-Karte je Paket. Einstieg: [entwicklung/README.md](entwicklung/README.md).

@@ -15,6 +15,7 @@ Website, auf der Schachbots (Python, C++, Java, C#, JavaScript) in Ligen, Turnie
 | `docs/architektur/systemuebersicht.md` | Komponenten, Vertrauensgrenzen, Repo-Struktur |
 | `docs/architektur/ablaeufe.md` | Zusammenspiel der Komponenten |
 | `docs/komponenten/*.md` | Eine Datei je Komponente; vor Arbeit an einer Komponente die passende Datei lesen |
+| `docs/entwicklung/README.md` | Entwicklerdoku: Einrichtung, Rezepte für Änderungen, Tests und CI, Code-Karte je Paket |
 
 `docs/_archiv/` enthält überholte Stände und ist nicht maßgeblich.
 

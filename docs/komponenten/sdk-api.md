@@ -169,6 +169,7 @@ Jeder Aufruf aus Python/Java/C#/JS in den Kern kostet einen festen Betrag, unabh
 | Binding je Sprache | Jede `Board`- und `Move`-Funktion gegen die API-Vektoren aus `spec/testvectors/api/` (Format E55); `Clock`, `Log`, `Bot`, `run` und `load_data` mit eigenen Tests des Bindings; Speicherverhalten (kein Leck bei vielen Brettkopien); Fehlerfälle (illegaler Zug, ungültige FEN) als Ausnahme der Sprache |
 | Protokoll je Sprache | Aufgezeichnete Nachrichtenfolgen |
 | Kreuztest | Jedes SDK spielt in CI gegen jedes andere über die Arena |
+| Viewer | Modell (Partie, Spulen, Uhr) mit CTest ohne Fenster; das mitgelieferte Programm im Python-SDK mit `--screenshot` unter `SDL_VIDEO_DRIVER=offscreen`; Einschalten aus dem Code gegen ein falsches Viewer-Programm (E107, E108; Einzelheiten in [viewer.md](viewer.md)) |
 
 ## Zu beachten
 
