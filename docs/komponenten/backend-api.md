@@ -156,6 +156,17 @@ Seit E163 ist `rating` eines Bots oder Kontos das Gesamtrating (nach Partien gew
 - Zurückziehen durch den Besitzer (`routes/own_bot.py`), Sperren und Löschen durch einen Admin (`routes/admin_bots.py`) melden den Bot aus allen Ligen ab (`sbm_store.league_withdrawal`, E136).
 - Neue Fehlercodes: `league_state` (409, Liga archiviert oder erste Saison schon freigegeben), `already_registered` (409, `field` `bot_id`); ein nicht verifizierter Bot ergibt `bot_state` (409).
 
+### Stand M4, Schritt 4 (E138–E141)
+
+| Route | Aufgabe |
+|-------|---------|
+| `GET /seasons/{id}/schedule?tier=n` | Öffentlich: Runden einer Stufe mit Partien nach Brett und spielfreiem Bot (`routes/season_schedule.py`, `schedule_view.py`, `sbm_store.season_schedule`). `tier` fehlt oder ist ungültig: 400; unbekannte oder geplante Saison, unbekannte Stufe: 404 |
+| `GET /bots/{id}/seasons` | Öffentlich: Saisons dieser Version mit Stufe, Platz, Punkten und Ausgang, neueste zuerst (`routes/bot_history.py`, `bot_season_view.py`, `sbm_store.bot_seasons`) |
+| `GET /bots/{id}/rating-history` | Öffentlich: je Disziplin die verbuchten Partien mit Rating vorher und nachher (`rating_history_view.py`, `sbm_store.rating_history`) |
+| `GET /bots/{id}/record` | Öffentlich: Siege, Remis, Niederlagen gesamt und je Disziplin, freie Bedenkzeit mit `discipline_id` `null` zuletzt (`bot_record_view.py`, `sbm_store.bot_record`) |
+
+Die drei Bot-Routen sehen Bots wie `GET /bots/{id}`: ein für den Aufrufer verborgener Bot ergibt 404.
+
 ### Endgültiges Löschen (E105)
 
 | Route | Aufgabe |

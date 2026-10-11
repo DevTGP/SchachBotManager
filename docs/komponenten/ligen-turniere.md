@@ -116,6 +116,12 @@ Die Abschnitte oben beschreiben das Ziel; umgesetzt ist es so:
 - **Tabelle (E135):** aus den beendeten Partien berechnet; danach entscheiden die Kriterien aus `tiebreaks` und zuletzt ein beim Start gespeichertes Los. Beim Abschluss speichert die Saison die Endtabelle.
 - **Anmeldung (E136):** Besitzer und Admins melden `verified` Bots auf der Bot-Seite an und ab, Admins auch auf der Liga-Seite. Ein Rückzug während der Saison macht aus den wartenden Partien des Bots kampflose Siege des Gegners (`finished`, `termination` `forfeit_withdrawn`, ungewertet).
 
+### Stand M4, Schritt 4 (E138–E141)
+
+- **Spielplan (E138):** Die Saisonseite zeigt unter jeder Tabelle die Runden der Stufe mit allen Brettern, Ergebnissen, kampflosen Partien und dem spielfreien Bot (`GET /seasons/{id}/schedule?tier=n`).
+- **Liga-Verlauf (E139):** Die Bot-Seite listet die Saisons genau dieser Version mit Stufe, Platz, Punkten und Ausgang; eine laufende Saison mit dem aktuellen Platz.
+- **Historie (E140, E141):** Dazu kommen auf der Bot-Seite der Rating-Verlauf je Disziplin als Kurve und die Bilanz nach Ergebnis gesamt und je Disziplin.
+
 ## Turniere
 
 | Parameter | Optionen |

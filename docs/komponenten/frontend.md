@@ -128,6 +128,16 @@ Lädt `/disciplines` nicht, bieten die Formulare nur freie Zeiten an.
 
 Ungültige Einstellungen nennt das Formular je Feld (`leagueError.*`).
 
+## Stand M4, Schritt 4 (E138–E141)
+
+| Ort | Inhalt |
+|-----|--------|
+| `src/pages/leagues/TierSchedule.tsx` | `/seasons/:id`: Spielplan unter der Tabelle jeder Stufe, je Runde ein aufklappbarer Abschnitt mit Fortschritt; die erste noch nicht beendete Runde ist offen. Je Brett Weiß, Schwarz und Ergebnis, Status oder „kampflos“ mit Link auf die Partie, spielfreier Bot darunter; fragt nach, solange die Saison läuft |
+| `src/pages/bot/BotSeasons.tsx` | Bot-Seite (hochgeladene Bots): Ligasaisons dieser Version mit Liga, Saison, Stufe, Platz „n von m“, Partien, Punkten und Ausgang bzw. „Läuft“ |
+| `src/pages/bot/BotRatingChart.tsx`, `ratingChart.ts` | Bot-Seite: Rating-Verlauf als SVG-Kurve je Disziplin (Auswahl bei mehreren), Werte als Tooltip, Stand mit Höchst- und Tiefstwert als Text |
+| `src/pages/bot/BotResults.tsx` | Bot-Seite: Siege, Remis und Niederlagen je Disziplin mit Summenzeile |
+| `src/api/botHistory.ts`, `src/api/leagues.ts` | Rating-Verlauf und Bilanz bzw. Spielplan und Saisons eines Bots |
+
 ## Endgültiges Löschen (E105)
 
 | Ort | Inhalt |

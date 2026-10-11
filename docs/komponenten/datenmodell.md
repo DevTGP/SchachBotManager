@@ -128,6 +128,11 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 - Jobs: `competition` (`league:<id>` oder `single`) an Partie-Jobs, `claimed_at` beim Abruf (`sbm_store.queue_order`).
 - Migration `0007_leagues` setzt `competition: "single"` an vorhandenen Partie-Jobs und legt die Indizes an: eindeutig `name_key` von `leagues`, eindeutig `(league_id, number)` von `seasons`, `status` von `seasons`, eindeutiger Teilindex `(target_type, target_id, bot_id)` für aktive Anmeldungen, `(bot_id, status)` von `registrations`, `(context.season_id, context.tier, status)` von `matches` und `(competition, claimed_at)` von `jobs`.
 
+## Stand M4, Schritt 4 (E138–E141)
+
+- Keine neuen Felder: Spielplan, Liga-Verlauf, Rating-Verlauf und Bilanz werden aus `seasons` und `matches` gelesen.
+- Migration `0008_season_bots` legt den Index `tiers.entries.bot_id` von `seasons` an (Saisons eines Bots, E139).
+
 ## Stand M7 (E113–E116)
 
 - Interaktive Partien: Typ `human` oder `remote`, `queue` ist `null`, `rated` nur für einen Menschen mit Konto unter einer gespeicherten Disziplin aus der Grundstellung (E117). Eine Seite ohne Bot hat `kind` `human` oder `remote`, `bot_id` `null`, `user_id` (bei Gästen `null`), `name` und `seat_hash` (SHA-256 des Sitz-Tokens; der Token selbst wird nie gespeichert). `origin` hält `ip_key` (Hash der Adresse), `user_id` und `token_id` für die Grenzen; dünn besetzte Indizes darauf (Migration `0110_play_origin`). Ihr Job hat die Art `play` (`sbm_store.play`). Öffentlich sind sie wie Botpartien (E119); die Liste der laufenden nutzt den vorhandenen Index auf `status`.
