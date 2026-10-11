@@ -27,22 +27,28 @@ class TierTable:
     rows: list[league_table.Row]
 
 
-def tables(db: Database, season: dict) -> list[TierTable]:
-    """One table per tier with the counts of its games; empty before the start."""
+def tables(db: Database, season: dict, *, tier: int | None = None) -> list[TierTable]:
+    """One table per tier with the counts of its games, or only the one of tier; empty before
+    the start."""
+    query: dict = {"context.season_id": season["_id"]}
+    if tier is not None:
+        query["context.tier"] = tier
     by_tier: dict[int, list[dict]] = {}
-    for match in db[MATCHES].find({"context.season_id": season["_id"]}, PROJECTION):
+    for match in db[MATCHES].find(query, PROJECTION):
         by_tier.setdefault(match["context"]["tier"], []).append(match)
     settings = season["settings"]
     result = []
-    for tier in season["tiers"]:
-        games = by_tier.get(tier["tier"], [])
+    for lineup in season["tiers"]:
+        if tier is not None and lineup["tier"] != tier:
+            continue
+        games = by_tier.get(lineup["tier"], [])
         rows = league_table.table(
-            tier["entries"],
+            lineup["entries"],
             league_table.counted_games(games),
             points=settings["points"],
             tiebreaks=settings["tiebreaks"],
             withdrawn=season["withdrawn"],
         )
         ended = sum(game["status"] in (FINISHED, ABORTED) for game in games)
-        result.append(TierTable(tier["tier"], len(games), ended, rows))
+        result.append(TierTable(lineup["tier"], len(games), ended, rows))
     return result

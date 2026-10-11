@@ -8,6 +8,7 @@ from sbm_store.migrations import (
     m0005_disciplines,
     m0006_ratings,
     m0007_leagues,
+    m0008_season_bots,
     m0110_play_origin,
     m0111_api_tokens,
     m0150_job_matches,
@@ -24,6 +25,7 @@ MIGRATIONS = [
     ("0005_disciplines", m0005_disciplines.apply),
     ("0006_ratings", m0006_ratings.apply),
     ("0007_leagues", m0007_leagues.apply),
+    ("0008_season_bots", m0008_season_bots.apply),
     # M7 numbers its migrations from 0110 on, beside M4 (E110).
     ("0110_play_origin", m0110_play_origin.apply),
     ("0111_api_tokens", m0111_api_tokens.apply),
