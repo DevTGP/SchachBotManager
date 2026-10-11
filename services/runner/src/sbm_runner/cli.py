@@ -8,6 +8,7 @@ from functools import partial
 from pymongo.database import Database
 from sbm_store.connection import database_from_env
 
+from sbm_runner.address import live_address
 from sbm_runner.checkout import checkout
 from sbm_runner.config import RunnerConfig, default_worker_id
 from sbm_runner.play.config import PlayConfig
@@ -45,7 +46,7 @@ def main() -> int:
         if role == PLAY:
             PlayWorker(db, PlayConfig.from_env(os.environ), players=players).run()
         else:
-            config = RunnerConfig(worker_id=worker_id)
+            config = RunnerConfig(worker_id=worker_id, live_address=live_address(os.environ))
             Worker(db, config, players=players, verifier=sandbox).run()
     except (ValueError, SandboxBroken) as error:
         log.error("runner %s cannot start: %s", worker_id, error)

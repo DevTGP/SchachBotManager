@@ -1,7 +1,7 @@
 import time
 from datetime import timedelta
 
-from conftest import RemoteBot
+from conftest import RemoteBot, Watcher
 from sbm_store import jobs, matches, play
 from sbm_store.names import JOBS
 
@@ -142,3 +142,21 @@ def test_the_setting_on_the_website_lowers_the_slots(db, gateway, play_config, c
     assert worker.step()
     assert not worker.step()
     worker.stop()
+
+
+def test_a_viewer_follows_the_game_live(db, gateway, play_worker, create_remote):
+    match_id, seat = create_remote()
+    remote = RemoteBot(gateway.url, match_id, seat, delay=0.1)
+    remote.start()
+    watcher = Watcher(gateway.gateway.watch_port, match_id)
+    watcher.start()
+
+    assert play_worker.step()
+    wait_for(lambda: finished(db, match_id))
+    watcher.join(10)
+
+    assert watcher.status == 200
+    assert watcher.plies() == [1, 2, 3, 4, 5, 6]
+    assert watcher.events[-1] == ("end", {})
+    streamed = [data["uci"] for kind, data in watcher.events if kind == "move"]
+    assert streamed == [move["uci"] for move in matches.get(db, match_id)["moves"]]

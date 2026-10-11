@@ -5,12 +5,13 @@ from collections.abc import Callable
 from datetime import datetime
 
 from pymongo.database import Database
-from sbm.referee import Match, MatchRecord, Player
+from sbm.referee import Match, MatchRecord, MoveRecord, Player
 from sbm_store import bots, jobs, matches
 
+from sbm_runner.live_feed import LiveFeed
 from sbm_runner.match_settings import match_settings
 from sbm_runner.players import PlayerFactory, UnsupportedBot
-from sbm_runner.recorder import Recorder
+from sbm_runner.recorder import Recorder, move_document
 from sbm_runner.stopper import Stopper
 
 log = logging.getLogger(__name__)
@@ -25,11 +26,14 @@ def run_job(
     players: PlayerFactory,
     now: Callable[[], datetime],
     stopper: Stopper | None = None,
+    live_address: tuple[str, int] | None = None,
 ) -> None:
     """Exceptions are infrastructure errors; the caller retries or aborts the match.
 
     Once the stopper is stopped the job is no longer the runner's: an admin cancelled it (E152)
     or its lease ran out. The game then ends early and nothing more is stored.
+
+    With live_address the moves also go to the gateway for the viewers (E142).
     """
     stopper = stopper or Stopper()
     match_id = job["payload"]["match_id"]
@@ -56,18 +60,29 @@ def run_job(
 
     for player in (white, black):
         stopper.add(player)
-    if stopper.stopped or not matches.start(db, match_id, now()):
-        log.warning("match %s changed while it was being prepared, not playing it", match_id)
-        jobs.complete(db, job["_id"], job["worker_id"], now())
-        return
-    log.info("match %s: %s vs %s", match_id, white.name, black.name)
-    record = Match(
-        white, black, match_settings(match), on_move=Recorder(db, match_id).on_move
-    ).play()
-    if stopper.stopped:
-        log.info("match %s: stopped, the job is no longer held", match_id)
-        return
-    _store_result(db, match_id, record, now())
+    # Opened before the start, so a viewer that sees the match running finds its feed.
+    feed = LiveFeed(live_address, match_id)
+    feed.open()
+    try:
+        if stopper.stopped or not matches.start(db, match_id, now()):
+            log.warning("match %s changed while it was being prepared, not playing it", match_id)
+            jobs.complete(db, job["_id"], job["worker_id"], now())
+            return
+        log.info("match %s: %s vs %s", match_id, white.name, black.name)
+        recorder = Recorder(db, match_id)
+
+        def on_move(move: MoveRecord) -> None:
+            recorder.on_move(move)
+            feed.move(move_document(move))
+
+        record = Match(white, black, match_settings(match), on_move=on_move).play()
+        if stopper.stopped:
+            log.info("match %s: stopped, the job is no longer held", match_id)
+            return
+        _store_result(db, match_id, record, now())
+    finally:
+        # After the result, so a viewer told end finds it in the API.
+        feed.end()
     jobs.complete(db, job["_id"], job["worker_id"], now())
     log.info("match %s: %s (%s)", match_id, record.outcome.result, record.outcome.termination)
 

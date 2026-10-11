@@ -133,7 +133,14 @@ class Worker:
 
     def _play(self, job: dict, stopper: Stopper) -> None:
         try:
-            run_job(self._db, job, players=self._players, now=self._now, stopper=stopper)
+            run_job(
+                self._db,
+                job,
+                players=self._players,
+                now=self._now,
+                stopper=stopper,
+                live_address=self._config.live_address,
+            )
         except Shutdown:
             # Stopping is not the match's fault: it starts over and the attempt does not count.
             matches.requeue(self._db, job["payload"]["match_id"])

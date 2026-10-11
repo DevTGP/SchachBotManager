@@ -1,10 +1,13 @@
+from dataclasses import replace
+
 from bson import ObjectId
+from live_listener import LiveListener
 from sbm_store import bots, jobs, matches, queue_settings, rating_recount, rating_values
 from sbm_store.discipline import Discipline
 from sbm_store.names import BOTS, JOBS, MATCHES
 from sbm_store.rating_rule import DEFAULT, white_gain
 
-from sbm_runner.worker import utc_now
+from sbm_runner.worker import Worker, utc_now
 
 START = DEFAULT.start
 
@@ -133,3 +136,34 @@ def test_ratings_are_counted_again_on_request_even_when_paused(db, worker, refer
     assert not rating_recount.is_requested(db)
     for bot in (random, material):
         assert rating_values.overall(bots.get(db, bot["_id"]), START)["games"] == 0
+
+
+def test_the_moves_go_live_to_the_gateway(db, config, reference_bots, enqueue):
+    listener = LiveListener()
+    try:
+        live = replace(config, live_address=listener.address)
+        worker = Worker(db, live, sleep=lambda _seconds: None)
+        match_id = enqueue(*reference_bots)
+
+        assert worker.step()
+        listener.wait_closed()
+    finally:
+        listener.close()
+
+    [lines] = listener.connections
+    stored = matches.get(db, match_id)["moves"]
+    assert lines[0] == {"type": "open", "v": 1, "match_id": str(match_id)}
+    assert [line["move"]["uci"] for line in lines[1:-1]] == [move["uci"] for move in stored]
+    assert [line["move"]["ply"] for line in lines[1:-1]] == [1, 2, 3, 4, 5, 6]
+    assert lines[-1] == {"type": "end"}
+
+
+def test_a_missing_gateway_does_not_stop_the_game(db, config, reference_bots, enqueue):
+    listener = LiveListener()
+    listener.close()
+    worker = Worker(db, replace(config, live_address=listener.address), sleep=lambda _s: None)
+    match_id = enqueue(*reference_bots)
+
+    assert worker.step()
+
+    assert matches.get(db, match_id)["status"] == matches.FINISHED

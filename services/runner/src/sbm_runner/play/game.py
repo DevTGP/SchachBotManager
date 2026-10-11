@@ -13,13 +13,14 @@ from sbm.referee import Match, MatchRecord, MoveRecord, Player
 from sbm_store import jobs, matches, play
 
 from sbm_runner.game import COLORS, bot_player
+from sbm_runner.live_feed import LiveFeed
 from sbm_runner.match_settings import match_settings
 from sbm_runner.play.config import PlayConfig
 from sbm_runner.play.human_player import HumanPlayer
 from sbm_runner.play.relay_connection import RelayConnection
 from sbm_runner.play.relay_player import RelayPlayer
 from sbm_runner.players import PlayerFactory, UnsupportedBot
-from sbm_runner.recorder import Recorder
+from sbm_runner.recorder import Recorder, move_document
 
 log = logging.getLogger(__name__)
 
@@ -74,24 +75,36 @@ class InteractiveGame:
             for color in COLORS:
                 sides.append(self._side(match[color]))
             self._wait_for_seats()
-            if not matches.start(self._db, self.match_id, self._now()):
-                raise RuntimeError("the match changed while it was being prepared")
         except Exception as error:
-            for player in sides:
-                player.close()
-            self.cancel()
-            log.warning("match %s not started: %s", self.match_id, error)
-            self._abort(_reason(error))
+            self._refuse(sides, error)
             return
-        self._play(match, *sides)
+        # Opened before the start, so a viewer that sees the match running finds its feed (E142).
+        feed = LiveFeed(self._config.live_address, self.match_id)
+        feed.open()
+        try:
+            if not matches.start(self._db, self.match_id, self._now()):
+                self._refuse(sides, RuntimeError("the match changed while it was being prepared"))
+                return
+            self._play(match, *sides, feed=feed)
+        finally:
+            # After the result or the abort, so a viewer told end finds it in the API.
+            feed.end()
 
-    def _play(self, match: dict, white: Player, black: Player) -> None:
+    def _refuse(self, sides: list[Player], error: Exception) -> None:
+        for player in sides:
+            player.close()
+        self.cancel()
+        log.warning("match %s not started: %s", self.match_id, error)
+        self._abort(_reason(error))
+
+    def _play(self, match: dict, white: Player, black: Player, *, feed: LiveFeed) -> None:
         log.info("interactive match %s: %s vs %s", self.match_id, white.name, black.name)
         try:
             recorder = Recorder(self._db, self.match_id)
 
             def on_move(move: MoveRecord) -> None:
                 recorder.on_move(move)
+                feed.move(move_document(move))
                 for person in self._people:
                     person.observe(move)
 

@@ -1,8 +1,10 @@
 """The real gateway in a thread, a remote bot speaking protocol v1 over its WebSocket, and a
-play worker that reaches the gateway on its local relay port.
+play worker that reaches the gateway on its local relay port and sends it the moves for the
+viewers (E142).
 """
 
 import asyncio
+import http.client
 import json
 import threading
 import time
@@ -31,7 +33,15 @@ TIMEOUT = 10
 
 class RunningGateway:
     def __init__(self) -> None:
-        config = replace(GatewayConfig(), socket_host="127.0.0.1", socket_port=0, relay_port=0)
+        config = replace(
+            GatewayConfig(),
+            socket_host="127.0.0.1",
+            socket_port=0,
+            relay_port=0,
+            live_port=0,
+            watch_host="127.0.0.1",
+            watch_port=0,
+        )
         self.gateway = Gateway(config)
         self.loop = asyncio.new_event_loop()
         started = threading.Event()
@@ -109,6 +119,39 @@ class RemoteBot(threading.Thread):
         return [message["type"] for message in self.received]
 
 
+class Watcher(threading.Thread):
+    """A viewer following the match on the gateway's watch port as the SPA does, over SSE."""
+
+    def __init__(self, port: int, match_id) -> None:
+        super().__init__(daemon=True)
+        self._port = port
+        self._path = f"/api/v1/matches/{match_id}/live"
+        self.status: int | None = None
+        self.events: list[tuple[str, dict]] = []
+
+    def run(self) -> None:
+        connection = http.client.HTTPConnection("127.0.0.1", self._port, timeout=TIMEOUT)
+        try:
+            connection.request("GET", self._path)
+            response = connection.getresponse()
+            self.status = response.status
+            kind = None
+            for raw in response:
+                line = raw.decode().rstrip("\n")
+                if line.startswith("event: "):
+                    kind = line.removeprefix("event: ")
+                elif line.startswith("data: ") and kind is not None:
+                    self.events.append((kind, json.loads(line.removeprefix("data: "))))
+                    if kind == "end":
+                        return
+                    kind = None
+        finally:
+            connection.close()
+
+    def plies(self) -> list[int]:
+        return [data["ply"] for kind, data in self.events if kind == "move"]
+
+
 class Person(threading.Thread):
     """A browser speaking play-v1: plays the first legal move when it is its turn.
 
@@ -184,6 +227,7 @@ def play_config(gateway) -> PlayConfig:
     return PlayConfig(
         worker_id="test-play",
         relay_port=gateway.gateway.relay_port,
+        live_address=("127.0.0.1", gateway.gateway.live_port),
         slots=1,
         connect_wait=timedelta(seconds=5),
         absent_grace=timedelta(seconds=1),

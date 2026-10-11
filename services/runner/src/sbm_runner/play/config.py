@@ -5,6 +5,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import timedelta
 
+from sbm_runner.address import live_address, parse_address
 from sbm_runner.config import default_worker_id
 
 
@@ -18,6 +19,8 @@ class PlayConfig:
     worker_id: str = field(default_factory=default_worker_id)
     relay_host: str = "127.0.0.1"
     relay_port: int = 9000
+    # The gateway's live port for the viewers of the games (E142); None publishes nothing.
+    live_address: tuple[str, int] | None = None
     slots: int = 2
     poll_interval: timedelta = timedelta(seconds=1)
     lease: timedelta = timedelta(seconds=60)
@@ -39,14 +42,17 @@ class PlayConfig:
         address = environ.get("SBM_RELAY_ADDRESS")
         host, port = defaults.relay_host, defaults.relay_port
         if address:
-            host, _, port_text = address.rpartition(":")
-            if not host or not port_text.isdigit() or not 1 <= int(port_text) <= 65535:
-                raise ValueError(f"SBM_RELAY_ADDRESS must be host:port, not {address!r}")
-            port = int(port_text)
+            host, port = parse_address("SBM_RELAY_ADDRESS", address)
         slots_text = environ.get("SBM_PLAY_SLOTS")
         slots = defaults.slots
         if slots_text:
             if not slots_text.isdigit() or int(slots_text) < 1:
                 raise ValueError(f"SBM_PLAY_SLOTS must be a positive whole number: {slots_text!r}")
             slots = int(slots_text)
-        return cls(worker_id=defaults.worker_id, relay_host=host, relay_port=port, slots=slots)
+        return cls(
+            worker_id=defaults.worker_id,
+            relay_host=host,
+            relay_port=port,
+            live_address=live_address(environ),
+            slots=slots,
+        )

@@ -22,6 +22,8 @@ class RunnerConfig:
     retry_delay: timedelta = timedelta(seconds=30)
     # A verification that waited this long goes ahead of the next match (E89).
     verification_wait: timedelta = timedelta(minutes=15)
+    # The gateway's live port for the viewers of running matches (E142); None publishes nothing.
+    live_address: tuple[str, int] | None = None
 
 
 def default_worker_id() -> str:
