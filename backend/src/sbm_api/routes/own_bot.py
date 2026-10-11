@@ -4,7 +4,7 @@ A retired bot leaves its leagues (E136).
 """
 
 from flask import Blueprint
-from sbm_store import bots, league_withdrawal, registrations
+from sbm_store import bots, registrations, withdrawal
 
 from sbm_api import body, bot_description, context
 from sbm_api.bot_access import owned_bot
@@ -33,5 +33,5 @@ def update_own_bot(bot_id: str):
     if changed is None:
         raise invalid_parameter("status", f"a {bot['status']} bot cannot switch")
     if retired:
-        league_withdrawal.withdraw(db, bot["_id"], registrations.RETIRED, context.now())
+        withdrawal.withdraw_everywhere(db, bot["_id"], registrations.RETIRED, context.now())
     return bot_detail_view(changed, user)

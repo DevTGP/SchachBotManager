@@ -24,7 +24,7 @@ LEFT = T0 + timedelta(minutes=5)
 def running_season(db, entrants, name="Liga"):
     league = add_league(db, name)
     register(db, league, entrants)
-    league_setup.release(db, league["_id"], T0)
+    league_setup.start(db, league["_id"], T0)
     season_start.start_due(db, LATER, random.Random(1))
     return league, seasons.latest(db, league["_id"])
 

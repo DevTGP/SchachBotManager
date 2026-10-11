@@ -3,7 +3,7 @@
   "info": {
     "title": "SchachBotManager web API",
     "version": "1",
-    "description": "Web API of SchachBotManager (backend-api.md, E73): public reading of matches, bots and the game queue; sessions, accounts and administration for invited users (E83, E84, E85); uploading bots and their verification (E91, E92, E93); own bots with their versions and source, and single games set by their owners (E95, E96, E97, E98); disciplines (E100); ratings of bots (E103); games of people and remote bots in the lists like those of bots (E119); leagues with seasons, registrations and tables (E131–E137). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32). Requests other than GET need the header X-SBM-CSRF: 1 (E84).",
+    "description": "Web API of SchachBotManager (backend-api.md, E73): public reading of matches, bots and the game queue; sessions, accounts and administration for invited users (E83, E84, E85); uploading bots and their verification (E91, E92, E93); own bots with their versions and source, and single games set by their owners (E95, E96, E97, E98); disciplines (E100); ratings of bots (E103); games of people and remote bots in the lists like those of bots (E119); leagues with seasons, registrations and tables (E131–E137); tournaments with editions in three formats and a calendar for leagues and tournaments (E170–E180). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32). Requests other than GET need the header X-SBM-CSRF: 1 (E84).",
     "license": { "name": "MIT-0", "identifier": "MIT-0" }
   },
   "servers": [{ "url": "/api/v1" }],
@@ -43,7 +43,7 @@
           {
             "name": "kind",
             "in": "query",
-            "description": "bots: only matches between two bots (types single and league); players: only games of people in the browser and of remote bots (types human and remote, E119).",
+            "description": "bots: only matches between two bots (types single, league and tournament); players: only games of people in the browser and of remote bots (types human and remote, E119).",
             "schema": { "enum": ["bots", "players"] }
           },
           {
@@ -62,6 +62,12 @@
             "name": "season_id",
             "in": "query",
             "description": "Only the matches of this league season (E137).",
+            "schema": { "$ref": "#/components/schemas/Id" }
+          },
+          {
+            "name": "edition_id",
+            "in": "query",
+            "description": "Only the matches of this tournament edition (E178).",
             "schema": { "$ref": "#/components/schemas/Id" }
           },
           {
@@ -574,6 +580,56 @@
         }
       }
     },
+    "/bots/{bot_id}/tournaments": {
+      "parameters": [
+        {
+          "name": "bot_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "get": {
+        "operationId": "get_bot_tournaments",
+        "summary": "The active tournament registrations of a bot (E179). Visible like the bot.",
+        "responses": {
+          "200": {
+            "description": "The registrations.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TournamentRegistrationList" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/bots/{bot_id}/editions": {
+      "parameters": [
+        {
+          "name": "bot_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "get": {
+        "operationId": "get_bot_editions",
+        "summary": "The started tournament editions this bot version played in, newest first, with its place (E180). Visible like the bot.",
+        "responses": {
+          "200": {
+            "description": "The editions.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BotEditionList" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
     "/leagues": {
       "get": {
         "operationId": "list_leagues",
@@ -706,6 +762,141 @@
             "description": "The schedule.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/SeasonSchedule" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/tournaments": {
+      "get": {
+        "operationId": "list_tournaments",
+        "summary": "All tournaments ordered by name, the archived ones included (E180).",
+        "responses": {
+          "200": {
+            "description": "The tournaments.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/TournamentList" } }
+            }
+          }
+        }
+      }
+    },
+    "/tournaments/{tournament_id}": {
+      "parameters": [{ "$ref": "#/components/parameters/TournamentId" }],
+      "get": {
+        "operationId": "get_tournament",
+        "summary": "A tournament with its editions and registrations (E180).",
+        "responses": {
+          "200": {
+            "description": "The tournament.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/TournamentDetail" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/tournaments/{tournament_id}/registrations": {
+      "parameters": [{ "$ref": "#/components/parameters/TournamentId" }],
+      "post": {
+        "operationId": "register_tournament_bot",
+        "security": [{ "session": [] }],
+        "summary": "Registers a verified bot for a tournament that is not archived (E179); the owner (coder) or an admin. The bot enters at the next edition start.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegistrationRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The registration.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TournamentRegistration" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/RegistrationConflict" }
+        }
+      }
+    },
+    "/tournaments/{tournament_id}/registrations/{bot_id}": {
+      "parameters": [
+        { "$ref": "#/components/parameters/TournamentId" },
+        {
+          "name": "bot_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "delete": {
+        "operationId": "deregister_tournament_bot",
+        "security": [{ "session": [] }],
+        "summary": "Ends the registration of a bot; the owner (coder) or an admin. In a running edition the bot withdraws: its waiting games become forfeit wins of the opponents, in a knockout it loses its duel (E179).",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "responses": {
+          "204": { "description": "The bot is no longer registered." },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/editions/{edition_id}": {
+      "parameters": [
+        {
+          "name": "edition_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "get": {
+        "operationId": "get_edition",
+        "summary": "A tournament edition with its participants and its table or bracket (E180); the final result once it has finished.",
+        "responses": {
+          "200": {
+            "description": "The edition.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Edition" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/editions/{edition_id}/rounds": {
+      "parameters": [
+        {
+          "name": "edition_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "get": {
+        "operationId": "get_edition_rounds",
+        "summary": "The games of a round robin or Swiss edition by rounds and boards with the state of each game and the bye (E180); no rounds for knockout.",
+        "responses": {
+          "200": {
+            "description": "The rounds.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/EditionRounds" } }
             }
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
@@ -1212,7 +1403,7 @@
       "post": {
         "operationId": "create_league",
         "security": [{ "session": [] }],
-        "summary": "A new league with its first season, planned until an admin releases it (admin, E131, E132).",
+        "summary": "A new league with its first season, planned by its calendar or until an admin starts it (admin, E131, E132, E171).",
         "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
         "requestBody": {
           "required": true,
@@ -1267,7 +1458,7 @@
       "post": {
         "operationId": "start_league",
         "security": [{ "session": [] }],
-        "summary": "Releases the first season (admin, E132): it starts as soon as enough bots are registered; later seasons follow on their own.",
+        "summary": "Makes the planned season due now (admin, E132, E171): it starts as soon as enough bots are registered; with a calendar this pulls the next date forward.",
         "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
         "responses": {
           "200": {
@@ -1281,6 +1472,82 @@
           "403": { "$ref": "#/components/responses/Forbidden" },
           "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/LeagueState" }
+        }
+      }
+    },
+    "/admin/tournaments": {
+      "post": {
+        "operationId": "create_tournament",
+        "security": [{ "session": [] }],
+        "summary": "A new tournament with its first edition, planned by its calendar or until an admin starts it (admin, E171, E172).",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/TournamentRequest" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The new tournament.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Tournament" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "409": { "$ref": "#/components/responses/TournamentNameTaken" }
+        }
+      }
+    },
+    "/admin/tournaments/{tournament_id}": {
+      "parameters": [{ "$ref": "#/components/parameters/TournamentId" }],
+      "patch": {
+        "operationId": "update_tournament",
+        "security": [{ "session": [] }],
+        "summary": "Changes or archives a tournament (admin, E172); a running edition keeps its copy of the settings.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/TournamentUpdate" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The changed tournament.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Tournament" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/TournamentNameTaken" }
+        }
+      }
+    },
+    "/admin/tournaments/{tournament_id}/start": {
+      "parameters": [{ "$ref": "#/components/parameters/TournamentId" }],
+      "post": {
+        "operationId": "start_tournament",
+        "security": [{ "session": [] }],
+        "summary": "Makes the planned edition due now (admin, E171): it starts as soon as enough bots are registered; with a calendar this pulls the next date forward.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "responses": {
+          "200": {
+            "description": "The tournament.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Tournament" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/TournamentState" }
         }
       }
     },
@@ -1753,6 +2020,12 @@
         "in": "path",
         "required": true,
         "schema": { "$ref": "#/components/schemas/Id" }
+      },
+      "TournamentId": {
+        "name": "tournament_id",
+        "in": "path",
+        "required": true,
+        "schema": { "$ref": "#/components/schemas/Id" }
       }
     },
     "responses": {
@@ -1873,12 +2146,24 @@
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
       },
       "LeagueState": {
-        "description": "The league is archived or its first season was released already (code league_state).",
+        "description": "The league is archived, has no planned season or its planned season is due already (code league_state).",
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
       },
       "RegistrationConflict": {
-        "description": "The bot is registered already (code already_registered), the league is archived (code league_state) or the bot is not verified (code bot_state).",
+        "description": "The bot is registered already (code already_registered), the league or tournament is archived (code league_state or tournament_state) or the bot is not verified (code bot_state).",
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
+      "TournamentNameTaken": {
+        "description": "Another tournament has the name, also in another case (code name_taken).",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+        }
+      },
+      "TournamentState": {
+        "description": "The tournament is archived, has no planned edition or its planned edition is due already (code tournament_state).",
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+        }
       }
     },
     "schemas": {
@@ -1921,6 +2206,7 @@
               "not_repeatable",
               "bot_state",
               "league_state",
+              "tournament_state",
               "already_registered"
             ]
           },
@@ -2156,8 +2442,8 @@
         "properties": {
           "id": { "$ref": "#/components/schemas/Id" },
           "type": {
-            "description": "single: two bots from the queue; league: a game of a league season (E134); human: a person in the browser against a bot (E114); remote: a coder's bot on their own machine against a bot (E116).",
-            "enum": ["single", "league", "human", "remote"]
+            "description": "single: two bots from the queue; league: a game of a league season (E134); human: a person in the browser against a bot (E114); remote: a coder's bot on their own machine against a bot (E116); tournament: a game of a tournament edition (E178).",
+            "enum": ["single", "league", "human", "remote", "tournament"]
           },
           "status": { "$ref": "#/components/schemas/MatchStatus" },
           "white": { "$ref": "#/components/schemas/Side" },
@@ -2190,6 +2476,10 @@
           "league": {
             "description": "Where a league game belongs (E137); null for other matches.",
             "oneOf": [{ "$ref": "#/components/schemas/LeaguePlace" }, { "type": "null" }]
+          },
+          "tournament": {
+            "description": "Where a tournament game belongs (E178); null for other matches.",
+            "oneOf": [{ "$ref": "#/components/schemas/TournamentPlace" }, { "type": "null" }]
           }
         },
         "required": [
@@ -2202,6 +2492,7 @@
           "rated",
           "series",
           "league",
+          "tournament",
           "result",
           "termination",
           "ply_count",
@@ -2828,7 +3119,7 @@
           "target_kind": {
             "description": "What kind of thing the target is, read from the action; null without a target (E169).",
             "oneOf": [
-              { "type": "string", "enum": ["bot", "match", "user", "discipline", "league", "invite"] },
+              { "type": "string", "enum": ["bot", "match", "user", "discipline", "league", "tournament", "invite"] },
               { "type": "null" }
             ]
           },
@@ -3362,12 +3653,6 @@
             "minimum": 2,
             "maximum": 320
           },
-          "pause_minutes": {
-            "description": "Minutes from the end of a season to the earliest start of the next.",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 43200
-          },
           "priority": {
             "description": "Queue priority of the league's matches; coders' games have 50 by default.",
             "type": "integer",
@@ -3384,7 +3669,6 @@
           "points",
           "tiebreaks",
           "min_participants",
-          "pause_minutes",
           "priority"
         ],
         "additionalProperties": false
@@ -3400,7 +3684,7 @@
           "number": { "type": "integer", "minimum": 1 },
           "status": { "$ref": "#/components/schemas/SeasonStatus" },
           "starts_after": {
-            "description": "Earliest start; null until an admin releases the first season (E132).",
+            "description": "Earliest start; null while it waits for an admin (E132, E171).",
             "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
           },
           "participants": {
@@ -3542,17 +3826,15 @@
             "minimum": 2,
             "maximum": 320
           },
-          "pause_minutes": {
-            "description": "Minutes from the end of a season to the earliest start of the next.",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 43200
-          },
           "priority": {
             "description": "Queue priority of the league's matches; coders' games have 50 by default.",
             "type": "integer",
             "minimum": 0,
             "maximum": 1000
+          },
+          "recurrence": {
+            "description": "null: every season or edition waits for an admin to start it (E171).",
+            "oneOf": [{ "$ref": "#/components/schemas/Recurrence" }, { "type": "null" }]
           },
           "archived": {
             "description": "Finishes its running season but starts no new one.",
@@ -3578,8 +3860,8 @@
           "points",
           "tiebreaks",
           "min_participants",
-          "pause_minutes",
           "priority",
+          "recurrence",
           "archived",
           "registered",
           "season",
@@ -3921,12 +4203,10 @@
             "maximum": 320,
             "default": 2
           },
-          "pause_minutes": {
-            "description": "Minutes from the end of a season to the earliest start of the next.",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 43200,
-            "default": 60
+          "recurrence": {
+            "description": "null: every season or edition waits for an admin to start it (E171).",
+            "oneOf": [{ "$ref": "#/components/schemas/Recurrence" }, { "type": "null" }],
+            "default": null
           },
           "priority": {
             "description": "Queue priority of the league's matches; coders' games have 50 by default.",
@@ -3986,17 +4266,15 @@
             "minimum": 2,
             "maximum": 320
           },
-          "pause_minutes": {
-            "description": "Minutes from the end of a season to the earliest start of the next.",
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 43200
-          },
           "priority": {
             "description": "Queue priority of the league's matches; coders' games have 50 by default.",
             "type": "integer",
             "minimum": 0,
             "maximum": 1000
+          },
+          "recurrence": {
+            "description": "null: every season or edition waits for an admin to start it (E171).",
+            "oneOf": [{ "$ref": "#/components/schemas/Recurrence" }, { "type": "null" }]
           },
           "archived": { "type": "boolean" }
         },
@@ -4007,6 +4285,766 @@
         "type": "object",
         "properties": { "bot_id": { "$ref": "#/components/schemas/Id" } },
         "required": ["bot_id"],
+        "additionalProperties": false
+      },
+      "Recurrence": {
+        "description": "Calendar of a league or tournament (E171): a new season or edition waits for the first date first_start + k · interval_hours (k ≥ 0) after the start of the previous one, the first for the first date from now; a date that has passed already starts it at once.",
+        "type": "object",
+        "properties": {
+          "first_start": { "$ref": "#/components/schemas/Timestamp" },
+          "interval_hours": { "type": "integer", "minimum": 1, "maximum": 8760 }
+        },
+        "required": ["first_start", "interval_hours"],
+        "additionalProperties": false
+      },
+      "TournamentFormat": {
+        "description": "round_robin: everybody against everybody (E174); swiss: rounds paired by score (E175); knockout: duels in a bracket (E176).",
+        "enum": ["round_robin", "swiss", "knockout"]
+      },
+      "TournamentTiebreak": {
+        "description": "The tiebreaks of leagues (E135) and buchholz: higher sum of the opponents' points from played games, forfeits left out (E177).",
+        "enum": ["wins", "head_to_head", "sonneborn_berger", "fewer_moves", "buchholz"]
+      },
+      "TournamentName": {
+        "description": "1 to 40 characters without control characters, unique among tournaments regardless of case (E172); the API removes leading and trailing spaces.",
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 40,
+        "pattern": "^[^\\u0000-\\u001f\\u007f-\\u009f]*(?!\\n)$"
+      },
+      "TournamentSettings": {
+        "description": "The settings of a tournament (E172); an edition keeps a copy from its start.",
+        "type": "object",
+        "properties": {
+          "discipline_id": {
+            "description": "A discipline not archived when it is set.",
+            "$ref": "#/components/schemas/Id"
+          },
+          "format": { "$ref": "#/components/schemas/TournamentFormat" },
+          "games_per_pairing": {
+            "description": "Round robin: each pairing is played this often, the colours swapped each time; knockout: games of a duel before a tiebreak. Swiss plays one game per pairing.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "rounds": {
+            "description": "Swiss only: rounds to play, at most the participants minus one.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "tiebreaks": {
+            "description": "Round robin and Swiss: applied in order after the points; the lot drawn at the start comes last (E177).",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TournamentTiebreak" },
+            "maxItems": 5,
+            "uniqueItems": true
+          },
+          "tiebreak_discipline_id": {
+            "description": "Knockout only: the discipline of tiebreak and Armageddon games; null for the tournament's discipline (E176).",
+            "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }]
+          },
+          "tiebreak_pairs": {
+            "description": "Knockout only: pairs of tiebreak games after a tied duel, before the Armageddon game.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "min_participants": {
+            "description": "A due edition starts once at least this many bots can play.",
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 1024
+          },
+          "priority": {
+            "description": "Queue priority of the tournament's matches; coders' games and leagues have 50 by default.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          }
+        },
+        "required": [
+          "discipline_id",
+          "format",
+          "games_per_pairing",
+          "rounds",
+          "tiebreaks",
+          "tiebreak_discipline_id",
+          "tiebreak_pairs",
+          "min_participants",
+          "priority"
+        ],
+        "additionalProperties": false
+      },
+      "EditionStatus": {
+        "description": "planned: waiting for its start; running: matches are queued or played; finished: final result stored (E173).",
+        "enum": ["planned", "running", "finished"]
+      },
+      "EditionSummary": {
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Id" },
+          "number": { "type": "integer", "minimum": 1 },
+          "status": { "$ref": "#/components/schemas/EditionStatus" },
+          "starts_after": {
+            "description": "Earliest start; null while it waits for an admin (E171).",
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          },
+          "participants": {
+            "description": "Bots taking part; 0 before the start.",
+            "type": "integer",
+            "minimum": 0
+          },
+          "winner": {
+            "description": "The winner once the edition has finished; null before.",
+            "oneOf": [{ "$ref": "#/components/schemas/LeagueBot" }, { "type": "null" }]
+          },
+          "started_at": {
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          },
+          "finished_at": {
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "status",
+          "starts_after",
+          "participants",
+          "winner",
+          "started_at",
+          "finished_at"
+        ],
+        "additionalProperties": false
+      },
+      "TournamentFields": {
+        "description": "The fields of Tournament, open for extension by TournamentDetail.",
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Id" },
+          "name": { "$ref": "#/components/schemas/TournamentName" },
+          "discipline_name": {
+            "description": "Current name of the tournament's discipline.",
+            "type": "string"
+          },
+          "discipline_id": {
+            "description": "A discipline not archived when it is set.",
+            "$ref": "#/components/schemas/Id"
+          },
+          "format": { "$ref": "#/components/schemas/TournamentFormat" },
+          "games_per_pairing": {
+            "description": "Round robin: each pairing is played this often, the colours swapped each time; knockout: games of a duel before a tiebreak. Swiss plays one game per pairing.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "rounds": {
+            "description": "Swiss only: rounds to play, at most the participants minus one.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "tiebreaks": {
+            "description": "Round robin and Swiss: applied in order after the points; the lot drawn at the start comes last (E177).",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TournamentTiebreak" },
+            "maxItems": 5,
+            "uniqueItems": true
+          },
+          "tiebreak_discipline_id": {
+            "description": "Knockout only: the discipline of tiebreak and Armageddon games; null for the tournament's discipline (E176).",
+            "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }]
+          },
+          "tiebreak_pairs": {
+            "description": "Knockout only: pairs of tiebreak games after a tied duel, before the Armageddon game.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "min_participants": {
+            "description": "A due edition starts once at least this many bots can play.",
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 1024
+          },
+          "priority": {
+            "description": "Queue priority of the tournament's matches; coders' games and leagues have 50 by default.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "tiebreak_discipline_name": {
+            "description": "Current name of the tiebreak discipline; null without one.",
+            "type": ["string", "null"]
+          },
+          "recurrence": {
+            "description": "null: every season or edition waits for an admin to start it (E171).",
+            "oneOf": [{ "$ref": "#/components/schemas/Recurrence" }, { "type": "null" }]
+          },
+          "archived": {
+            "description": "Finishes its running edition but starts no new one.",
+            "type": "boolean"
+          },
+          "registered": { "description": "Bots registered now.", "type": "integer", "minimum": 0 },
+          "edition": {
+            "description": "The latest edition.",
+            "oneOf": [{ "$ref": "#/components/schemas/EditionSummary" }, { "type": "null" }]
+          },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" },
+          "updated_at": { "$ref": "#/components/schemas/Timestamp" }
+        },
+        "required": [
+          "id",
+          "name",
+          "discipline_name",
+          "discipline_id",
+          "format",
+          "games_per_pairing",
+          "rounds",
+          "tiebreaks",
+          "tiebreak_discipline_id",
+          "tiebreak_pairs",
+          "min_participants",
+          "priority",
+          "tiebreak_discipline_name",
+          "recurrence",
+          "archived",
+          "registered",
+          "edition",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "Tournament": {
+        "allOf": [{ "$ref": "#/components/schemas/TournamentFields" }],
+        "unevaluatedProperties": false
+      },
+      "TournamentList": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/Tournament" } }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "TournamentRegistration": {
+        "description": "An active registration of a bot for a tournament (E179).",
+        "type": "object",
+        "properties": {
+          "tournament_id": { "$ref": "#/components/schemas/Id" },
+          "tournament_name": { "type": "string" },
+          "bot": { "$ref": "#/components/schemas/LeagueBot" },
+          "created_at": { "$ref": "#/components/schemas/Timestamp" },
+          "playing": {
+            "description": "The bot takes part in the running edition and has not withdrawn.",
+            "type": "boolean"
+          }
+        },
+        "required": ["tournament_id", "tournament_name", "bot", "created_at", "playing"],
+        "additionalProperties": false
+      },
+      "TournamentRegistrationList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TournamentRegistration" }
+          }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "TournamentDetail": {
+        "allOf": [{ "$ref": "#/components/schemas/TournamentFields" }],
+        "description": "A tournament with all its editions, newest first, and its registrations in the order they came (E180).",
+        "properties": {
+          "editions": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/EditionSummary" }
+          },
+          "registrations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TournamentRegistration" }
+          }
+        },
+        "required": ["editions", "registrations"],
+        "unevaluatedProperties": false
+      },
+      "EditionParticipant": {
+        "description": "A bot of an edition as it was at the start (E173).",
+        "type": "object",
+        "properties": {
+          "bot": { "$ref": "#/components/schemas/LeagueBot" },
+          "seed": {
+            "description": "Place in the seeding, from 1.",
+            "type": "integer",
+            "minimum": 1
+          },
+          "rating": {
+            "description": "Rating in the tournament's discipline at the start.",
+            "type": "number"
+          },
+          "withdrawn": { "type": "boolean" }
+        },
+        "required": ["bot", "seed", "rating", "withdrawn"],
+        "additionalProperties": false
+      },
+      "EditionTableRow": {
+        "description": "A bot in the table of a round robin or Swiss edition (E177). wins includes forfeit_wins; points include byes.",
+        "type": "object",
+        "properties": {
+          "bot": { "$ref": "#/components/schemas/LeagueBot" },
+          "rank": {
+            "description": "null for a withdrawn bot, which stands at the end.",
+            "type": ["integer", "null"],
+            "minimum": 1
+          },
+          "games": { "type": "integer", "minimum": 0 },
+          "wins": { "type": "integer", "minimum": 0 },
+          "forfeit_wins": { "type": "integer", "minimum": 0 },
+          "draws": { "type": "integer", "minimum": 0 },
+          "losses": { "type": "integer", "minimum": 0 },
+          "byes": { "type": "integer", "minimum": 0 },
+          "points": { "type": "number", "multipleOf": 0.5 },
+          "buchholz": { "type": "number", "multipleOf": 0.5 },
+          "withdrawn": { "type": "boolean" }
+        },
+        "required": [
+          "bot",
+          "rank",
+          "games",
+          "wins",
+          "forfeit_wins",
+          "draws",
+          "losses",
+          "byes",
+          "points",
+          "buchholz",
+          "withdrawn"
+        ],
+        "additionalProperties": false
+      },
+      "DuelSide": {
+        "type": "object",
+        "properties": {
+          "bot": { "$ref": "#/components/schemas/LeagueBot" },
+          "seed": { "type": "integer", "minimum": 1 },
+          "points": {
+            "description": "Points from the regular games of the duel.",
+            "type": "number",
+            "multipleOf": 0.5
+          },
+          "tiebreak_points": {
+            "description": "Points from the tiebreak games.",
+            "type": "number",
+            "multipleOf": 0.5
+          }
+        },
+        "required": ["bot", "seed", "points", "tiebreak_points"],
+        "additionalProperties": false
+      },
+      "DuelGame": {
+        "type": "object",
+        "properties": {
+          "match_id": { "$ref": "#/components/schemas/Id" },
+          "phase": { "$ref": "#/components/schemas/DuelPhase" },
+          "game": {
+            "description": "Number of the game within its phase, from 1.",
+            "type": "integer",
+            "minimum": 1
+          },
+          "white": { "$ref": "#/components/schemas/LeagueBot" },
+          "black": { "$ref": "#/components/schemas/LeagueBot" },
+          "status": { "$ref": "#/components/schemas/MatchStatus" },
+          "result": {
+            "description": "null until the game ends.",
+            "oneOf": [{ "$ref": "#/components/schemas/Result" }, { "type": "null" }]
+          },
+          "termination": {
+            "description": "null until the game ends.",
+            "oneOf": [{ "$ref": "#/components/schemas/Termination" }, { "type": "null" }]
+          }
+        },
+        "required": [
+          "match_id",
+          "phase",
+          "game",
+          "white",
+          "black",
+          "status",
+          "result",
+          "termination"
+        ],
+        "additionalProperties": false
+      },
+      "DuelPhase": {
+        "description": "regular: the games_per_pairing games; tiebreak: pairs of games in the tiebreak discipline; armageddon: one game where a draw is enough for black (E176).",
+        "enum": ["regular", "tiebreak", "armageddon"]
+      },
+      "Duel": {
+        "description": "A duel of a knockout bracket (E176); a side is null for a bye or while its feeder is open.",
+        "type": "object",
+        "properties": {
+          "round": { "type": "integer", "minimum": 1 },
+          "slot": {
+            "description": "Place within the round, from 1.",
+            "type": "integer",
+            "minimum": 1
+          },
+          "a": {
+            "description": "The better seed.",
+            "oneOf": [{ "$ref": "#/components/schemas/DuelSide" }, { "type": "null" }]
+          },
+          "b": {
+            "oneOf": [{ "$ref": "#/components/schemas/DuelSide" }, { "type": "null" }]
+          },
+          "winner": {
+            "description": "Bot id of the winner; null while open or when both sides withdrew.",
+            "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }]
+          },
+          "decided": { "type": "boolean" },
+          "decided_by": {
+            "description": "How the duel was decided; null while open.",
+            "enum": ["games", "tiebreak", "armageddon", "bye", "withdrawal", null]
+          },
+          "games": { "type": "array", "items": { "$ref": "#/components/schemas/DuelGame" } }
+        },
+        "required": ["round", "slot", "a", "b", "winner", "decided", "decided_by", "games"],
+        "additionalProperties": false
+      },
+      "KnockoutPlacement": {
+        "type": "object",
+        "properties": {
+          "bot": { "$ref": "#/components/schemas/LeagueBot" },
+          "place": {
+            "description": "1 for the winner, 2 for the finalist, 3 for the semi-finalists, 5, 9 …; null while still in or after a withdrawal.",
+            "type": ["integer", "null"],
+            "minimum": 1
+          },
+          "withdrawn": { "type": "boolean" }
+        },
+        "required": ["bot", "place", "withdrawn"],
+        "additionalProperties": false
+      },
+      "Edition": {
+        "description": "An edition with its participants and its table or bracket (E180); settings and participants are empty until it starts.",
+        "type": "object",
+        "properties": {
+          "id": { "$ref": "#/components/schemas/Id" },
+          "tournament_id": { "$ref": "#/components/schemas/Id" },
+          "tournament_name": { "type": "string" },
+          "number": { "type": "integer", "minimum": 1 },
+          "status": { "$ref": "#/components/schemas/EditionStatus" },
+          "starts_after": {
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          },
+          "started_at": {
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          },
+          "finished_at": {
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          },
+          "settings": {
+            "description": "The tournament's settings at the start; null before.",
+            "oneOf": [{ "$ref": "#/components/schemas/TournamentSettings" }, { "type": "null" }]
+          },
+          "discipline": {
+            "description": "The discipline at the start; null before.",
+            "oneOf": [{ "$ref": "#/components/schemas/Discipline" }, { "type": "null" }]
+          },
+          "tiebreak_discipline": {
+            "description": "Knockout: the discipline of tiebreak and Armageddon games at the start; null otherwise.",
+            "oneOf": [{ "$ref": "#/components/schemas/Discipline" }, { "type": "null" }]
+          },
+          "participants": {
+            "description": "By seed.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/EditionParticipant" }
+          },
+          "round": {
+            "description": "Swiss: rounds paired so far; round robin and knockout: 0.",
+            "type": "integer",
+            "minimum": 0
+          },
+          "games": { "description": "Matches of the edition.", "type": "integer", "minimum": 0 },
+          "finished": {
+            "description": "Matches that ended, forfeits and aborted ones included.",
+            "type": "integer",
+            "minimum": 0
+          },
+          "table": {
+            "description": "Round robin and Swiss; empty for knockout.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/EditionTableRow" }
+          },
+          "bracket_size": {
+            "description": "Knockout: places in the bracket, a power of two; null otherwise.",
+            "type": ["integer", "null"],
+            "minimum": 2
+          },
+          "bracket": {
+            "description": "Knockout: the duels by round and slot; empty otherwise.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Duel" }
+          },
+          "placements": {
+            "description": "Knockout: the participants by place; empty otherwise.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/KnockoutPlacement" }
+          }
+        },
+        "required": [
+          "id",
+          "tournament_id",
+          "tournament_name",
+          "number",
+          "status",
+          "starts_after",
+          "started_at",
+          "finished_at",
+          "settings",
+          "discipline",
+          "tiebreak_discipline",
+          "participants",
+          "round",
+          "games",
+          "finished",
+          "table",
+          "bracket_size",
+          "bracket",
+          "placements"
+        ],
+        "additionalProperties": false
+      },
+      "EditionRounds": {
+        "description": "The games of a round robin or Swiss edition by rounds and boards (E180); empty for knockout, whose games are in the bracket.",
+        "type": "object",
+        "properties": {
+          "rounds": { "type": "array", "items": { "$ref": "#/components/schemas/ScheduleRound" } }
+        },
+        "required": ["rounds"],
+        "additionalProperties": false
+      },
+      "BotEdition": {
+        "description": "An edition one bot version played in, with its place there (E180).",
+        "type": "object",
+        "properties": {
+          "edition_id": { "$ref": "#/components/schemas/Id" },
+          "tournament_id": { "$ref": "#/components/schemas/Id" },
+          "tournament_name": { "type": "string" },
+          "number": { "type": "integer", "minimum": 1 },
+          "format": { "$ref": "#/components/schemas/TournamentFormat" },
+          "status": {
+            "enum": ["running", "finished"]
+          },
+          "started_at": { "$ref": "#/components/schemas/Timestamp" },
+          "finished_at": {
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          },
+          "seed": { "type": "integer", "minimum": 1 },
+          "participants": { "type": "integer", "minimum": 1 },
+          "place": {
+            "description": "Rank in the table, current while the edition runs, or place in the bracket; null after a withdrawal or while still in the bracket.",
+            "type": ["integer", "null"],
+            "minimum": 1
+          },
+          "points": {
+            "description": "Round robin and Swiss; null for knockout.",
+            "type": ["number", "null"],
+            "multipleOf": 0.5
+          },
+          "withdrawn": { "type": "boolean" }
+        },
+        "required": [
+          "edition_id",
+          "tournament_id",
+          "tournament_name",
+          "number",
+          "format",
+          "status",
+          "started_at",
+          "finished_at",
+          "seed",
+          "participants",
+          "place",
+          "points",
+          "withdrawn"
+        ],
+        "additionalProperties": false
+      },
+      "BotEditionList": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/BotEdition" } }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "TournamentPlace": {
+        "description": "Tournament, edition, round and board of a tournament game; name and number as they were when the edition started (E178).",
+        "type": "object",
+        "properties": {
+          "tournament_id": { "$ref": "#/components/schemas/Id" },
+          "tournament_name": { "type": "string" },
+          "edition_id": { "$ref": "#/components/schemas/Id" },
+          "edition_number": { "type": "integer", "minimum": 1 },
+          "format": { "$ref": "#/components/schemas/TournamentFormat" },
+          "round": { "type": "integer", "minimum": 1 },
+          "board": {
+            "description": "Board within the round, from 1; the slot of the duel for knockout.",
+            "type": "integer",
+            "minimum": 1
+          },
+          "phase": {
+            "description": "Knockout: the phase of the duel; null otherwise.",
+            "oneOf": [{ "$ref": "#/components/schemas/DuelPhase" }, { "type": "null" }]
+          },
+          "game": {
+            "description": "Knockout: number of the game within its phase; null otherwise.",
+            "type": ["integer", "null"],
+            "minimum": 1
+          }
+        },
+        "required": [
+          "tournament_id",
+          "tournament_name",
+          "edition_id",
+          "edition_number",
+          "format",
+          "round",
+          "board",
+          "phase",
+          "game"
+        ],
+        "additionalProperties": false
+      },
+      "TournamentRequest": {
+        "description": "A new tournament; fields left out take their default (E172).",
+        "type": "object",
+        "properties": {
+          "name": { "$ref": "#/components/schemas/TournamentName" },
+          "discipline_id": {
+            "description": "A discipline not archived when it is set.",
+            "$ref": "#/components/schemas/Id"
+          },
+          "format": {
+            "description": "Fixed once the tournament exists (E172).",
+            "$ref": "#/components/schemas/TournamentFormat"
+          },
+          "games_per_pairing": {
+            "description": "Round robin: each pairing is played this often, the colours swapped each time; knockout: games of a duel before a tiebreak. Swiss plays one game per pairing.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "default": 2
+          },
+          "rounds": {
+            "description": "Swiss only: rounds to play, at most the participants minus one.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20,
+            "default": 5
+          },
+          "tiebreaks": {
+            "description": "Round robin and Swiss: applied in order after the points; the lot drawn at the start comes last (E177). Default: wins, head_to_head, sonneborn_berger for round robin; buchholz, sonneborn_berger, wins for Swiss; empty for knockout.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TournamentTiebreak" },
+            "maxItems": 5,
+            "uniqueItems": true
+          },
+          "tiebreak_discipline_id": {
+            "description": "Knockout only: the discipline of tiebreak and Armageddon games; null for the tournament's discipline (E176).",
+            "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }],
+            "default": null
+          },
+          "tiebreak_pairs": {
+            "description": "Knockout only: pairs of tiebreak games after a tied duel, before the Armageddon game.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5,
+            "default": 1
+          },
+          "min_participants": {
+            "description": "A due edition starts once at least this many bots can play.",
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 1024,
+            "default": 2
+          },
+          "priority": {
+            "description": "Queue priority of the tournament's matches; coders' games and leagues have 50 by default.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000,
+            "default": 40
+          },
+          "recurrence": {
+            "description": "null: every season or edition waits for an admin to start it (E171).",
+            "oneOf": [{ "$ref": "#/components/schemas/Recurrence" }, { "type": "null" }],
+            "default": null
+          }
+        },
+        "required": ["name", "discipline_id", "format"],
+        "additionalProperties": false
+      },
+      "TournamentUpdate": {
+        "description": "At least one field; changes apply from the next edition, a new calendar also to the planned one (E171, E172).",
+        "type": "object",
+        "properties": {
+          "name": { "$ref": "#/components/schemas/TournamentName" },
+          "discipline_id": {
+            "description": "A discipline not archived when it is set.",
+            "$ref": "#/components/schemas/Id"
+          },
+          "games_per_pairing": {
+            "description": "Round robin: each pairing is played this often, the colours swapped each time; knockout: games of a duel before a tiebreak. Swiss plays one game per pairing.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "rounds": {
+            "description": "Swiss only: rounds to play, at most the participants minus one.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "tiebreaks": {
+            "description": "Round robin and Swiss: applied in order after the points; the lot drawn at the start comes last (E177).",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TournamentTiebreak" },
+            "maxItems": 5,
+            "uniqueItems": true
+          },
+          "tiebreak_discipline_id": {
+            "description": "Knockout only: the discipline of tiebreak and Armageddon games; null for the tournament's discipline (E176).",
+            "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }]
+          },
+          "tiebreak_pairs": {
+            "description": "Knockout only: pairs of tiebreak games after a tied duel, before the Armageddon game.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "min_participants": {
+            "description": "A due edition starts once at least this many bots can play.",
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 1024
+          },
+          "priority": {
+            "description": "Queue priority of the tournament's matches; coders' games and leagues have 50 by default.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "recurrence": {
+            "description": "null: every season or edition waits for an admin to start it (E171).",
+            "oneOf": [{ "$ref": "#/components/schemas/Recurrence" }, { "type": "null" }]
+          },
+          "archived": { "type": "boolean" }
+        },
+        "minProperties": 1,
         "additionalProperties": false
       }
     }

@@ -4,6 +4,7 @@ SeasonSummary, LeagueRegistration, E137)."""
 from pymongo.database import Database
 from sbm_store import bots, disciplines, leagues, registrations, seasons
 
+from sbm_api import recurrence_request
 from sbm_api.timestamps import optional_timestamp, timestamp
 
 
@@ -22,6 +23,7 @@ def league_view(db: Database, league: dict, discipline_name: str | None = None) 
         {"id": str(league["_id"]), "name": league["name"], "discipline_name": discipline_name}
         | settings
         | {
+            "recurrence": recurrence_request.view(league.get("recurrence")),
             "archived": league["archived"],
             "registered": registrations.count_active(db, league["_id"]),
             "season": None if latest is None else season_summary(latest),

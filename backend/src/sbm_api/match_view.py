@@ -30,6 +30,7 @@ def match_summary(match: dict) -> dict:
         "ply_count": ply_count,
         "series": series_place(match.get("series")),
         "league": league_place(match.get("context")),
+        "tournament": tournament_place(match.get("context")),
         "created_at": timestamp(match["created_at"]),
         "started_at": optional_timestamp(match["started_at"]),
         "finished_at": optional_timestamp(match["finished_at"]),
@@ -44,8 +45,8 @@ def series_place(series: dict | None) -> dict | None:
 
 
 def league_place(context: dict | None) -> dict | None:
-    """Where a league game stands (E134); other matches have no context."""
-    if context is None:
+    """Where a league game stands (E134); other matches have no league context."""
+    if context is None or "league_id" not in context:
         return None
     return {
         "league_id": str(context["league_id"]),
@@ -55,6 +56,23 @@ def league_place(context: dict | None) -> dict | None:
         "tier": context["tier"],
         "round": context["round"],
         "board": context["board"],
+    }
+
+
+def tournament_place(context: dict | None) -> dict | None:
+    """Where a tournament game stands (E178)."""
+    if context is None or "tournament_id" not in context:
+        return None
+    return {
+        "tournament_id": str(context["tournament_id"]),
+        "tournament_name": context["tournament_name"],
+        "edition_id": str(context["edition_id"]),
+        "edition_number": context["edition_number"],
+        "format": context["format"],
+        "round": context["round"],
+        "board": context["board"],
+        "phase": context["phase"],
+        "game": context["game"],
     }
 
 

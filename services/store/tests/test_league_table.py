@@ -152,3 +152,22 @@ def test_games_against_bots_outside_the_tier_are_ignored():
     rows = table(entries((A, 1), (B, 2)), [game(A, C, 1.0)], points=POINTS, tiebreaks=[])
 
     assert [row.games for row in rows] == [0, 0]
+
+
+def test_byes_give_a_win_and_buchholz_sums_the_opponents_points():
+    rows = table(
+        entries((A, 1), (B, 2), (C, 3), (D, 4)),
+        [game(A, B, 1.0), game(C, D, 0.5), game(A, C, 0.5), game(B, D, 0.0, forfeit=True)],
+        points=POINTS,
+        tiebreaks=["buchholz"],
+        byes={B: 1},
+    )
+
+    by_name = {row.bot["name"]: row for row in rows}
+    assert (by_name["B"].byes, by_name["B"].points) == (1, 1.0)
+    assert by_name["D"].points == 1.5
+    # A met B (1.0) and C (1.0); a forfeit does not count for Buchholz.
+    assert by_name["A"].buchholz == 2.0
+    assert by_name["D"].buchholz == 1.0
+    assert by_name["D"].to_edition_document()["byes"] == 0
+    assert "outcome" not in by_name["D"].to_edition_document()

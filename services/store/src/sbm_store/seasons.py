@@ -1,10 +1,10 @@
 """The seasons collection: planned → running → finished (E132).
 
-A planned season waits for starts_after; the first one of a league has None there until an
-admin releases it. The start writes the lineup into tiers ({tier, entries}), each entry with
-bot_id, name, version and lot, and a copy of the league's settings with its discipline as
-discipline_snapshot. The schedule follows and is confirmed by scheduled. The end stores the
-final tables in final ({tier, table}).
+A planned season waits for starts_after, the next date of the league's calendar (E171); without
+a calendar it has None there until an admin starts it. The start writes the lineup into tiers
+({tier, entries}), each entry with bot_id, name, version and lot, and a copy of the league's
+settings with its discipline as discipline_snapshot. The schedule follows and is confirmed by
+scheduled. The end stores the final tables in final ({tier, table}).
 """
 
 from datetime import datetime
@@ -71,13 +71,24 @@ def latest(db: Database, league_id: ObjectId) -> dict | None:
     return db[SEASONS].find_one({"league_id": league_id}, sort=[("number", DESCENDING)])
 
 
-def release(db: Database, league_id: ObjectId, now: datetime) -> bool:
-    """Lets the first season start (E132); False if no season waits for a release."""
+def start_now(db: Database, league_id: ObjectId, now: datetime) -> bool:
+    """Lets the planned season start now (E171); False if none waits or it is due already."""
     result = db[SEASONS].update_one(
-        {"league_id": league_id, "status": PLANNED, "starts_after": None},
+        {
+            "league_id": league_id,
+            "status": PLANNED,
+            "$or": [{"starts_after": None}, {"starts_after": {"$gt": now}}],
+        },
         {"$set": {"starts_after": now}},
     )
     return result.modified_count == 1
+
+
+def reschedule(db: Database, season_id: ObjectId, starts_after: datetime | None) -> None:
+    """Moves the start of a planned season, e.g. after the calendar changed."""
+    db[SEASONS].update_one(
+        {"_id": season_id, "status": PLANNED}, {"$set": {"starts_after": starts_after}}
+    )
 
 
 def due(db: Database, now: datetime) -> list[dict]:

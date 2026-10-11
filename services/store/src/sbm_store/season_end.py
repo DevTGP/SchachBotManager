@@ -1,15 +1,18 @@
 """Finishing seasons whose games have all ended (E132, E133, E135); the runner calls this.
 
+The next season waits for the first date of the calendar after the start of this one, which may
+have passed already; without a calendar it waits for an admin (E171).
+
 The next season is stored before the old one is marked finished: a crash in between finishes
 the old one again on the next round, and the next season's unique number stops a second copy.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from bson import ObjectId
 from pymongo.database import Database
 
-from sbm_store import leagues, matches, season_tables, seasons
+from sbm_store import leagues, matches, recurrence, season_tables, seasons
 from sbm_store.league_lineup import moves
 from sbm_store.names import MATCHES
 
@@ -37,8 +40,9 @@ def finish(db: Database, season: dict, now: datetime) -> None:
         for row in table.rows:
             row.outcome = outcomes[row.bot_id]
         final.append({"tier": table.tier, "table": [row.to_document() for row in table.rows]})
-    league = leagues.get(db, season["league_id"]) or settings
-    starts_after = now + timedelta(minutes=league["pause_minutes"])
+    league = leagues.get(db, season["league_id"])
+    calendar = league.get("recurrence") if league is not None else None
+    starts_after = recurrence.next_slot(calendar, season["started_at"])
     following = seasons.new_season(
         season["league_id"], season["number"] + 1, starts_after=starts_after, seeds=seeds, now=now
     )

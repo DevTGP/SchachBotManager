@@ -22,8 +22,8 @@ def test_the_first_season_waits_for_its_release(db):
     register(db, league, add_bots(db, 3))
 
     assert start(db, league) == []
-    assert league_setup.release(db, league["_id"], T0)
-    assert not league_setup.release(db, league["_id"], T0)
+    assert league_setup.start(db, league["_id"], T0)
+    assert not league_setup.start(db, league["_id"], T0)
     started = start(db, league)
 
     season = seasons.latest(db, league["_id"])
@@ -38,7 +38,7 @@ def test_a_round_robin_with_two_games_per_pairing(db):
     league = add_league(db)
     entrants = add_bots(db, 3)
     register(db, league, entrants)
-    league_setup.release(db, league["_id"], T0)
+    league_setup.start(db, league["_id"], T0)
     start(db, league)
 
     season = seasons.latest(db, league["_id"])
@@ -63,7 +63,7 @@ def test_a_round_robin_with_two_games_per_pairing(db):
 def test_too_few_bots_keep_the_season_planned(db):
     league = add_league(db, min_participants=3)
     register(db, league, add_bots(db, 2))
-    league_setup.release(db, league["_id"], T0)
+    league_setup.start(db, league["_id"], T0)
 
     assert start(db, league) == []
     assert seasons.latest(db, league["_id"])["status"] == seasons.PLANNED
@@ -74,7 +74,7 @@ def test_only_verified_bots_play(db):
     entrants = add_bots(db, 2)
     retired = add_bots(db, 1, status=bots.RETIRED)
     register(db, league, entrants + retired)
-    league_setup.release(db, league["_id"], T0)
+    league_setup.start(db, league["_id"], T0)
     start(db, league)
 
     entries = seasons.latest(db, league["_id"])["tiers"][0]["entries"]
@@ -85,7 +85,7 @@ def test_tiers_are_cut_from_the_registrations_in_order(db):
     league = add_league(db, tiers=2, tier_size=2)
     entrants = add_bots(db, 5)
     register(db, league, entrants)
-    league_setup.release(db, league["_id"], T0)
+    league_setup.start(db, league["_id"], T0)
     start(db, league)
 
     season = seasons.latest(db, league["_id"])
@@ -100,7 +100,7 @@ def test_tiers_are_cut_from_the_registrations_in_order(db):
 def test_an_archived_league_starts_no_season(db):
     league = add_league(db)
     register(db, league, add_bots(db, 2))
-    league_setup.release(db, league["_id"], T0)
+    league_setup.start(db, league["_id"], T0)
     leagues.update(db, league["_id"], {"archived": True}, now=T0)
 
     assert start(db, league) == []
@@ -109,7 +109,7 @@ def test_an_archived_league_starts_no_season(db):
 def test_laying_out_again_adds_only_what_is_missing(db):
     league = add_league(db)
     register(db, league, add_bots(db, 3))
-    league_setup.release(db, league["_id"], T0)
+    league_setup.start(db, league["_id"], T0)
     start(db, league)
     season = seasons.latest(db, league["_id"])
     games = season_games(db, season["_id"])

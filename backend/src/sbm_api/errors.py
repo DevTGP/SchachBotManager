@@ -40,6 +40,8 @@ NOT_REPEATABLE = "not_repeatable"
 BOT_STATE = "bot_state"
 # Leagues (E131, E136).
 LEAGUE_STATE = "league_state"
+# Tournaments (E172, E179).
+TOURNAMENT_STATE = "tournament_state"
 ALREADY_REGISTERED = "already_registered"
 
 

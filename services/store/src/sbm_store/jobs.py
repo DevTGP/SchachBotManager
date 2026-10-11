@@ -24,7 +24,8 @@ FAILED = "failed"
 # Stopped by an admin (E152); the runner notices it when it renews the lease.
 CANCELLED = "cancelled"
 
-# The competition of single games; a league's is league:<id> (E134, queue_order).
+# The competition of single games; a league's is league:<id> (E134, queue_order), a
+# tournament's tournament:<id> (E178).
 SINGLE = "single"
 
 # Higher priority first, then first come, first served.
@@ -33,6 +34,10 @@ START_ORDER = [("priority", DESCENDING), ("created_at", ASCENDING), ("_id", ASCE
 
 def league_competition(league_id: ObjectId) -> str:
     return f"league:{league_id}"
+
+
+def tournament_competition(tournament_id: ObjectId) -> str:
+    return f"tournament:{tournament_id}"
 
 
 def new_match_job(

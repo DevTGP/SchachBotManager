@@ -4,7 +4,7 @@ from pymongo.database import Database
 from sbm_store import disciplines, leagues
 from sbm_store.league_table import TIEBREAKS
 
-from sbm_api import body
+from sbm_api import body, recurrence_request
 from sbm_api.discipline_request import name
 from sbm_api.errors import invalid_parameter
 
@@ -15,12 +15,11 @@ LIMITS = {
     "games_per_pairing": (1, 10),
     "promotions": (0, 16),
     "min_participants": (2, 320),
-    "pause_minutes": (0, 43_200),
     "priority": (0, 1000),
 }
 MAX_POINTS = 10
 MAX_TIEBREAKS = 4
-FIELDS = ("name", *leagues.SETTINGS)
+FIELDS = ("name", *leagues.SETTINGS, "recurrence")
 
 
 def parse_new(db: Database) -> dict:
@@ -50,21 +49,24 @@ def _settings(db: Database, data: dict) -> dict:
     if "name" in data:
         fields["name"] = name(data)
     if "discipline_id" in data:
-        fields["discipline_id"] = _discipline(db, data)
+        fields["discipline_id"] = discipline_in_use(db, data, "discipline_id")
     for field, (low, high) in LIMITS.items():
         if field in data:
             fields[field] = body.integer(data, field, low=low, high=high)
     if "points" in data:
         fields["points"] = _points(data["points"])
     if "tiebreaks" in data:
-        fields["tiebreaks"] = _tiebreaks(data["tiebreaks"])
+        fields["tiebreaks"] = tiebreak_list(data["tiebreaks"], TIEBREAKS, MAX_TIEBREAKS)
+    if "recurrence" in data:
+        fields["recurrence"] = recurrence_request.parse(data["recurrence"])
     return fields
 
 
-def _discipline(db: Database, data: dict):
-    discipline = disciplines.get(db, body.identifier(data, "discipline_id"))
+def discipline_in_use(db: Database, data: dict, field: str):
+    """The id of the discipline named in field; it must exist and not be archived."""
+    discipline = disciplines.get(db, body.identifier(data, field))
     if discipline is None or discipline["archived"]:
-        raise invalid_parameter("discipline_id", "discipline_id is not a discipline in use")
+        raise invalid_parameter(field, f"{field} is not a discipline in use")
     return discipline["_id"]
 
 
@@ -86,12 +88,12 @@ def _points(value) -> dict:
     return {"win": win, "draw": draw, "loss": loss}
 
 
-def _tiebreaks(value) -> list[str]:
-    message = f"tiebreaks takes up to {MAX_TIEBREAKS} of {', '.join(TIEBREAKS)}, each once"
+def tiebreak_list(value, choices: tuple[str, ...], maximum: int) -> list[str]:
+    message = f"tiebreaks takes up to {maximum} of {', '.join(choices)}, each once"
     if (
         not isinstance(value, list)
-        or len(value) > MAX_TIEBREAKS
-        or any(item not in TIEBREAKS for item in value)
+        or len(value) > maximum
+        or any(item not in choices for item in value)
         or len(set(value)) != len(value)
     ):
         raise invalid_parameter("tiebreaks", message)

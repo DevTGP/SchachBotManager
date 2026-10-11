@@ -37,7 +37,7 @@ def league_of(db, reference_bots, **settings) -> dict:
             league["_id"], bot["_id"], created_by=None, now=past
         )
         assert registrations.insert(db, registration)
-    assert league_setup.release(db, league["_id"], past)
+    assert league_setup.start(db, league["_id"], past)
     return league
 
 

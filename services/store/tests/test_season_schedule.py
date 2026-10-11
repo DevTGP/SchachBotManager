@@ -13,7 +13,7 @@ from sbm_store.names import MATCHES
 def start(db, entrants, **settings) -> dict:
     league = add_league(db, **settings)
     register(db, league, entrants)
-    league_setup.release(db, league["_id"], T0)
+    league_setup.start(db, league["_id"], T0)
     season_start.start_due(db, T0 + timedelta(minutes=1), random.Random(1))
     return seasons.latest(db, league["_id"])
 

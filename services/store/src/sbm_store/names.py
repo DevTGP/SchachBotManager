@@ -21,3 +21,6 @@ BOT_FILES = "bot_files"
 LEAGUES = "leagues"
 SEASONS = "seasons"
 REGISTRATIONS = "registrations"
+# Tournaments and their editions (E172, E173); registrations hold both kinds of targets.
+TOURNAMENTS = "tournaments"
+EDITIONS = "editions"

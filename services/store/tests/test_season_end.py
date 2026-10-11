@@ -6,16 +6,19 @@ from datetime import timedelta
 from conftest import T0
 from league_world import add_bots, add_league, play_out, register, stronger
 
-from sbm_store import league_lineup, league_setup, season_end, season_start, seasons
+from sbm_store import league_lineup, league_setup, recurrence, season_end, season_start, seasons
 
 LATER = T0 + timedelta(minutes=1)
 END = T0 + timedelta(hours=1)
 
 
+CALENDAR = recurrence.new_recurrence(T0, 2)
+
+
 def run_first_season(db, entrants, **settings):
-    league = add_league(db, **settings)
+    league = add_league(db, recurrence=CALENDAR, **settings)
     register(db, league, entrants)
-    league_setup.release(db, league["_id"], T0)
+    league_setup.start(db, league["_id"], T0)
     season_start.start_due(db, LATER, random.Random(1))
     return league, seasons.latest(db, league["_id"])
 
@@ -45,7 +48,7 @@ def test_a_finished_season_stores_its_table_and_plans_the_next(db):
     following = seasons.latest(db, league["_id"])
     assert following["number"] == 2
     assert following["status"] == seasons.PLANNED
-    assert following["starts_after"] == END + timedelta(minutes=60)
+    assert following["starts_after"] == T0 + timedelta(hours=2)
     assert following["seeds"] == [[bot["_id"] for bot in entrants]]
 
 
@@ -73,3 +76,20 @@ def test_bots_move_between_tiers_and_start_there_next_season(db):
     tiers = seasons.get(db, following["_id"])["tiers"]
     placed = [[entry["bot_id"] for entry in tier["entries"]] for tier in tiers]
     assert placed == [[b["_id"], d["_id"]], [c["_id"], a["_id"]]]
+
+
+def test_without_a_calendar_the_next_season_waits_for_an_admin(db):
+    entrants = add_bots(db, 3)
+    league = add_league(db)
+    register(db, league, entrants)
+    league_setup.start(db, league["_id"], T0)
+    season_start.start_due(db, LATER, random.Random(1))
+    play_out(db, seasons.latest(db, league["_id"])["_id"], stronger(entrants))
+
+    season_end.finish_done(db, END)
+
+    following = seasons.latest(db, league["_id"])
+    assert following["starts_after"] is None
+    assert season_start.start_due(db, END + timedelta(days=30), random.Random(2)) == []
+    assert league_setup.start(db, league["_id"], END)
+    assert season_start.start_due(db, END, random.Random(2)) == [following["_id"]]

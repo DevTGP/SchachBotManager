@@ -15,7 +15,7 @@ blueprint = Blueprint("matches", __name__)
 PGN_MIMETYPE = "application/x-chess-pgn"
 # Games of people and remote bots are public like those of bots and can be filtered (E119).
 KINDS = {
-    "bots": {"type": {"$in": [matches.SINGLE, matches.LEAGUE]}},
+    "bots": {"type": {"$in": [matches.SINGLE, matches.LEAGUE, matches.TOURNAMENT]}},
     "players": {"type": {"$in": list(play.MATCH_TYPES)}},
 }
 
@@ -41,6 +41,7 @@ def list_matches():
         created_by=require_user()["_id"] if mine else None,
         season_id=season_id,
         tier=tier,
+        edition_id=optional_object_id(args, "edition_id"),
     )
     kind = optional_choice(args, "kind", tuple(KINDS))
     if kind is not None:

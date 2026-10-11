@@ -46,7 +46,7 @@ def test_releasing_a_league_without_a_season_adds_the_first(db):
     league = add_league(db)
     db[SEASONS].delete_many({"league_id": league["_id"]})
 
-    assert league_setup.release(db, league["_id"], T0)
+    assert league_setup.start(db, league["_id"], T0)
     assert seasons.latest(db, league["_id"])["starts_after"] == T0
 
 
@@ -60,7 +60,7 @@ def test_a_bot_registers_once_per_league_and_may_come_back(db):
 
     assert not registrations.insert(db, again)
     left = registrations.leave(
-        db, bot["_id"], registrations.DEREGISTERED, T0, league_id=league["_id"]
+        db, bot["_id"], registrations.DEREGISTERED, T0, target_id=league["_id"]
     )
     assert left == [league["_id"]]
     assert registrations.count_active(db, league["_id"]) == 0

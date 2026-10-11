@@ -2,7 +2,7 @@
 delete one version for good (E105). A disabled or deleted bot leaves its leagues (E136)."""
 
 from flask import Blueprint
-from sbm_store import bot_deletion, bots, league_withdrawal, registrations
+from sbm_store import bot_deletion, bots, registrations, withdrawal
 
 from sbm_api import admin_audit, body, context
 from sbm_api.bot_view import bot_detail_view
@@ -39,7 +39,7 @@ def update_bot(bot_id: str):
             raise not_found("no such bot")
         raise invalid_parameter("status", f"the bot cannot switch to {status}")
     if status == bots.DISABLED:
-        league_withdrawal.withdraw(db, target, registrations.DISABLED, context.now())
+        withdrawal.withdraw_everywhere(db, target, registrations.DISABLED, context.now())
     admin_audit.record(admin, "bot.update", target, {"status": status})
     return bot_detail_view(bot, admin)
 
@@ -55,8 +55,8 @@ def delete_bot(bot_id: str):
         raise ApiError(409, code, message) from None
     if deletion is None:
         raise not_found("no such bot")
-    # Its matches are gone with it; the bot only leaves its registrations and seasons.
-    league_withdrawal.withdraw(context.db(), target, registrations.DELETED, context.now())
+    # Its matches are gone with it; the bot only leaves its registrations, seasons and editions.
+    withdrawal.withdraw_everywhere(context.db(), target, registrations.DELETED, context.now())
     bot = deletion.bot
     admin_audit.record(
         admin,

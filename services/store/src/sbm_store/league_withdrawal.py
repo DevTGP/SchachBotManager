@@ -24,7 +24,7 @@ def withdraw(
     league_id: ObjectId | None = None,
 ) -> int:
     """Takes the bot out of all its leagues, or only league_id; returns the games forfeited."""
-    registrations.leave(db, bot_id, reason, now, league_id=league_id)
+    registrations.leave(db, bot_id, reason, now, target_id=league_id)
     forfeited = 0
     for season in seasons.running_with_bot(db, bot_id, league_id):
         seasons.add_withdrawn(db, season["_id"], bot_id)

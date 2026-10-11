@@ -27,7 +27,7 @@ def register(db, league: dict, entrants: list[dict]) -> None:
 def start_season(db, league: dict, entrants: list[dict]) -> dict:
     """Registers the bots, releases the first season and starts it; returns it."""
     register(db, league, entrants)
-    assert league_setup.release(db, league["_id"], NOW)
+    assert league_setup.start(db, league["_id"], NOW)
     started = season_start.start_due(db, NOW + timedelta(seconds=1), random.Random(1))
     assert started
     return seasons.latest(db, league["_id"])

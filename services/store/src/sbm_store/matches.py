@@ -21,7 +21,8 @@ ABORTED = "aborted"
 STATUSES = (QUEUED, RUNNING, FINISHED, ABORTED)
 SINGLE = "single"
 LEAGUE = "league"
-# A league game not played because a bot withdrew (E136).
+TOURNAMENT = "tournament"
+# A league or tournament game not played because a bot withdrew (E136, E179).
 FORFEIT = "forfeit_withdrawn"
 
 NEWEST_FIRST = [("created_at", DESCENDING), ("_id", DESCENDING)]
@@ -132,6 +133,48 @@ def league_context(
     }
 
 
+def new_tournament_match(
+    white: dict,
+    black: dict,
+    discipline: Discipline,
+    *,
+    context: dict,
+    priority: int,
+    now: datetime,
+    match_id: ObjectId | None = None,
+) -> dict:
+    """A queued tournament game from the standard position (E178); match_id lets a plan name
+    the game before it exists."""
+    match = new_match(white, black, discipline, start_fen=STANDARD_FEN, priority=priority, now=now)
+    match.update(type=TOURNAMENT, context=context)
+    if match_id is not None:
+        match["_id"] = match_id
+    return match
+
+
+def tournament_context(
+    edition: dict,
+    *,
+    round_number: int,
+    board: int,
+    phase: str | None = None,
+    game: int | None = None,
+) -> dict:
+    """Where a tournament game stands; phase and game only in a knockout duel (E178)."""
+    settings = edition["settings"]
+    return {
+        "tournament_id": edition["tournament_id"],
+        "tournament_name": settings["tournament_name"],
+        "edition_id": edition["_id"],
+        "edition_number": edition["number"],
+        "format": settings["format"],
+        "round": round_number,
+        "board": board,
+        "phase": phase,
+        "game": game,
+    }
+
+
 def series_place(series_id: ObjectId, index: int, games: int) -> dict:
     """Where a game stands in its series; index counts from 1 (E155)."""
     return {"id": series_id, "index": index, "games": games}
@@ -165,6 +208,7 @@ def match_filter(
     created_by: ObjectId | None = None,
     season_id: ObjectId | None = None,
     tier: int | None = None,
+    edition_id: ObjectId | None = None,
 ) -> dict:
     """opponent_id narrows the games of bot_id to those against that bot (E156); tier the games
     of season_id to one tier (E137)."""
@@ -186,6 +230,8 @@ def match_filter(
         query["context.season_id"] = season_id
         if tier is not None:
             query["context.tier"] = tier
+    if edition_id is not None:
+        query["context.edition_id"] = edition_id
     return query
 
 
@@ -271,8 +317,15 @@ def abort(db: Database, match_id: ObjectId, detail: str, now: datetime) -> bool:
     return result.modified_count == 1
 
 
-def forfeit(db: Database, match: dict, loser_id: ObjectId, now: datetime) -> bool:
-    """Ends a waiting league game unplayed: the opponent of loser_id wins, unrated (E136).
+LEFT_LEAGUE = "the opponent withdrew from the league"
+LEFT_TOURNAMENT = "the opponent withdrew from the tournament"
+
+
+def forfeit(
+    db: Database, match: dict, loser_id: ObjectId, now: datetime, *, detail: str = LEFT_LEAGUE
+) -> bool:
+    """Ends a waiting league or tournament game unplayed: the opponent of loser_id wins,
+    unrated (E136, E179).
 
     False if the match is no longer queued, e.g. because a runner started it.
     """
@@ -285,7 +338,7 @@ def forfeit(db: Database, match: dict, loser_id: ObjectId, now: datetime) -> boo
                 "rated": False,
                 "result": result,
                 "termination": FORFEIT,
-                "termination_detail": "the opponent withdrew from the league",
+                "termination_detail": detail,
                 "finished_at": now,
             }
         },

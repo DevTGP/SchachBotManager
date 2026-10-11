@@ -390,6 +390,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/bots/{bot_id}/tournaments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** The active tournament registrations of a bot (E179). Visible like the bot. */
+        get: operations["get_bot_tournaments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bots/{bot_id}/editions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** The started tournament editions this bot version played in, newest first, with its place (E180). Visible like the bot. */
+        get: operations["get_bot_editions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/leagues": {
         parameters: {
             query?: never;
@@ -497,6 +535,119 @@ export interface paths {
         };
         /** The schedule of one tier of a started season by rounds and boards, with the state of each game (E138). 404 if the season does not have the tier (yet). */
         get: operations["get_season_schedule"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tournaments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All tournaments ordered by name, the archived ones included (E180). */
+        get: operations["list_tournaments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tournaments/{tournament_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournament_id: components["parameters"]["TournamentId"];
+            };
+            cookie?: never;
+        };
+        /** A tournament with its editions and registrations (E180). */
+        get: operations["get_tournament"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tournaments/{tournament_id}/registrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournament_id: components["parameters"]["TournamentId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Registers a verified bot for a tournament that is not archived (E179); the owner (coder) or an admin. The bot enters at the next edition start. */
+        post: operations["register_tournament_bot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/tournaments/{tournament_id}/registrations/{bot_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournament_id: components["parameters"]["TournamentId"];
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Ends the registration of a bot; the owner (coder) or an admin. In a running edition the bot withdraws: its waiting games become forfeit wins of the opponents, in a knockout it loses its duel (E179). */
+        delete: operations["deregister_tournament_bot"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/editions/{edition_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                edition_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** A tournament edition with its participants and its table or bracket (E180); the final result once it has finished. */
+        get: operations["get_edition"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/editions/{edition_id}/rounds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                edition_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** The games of a round robin or Swiss edition by rounds and boards with the state of each game and the bye (E180); no rounds for knockout. */
+        get: operations["get_edition_rounds"];
         put?: never;
         post?: never;
         delete?: never;
@@ -854,7 +1005,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** A new league with its first season, planned until an admin releases it (admin, E131, E132). */
+        /** A new league with its first season, planned by its calendar or until an admin starts it (admin, E131, E132, E171). */
         post: operations["create_league"];
         delete?: never;
         options?: never;
@@ -892,8 +1043,63 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Releases the first season (admin, E132): it starts as soon as enough bots are registered; later seasons follow on their own. */
+        /** Makes the planned season due now (admin, E132, E171): it starts as soon as enough bots are registered; with a calendar this pulls the next date forward. */
         post: operations["start_league"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/tournaments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A new tournament with its first edition, planned by its calendar or until an admin starts it (admin, E171, E172). */
+        post: operations["create_tournament"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/tournaments/{tournament_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournament_id: components["parameters"]["TournamentId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Changes or archives a tournament (admin, E172); a running edition keeps its copy of the settings. */
+        patch: operations["update_tournament"];
+        trace?: never;
+    };
+    "/admin/tournaments/{tournament_id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournament_id: components["parameters"]["TournamentId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Makes the planned edition due now (admin, E171): it starts as soon as enough bots are registered; with a calendar this pulls the next date forward. */
+        post: operations["start_tournament"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1178,7 +1384,7 @@ export interface components {
         Timestamp: string;
         Error: {
             /** @enum {unknown} */
-            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large" | "builtin_bot" | "bot_verifying" | "bot_playing" | "no_capacity" | "too_many_games" | "match_state" | "not_repeatable" | "bot_state" | "league_state" | "already_registered";
+            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large" | "builtin_bot" | "bot_verifying" | "bot_playing" | "no_capacity" | "too_many_games" | "match_state" | "not_repeatable" | "bot_state" | "league_state" | "tournament_state" | "already_registered";
             /** @description English text for logs; not shown to users, except as the detail of invalid_upload. */
             message: string;
             /** @description The invalid parameter, for invalid_parameter. */
@@ -1300,10 +1506,10 @@ export interface components {
         MatchFields: {
             id: components["schemas"]["Id"];
             /**
-             * @description single: two bots from the queue; league: a game of a league season (E134); human: a person in the browser against a bot (E114); remote: a coder's bot on their own machine against a bot (E116).
+             * @description single: two bots from the queue; league: a game of a league season (E134); human: a person in the browser against a bot (E114); remote: a coder's bot on their own machine against a bot (E116); tournament: a game of a tournament edition (E178).
              * @enum {unknown}
              */
-            type: "single" | "league" | "human" | "remote";
+            type: "single" | "league" | "human" | "remote" | "tournament";
             status: components["schemas"]["MatchStatus"];
             white: components["schemas"]["Side"];
             black: components["schemas"]["Side"];
@@ -1322,6 +1528,8 @@ export interface components {
             finished_at: components["schemas"]["Timestamp"] | null;
             /** @description Where a league game belongs (E137); null for other matches. */
             league: components["schemas"]["LeaguePlace"] | null;
+            /** @description Where a tournament game belongs (E178); null for other matches. */
+            tournament: components["schemas"]["TournamentPlace"] | null;
         };
         MatchSummary: components["schemas"]["MatchFields"];
         Move: {
@@ -1639,7 +1847,7 @@ export interface components {
             /** @description What the action changed, usually an id; null if it has no single target. */
             target: string | null;
             /** @description What kind of thing the target is, read from the action; null without a target (E169). */
-            target_kind: ("bot" | "match" | "user" | "discipline" | "league" | "invite") | null;
+            target_kind: ("bot" | "match" | "user" | "discipline" | "league" | "tournament" | "invite") | null;
             /** @description The target by name as it is now: the name of a bot, user, discipline or league, the two sides of a match in alphabetical order; for a deleted bot the name recorded in details; null when nothing names it (E169). */
             target_label: string | null;
             /** @description Fields of the action as recorded, such as the new status of a bot. */
@@ -1925,8 +2133,6 @@ export interface components {
             tiebreaks: components["schemas"]["Tiebreak"][];
             /** @description A due season starts once at least this many bots can play. */
             min_participants: number;
-            /** @description Minutes from the end of a season to the earliest start of the next. */
-            pause_minutes: number;
             /** @description Queue priority of the league's matches; coders' games have 50 by default. */
             priority: number;
         };
@@ -1939,7 +2145,7 @@ export interface components {
             id: components["schemas"]["Id"];
             number: number;
             status: components["schemas"]["SeasonStatus"];
-            /** @description Earliest start; null until an admin releases the first season (E132). */
+            /** @description Earliest start; null while it waits for an admin (E132, E171). */
             starts_after: components["schemas"]["Timestamp"] | null;
             /** @description Bots in the tiers; 0 before the start. */
             participants: number;
@@ -1994,10 +2200,10 @@ export interface components {
             tiebreaks: components["schemas"]["Tiebreak"][];
             /** @description A due season starts once at least this many bots can play. */
             min_participants: number;
-            /** @description Minutes from the end of a season to the earliest start of the next. */
-            pause_minutes: number;
             /** @description Queue priority of the league's matches; coders' games have 50 by default. */
             priority: number;
+            /** @description null: every season or edition waits for an admin to start it (E171). */
+            recurrence: components["schemas"]["Recurrence"] | null;
             /** @description Finishes its running season but starts no new one. */
             archived: boolean;
             /** @description Bots registered now. */
@@ -2188,10 +2394,10 @@ export interface components {
              */
             min_participants: number;
             /**
-             * @description Minutes from the end of a season to the earliest start of the next.
-             * @default 60
+             * @description null: every season or edition waits for an admin to start it (E171).
+             * @default null
              */
-            pause_minutes: number;
+            recurrence: components["schemas"]["Recurrence"] | null;
             /**
              * @description Queue priority of the league's matches; coders' games have 50 by default.
              * @default 50
@@ -2216,14 +2422,342 @@ export interface components {
             tiebreaks?: components["schemas"]["Tiebreak"][];
             /** @description A due season starts once at least this many bots can play. */
             min_participants?: number;
-            /** @description Minutes from the end of a season to the earliest start of the next. */
-            pause_minutes?: number;
             /** @description Queue priority of the league's matches; coders' games have 50 by default. */
             priority?: number;
+            /** @description null: every season or edition waits for an admin to start it (E171). */
+            recurrence?: components["schemas"]["Recurrence"] | null;
             archived?: boolean;
         };
         RegistrationRequest: {
             bot_id: components["schemas"]["Id"];
+        };
+        /** @description Calendar of a league or tournament (E171): a new season or edition waits for the first date first_start + k · interval_hours (k ≥ 0) after the start of the previous one, the first for the first date from now; a date that has passed already starts it at once. */
+        Recurrence: {
+            first_start: components["schemas"]["Timestamp"];
+            interval_hours: number;
+        };
+        /**
+         * @description round_robin: everybody against everybody (E174); swiss: rounds paired by score (E175); knockout: duels in a bracket (E176).
+         * @enum {unknown}
+         */
+        TournamentFormat: "round_robin" | "swiss" | "knockout";
+        /**
+         * @description The tiebreaks of leagues (E135) and buchholz: higher sum of the opponents' points from played games, forfeits left out (E177).
+         * @enum {unknown}
+         */
+        TournamentTiebreak: "wins" | "head_to_head" | "sonneborn_berger" | "fewer_moves" | "buchholz";
+        /** @description 1 to 40 characters without control characters, unique among tournaments regardless of case (E172); the API removes leading and trailing spaces. */
+        TournamentName: string;
+        /** @description The settings of a tournament (E172); an edition keeps a copy from its start. */
+        TournamentSettings: {
+            /** @description A discipline not archived when it is set. */
+            discipline_id: components["schemas"]["Id"];
+            format: components["schemas"]["TournamentFormat"];
+            /** @description Round robin: each pairing is played this often, the colours swapped each time; knockout: games of a duel before a tiebreak. Swiss plays one game per pairing. */
+            games_per_pairing: number;
+            /** @description Swiss only: rounds to play, at most the participants minus one. */
+            rounds: number;
+            /** @description Round robin and Swiss: applied in order after the points; the lot drawn at the start comes last (E177). */
+            tiebreaks: components["schemas"]["TournamentTiebreak"][];
+            /** @description Knockout only: the discipline of tiebreak and Armageddon games; null for the tournament's discipline (E176). */
+            tiebreak_discipline_id: components["schemas"]["Id"] | null;
+            /** @description Knockout only: pairs of tiebreak games after a tied duel, before the Armageddon game. */
+            tiebreak_pairs: number;
+            /** @description A due edition starts once at least this many bots can play. */
+            min_participants: number;
+            /** @description Queue priority of the tournament's matches; coders' games and leagues have 50 by default. */
+            priority: number;
+        };
+        /**
+         * @description planned: waiting for its start; running: matches are queued or played; finished: final result stored (E173).
+         * @enum {unknown}
+         */
+        EditionStatus: "planned" | "running" | "finished";
+        EditionSummary: {
+            id: components["schemas"]["Id"];
+            number: number;
+            status: components["schemas"]["EditionStatus"];
+            /** @description Earliest start; null while it waits for an admin (E171). */
+            starts_after: components["schemas"]["Timestamp"] | null;
+            /** @description Bots taking part; 0 before the start. */
+            participants: number;
+            /** @description The winner once the edition has finished; null before. */
+            winner: components["schemas"]["LeagueBot"] | null;
+            started_at: components["schemas"]["Timestamp"] | null;
+            finished_at: components["schemas"]["Timestamp"] | null;
+        };
+        /** @description The fields of Tournament, open for extension by TournamentDetail. */
+        TournamentFields: {
+            id: components["schemas"]["Id"];
+            name: components["schemas"]["TournamentName"];
+            /** @description Current name of the tournament's discipline. */
+            discipline_name: string;
+            /** @description A discipline not archived when it is set. */
+            discipline_id: components["schemas"]["Id"];
+            format: components["schemas"]["TournamentFormat"];
+            /** @description Round robin: each pairing is played this often, the colours swapped each time; knockout: games of a duel before a tiebreak. Swiss plays one game per pairing. */
+            games_per_pairing: number;
+            /** @description Swiss only: rounds to play, at most the participants minus one. */
+            rounds: number;
+            /** @description Round robin and Swiss: applied in order after the points; the lot drawn at the start comes last (E177). */
+            tiebreaks: components["schemas"]["TournamentTiebreak"][];
+            /** @description Knockout only: the discipline of tiebreak and Armageddon games; null for the tournament's discipline (E176). */
+            tiebreak_discipline_id: components["schemas"]["Id"] | null;
+            /** @description Knockout only: pairs of tiebreak games after a tied duel, before the Armageddon game. */
+            tiebreak_pairs: number;
+            /** @description A due edition starts once at least this many bots can play. */
+            min_participants: number;
+            /** @description Queue priority of the tournament's matches; coders' games and leagues have 50 by default. */
+            priority: number;
+            /** @description Current name of the tiebreak discipline; null without one. */
+            tiebreak_discipline_name: string | null;
+            /** @description null: every season or edition waits for an admin to start it (E171). */
+            recurrence: components["schemas"]["Recurrence"] | null;
+            /** @description Finishes its running edition but starts no new one. */
+            archived: boolean;
+            /** @description Bots registered now. */
+            registered: number;
+            /** @description The latest edition. */
+            edition: components["schemas"]["EditionSummary"] | null;
+            created_at: components["schemas"]["Timestamp"];
+            updated_at: components["schemas"]["Timestamp"];
+        };
+        Tournament: components["schemas"]["TournamentFields"];
+        TournamentList: {
+            items: components["schemas"]["Tournament"][];
+        };
+        /** @description An active registration of a bot for a tournament (E179). */
+        TournamentRegistration: {
+            tournament_id: components["schemas"]["Id"];
+            tournament_name: string;
+            bot: components["schemas"]["LeagueBot"];
+            created_at: components["schemas"]["Timestamp"];
+            /** @description The bot takes part in the running edition and has not withdrawn. */
+            playing: boolean;
+        };
+        TournamentRegistrationList: {
+            items: components["schemas"]["TournamentRegistration"][];
+        };
+        /** @description A tournament with all its editions, newest first, and its registrations in the order they came (E180). */
+        TournamentDetail: {
+            editions: components["schemas"]["EditionSummary"][];
+            registrations: components["schemas"]["TournamentRegistration"][];
+        } & components["schemas"]["TournamentFields"];
+        /** @description A bot of an edition as it was at the start (E173). */
+        EditionParticipant: {
+            bot: components["schemas"]["LeagueBot"];
+            /** @description Place in the seeding, from 1. */
+            seed: number;
+            /** @description Rating in the tournament's discipline at the start. */
+            rating: number;
+            withdrawn: boolean;
+        };
+        /** @description A bot in the table of a round robin or Swiss edition (E177). wins includes forfeit_wins; points include byes. */
+        EditionTableRow: {
+            bot: components["schemas"]["LeagueBot"];
+            /** @description null for a withdrawn bot, which stands at the end. */
+            rank: number | null;
+            games: number;
+            wins: number;
+            forfeit_wins: number;
+            draws: number;
+            losses: number;
+            byes: number;
+            points: number;
+            buchholz: number;
+            withdrawn: boolean;
+        };
+        DuelSide: {
+            bot: components["schemas"]["LeagueBot"];
+            seed: number;
+            /** @description Points from the regular games of the duel. */
+            points: number;
+            /** @description Points from the tiebreak games. */
+            tiebreak_points: number;
+        };
+        DuelGame: {
+            match_id: components["schemas"]["Id"];
+            phase: components["schemas"]["DuelPhase"];
+            /** @description Number of the game within its phase, from 1. */
+            game: number;
+            white: components["schemas"]["LeagueBot"];
+            black: components["schemas"]["LeagueBot"];
+            status: components["schemas"]["MatchStatus"];
+            /** @description null until the game ends. */
+            result: components["schemas"]["result"] | null;
+            /** @description null until the game ends. */
+            termination: components["schemas"]["Termination"] | null;
+        };
+        /**
+         * @description regular: the games_per_pairing games; tiebreak: pairs of games in the tiebreak discipline; armageddon: one game where a draw is enough for black (E176).
+         * @enum {unknown}
+         */
+        DuelPhase: "regular" | "tiebreak" | "armageddon";
+        /** @description A duel of a knockout bracket (E176); a side is null for a bye or while its feeder is open. */
+        Duel: {
+            round: number;
+            /** @description Place within the round, from 1. */
+            slot: number;
+            /** @description The better seed. */
+            a: components["schemas"]["DuelSide"] | null;
+            b: components["schemas"]["DuelSide"] | null;
+            /** @description Bot id of the winner; null while open or when both sides withdrew. */
+            winner: components["schemas"]["Id"] | null;
+            decided: boolean;
+            /**
+             * @description How the duel was decided; null while open.
+             * @enum {unknown}
+             */
+            decided_by: "games" | "tiebreak" | "armageddon" | "bye" | "withdrawal" | null;
+            games: components["schemas"]["DuelGame"][];
+        };
+        KnockoutPlacement: {
+            bot: components["schemas"]["LeagueBot"];
+            /** @description 1 for the winner, 2 for the finalist, 3 for the semi-finalists, 5, 9 …; null while still in or after a withdrawal. */
+            place: number | null;
+            withdrawn: boolean;
+        };
+        /** @description An edition with its participants and its table or bracket (E180); settings and participants are empty until it starts. */
+        Edition: {
+            id: components["schemas"]["Id"];
+            tournament_id: components["schemas"]["Id"];
+            tournament_name: string;
+            number: number;
+            status: components["schemas"]["EditionStatus"];
+            starts_after: components["schemas"]["Timestamp"] | null;
+            started_at: components["schemas"]["Timestamp"] | null;
+            finished_at: components["schemas"]["Timestamp"] | null;
+            /** @description The tournament's settings at the start; null before. */
+            settings: components["schemas"]["TournamentSettings"] | null;
+            /** @description The discipline at the start; null before. */
+            discipline: components["schemas"]["Discipline"] | null;
+            /** @description Knockout: the discipline of tiebreak and Armageddon games at the start; null otherwise. */
+            tiebreak_discipline: components["schemas"]["Discipline"] | null;
+            /** @description By seed. */
+            participants: components["schemas"]["EditionParticipant"][];
+            /** @description Swiss: rounds paired so far; round robin and knockout: 0. */
+            round: number;
+            /** @description Matches of the edition. */
+            games: number;
+            /** @description Matches that ended, forfeits and aborted ones included. */
+            finished: number;
+            /** @description Round robin and Swiss; empty for knockout. */
+            table: components["schemas"]["EditionTableRow"][];
+            /** @description Knockout: places in the bracket, a power of two; null otherwise. */
+            bracket_size: number | null;
+            /** @description Knockout: the duels by round and slot; empty otherwise. */
+            bracket: components["schemas"]["Duel"][];
+            /** @description Knockout: the participants by place; empty otherwise. */
+            placements: components["schemas"]["KnockoutPlacement"][];
+        };
+        /** @description The games of a round robin or Swiss edition by rounds and boards (E180); empty for knockout, whose games are in the bracket. */
+        EditionRounds: {
+            rounds: components["schemas"]["ScheduleRound"][];
+        };
+        /** @description An edition one bot version played in, with its place there (E180). */
+        BotEdition: {
+            edition_id: components["schemas"]["Id"];
+            tournament_id: components["schemas"]["Id"];
+            tournament_name: string;
+            number: number;
+            format: components["schemas"]["TournamentFormat"];
+            /** @enum {unknown} */
+            status: "running" | "finished";
+            started_at: components["schemas"]["Timestamp"];
+            finished_at: components["schemas"]["Timestamp"] | null;
+            seed: number;
+            participants: number;
+            /** @description Rank in the table, current while the edition runs, or place in the bracket; null after a withdrawal or while still in the bracket. */
+            place: number | null;
+            /** @description Round robin and Swiss; null for knockout. */
+            points: number | null;
+            withdrawn: boolean;
+        };
+        BotEditionList: {
+            items: components["schemas"]["BotEdition"][];
+        };
+        /** @description Tournament, edition, round and board of a tournament game; name and number as they were when the edition started (E178). */
+        TournamentPlace: {
+            tournament_id: components["schemas"]["Id"];
+            tournament_name: string;
+            edition_id: components["schemas"]["Id"];
+            edition_number: number;
+            format: components["schemas"]["TournamentFormat"];
+            round: number;
+            /** @description Board within the round, from 1; the slot of the duel for knockout. */
+            board: number;
+            /** @description Knockout: the phase of the duel; null otherwise. */
+            phase: components["schemas"]["DuelPhase"] | null;
+            /** @description Knockout: number of the game within its phase; null otherwise. */
+            game: number | null;
+        };
+        /** @description A new tournament; fields left out take their default (E172). */
+        TournamentRequest: {
+            name: components["schemas"]["TournamentName"];
+            /** @description A discipline not archived when it is set. */
+            discipline_id: components["schemas"]["Id"];
+            /** @description Fixed once the tournament exists (E172). */
+            format: components["schemas"]["TournamentFormat"];
+            /**
+             * @description Round robin: each pairing is played this often, the colours swapped each time; knockout: games of a duel before a tiebreak. Swiss plays one game per pairing.
+             * @default 2
+             */
+            games_per_pairing: number;
+            /**
+             * @description Swiss only: rounds to play, at most the participants minus one.
+             * @default 5
+             */
+            rounds: number;
+            /** @description Round robin and Swiss: applied in order after the points; the lot drawn at the start comes last (E177). Default: wins, head_to_head, sonneborn_berger for round robin; buchholz, sonneborn_berger, wins for Swiss; empty for knockout. */
+            tiebreaks?: components["schemas"]["TournamentTiebreak"][];
+            /**
+             * @description Knockout only: the discipline of tiebreak and Armageddon games; null for the tournament's discipline (E176).
+             * @default null
+             */
+            tiebreak_discipline_id: components["schemas"]["Id"] | null;
+            /**
+             * @description Knockout only: pairs of tiebreak games after a tied duel, before the Armageddon game.
+             * @default 1
+             */
+            tiebreak_pairs: number;
+            /**
+             * @description A due edition starts once at least this many bots can play.
+             * @default 2
+             */
+            min_participants: number;
+            /**
+             * @description Queue priority of the tournament's matches; coders' games and leagues have 50 by default.
+             * @default 40
+             */
+            priority: number;
+            /**
+             * @description null: every season or edition waits for an admin to start it (E171).
+             * @default null
+             */
+            recurrence: components["schemas"]["Recurrence"] | null;
+        };
+        /** @description At least one field; changes apply from the next edition, a new calendar also to the planned one (E171, E172). */
+        TournamentUpdate: {
+            name?: components["schemas"]["TournamentName"];
+            /** @description A discipline not archived when it is set. */
+            discipline_id?: components["schemas"]["Id"];
+            /** @description Round robin: each pairing is played this often, the colours swapped each time; knockout: games of a duel before a tiebreak. Swiss plays one game per pairing. */
+            games_per_pairing?: number;
+            /** @description Swiss only: rounds to play, at most the participants minus one. */
+            rounds?: number;
+            /** @description Round robin and Swiss: applied in order after the points; the lot drawn at the start comes last (E177). */
+            tiebreaks?: components["schemas"]["TournamentTiebreak"][];
+            /** @description Knockout only: the discipline of tiebreak and Armageddon games; null for the tournament's discipline (E176). */
+            tiebreak_discipline_id?: components["schemas"]["Id"] | null;
+            /** @description Knockout only: pairs of tiebreak games after a tied duel, before the Armageddon game. */
+            tiebreak_pairs?: number;
+            /** @description A due edition starts once at least this many bots can play. */
+            min_participants?: number;
+            /** @description Queue priority of the tournament's matches; coders' games and leagues have 50 by default. */
+            priority?: number;
+            /** @description null: every season or edition waits for an admin to start it (E171). */
+            recurrence?: components["schemas"]["Recurrence"] | null;
+            archived?: boolean;
         };
         /**
          * @description PGN result; * if the game was aborted without rating.
@@ -2445,7 +2979,7 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
-        /** @description The league is archived or its first season was released already (code league_state). */
+        /** @description The league is archived, has no planned season or its planned season is due already (code league_state). */
         LeagueState: {
             headers: {
                 [name: string]: unknown;
@@ -2454,8 +2988,26 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
-        /** @description The bot is registered already (code already_registered), the league is archived (code league_state) or the bot is not verified (code bot_state). */
+        /** @description The bot is registered already (code already_registered), the league or tournament is archived (code league_state or tournament_state) or the bot is not verified (code bot_state). */
         RegistrationConflict: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description Another tournament has the name, also in another case (code name_taken). */
+        TournamentNameTaken: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description The tournament is archived, has no planned edition or its planned edition is due already (code tournament_state). */
+        TournamentState: {
             headers: {
                 [name: string]: unknown;
             };
@@ -2477,6 +3029,7 @@ export interface components {
         /** @description Number of items to skip. */
         Offset: number;
         LeagueId: components["schemas"]["Id"];
+        TournamentId: components["schemas"]["Id"];
     };
     requestBodies: never;
     headers: never;
@@ -2512,7 +3065,7 @@ export interface operations {
                 status?: components["schemas"]["MatchStatus"];
                 /** @description Only matches in which this bot plays either colour. */
                 bot_id?: components["schemas"]["Id"];
-                /** @description bots: only matches between two bots (types single and league); players: only games of people in the browser and of remote bots (types human and remote, E119). */
+                /** @description bots: only matches between two bots (types single, league and tournament); players: only games of people in the browser and of remote bots (types human and remote, E119). */
                 kind?: "bots" | "players";
                 /** @description Only matches played under this stored discipline (E156). */
                 discipline_id?: components["schemas"]["Id"];
@@ -2520,6 +3073,8 @@ export interface operations {
                 opponent_id?: components["schemas"]["Id"];
                 /** @description Only the matches of this league season (E137). */
                 season_id?: components["schemas"]["Id"];
+                /** @description Only the matches of this tournament edition (E178). */
+                edition_id?: components["schemas"]["Id"];
                 /** @description Only with season_id: only the matches of this tier. */
                 tier?: number;
                 /** @description true: only matches the signed-in account set with POST /matches or POST /admin/matches (E156); needs a session. */
@@ -3110,6 +3665,54 @@ export interface operations {
             404: components["responses"]["NotFound"];
         };
     };
+    get_bot_tournaments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The registrations. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentRegistrationList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    get_bot_editions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The editions. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotEditionList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
     list_leagues: {
         parameters: {
             query?: never;
@@ -3260,6 +3863,160 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SeasonSchedule"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    list_tournaments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The tournaments. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentList"];
+                };
+            };
+        };
+    };
+    get_tournament: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tournament_id: components["parameters"]["TournamentId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The tournament. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentDetail"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    register_tournament_bot: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                tournament_id: components["parameters"]["TournamentId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegistrationRequest"];
+            };
+        };
+        responses: {
+            /** @description The registration. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentRegistration"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["RegistrationConflict"];
+        };
+    };
+    deregister_tournament_bot: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                tournament_id: components["parameters"]["TournamentId"];
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The bot is no longer registered. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    get_edition: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                edition_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The edition. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Edition"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    get_edition_rounds: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                edition_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The rounds. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EditionRounds"];
                 };
             };
             400: components["responses"]["BadRequest"];
@@ -3986,6 +4743,101 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["LeagueState"];
+        };
+    };
+    create_tournament: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentRequest"];
+            };
+        };
+        responses: {
+            /** @description The new tournament. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Tournament"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["TournamentNameTaken"];
+        };
+    };
+    update_tournament: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                tournament_id: components["parameters"]["TournamentId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentUpdate"];
+            };
+        };
+        responses: {
+            /** @description The changed tournament. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Tournament"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["TournamentNameTaken"];
+        };
+    };
+    start_tournament: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                tournament_id: components["parameters"]["TournamentId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The tournament. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Tournament"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["TournamentState"];
         };
     };
     recheck_language: {

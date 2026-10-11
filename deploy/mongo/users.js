@@ -8,7 +8,9 @@ const appDb = db.getSiblingDB(dbName);
 // interactive games need (E85, E92, E115, E116); the uploaded files go to the GridFS bucket
 // bot_files (E82). Deleting a bot removes it with its matches, their jobs and its report (E105).
 // Disciplines are created and archived, never deleted (E100). Admins change the priority of a
-// waiting match and cancel a match, both in the match and in its job (E152).
+// waiting match and cancel a match, both in the match and in its job (E152). Admins create and
+// change leagues and tournaments and start their seasons and editions; bots register and leave,
+// which marks them withdrawn in running seasons and editions (E131, E136, E171–E179).
 const writeAll = ["insert", "update", "remove"];
 const apiWrites = {
   users: writeAll,
@@ -25,6 +27,11 @@ const apiWrites = {
   "bot_files.chunks": ["insert", "remove"],
   settings: ["insert", "update"],
   disciplines: ["insert", "update"],
+  leagues: ["insert", "update"],
+  seasons: ["insert", "update"],
+  tournaments: ["insert", "update"],
+  editions: ["insert", "update"],
+  registrations: ["insert", "update"],
   // Coders make and revoke their API tokens; using one marks it used (E116).
   api_tokens: ["insert", "update"],
 };

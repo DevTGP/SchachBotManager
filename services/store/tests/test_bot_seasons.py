@@ -6,16 +6,24 @@ from datetime import timedelta
 from conftest import T0
 from league_world import add_bots, add_league, play_out, register, stronger
 
-from sbm_store import bot_seasons, league_lineup, league_setup, season_end, season_start, seasons
+from sbm_store import (
+    bot_seasons,
+    league_lineup,
+    league_setup,
+    recurrence,
+    season_end,
+    season_start,
+    seasons,
+)
 
 END = T0 + timedelta(hours=1)
 
 
 def test_finished_and_running_seasons_newest_first(db):
     entrants = add_bots(db, 3)
-    league = add_league(db)
+    league = add_league(db, recurrence=recurrence.new_recurrence(T0, 2))
     register(db, league, entrants)
-    league_setup.release(db, league["_id"], T0)
+    league_setup.start(db, league["_id"], T0)
     season_start.start_due(db, T0 + timedelta(minutes=1), random.Random(1))
     first = seasons.latest(db, league["_id"])
     play_out(db, first["_id"], stronger(entrants))
@@ -37,7 +45,7 @@ def test_a_running_season_shows_the_current_place(db):
     entrants = add_bots(db, 3)
     league = add_league(db)
     register(db, league, entrants)
-    league_setup.release(db, league["_id"], T0)
+    league_setup.start(db, league["_id"], T0)
     season_start.start_due(db, T0 + timedelta(minutes=1), random.Random(1))
     play_out(db, seasons.latest(db, league["_id"])["_id"], stronger(list(reversed(entrants))))
 

@@ -1,4 +1,4 @@
-"""Admin: create, change, archive and start leagues; they are never deleted (E131, E132)."""
+"""Admin: create, change, archive and start leagues; they are never deleted (E131, E132, E171)."""
 
 from flask import Blueprint
 from sbm_store import league_setup, leagues
@@ -36,6 +36,8 @@ def update_league(league_id: str):
         raise name_taken() from None
     if changed is None:
         raise not_found("no such league")
+    if "recurrence" in fields:
+        league_setup.follow_calendar(db, changed, context.now())
     admin_audit.record(admin, "league.update", league["_id"], fields)
     return league_view(db, changed)
 
@@ -47,8 +49,8 @@ def start_league(league_id: str):
     league = _league(league_id)
     if league["archived"]:
         raise ApiError(409, LEAGUE_STATE, "the league is archived")
-    if not league_setup.release(db, league["_id"], context.now()):
-        raise ApiError(409, LEAGUE_STATE, "the first season was released already")
+    if not league_setup.start(db, league["_id"], context.now()):
+        raise ApiError(409, LEAGUE_STATE, "no planned season waits or it is due already")
     admin_audit.record(admin, "league.start", league["_id"], {"name": league["name"]})
     return league_view(db, league)
 

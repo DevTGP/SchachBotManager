@@ -2,7 +2,8 @@
 
 Names are unique regardless of case through name_key. Leagues are archived, never deleted; an
 archived league finishes its running season but starts no new one. A season copies the settings
-at its start (snapshot), so changes apply from the next start.
+at its start (snapshot), so changes apply from the next start; the calendar (recurrence, E171)
+is not copied.
 """
 
 from datetime import datetime
@@ -24,10 +25,21 @@ DEFAULTS = {
     "points": {"win": 1, "draw": 0.5, "loss": 0},
     "tiebreaks": ["wins", "head_to_head", "sonneborn_berger"],
     "min_participants": 2,
-    "pause_minutes": 60,
     "priority": 50,
+    # The calendar (E171); not part of a season's snapshot.
+    "recurrence": None,
 }
-SETTINGS = ("discipline_id", *DEFAULTS)
+SETTINGS = (
+    "discipline_id",
+    "tiers",
+    "tier_size",
+    "games_per_pairing",
+    "promotions",
+    "points",
+    "tiebreaks",
+    "min_participants",
+    "priority",
+)
 
 
 class NameTaken(Exception):

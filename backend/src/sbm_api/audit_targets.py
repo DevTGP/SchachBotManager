@@ -6,9 +6,10 @@ shows the target as it is now. A deleted bot keeps the name its entry recorded.
 
 from bson import ObjectId
 from pymongo.database import Database
-from sbm_store.names import BOTS, DISCIPLINES, INVITES, LEAGUES, MATCHES, USERS
+from sbm_store.names import BOTS, DISCIPLINES, INVITES, LEAGUES, MATCHES, TOURNAMENTS, USERS
 
-# The first part of an action names the kind of its target; registering in a league targets a bot.
+# The first part of an action names the kind of its target; registering in a league or a
+# tournament targets a bot.
 KINDS = {
     "bot": "bot",
     "match": "match",
@@ -16,15 +17,22 @@ KINDS = {
     "password_reset": "user",
     "discipline": "discipline",
     "league": "league",
+    "tournament": "tournament",
     "invite": "invite",
 }
-BOT_ACTIONS = {"league.register", "league.deregister"}
+BOT_ACTIONS = {
+    "league.register",
+    "league.deregister",
+    "tournament.register",
+    "tournament.deregister",
+}
 COLLECTIONS = {
     "bot": BOTS,
     "match": MATCHES,
     "user": USERS,
     "discipline": DISCIPLINES,
     "league": LEAGUES,
+    "tournament": TOURNAMENTS,
     "invite": INVITES,
 }
 FIELDS = {"bot": ["name"], "match": ["white.name", "black.name"], "user": ["username"]}

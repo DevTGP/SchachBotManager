@@ -28,6 +28,7 @@ from sbm_api.routes import (
     admin_play,
     admin_queue,
     admin_settings,
+    admin_tournaments,
     admin_users,
     bot_history,
     bot_opponents,
@@ -51,6 +52,8 @@ from sbm_api.routes import (
     season_schedule,
     series,
     session,
+    tournament_registrations,
+    tournaments,
 )
 
 API_PREFIX = "/api/v1"
@@ -75,6 +78,8 @@ BLUEPRINTS = (
     leagues,
     season_schedule,
     league_registrations,
+    tournaments,
+    tournament_registrations,
     session,
     invites,
     password_resets,
@@ -90,6 +95,7 @@ BLUEPRINTS = (
     admin_bots,
     admin_disciplines,
     admin_leagues,
+    admin_tournaments,
     admin_matches,
     admin_match_actions,
     admin_play,

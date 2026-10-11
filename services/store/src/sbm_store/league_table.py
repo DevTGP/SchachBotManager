@@ -1,13 +1,14 @@
-"""The table of a tier, computed from its finished matches (E135).
+"""The table of a tier or tournament edition, computed from its finished matches (E135, E177).
 
-Pure functions: entries are the tier's bots as the season stores them (bot_id, name, version,
-lot), games the tier's matches with white, black, status, result, termination and ply_count.
-Aborted and unfinished games do not count. Forfeit wins count as wins but not for head to
-head, Sonneborn-Berger or the number of moves (E25). After the tiebreaks the lot decides, the
+Pure functions: entries are the bots as the season or edition stores them (bot_id, name,
+version, lot), games their matches with white, black, status, result, termination and
+ply_count. Aborted and unfinished games do not count. Forfeit wins count as wins but not for
+head to head, Sonneborn-Berger, Buchholz or the number of moves (E25). A bye of the Swiss
+system counts as a win's points without a game. After the tiebreaks the lot decides, the
 smaller first; withdrawn bots stand at the end without a rank.
 """
 
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 
 from bson import ObjectId
@@ -20,7 +21,10 @@ WINS = "wins"
 HEAD_TO_HEAD = "head_to_head"
 SONNEBORN_BERGER = "sonneborn_berger"
 FEWER_MOVES = "fewer_moves"
+BUCHHOLZ = "buchholz"
 TIEBREAKS = (WINS, HEAD_TO_HEAD, SONNEBORN_BERGER, FEWER_MOVES)
+# Tournaments may also break ties by Buchholz (E177).
+EDITION_TIEBREAKS = (*TIEBREAKS, BUCHHOLZ)
 
 
 @dataclass(frozen=True)
@@ -44,7 +48,9 @@ class Row:
     forfeit_wins: int = 0
     draws: int = 0
     losses: int = 0
+    byes: int = 0
     points: float = 0.0
+    buchholz: float = 0.0
     plies: int = 0
     rank: int | None = None
     outcome: str | None = None
@@ -69,6 +75,12 @@ class Row:
             "outcome": self.outcome,
         }
 
+    def to_edition_document(self) -> dict:
+        """The row of a tournament table: without outcome, with byes and Buchholz."""
+        document = self.to_document()
+        del document["outcome"]
+        return document | {"byes": self.byes, "buchholz": self.buchholz}
+
 
 def counted_games(matches: Iterable[dict]) -> list[Game]:
     """The finished matches with a result, as games; everything else does not count."""
@@ -91,8 +103,10 @@ def table(
     points: dict,
     tiebreaks: Sequence[str],
     withdrawn: Iterable[ObjectId] = (),
+    byes: Mapping[ObjectId, int] | None = None,
 ) -> list[Row]:
-    """The rows in their order, ranks set; points holds win, draw and loss."""
+    """The rows in their order, ranks set; points holds win, draw and loss, byes the number of
+    byes per bot."""
     gone = set(withdrawn)
     rows = {
         entry["bot_id"]: Row(
@@ -106,6 +120,12 @@ def table(
     for game in counted:
         _add(rows[game.white], game.black, game.score, game, points)
         _add(rows[game.black], game.white, 1.0 - game.score, game, points)
+    for bot_id, count in (byes or {}).items():
+        if bot_id in rows:
+            rows[bot_id].byes += count
+            rows[bot_id].points += count * points["win"]
+    for row in rows.values():
+        row.buchholz = sum(rows[opponent].points for opponent, _ in row.played)
     active = [row for row in rows.values() if not row.withdrawn]
     ranked = _order(active, list(tiebreaks), counted, rows, points)
     for rank, row in enumerate(ranked, start=1):
@@ -157,6 +177,7 @@ def _criterion(name: str) -> Callable:
         HEAD_TO_HEAD: _by_head_to_head,
         SONNEBORN_BERGER: _by_sonneborn_berger,
         FEWER_MOVES: _by_fewer_moves,
+        BUCHHOLZ: _by_buchholz,
     }[name]
 
 
@@ -185,6 +206,10 @@ def _by_sonneborn_berger(group, games, rows, points) -> dict:
         row.bot_id: sum(score * rows[opponent].points for opponent, score in row.played)
         for row in group
     }
+
+
+def _by_buchholz(group, games, rows, points) -> dict:
+    return {row.bot_id: row.buchholz for row in group}
 
 
 def _by_fewer_moves(group, games, rows, points) -> dict:
