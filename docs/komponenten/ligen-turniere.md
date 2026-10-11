@@ -80,7 +80,7 @@ Da es keine festen Termine gibt (E20), endet eine Saison, wenn ihre Spiele durch
 | Abstieg | In dieser Stufe steigt ein Bot weniger ab |
 | Nachrücken | Der frei gewordene Platz wird zur nächsten Saison durch einen zusätzlichen Aufsteiger aus der Stufe darunter gefüllt |
 
-Auslöser: Besitzer oder Admin deaktiviert den Bot, oder der Bot fällt wiederholt durch technische Fehler aus (Schwelle einstellbar).
+Auslöser (E136): Abmeldung durch Besitzer oder Admin, Zurückziehen des Bots durch den Besitzer (E96), Sperre oder Löschen durch einen Admin (E93, E105). Wiederholte technische Fehler sind kein Auslöser.
 
 ### Weitere Sonderfälle
 
@@ -89,6 +89,32 @@ Auslöser: Besitzer oder Admin deaktiviert den Bot, oder der Bot fällt wiederho
 | Ungerade Teilnehmerzahl | Spielfrei-Runde |
 | Zu wenige Bots für alle Stufen | Stufen von oben füllen, untere entfallen |
 | Infrastrukturfehler | Match wird neu in die Queue gestellt |
+
+### Stand M4, Schritt 3 (E130–E137)
+
+Die Abschnitte oben beschreiben das Ziel; umgesetzt ist es so:
+
+| Feld | Bereich | Standard |
+|------|---------|----------|
+| `name` | 1 bis 40 Zeichen, ohne Rücksicht auf Groß- und Kleinschreibung eindeutig | – |
+| `discipline_id` | nicht archivierte Disziplin | – |
+| `tiers` | 1 bis 10 | 1 |
+| `tier_size` | 2 bis 32 | 10 |
+| `games_per_pairing` | 1 bis 10 | 2 |
+| `promotions` | 0 bis ⌊`tier_size`/2⌋ je Grenze, ebenso viele Absteiger | 2 |
+| `points` | `win`, `draw`, `loss` je 0 bis 10 in halben Punkten, Sieg > Niederlage, Sieg ≥ Remis ≥ Niederlage | 1, ½, 0 |
+| `tiebreaks` | Liste aus `wins`, `head_to_head`, `sonneborn_berger`, `fewer_moves` ohne Doppelte | die ersten drei |
+| `min_participants` | 2 bis 320 | 2 |
+| `pause_minutes` | 0 bis 43 200 | 60 |
+| `priority` | 0 bis 1000 | 50 |
+| `archived` | ja/nein | nein |
+
+- **Struktur:** Alle Stufen sind gleich groß, Auf- und Abstieg gelten an jeder Grenze gleich (E131). Statt paralleler Gruppen gibt es die Warteliste; eine neue unterste Stufe entsteht durch eine höhere Stufenzahl. Änderungen der Einstellungen wirken ab dem nächsten Saisonstart.
+- **Saison:** `planned → running → finished` (E132). Die erste Saison gibt ein Admin auf `/admin/leagues` frei; jede weitere plant der Runner beim Abschluss mit `pause_minutes` Abstand. Eine fällige Saison startet, sobald genug Bots da sind. `registration_closed` entfällt, weil der Start Aufstellung und Spielplan in einem Schritt festschreibt.
+- **Aufstellung (E133):** Setzliste aus der vorigen Saison, danach die Warteliste nach Anmeldezeit; von oben in Stufen geschnitten. Am Ende steigen je Grenze `promotions` Bots ab, weniger um die Zahl der Rückzüge in der Stufe; aufgefüllt wird von unten mit den Besten.
+- **Spielplan (E134):** Rundenturnier nach dem Kreisverfahren je Stufe, bei `games_per_pairing` > 1 wiederholt mit getauschten Farben. Alle Partien kommen beim Start in die Queue.
+- **Tabelle (E135):** aus den beendeten Partien berechnet; danach entscheiden die Kriterien aus `tiebreaks` und zuletzt ein beim Start gespeichertes Los. Beim Abschluss speichert die Saison die Endtabelle.
+- **Anmeldung (E136):** Besitzer und Admins melden `verified` Bots auf der Bot-Seite an und ab, Admins auch auf der Liga-Seite. Ein Rückzug während der Saison macht aus den wartenden Partien des Bots kampflose Siege des Gegners (`finished`, `termination` `forfeit_withdrawn`, ungewertet).
 
 ## Turniere
 
@@ -150,7 +176,7 @@ Eine gemeinsame Queue für alle Spiele aller Wettbewerbe.
 |-------------|-----------|
 | Abarbeitung | Sobald ein Spiel endet, startet sofort das nächste; kein Leerlauf, keine festen Startzeiten |
 | Parallelität | Anzahl gleichzeitiger Spiele einstellbar; Standard 1 (E12) |
-| Reihenfolge | Nach Priorität des Wettbewerbs, innerhalb gleicher Priorität abwechselnd zwischen den Wettbewerben, damit kein Wettbewerb die Queue blockiert |
+| Reihenfolge | Nach Priorität des Wettbewerbs, innerhalb gleicher Priorität abwechselnd zwischen den Wettbewerben, damit kein Wettbewerb die Queue blockiert. Umgesetzt mit `competition` und `claimed_at` am Job: Bei gleicher Priorität kommt der Wettbewerb zum Zug, dessen letzter Abruf am längsten zurückliegt (E134) |
 | Überschneidungen | Mehrere Ligen und Turniere dürfen gleichzeitig laufen; sie teilen sich die Queue |
 | Bot-Sperre | Ein Bot spielt nie zwei Partien gleichzeitig (relevant bei Parallelität > 1) |
 | Pausieren | Admin kann die Queue anhalten (z. B. wenn der Server anderweitig gebraucht wird); optional Zeitfenster, in denen keine Spiele starten |

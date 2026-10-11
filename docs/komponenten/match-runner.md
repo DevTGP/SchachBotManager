@@ -86,6 +86,12 @@ Jedes Ende bekommt einen maschinenlesbaren `termination`-Code (Liste in [bot-pro
 - Nach jedem Partie-Job verbucht der Worker alle beendeten, gewerteten und noch offenen Partien in der Reihenfolge ihres Endes (`sbm_store.ratings.count_pending`). Ein Datenbankfehler dabei wird nur protokolliert; die nächste Partie holt das nach. Der Play-Runner verbucht ebenso nach jeder interaktiven Partie, Halter ist dort auch das Konto eines Menschen (E117).
 - Liegt eine Anforderung zum Neuberechnen vor (E105, nach dem Löschen eines Bots), verbucht der Worker vor seinem nächsten Job alle Ratings neu (`sbm_store.rating_recount`), auch bei pausierter Queue. Das setzt einen einzigen Worker voraus, wie bisher.
 
+### Stand M4 Schritt 3 (E132–E136)
+
+- Vor jedem Abruf ruft der Worker `league_tick.advance_leagues` auf, auch bei pausierter Queue: zuerst den Spielplan einer gestarteten Saison nachtragen, falls ein Start mittendrin abbrach (`season_start.lay_out_pending`), dann wartende Partien zurückgezogener Bots kampflos werten (`league_withdrawal.sweep`), dann fertige Saisons abschließen (`season_end.finish_done`, plant die nächste mit `pause_minutes` Abstand), zuletzt fällige Saisons starten (`season_start.start_due`). So übergibt eine endende Saison in derselben Runde an die nächste. Ein Fehler außerhalb der Datenbank wird protokolliert und in der nächsten Runde wiederholt; er hält den Runner nicht an.
+- Partie-Jobs holt `queue_order.claim_match`: höchste Priorität zuerst, bei gleicher Priorität der Wettbewerb (`competition`, `league:<id>` oder `single`), dessen letzter Abruf (`claimed_at`) am längsten zurückliegt, darin der älteste Job. Verifikationsjobs behalten ihren Vorrang nach Wartezeit (E89).
+- Eine Ligapartie spielt der Runner wie ein Einzelspiel mit dem Schnappschuss der Disziplin aus der Saison; die Tabelle entsteht beim Lesen aus den beendeten Partien (E135).
+
 ## Aufgezeichnete Daten pro Zug
 
 `uci`, `san`, FEN nach dem Zug, verbrauchte Zeit, Restzeit, optionale `info` des Bots. Siehe [datenmodell.md](datenmodell.md).

@@ -113,6 +113,21 @@ Lädt `/disciplines` nicht, bieten die Formulare nur freie Zeiten an.
 | `src/pages/BotsPage.tsx`, `src/pages/bot/BotSummary.tsx` | Spalte bzw. Zeilen „Rating“ (seit E163 gesamt) und „Gewertete Partien“; die Botliste hat die Spalte „Ersteller“ (E164) |
 | `src/viewer/MatchDetails.tsx`, `src/format/rating.ts` | Zeilen „Rating Weiß“ und „Rating Schwarz“ als „2500 → 2550 (+50)“, sobald die Partie verbucht ist |
 
+## Stand M4, Schritt 3 (E130–E137)
+
+| Ort | Inhalt |
+|-----|--------|
+| `src/api/leagues.ts` | Ligen, Saisons, Ligen eines Bots, An- und Abmelden |
+| `src/pages/leagues/LeaguesPage.tsx` | `/leagues` („Ligen“) in der Hauptnavigation: Name, Disziplin, Stufen, Angemeldete, Stand der letzten Saison |
+| `src/pages/leagues/LeaguePage.tsx`, `NextSeason.tsx`, `LeagueFacts.tsx`, `LeagueSeasons.tsx`, `LeagueRegistrations.tsx`, `LeagueRegisterForm.tsx` | `/leagues/:id`: wann die nächste Saison beginnt (oder dass die erste auf Freigabe wartet), Einstellungen, Saisons, Anmeldungen mit Stufe oder Warteliste; Coder und Admins melden eigene geprüfte Bots an, Admins melden jeden ab |
+| `src/pages/leagues/SeasonPage.tsx`, `TierTable.tsx` | `/seasons/:id`: Tabelle je Stufe mit Platz (bei Rückzug „–“), Siegen samt kampflosen, Punkten und Ausgang, Link auf `/matches?season=…&tier=…`; fragt nach, solange die Saison läuft |
+| `src/pages/admin/AdminLeaguesPage.tsx`, `LeagueEditor.tsx`, `TiebreakField.tsx`, `leagueForm.ts` | `/admin/leagues`: Ligen anlegen und ändern (Feinwertung als bis zu vier geordnete Auswahlfelder), erste Saison freigeben, archivieren und wiederherstellen |
+| `src/pages/bot/BotLeagues.tsx` | Bot-Seite: Ligen des Bots; Besitzer und Admins melden ab und bei `verified` in einer weiteren Liga an |
+| `src/pages/MatchLeague.tsx` | Partieseite: Liga, Saison, Stufe, Runde und Brett |
+| `src/pages/MatchesPage.tsx` | `/matches`: Filter nach Saison und Stufe aus der URL (`season`, `tier`) mit Hinweis und „Alle Partien zeigen“ |
+
+Ungültige Einstellungen nennt das Formular je Feld (`leagueError.*`).
+
 ## Endgültiges Löschen (E105)
 
 | Ort | Inhalt |

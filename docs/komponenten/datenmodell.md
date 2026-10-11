@@ -14,11 +14,10 @@
 | `verification_reports` | Ergebnis der Pipeline | `bot_id`, `job_id`, `result`, `stages[]` (Status, Befunde bzw. Testpartien, Dauer), `ruleset`, `runtime` (Versionen von Python und SDK), `started_at`, `finished_at` |
 | `disciplines` | Disziplin-Konfiguration | siehe [ligen-turniere.md](ligen-turniere.md) |
 | `settings` | Systemweite Einstellungen (E13) | Queue-Parallelität, Pausen/Zeitfenster, Standardprioritäten, Kapazitätsgrenzen für Mensch-/Remote-Spiele |
-| `leagues` | Liga-Konfiguration | `discipline_id`, `tiers[]`, `promotion`, `relegation`, `recurrence`, `tiebreaks[]` |
-| `seasons` | Eine Saison einer Liga | `league_id`, `number`, `status`, `discipline_snapshot`, `starts_at`, `ends_at` |
-| `standings` | Tabellenzeile je Bot, Saison, Stufe/Gruppe | `season_id`, `tier`, `group`, `bot_id`, `played`, `wins`, `draws`, `losses`, `points`, `tiebreak_values`, `forfeit_wins`, `final_rank`, `outcome` (promoted/relegated/stayed/withdrawn) |
+| `leagues` | Liga-Konfiguration (E131) | `name`, `name_key`, `discipline_id`, `tiers`, `tier_size`, `games_per_pairing`, `promotions`, `points`, `tiebreaks[]`, `min_participants`, `pause_minutes`, `priority`, `archived` |
+| `seasons` | Eine Saison einer Liga (E132) | `league_id`, `number`, `status`, `starts_after`, `seeds[]`, `settings`, `tiers[]`, `withdrawn[]`, `scheduled`, `final[]` |
 | `tournaments` | Turnier inkl. Konfiguration und Zustand | `format`, `discipline_snapshot`, `status`, `rounds[]`, `bracket`, `recurrence_id` |
-| `registrations` | Anmeldung Bot ↔ Liga/Turnier | `bot_id`, `target_type`, `target_id`, `status`, `created_at` |
+| `registrations` | Anmeldung Bot ↔ Liga/Turnier (E136) | `bot_id`, `target_type`, `target_id`, `status`, `created_at`, `created_by`, `left_at`, `left_reason` |
 | `matches` | Eine Partie | siehe unten |
 | `jobs` | Queue (A8) | `type`, `payload`, `priority`, `status`, `not_before`, `lease_until`, `worker_id`, `attempts` |
 | `audit_log` | Admin- und sicherheitsrelevante Aktionen | `actor_id`, `action`, `target`, `at`, `details` |
@@ -31,11 +30,11 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 {
   "_id": "...",
   "type": "league | tournament | single | human | remote | verification",
-  "context": { "season_id": "...", "tier": 3, "round": 4 },
+  "context": { "league_id": "...", "league_name": "...", "season_id": "...", "season_number": 2, "tier": 3, "round": 4, "board": 1 },
   "discipline_snapshot": { "...": "..." },
   "white": { "kind": "bot | human | remote", "bot_id": "...", "user_id": null, "seat_hash": "…" },
   "black": { "kind": "bot", "bot_id": "..." },
-  "status": "queued | running | finished | forfeited | aborted",
+  "status": "queued | running | finished | aborted",
   "queue": { "priority": 100, "position": 7, "estimated_start": "..." },
   "rated": true,
   "start_fen": "startpos",
@@ -51,7 +50,7 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 
 - Züge eingebettet: Eine Partie liegt mit wenigen hundert Halbzügen weit unter dem Dokumentlimit von 16 MB; die maximale Zugzahl der Disziplin sichert das ab.
 - `fen` pro Zug macht den Viewer unabhängig von einer eigenen Regelimplementierung und erlaubt direkte Sprünge.
-- **Kampflose Siege (E17)** sind eigene Match-Dokumente mit `status: forfeited`, leerer Zugliste, `rated: false` und `termination: forfeit_withdrawn`; so bleiben sie in Tabelle und Partienliste sichtbar und unterscheidbar.
+- **Kampflose Siege (E17, E136)** sind die nicht gespielten Partien selbst: `status: finished`, leere Zugliste, `rated: false` und `termination: forfeit_withdrawn`; so bleiben sie in Tabelle und Partienliste sichtbar und unterscheidbar. Einen eigenen Status `forfeited` gibt es nicht.
 - `termination` nutzt die Codes aus [bot-protokoll.md](bot-protokoll.md) (E44), ergänzt um `forfeit_withdrawn`.
 - `discipline_snapshot` hält fest, unter welchen Bedingungen gespielt wurde, auch wenn die Disziplin später geändert wird.
 
@@ -60,12 +59,11 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 | Collection | Index | Zweck |
 |------------|-------|-------|
 | `matches` | `white.bot_id + finished_at`, `black.bot_id + finished_at` | Bot-Historie |
-| `matches` | `context.season_id + context.round`, `status + queue.priority` | Spielpläne, laufende Spiele, Queue-Ansicht |
-| `standings` | `season_id + tier + group + points` (unique auf `season_id + bot_id`) | Tabellen |
+| `matches` | `context.season_id + context.tier + status`, `status + queue.priority` | Spielpläne und Tabellen, laufende Spiele, Queue-Ansicht |
 | `bots` | unique `name_key + version_no`, `owner_id + created_at`, `lineage_id + version_no`, `status` | Namen und Versionen (E91), eigene Bots, Versionslisten |
 | `verification_reports` | `bot_id` | Reports eines Bots |
-| `jobs` | `status + priority + not_before`, `lease_until` | Queue-Abruf, Wiederaufnahme |
-| `registrations` | unique `bot_id + target_type + target_id` | Keine Doppelanmeldung |
+| `jobs` | `status + priority + not_before`, `lease_until`, `competition + claimed_at` | Queue-Abruf, Wiederaufnahme, Wechsel zwischen Wettbewerben |
+| `registrations` | unique `target_type + target_id + bot_id` für aktive | Keine Doppelanmeldung |
 | `users` | unique `username_key` | Login, Namen ohne Rücksicht auf Groß- und Kleinschreibung eindeutig |
 | `invites`, `password_resets`, `api_tokens` | unique `token_hash`; TTL auf `expires_at` | Lookup, Aufräumen |
 | `sessions`, `rate_limits` | TTL auf `expires_at` | Aufräumen |
@@ -120,6 +118,16 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 - `sbm_store.bot_deletion` entfernt eine Version mit Dateien (`bot_files`), Prüfberichten, Verifikationsjobs und allen ihren Partien samt deren Jobs; der Bot-Eintrag geht zuletzt.
 - `settings` mit `_id` `ratings` hält `recount_request` (eine frische `ObjectId` je Anforderung, sonst `null`) und `requested_at`. `sbm_store.rating_recount` entfernt `rating` von allen Partien sowie `rating` und `ratings` (E163) von allen Bots und Konten und verbucht neu; die Anforderung wird nur gelöscht, wenn keine neue dazukam.
 
+## Stand M4, Schritt 3 (E130–E137)
+
+- `leagues` (`sbm_store.leagues`): Felder laut E131, dazu `name_key`, `created_by`, `created_at`, `updated_at`, `schema_version`. `points` hält `win`, `draw`, `loss` als Zahlen in halben Punkten.
+- `seasons` (`sbm_store.seasons`): `league_id`, `number` (ab 1), `status` (`planned`, `running`, `finished`), `starts_after` (frühester Start; `null`, bis ein Admin die erste Saison freigibt), `seeds` (Bot-IDs je Stufe aus dem Ende der vorigen Saison), beim Start `settings` (Schnappschuss der Liga samt `league_name` und `discipline_snapshot`), `tiers` (je Stufe Einträge mit `bot_id`, `name`, `version`, `lot`), `withdrawn` (Bot-IDs), `scheduled`; beim Abschluss `final` (je Stufe die Tabellenzeilen mit `rank` und `outcome`). Zeitstempel `created_at`, `started_at`, `finished_at`.
+- Keine Collection `standings`: Tabellen werden aus `matches` berechnet (`sbm_store.league_table`), nur die Endtabelle liegt an der Saison.
+- `registrations` (`sbm_store.registrations`): `target_type` ist vorerst nur `league`; `status` `active` oder `left`, `left_reason` `deregistered`, `retired`, `disabled` oder `deleted`.
+- Partien einer Liga: `type` `league`, `context` mit `league_id`, `league_name`, `season_id`, `season_number`, `tier`, `round` und `board` (je ab 1); Name und Nummer stehen dort, damit Liste und Detail der Partien ohne weitere Abfrage auskommen.
+- Jobs: `competition` (`league:<id>` oder `single`) an Partie-Jobs, `claimed_at` beim Abruf (`sbm_store.queue_order`).
+- Migration `0007_leagues` setzt `competition: "single"` an vorhandenen Partie-Jobs und legt die Indizes an: eindeutig `name_key` von `leagues`, eindeutig `(league_id, number)` von `seasons`, `status` von `seasons`, eindeutiger Teilindex `(target_type, target_id, bot_id)` für aktive Anmeldungen, `(bot_id, status)` von `registrations`, `(context.season_id, context.tier, status)` von `matches` und `(competition, claimed_at)` von `jobs`.
+
 ## Stand M7 (E113–E116)
 
 - Interaktive Partien: Typ `human` oder `remote`, `queue` ist `null`, `rated` nur für einen Menschen mit Konto unter einer gespeicherten Disziplin aus der Grundstellung (E117). Eine Seite ohne Bot hat `kind` `human` oder `remote`, `bot_id` `null`, `user_id` (bei Gästen `null`), `name` und `seat_hash` (SHA-256 des Sitz-Tokens; der Token selbst wird nie gespeichert). `origin` hält `ip_key` (Hash der Adresse), `user_id` und `token_id` für die Grenzen; dünn besetzte Indizes darauf (Migration `0110_play_origin`). Ihr Job hat die Art `play` (`sbm_store.play`). Öffentlich sind sie wie Botpartien (E119); die Liste der laufenden nutzt den vorhandenen Index auf `status`.
@@ -137,7 +145,7 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 
 ## Zu beachten
 
-- **Tabellen sind abgeleitete Daten.** Sie müssen jederzeit aus `matches` neu berechenbar sein (Reparaturwerkzeug für Admins).
+- **Tabellen sind abgeleitete Daten.** Sie werden jederzeit aus `matches` neu berechnet (E135); gespeichert wird nur die Endtabelle einer Saison.
 - **Atomarität:** Job-Abruf per atomarem Update (`find_one_and_update`). Ergebnisverbuchung + Tabellenupdate entweder in einer Transaktion (erfordert Replica Set) oder idempotent über ein „verbucht“-Kennzeichen am Match.
 - **Replica Set:** Auch ein Einzelknoten kann als Replica Set laufen; nötig für Transaktionen und Change Streams.
 - **Schema-Versionierung:** Feld `schema_version` pro Dokument und Migrationsskripte im Repo.

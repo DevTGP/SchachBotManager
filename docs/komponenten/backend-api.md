@@ -139,6 +139,23 @@ Jeder Bot enthält `rating` mit `value` und `games` (ohne verbuchte Partie 2500 
 
 Seit E163 ist `rating` eines Bots oder Kontos das Gesamtrating (nach Partien gewichteter Durchschnitt über die Disziplinen, `sbm_store.rating_values`); `before` und `after` einer Partie gelten in ihrer Disziplin. Beide Ranglisten nehmen `discipline_id`: ohne die Gesamtrangliste, mit ihr die der Disziplin (`rating` dann aus der Disziplin), eine unbekannte Id ergibt eine leere Liste, eine ungültige 400 (`sbm_store.rankings`).
 
+### Stand M4, Schritt 3 (E130–E137)
+
+| Route | Aufgabe |
+|-------|---------|
+| `GET /leagues`, `GET /leagues/{id}` | Öffentlich: alle Ligen nach Name mit Zahl der Anmeldungen und letzter Saison; im Detail zusätzlich alle Saisons, neueste zuerst, und die Anmeldungen mit Stufe der laufenden Saison oder Warteliste (`routes/leagues.py`, `league_view.py`) |
+| `GET /seasons/{id}` | Öffentlich: Saison mit Schnappschuss der Einstellungen und je Stufe Tabelle, Zahl der Partien und der beendeten; eine laufende Saison rechnet die Tabelle aus den Partien, eine beendete zeigt die gespeicherte Endtabelle mit Ausgang (`season_view.py`) |
+| `GET /bots/{id}/leagues` | Öffentlich: aktive Anmeldungen eines Bots |
+| `POST /leagues/{id}/registrations`, `DELETE /leagues/{id}/registrations/{bot_id}` | Besitzer und Admins melden einen `verified` Bot an bzw. ab; Abmelden während einer Saison wertet seine wartenden Partien kampflos (`routes/league_registrations.py`). Audit `league.register` bzw. `league.deregister`, wenn ein Admin einen fremden Bot betrifft |
+| `POST /admin/leagues`, `PATCH /admin/leagues/{id}` | Liga anlegen (mit Saison 1 `planned`) bzw. Einstellungen ändern, archivieren, wiederherstellen; Prüfung in `league_request.py`; Audit `league.create`, `league.update` |
+| `POST /admin/leagues/{id}/start` | Gibt die erste Saison frei (setzt `starts_after`); Audit `league.start` |
+| `GET /matches` | zusätzlich `season_id` und `tier` (nur mit `season_id`, sonst 400); `kind=bots` umfasst Einzelspiele und Ligapartien |
+
+- Partien enthalten `league` (Liga, Saison mit Nummer, Stufe, Runde, Brett) oder `null` (`match_view.league_place`).
+- `GET /queue` zeigt wartende Partien in der Reihenfolge, in der der Runner sie abruft (`sbm_store.queue_order.waiting`, E134).
+- Zurückziehen durch den Besitzer (`routes/own_bot.py`), Sperren und Löschen durch einen Admin (`routes/admin_bots.py`) melden den Bot aus allen Ligen ab (`sbm_store.league_withdrawal`, E136).
+- Neue Fehlercodes: `league_state` (409, Liga archiviert oder erste Saison schon freigegeben), `already_registered` (409, `field` `bot_id`); ein nicht verifizierter Bot ergibt `bot_state` (409).
+
 ### Endgültiges Löschen (E105)
 
 | Route | Aufgabe |
