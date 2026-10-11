@@ -12,7 +12,7 @@ def entries(*lots: tuple[ObjectId, int]) -> list[dict]:
 
 
 def game(white, black, score, *, plies=40, forfeit=False) -> Game:
-    return Game(white, black, score, forfeit, 0 if forfeit else plies)
+    return Game(white, black, score, 1.0 - score, forfeit, 0 if forfeit else plies)
 
 
 def names(rows) -> list[str]:
@@ -46,7 +46,7 @@ def test_only_finished_matches_with_a_result_count():
 
     games = counted_games(matches)
 
-    assert games == [Game(A, B, 1.0, False, 9), Game(A, B, 0.0, True, 0)]
+    assert games == [Game(A, B, 1.0, 0.0, False, 9), Game(A, B, 0.0, 1.0, True, 0)]
 
 
 def test_the_lot_decides_without_tiebreaks():
@@ -171,3 +171,19 @@ def test_byes_give_a_win_and_buchholz_sums_the_opponents_points():
     assert by_name["D"].buchholz == 1.0
     assert by_name["D"].to_edition_document()["byes"] == 0
     assert "outcome" not in by_name["D"].to_edition_document()
+
+
+def test_both_absent_lose():
+    side = {"white": {"bot_id": None, "user_id": A}, "black": {"bot_id": None, "user_id": B}}
+    match = {**side, "status": "finished", "result": "0-0", "termination": "forfeit_absent"}
+
+    games = counted_games([match])
+
+    assert games == [Game(A, B, 0.0, 0.0, True, 0)]
+    accounts = [
+        {"bot_id": None, "user_id": key, "name": NAMES[key], "version": None, "lot": lot}
+        for key, lot in ((A, 1), (B, 2))
+    ]
+    rows = table(accounts, games, points=POINTS, tiebreaks=[])
+    assert [(row.key, row.losses, row.points) for row in rows] == [(A, 1, 0), (B, 1, 0)]
+    assert rows[0].bot == {"bot_id": None, "user_id": A, "name": "A", "version": None}

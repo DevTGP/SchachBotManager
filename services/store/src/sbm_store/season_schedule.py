@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from pymongo.database import Database
 
+from sbm_store import participants
 from sbm_store.names import MATCHES
 
 PROJECTION = {
@@ -45,6 +46,6 @@ def rounds(db: Database, season: dict, tier: int) -> list[Round] | None:
 def _bye(entries: list[dict], games: list[dict]) -> dict | None:
     if len(entries) % 2 == 0:
         return None
-    playing = {game[color]["bot_id"] for game in games for color in ("white", "black")}
-    idle = [entry for entry in entries if entry["bot_id"] not in playing]
+    playing = {participants.key(game[color]) for game in games for color in participants.COLORS}
+    idle = [entry for entry in entries if participants.key(entry) not in playing]
     return idle[0] if len(idle) == 1 else None

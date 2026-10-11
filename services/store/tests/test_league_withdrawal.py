@@ -4,7 +4,14 @@ import random
 from datetime import timedelta
 
 from conftest import T0
-from league_world import add_bots, add_league, register, season_games
+from league_world import (
+    add_accounts,
+    add_bots,
+    add_league,
+    register,
+    register_accounts,
+    season_games,
+)
 
 from sbm_store import (
     jobs,
@@ -84,3 +91,28 @@ def test_leaving_one_league_keeps_the_others(db):
 
     assert registrations.get_active(db, second["_id"], entrants[0]["_id"]) is not None
     assert seasons.get(db, season["_id"])["withdrawn"] == []
+
+
+def test_an_account_withdraws_like_a_bot(db):
+    (account,) = add_accounts(db, 1)
+    league = add_league(db)
+    register(db, league, add_bots(db, 2))
+    register_accounts(db, league, [account])
+    league_setup.start(db, league["_id"], T0)
+    season_start.start_due(db, LATER, random.Random(1))
+    season = seasons.latest(db, league["_id"])
+
+    forfeited = league_withdrawal.withdraw(
+        db, account["_id"], registrations.DEACTIVATED, LEFT, league_id=league["_id"]
+    )
+
+    assert forfeited == 4
+    assert seasons.get(db, season["_id"])["withdrawn"] == [account["_id"]]
+    assert registrations.get_active(db, league["_id"], account["_id"]) is None
+    own = [
+        game
+        for game in season_games(db, season["_id"])
+        if game["white"]["kind"] != "bot" or game["black"]["kind"] != "bot"
+    ]
+    assert {game["termination"] for game in own} == {matches.FORFEIT}
+    assert all(game["result"] == ("0-1" if game["white"].get("user_id") else "1-0") for game in own)

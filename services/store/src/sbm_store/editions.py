@@ -20,6 +20,7 @@ from pymongo import ASCENDING, DESCENDING
 from pymongo.database import Database
 from pymongo.errors import DuplicateKeyError
 
+from sbm_store import participants
 from sbm_store.names import EDITIONS
 
 SCHEMA_VERSION = 1
@@ -156,18 +157,22 @@ def running(db: Database) -> list[dict]:
 
 
 def running_with_bot(
-    db: Database, bot_id: ObjectId, tournament_id: ObjectId | None = None
+    db: Database, key: ObjectId, tournament_id: ObjectId | None = None
 ) -> list[dict]:
-    query: dict = {"status": RUNNING, "participants.bot_id": bot_id}
+    """The running editions a bot or an account plays in (E182)."""
+    query: dict = {
+        "status": RUNNING,
+        "$or": [{"participants.bot_id": key}, {"participants.user_id": key}],
+    }
     if tournament_id is not None:
         query["tournament_id"] = tournament_id
     return list(db[EDITIONS].find(query))
 
 
-def add_withdrawn(db: Database, edition_id: ObjectId, bot_id: ObjectId) -> None:
+def add_withdrawn(db: Database, edition_id: ObjectId, key: ObjectId) -> None:
     db[EDITIONS].update_one(
-        {"_id": edition_id, "withdrawn": {"$ne": bot_id}},
-        {"$push": {"withdrawn": bot_id}, "$inc": {"revision": 1}},
+        {"_id": edition_id, "withdrawn": {"$ne": key}},
+        {"$push": {"withdrawn": key}, "$inc": {"revision": 1}},
     )
 
 
@@ -181,5 +186,8 @@ def finish(
     return result.modified_count == 1
 
 
-def participant(edition: dict, bot_id: ObjectId) -> dict | None:
-    return next((entry for entry in edition["participants"] if entry["bot_id"] == bot_id), None)
+def participant(edition: dict, key: ObjectId) -> dict | None:
+    """The entry of a bot or an account by its participant key (E182)."""
+    return next(
+        (entry for entry in edition["participants"] if participants.key(entry) == key), None
+    )

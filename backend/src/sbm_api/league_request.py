@@ -16,6 +16,7 @@ LIMITS = {
     "promotions": (0, 16),
     "min_participants": (2, 320),
     "priority": (0, 1000),
+    "ready_hours": (1, 336),
 }
 MAX_POINTS = 10
 MAX_TIEBREAKS = 4

@@ -1,5 +1,5 @@
-"""The runner's main loop: recover, advance the leagues and tournaments, claim, then play a match
-or verify a bot, one at a time."""
+"""The runner's main loop: recover, advance the leagues and tournaments and the readiness of
+their games with accounts, claim, then play a match or verify a bot, one at a time."""
 
 import logging
 import time
@@ -15,6 +15,7 @@ from sbm_runner.game import run_job
 from sbm_runner.heartbeat import Heartbeat
 from sbm_runner.league_tick import advance_leagues
 from sbm_runner.players import PlayerFactory, plain_player
+from sbm_runner.readiness_tick import advance_readiness
 from sbm_runner.recovery import recover_expired
 from sbm_runner.retries import retry_or_abort, retry_or_reject
 from sbm_runner.shutdown import Shutdown
@@ -69,6 +70,7 @@ class Worker:
         self._recount_ratings()
         advance_leagues(self._db, self._now())
         advance_tournaments(self._db, self._now())
+        advance_readiness(self._db, self._now())
         if queue_settings.get(self._db).paused:
             return False
         job = self._claim()

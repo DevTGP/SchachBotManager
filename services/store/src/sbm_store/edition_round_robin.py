@@ -6,13 +6,15 @@ up front, so the games can be stored in a second step that may repeat.
 
 from bson import ObjectId
 
+from sbm_store import participants as participant_keys
 from sbm_store.league_pairing import schedule
 
 
 def plan(participants: list[dict], games_per_pairing: int) -> dict:
-    """{rounds: [{round, bye, pairings: [{board, white, black, match_id}]}]}; bye is the bot
-    that sits a round out when the number is odd."""
-    bot_ids = [entry["bot_id"] for entry in participants]
+    """{rounds: [{round, bye, pairings: [{board, white, black, match_id}]}]}; white, black and
+    bye are participant keys (E182), bye the one that sits a round out when the number is
+    odd."""
+    bot_ids = [participant_keys.key(entry) for entry in participants]
     rounds: dict[int, list[dict]] = {}
     for pairing in schedule(bot_ids, games_per_pairing):
         rounds.setdefault(pairing.round, []).append(

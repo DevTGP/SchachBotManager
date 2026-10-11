@@ -96,6 +96,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/matches/{match_id}/ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                match_id: components["parameters"]["MatchId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The account of a side of a released league or tournament game says it is ready and present (E183); the page repeats this every 15 seconds while it waits. The game starts once every account is ready and present. Returns the seat to join the game with. */
+        post: operations["ready_for_match"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/series/{series_id}": {
         parameters: {
             query?: never;
@@ -475,7 +494,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Registers a verified bot for a league that is not archived (E136); the owner (coder) or an admin. The bot enters at the next season start. */
+        /** Registers a verified bot (its owner, a coder, or an admin, E136) or an active account that plays in person (the account itself in any role, or an admin, E182) for a league that is not archived. The participant enters at the next season start. */
         post: operations["register_bot"];
         delete?: never;
         options?: never;
@@ -483,20 +502,21 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/leagues/{league_id}/registrations/{bot_id}": {
+    "/leagues/{league_id}/registrations/{participant_id}": {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 league_id: components["parameters"]["LeagueId"];
-                bot_id: components["schemas"]["Id"];
+                /** @description The bot or, for an account that plays in person, the account (E182). */
+                participant_id: components["parameters"]["ParticipantId"];
             };
             cookie?: never;
         };
         get?: never;
         put?: never;
         post?: never;
-        /** Ends the registration of a bot; the owner (coder) or an admin. In a running season the bot withdraws: its waiting games become forfeit wins of the opponents (E136). */
+        /** Ends the registration of a bot (its owner, a coder, or an admin) or of an account (the account itself or an admin, E182). In a running season the participant withdraws: its waiting games become forfeit wins of the opponents (E136). */
         delete: operations["deregister_bot"];
         options?: never;
         head?: never;
@@ -590,7 +610,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Registers a verified bot for a tournament that is not archived (E179); the owner (coder) or an admin. The bot enters at the next edition start. */
+        /** Registers a verified bot (its owner, a coder, or an admin, E179) or an active account that plays in person (the account itself in any role, or an admin, E182) for a tournament that is not archived. The participant enters at the next edition start. */
         post: operations["register_tournament_bot"];
         delete?: never;
         options?: never;
@@ -598,20 +618,21 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/tournaments/{tournament_id}/registrations/{bot_id}": {
+    "/tournaments/{tournament_id}/registrations/{participant_id}": {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 tournament_id: components["parameters"]["TournamentId"];
-                bot_id: components["schemas"]["Id"];
+                /** @description The bot or, for an account that plays in person, the account (E182). */
+                participant_id: components["parameters"]["ParticipantId"];
             };
             cookie?: never;
         };
         get?: never;
         put?: never;
         post?: never;
-        /** Ends the registration of a bot; the owner (coder) or an admin. In a running edition the bot withdraws: its waiting games become forfeit wins of the opponents, in a knockout it loses its duel (E179). */
+        /** Ends the registration of a bot (its owner, a coder, or an admin) or of an account (the account itself or an admin, E182). In a running edition the participant withdraws: its waiting games become forfeit wins of the opponents, in a knockout it loses its duel (E179). */
         delete: operations["deregister_tournament_bot"];
         options?: never;
         head?: never;
@@ -769,6 +790,23 @@ export interface paths {
         };
         /** The rating of the logged-in account from its rated games against bots (E117), overall and per discipline (E169); public in /ratings/players once it has a rated game (E118). */
         get: operations["get_own_rating"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/competition-games": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The league and tournament games of the logged-in account that are not finished (E186). */
+        get: operations["list_competition_games"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1384,7 +1422,7 @@ export interface components {
         Timestamp: string;
         Error: {
             /** @enum {unknown} */
-            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large" | "builtin_bot" | "bot_verifying" | "bot_playing" | "no_capacity" | "too_many_games" | "match_state" | "not_repeatable" | "bot_state" | "league_state" | "tournament_state" | "already_registered";
+            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large" | "builtin_bot" | "bot_verifying" | "bot_playing" | "no_capacity" | "too_many_games" | "match_state" | "not_repeatable" | "bot_state" | "league_state" | "tournament_state" | "already_registered" | "user_state";
             /** @description English text for logs; not shown to users, except as the detail of invalid_upload. */
             message: string;
             /** @description The invalid parameter, for invalid_parameter. */
@@ -1401,9 +1439,10 @@ export interface components {
          * @enum {unknown}
          */
         MatchStatus: "queued" | "running" | "finished" | "aborted";
-        Result: components["schemas"]["result"];
-        /** @description How the match ended: a code of the bot protocol, or forfeit_withdrawn for a league game not played because a bot left the league (E136). */
-        Termination: components["schemas"]["termination"] | "forfeit_withdrawn";
+        /** @description A result of the bot protocol, or 0-0 for a league or tournament game in which neither account was ready by the deadline (E184). */
+        Result: components["schemas"]["result"] | "0-0";
+        /** @description How the match ended: a code of the bot protocol; forfeit_withdrawn for a league or tournament game not played because a participant withdrew (E136, E179); forfeit_absent for one not played because an account was not ready by the deadline (E184). */
+        Termination: components["schemas"]["termination"] | "forfeit_withdrawn" | "forfeit_absent";
         /** @description The conditions the match was played under, copied when it was created. */
         Discipline: {
             name: string;
@@ -1464,7 +1503,7 @@ export interface components {
             max_moves?: number;
             archived?: boolean;
         };
-        /** @description One side of a match: a bot, a person in the browser (human) or a coder's bot on their own machine (remote, E116). sdk and lang are filled once the bot reported ready; a person has neither. */
+        /** @description One side of a match: a bot, a person in the browser (human) or a coder's bot on their own machine (remote, E116). sdk and lang are filled once the bot reported ready; a person has neither. A person in a league or tournament game is an account (E182). */
         Side: {
             /** @enum {unknown} */
             kind: "bot" | "human" | "remote";
@@ -1514,12 +1553,12 @@ export interface components {
             white: components["schemas"]["Side"];
             black: components["schemas"]["Side"];
             discipline: components["schemas"]["Discipline"];
-            /** @description Played under a stored discipline from the standard position between two different bots, or by a person with an account against a bot, unless asked otherwise; only such matches count for the rating (E100, E103, E117, E158). */
+            /** @description Played under a stored discipline from the standard position between two different bots, by a person with an account against a bot, or in a league or tournament also between two accounts, unless asked otherwise; only such matches count for the rating (E100, E103, E117, E158, E182). */
             rated: boolean;
             /** @description The series of the match if it was queued with others in one request (E155); null otherwise. */
             series: components["schemas"]["SeriesPlace"] | null;
             /** @description null until the match ends. */
-            result: components["schemas"]["result"] | null;
+            result: components["schemas"]["Result"] | null;
             /** @description null until the match ends. */
             termination: components["schemas"]["Termination"] | null;
             ply_count: number;
@@ -1530,8 +1569,40 @@ export interface components {
             league: components["schemas"]["LeaguePlace"] | null;
             /** @description Where a tournament game belongs (E178); null for other matches. */
             tournament: components["schemas"]["TournamentPlace"] | null;
+            /** @description A league or tournament game with an account once it is released (E183); null otherwise. */
+            readiness: components["schemas"]["Readiness"] | null;
         };
         MatchSummary: components["schemas"]["MatchFields"];
+        /** @description The release of a league or tournament game with an account (E183): it starts once every account is ready and present, at the deadline if every account is ready; an account not ready by then loses unplayed (E184). */
+        Readiness: {
+            released_at: components["schemas"]["Timestamp"];
+            deadline: components["schemas"]["Timestamp"];
+            /** @description When the game was handed to the play runner; null before. */
+            started_at: components["schemas"]["Timestamp"] | null;
+            /** @description null for a bot. */
+            white: components["schemas"]["SideReadiness"] | null;
+            /** @description null for a bot. */
+            black: components["schemas"]["SideReadiness"] | null;
+        };
+        /** @description ready: the account said it is ready, which stays; present: its page reported within the last 45 seconds (E183). */
+        SideReadiness: {
+            ready: boolean;
+            present: boolean;
+        };
+        /** @description A league or tournament game of the logged-in account that is not finished (E186). */
+        CompetitionGame: {
+            match: components["schemas"]["MatchSummary"];
+            /** @enum {unknown} */
+            color: "white" | "black";
+        };
+        /** @description Released games first, by deadline; then waiting games in the order they will be released. */
+        CompetitionGameList: {
+            items: components["schemas"]["CompetitionGame"][];
+        };
+        /** @description seat: the seat this browser holds for the game, if any; a seat that still fits is kept, else a new one is issued (E183). */
+        ReadyRequest: {
+            seat?: string;
+        };
         Move: {
             /** @description 1 for White's first move. */
             ply: number;
@@ -1670,7 +1741,7 @@ export interface components {
              * @enum {unknown}
              */
             color: "white" | "black";
-            result: components["schemas"]["result"];
+            result: components["schemas"]["Result"];
             termination: components["schemas"]["Termination"];
             detail: string;
             plies: number;
@@ -2135,6 +2206,8 @@ export interface components {
             min_participants: number;
             /** @description Queue priority of the league's matches; coders' games have 50 by default. */
             priority: number;
+            /** @description Hours an account has to get ready for a released game; not ready by then, it loses unplayed (E183, E184). */
+            ready_hours: number;
         };
         /**
          * @description planned: waiting for its start; running: matches are queued or played; finished: final table stored (E132).
@@ -2156,10 +2229,17 @@ export interface components {
         LeagueList: {
             items: components["schemas"]["League"][];
         };
-        /** @description A bot as it was when it entered the season or registered. */
+        /** @description A participant as it was when it entered the season or edition or registered: a bot, or an account playing in person (kind human, E182). */
         LeagueBot: {
-            bot_id: components["schemas"]["Id"];
+            /** @enum {unknown} */
+            kind: "bot" | "human";
+            /** @description null for an account. */
+            bot_id: components["schemas"]["Id"] | null;
+            /** @description null for a bot. */
+            user_id: components["schemas"]["Id"] | null;
+            /** @description The bot's name or the username. */
             name: string;
+            /** @description null for an account. */
             version: string | null;
         };
         /** @description An active registration of a bot (E136). */
@@ -2202,6 +2282,8 @@ export interface components {
             min_participants: number;
             /** @description Queue priority of the league's matches; coders' games have 50 by default. */
             priority: number;
+            /** @description Hours an account has to get ready for a released game; not ready by then, it loses unplayed (E183, E184). */
+            ready_hours: number;
             /** @description null: every season or edition waits for an admin to start it (E171). */
             recurrence: components["schemas"]["Recurrence"] | null;
             /** @description Finishes its running season but starts no new one. */
@@ -2263,7 +2345,7 @@ export interface components {
             black: components["schemas"]["LeagueBot"];
             status: components["schemas"]["MatchStatus"];
             /** @description null until the game ends. */
-            result: components["schemas"]["result"] | null;
+            result: components["schemas"]["Result"] | null;
             /** @description forfeit_withdrawn for a game lost by forfeit (E136); null until the game ends. */
             termination: components["schemas"]["Termination"] | null;
         };
@@ -2403,6 +2485,11 @@ export interface components {
              * @default 50
              */
             priority: number;
+            /**
+             * @description Hours an account has to get ready for a released game; not ready by then, it loses unplayed (E183, E184).
+             * @default 48
+             */
+            ready_hours: number;
         };
         /** @description At least one field; changes apply from the next season start (E131). */
         LeagueUpdate: {
@@ -2424,13 +2511,17 @@ export interface components {
             min_participants?: number;
             /** @description Queue priority of the league's matches; coders' games have 50 by default. */
             priority?: number;
+            /** @description Hours an account has to get ready for a released game; not ready by then, it loses unplayed (E183, E184). */
+            ready_hours?: number;
             /** @description null: every season or edition waits for an admin to start it (E171). */
             recurrence?: components["schemas"]["Recurrence"] | null;
             archived?: boolean;
         };
+        /** @description Either a verified bot or an account that plays in person (E182). */
         RegistrationRequest: {
-            bot_id: components["schemas"]["Id"];
-        };
+            bot_id?: components["schemas"]["Id"];
+            user_id?: components["schemas"]["Id"];
+        } & (unknown | unknown);
         /** @description Calendar of a league or tournament (E171): a new season or edition waits for the first date first_start + k · interval_hours (k ≥ 0) after the start of the previous one, the first for the first date from now; a date that has passed already starts it at once. */
         Recurrence: {
             first_start: components["schemas"]["Timestamp"];
@@ -2467,6 +2558,8 @@ export interface components {
             min_participants: number;
             /** @description Queue priority of the tournament's matches; coders' games and leagues have 50 by default. */
             priority: number;
+            /** @description Hours an account has to get ready for a released game; not ready by then, it loses unplayed (E183, E184). */
+            ready_hours: number;
         };
         /**
          * @description planned: waiting for its start; running: matches are queued or played; finished: final result stored (E173).
@@ -2509,6 +2602,8 @@ export interface components {
             min_participants: number;
             /** @description Queue priority of the tournament's matches; coders' games and leagues have 50 by default. */
             priority: number;
+            /** @description Hours an account has to get ready for a released game; not ready by then, it loses unplayed (E183, E184). */
+            ready_hours: number;
             /** @description Current name of the tiebreak discipline; null without one. */
             tiebreak_discipline_name: string | null;
             /** @description null: every season or edition waits for an admin to start it (E171). */
@@ -2584,7 +2679,7 @@ export interface components {
             black: components["schemas"]["LeagueBot"];
             status: components["schemas"]["MatchStatus"];
             /** @description null until the game ends. */
-            result: components["schemas"]["result"] | null;
+            result: components["schemas"]["Result"] | null;
             /** @description null until the game ends. */
             termination: components["schemas"]["Termination"] | null;
         };
@@ -2731,6 +2826,11 @@ export interface components {
              */
             priority: number;
             /**
+             * @description Hours an account has to get ready for a released game; not ready by then, it loses unplayed (E183, E184).
+             * @default 48
+             */
+            ready_hours: number;
+            /**
              * @description null: every season or edition waits for an admin to start it (E171).
              * @default null
              */
@@ -2755,6 +2855,8 @@ export interface components {
             min_participants?: number;
             /** @description Queue priority of the tournament's matches; coders' games and leagues have 50 by default. */
             priority?: number;
+            /** @description Hours an account has to get ready for a released game; not ready by then, it loses unplayed (E183, E184). */
+            ready_hours?: number;
             /** @description null: every season or edition waits for an admin to start it (E171). */
             recurrence?: components["schemas"]["Recurrence"] | null;
             archived?: boolean;
@@ -2932,6 +3034,15 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
+        /** @description The match is not a released league or tournament game of an account waiting for its start (code match_state, E183). */
+        ReadyState: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
         /** @description The request is larger than 3 MiB (code too_large). */
         TooLarge: {
             headers: {
@@ -2988,7 +3099,7 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
-        /** @description The bot is registered already (code already_registered), the league or tournament is archived (code league_state or tournament_state) or the bot is not verified (code bot_state). */
+        /** @description The bot or account is registered already (code already_registered), the league or tournament is archived (code league_state or tournament_state), the bot is not verified (code bot_state) or the account is not active (code user_state). */
         RegistrationConflict: {
             headers: {
                 [name: string]: unknown;
@@ -3030,6 +3141,8 @@ export interface components {
         Offset: number;
         LeagueId: components["schemas"]["Id"];
         TournamentId: components["schemas"]["Id"];
+        /** @description The bot or, for an account that plays in person, the account (E182). */
+        ParticipantId: components["schemas"]["Id"];
     };
     requestBodies: never;
     headers: never;
@@ -3208,6 +3321,40 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["MatchState"];
+        };
+    };
+    ready_for_match: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                match_id: components["parameters"]["MatchId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReadyRequest"];
+            };
+        };
+        responses: {
+            /** @description The seat for the game, the one sent if it still fits. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlaySeat"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["ReadyState"];
         };
     };
     get_series: {
@@ -3800,7 +3947,8 @@ export interface operations {
             };
             path: {
                 league_id: components["parameters"]["LeagueId"];
-                bot_id: components["schemas"]["Id"];
+                /** @description The bot or, for an account that plays in person, the account (E182). */
+                participant_id: components["parameters"]["ParticipantId"];
             };
             cookie?: never;
         };
@@ -3956,7 +4104,8 @@ export interface operations {
             };
             path: {
                 tournament_id: components["parameters"]["TournamentId"];
-                bot_id: components["schemas"]["Id"];
+                /** @description The bot or, for an account that plays in person, the account (E182). */
+                participant_id: components["parameters"]["ParticipantId"];
             };
             cookie?: never;
         };
@@ -4223,6 +4372,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccountRating"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+        };
+    };
+    list_competition_games: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The games. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompetitionGameList"];
                 };
             };
             401: components["responses"]["Unauthenticated"];

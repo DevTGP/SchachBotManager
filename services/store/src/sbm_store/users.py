@@ -62,6 +62,14 @@ def get(db: Database, user_id: ObjectId) -> dict | None:
     return db[USERS].find_one({"_id": user_id})
 
 
+def by_ids(db: Database, user_ids: list[ObjectId], *, active: bool | None = None) -> dict:
+    """The accounts with these ids by id, only active (or inactive) ones if active is given."""
+    query: dict = {"_id": {"$in": user_ids}}
+    if active is not None:
+        query["active"] = active
+    return {user["_id"]: user for user in db[USERS].find(query)}
+
+
 def by_username(db: Database, username: str) -> dict | None:
     return db[USERS].find_one({"username_key": username_key(username)})
 

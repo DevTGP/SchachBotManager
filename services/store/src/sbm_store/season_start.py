@@ -10,7 +10,16 @@ from datetime import datetime
 from bson import ObjectId
 from pymongo.database import Database
 
-from sbm_store import bots, disciplines, jobs, leagues, matches, registrations, seasons
+from sbm_store import (
+    competition_entrants,
+    disciplines,
+    jobs,
+    leagues,
+    matches,
+    participants,
+    registrations,
+    seasons,
+)
 from sbm_store.discipline import Discipline
 from sbm_store.league_lineup import candidates, lineup
 from sbm_store.league_pairing import schedule as round_robin
@@ -20,7 +29,7 @@ LOT_RANGE = 2**31
 
 
 def start_due(db: Database, now: datetime, rng: random.Random | None = None) -> list[ObjectId]:
-    """Starts each due season that has enough bots; returns the ids of those started."""
+    """Starts each due season that has enough participants; returns the ids of those started."""
     rng = rng or random.Random()
     started = []
     for season in seasons.due(db, now):
@@ -88,27 +97,30 @@ def lay_out(db: Database, season: dict, now: datetime) -> None:
 
 
 def _lineup(db: Database, league: dict, season: dict, rng: random.Random) -> list[dict]:
-    waiting = [entry["bot_id"] for entry in registrations.active_of_league(db, league["_id"])]
-    eligible = bots.by_ids(db, waiting, status=bots.VERIFIED)
+    """Bots and accounts alike, by their keys (E182)."""
+    registered = registrations.active_of_league(db, league["_id"])
+    waiting = [participants.key(entry) for entry in registered]
+    eligible = competition_entrants.eligible(db, registered)
     order = candidates(season["seeds"], waiting, set(eligible))
     cut = lineup(order, tiers=league["tiers"], tier_size=league["tier_size"])
     return [
-        {"tier": number, "entries": [_entry(eligible[bot_id], rng) for bot_id in tier]}
+        {"tier": number, "entries": [_entry(eligible[key], rng) for key in tier]}
         for number, tier in enumerate(cut, start=1)
     ]
 
 
-def _entry(bot: dict, rng: random.Random) -> dict:
-    return {
-        "bot_id": bot["_id"],
-        "name": bot["name"],
-        "version": bot.get("version"),
-        "lot": rng.randrange(LOT_RANGE),
-    }
+def _entry(fields: dict, rng: random.Random) -> dict:
+    return fields | {"lot": rng.randrange(LOT_RANGE)}
 
 
 def _side(entry: dict) -> dict:
-    return {"_id": entry["bot_id"], "name": entry["name"], "version": entry["version"]}
+    """A season entry as matches.side takes it; an account keeps its user_id."""
+    return {
+        "_id": participants.key(entry),
+        "user_id": entry.get("user_id"),
+        "name": entry["name"],
+        "version": entry["version"],
+    }
 
 
 def _place(context: dict) -> tuple:
@@ -116,12 +128,10 @@ def _place(context: dict) -> tuple:
 
 
 def _add_jobs(db: Database, season: dict, priority: int, now: datetime) -> None:
-    waiting = [
-        match["_id"]
-        for match in db[MATCHES]
-        .find({"context.season_id": season["_id"], "status": matches.QUEUED}, {"_id": 1})
-        .sort("_id", 1)
-    ]
+    """Queue jobs for the waiting games between two bots; a game with an account waits for
+    its readiness instead (E183)."""
+    query = {"context.season_id": season["_id"], "status": matches.QUEUED} | matches.BOTS_ONLY
+    waiting = [match["_id"] for match in db[MATCHES].find(query, {"_id": 1}).sort("_id", 1)]
     if not waiting:
         return
     with_job = set(

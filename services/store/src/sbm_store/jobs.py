@@ -16,6 +16,8 @@ SCHEMA_VERSION = 1
 MATCH = "match"
 # Checks an uploaded bot (E92); matches go first unless it waited too long (E89).
 VERIFICATION = "verification"
+# The job type of interactive games, set by play.new_play_job (E113).
+PLAY = "play"
 VERIFICATION_PRIORITY = 0
 QUEUED = "queued"
 RUNNING = "running"
@@ -90,14 +92,18 @@ def claim(
     now: datetime,
     lease: timedelta,
     created_before: datetime | None = None,
+    matching: dict | None = None,
 ) -> dict | None:
     """Takes the next due job of a type, or returns None if there is none.
 
-    With created_before only jobs queued before that time count.
+    With created_before only jobs queued before that time count; matching narrows the jobs
+    further, e.g. to the competition games of the play runner (E185).
     """
     query = {"type": job_type, "status": QUEUED, "not_before": {"$lte": now}}
     if created_before is not None:
         query["created_at"] = {"$lt": created_before}
+    if matching is not None:
+        query |= matching
     return db[JOBS].find_one_and_update(
         query,
         {
@@ -215,11 +221,12 @@ def cancel_match(
 ) -> dict | None:
     """Cancels the queued or running job of a match; None if it has none (any more).
 
-    running=False leaves a job alone that a runner has taken already (E157).
+    running=False leaves a job alone that a runner has taken already (E157). The play job of a
+    competition game with an account counts as well (E183).
     """
     statuses = [QUEUED, RUNNING] if running else [QUEUED]
     return db[JOBS].find_one_and_update(
-        {"type": MATCH, "payload.match_id": match_id, "status": {"$in": statuses}},
+        {"type": {"$in": [MATCH, PLAY]}, "payload.match_id": match_id, "status": {"$in": statuses}},
         {"$set": {"status": CANCELLED, "lease_until": None, "finished_at": now}},
     )
 

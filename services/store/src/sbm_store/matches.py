@@ -10,6 +10,7 @@ from bson import ObjectId
 from pymongo import DESCENDING
 from pymongo.database import Database
 
+from sbm_store import participants
 from sbm_store.discipline import STANDARD_FEN, Discipline, is_rated
 from sbm_store.names import MATCHES
 
@@ -22,8 +23,12 @@ STATUSES = (QUEUED, RUNNING, FINISHED, ABORTED)
 SINGLE = "single"
 LEAGUE = "league"
 TOURNAMENT = "tournament"
-# A league or tournament game not played because a bot withdrew (E136, E179).
+# A league or tournament game not played because a participant withdrew (E136, E179).
 FORFEIT = "forfeit_withdrawn"
+# A competition game an account did not turn up for by its deadline (E184).
+FORFEIT_ABSENT = "forfeit_absent"
+# Games between two bots; a competition game with an account waits for readiness (E183).
+BOTS_ONLY = {"white.kind": "bot", "black.kind": "bot"}
 
 NEWEST_FIRST = [("created_at", DESCENDING), ("_id", DESCENDING)]
 SUMMARY_FIELDS = (
@@ -39,6 +44,7 @@ SUMMARY_FIELDS = (
     "termination",
     "series",
     "context",
+    "readiness",
     "created_at",
     "started_at",
     "finished_at",
@@ -48,7 +54,22 @@ SUMMARY_PROJECTION = {field: 1 for field in SUMMARY_FIELDS} | {"ply_count": {"$s
 
 
 def side(bot: dict) -> dict:
-    """A bot as a side of a match; sdk and lang follow from its ready message."""
+    """A bot as a side of a match; sdk and lang follow from its ready message.
+
+    An entry with a user_id is an account in a league or tournament (E182): a person in the
+    browser whose seat the readiness hands out (E183).
+    """
+    if bot.get("user_id") is not None:
+        return {
+            "kind": "human",
+            "bot_id": None,
+            "user_id": bot["user_id"],
+            "name": bot["name"],
+            "version": None,
+            "sdk": None,
+            "lang": None,
+            "seat_hash": None,
+        }
     return {
         "kind": "bot",
         "bot_id": bot["_id"],
@@ -111,7 +132,8 @@ def new_league_match(
 ) -> dict:
     """A queued league game from the standard position (E134); context places it.
 
-    white and black are bot documents or season entries with _id, name and version.
+    white and black are bot documents or season entries with _id, name, version and, for an
+    account, user_id (E182).
     """
     match = new_match(white, black, discipline, start_fen=STANDARD_FEN, priority=priority, now=now)
     match.update(type=LEAGUE, context=context)
@@ -209,9 +231,11 @@ def match_filter(
     season_id: ObjectId | None = None,
     tier: int | None = None,
     edition_id: ObjectId | None = None,
+    participant: ObjectId | None = None,
 ) -> dict:
     """opponent_id narrows the games of bot_id to those against that bot (E156); tier the games
-    of season_id to one tier (E137)."""
+    of season_id to one tier (E137). participant is a bot or an account in either colour
+    (E182); it does not go with bot_id."""
     query: dict = {}
     if status is not None:
         query["status"] = status
@@ -222,6 +246,8 @@ def match_filter(
         ]
     elif bot_id is not None:
         query["$or"] = [{"white.bot_id": bot_id}, {"black.bot_id": bot_id}]
+    elif participant is not None:
+        query |= participants.side_query(participant)
     if discipline_id is not None:
         query["discipline_snapshot.discipline_id"] = discipline_id
     if created_by is not None:
@@ -324,12 +350,12 @@ LEFT_TOURNAMENT = "the opponent withdrew from the tournament"
 def forfeit(
     db: Database, match: dict, loser_id: ObjectId, now: datetime, *, detail: str = LEFT_LEAGUE
 ) -> bool:
-    """Ends a waiting league or tournament game unplayed: the opponent of loser_id wins,
-    unrated (E136, E179).
+    """Ends a waiting league or tournament game unplayed: the opponent of loser_id, a bot or an
+    account, wins unrated (E136, E179, E182).
 
     False if the match is no longer queued, e.g. because a runner started it.
     """
-    result = "0-1" if match["white"]["bot_id"] == loser_id else "1-0"
+    result = "0-1" if participants.key(match["white"]) == loser_id else "1-0"
     updated = db[MATCHES].update_one(
         {"_id": match["_id"], "status": QUEUED},
         {
@@ -360,8 +386,10 @@ def recent_durations_ms(db: Database, discipline_name: str, limit: int) -> list[
                 "status": FINISHED,
                 "discipline_snapshot.name": discipline_name,
                 "started_at": {"$ne": None},
-                # Interactive games bypass the queue and say nothing about its times.
+                # Interactive games bypass the queue and say nothing about its times, nor do
+                # competition games with an account (E183).
                 "type": {"$nin": ["human", "remote"]},
+                **BOTS_ONLY,
             },
             {"started_at": 1, "finished_at": 1},
         )

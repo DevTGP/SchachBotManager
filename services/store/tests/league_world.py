@@ -3,7 +3,16 @@
 from bson import ObjectId
 from conftest import BLITZ, T0
 
-from sbm_store import bots, disciplines, league_setup, leagues, matches, registrations
+from sbm_store import (
+    bots,
+    disciplines,
+    league_setup,
+    leagues,
+    matches,
+    participants,
+    registrations,
+    users,
+)
 from sbm_store.migrate import migrate
 from sbm_store.names import MATCHES
 
@@ -60,7 +69,7 @@ def play_out(db, season_id: ObjectId, winner_of) -> None:
     """Ends each waiting game of the season; winner_of(white_id, black_id) names the winner or
     None for a draw."""
     for match in season_games(db, season_id, matches.QUEUED):
-        white, black = match["white"]["bot_id"], match["black"]["bot_id"]
+        white, black = participants.key(match["white"]), participants.key(match["black"])
         winner = winner_of(white, black)
         result = "1/2-1/2" if winner is None else "1-0" if winner == white else "0-1"
         db[MATCHES].update_one(
@@ -74,3 +83,23 @@ def stronger(order: list[dict]):
     """A winner_of where the bot earlier in order always wins."""
     rank = {bot["_id"]: number for number, bot in enumerate(order)}
     return lambda white, black: white if rank[white] < rank[black] else black
+
+
+def add_accounts(db, count: int, *, role: str = users.PLAYER) -> list[dict]:
+    """count new active accounts named Player0, Player1, … in that order (E182)."""
+    added = []
+    first = db["users"].count_documents({"username": {"$regex": "^Player"}})
+    for number in range(first, first + count):
+        user = users.new_user(f"Player{number}", "", role, invited_by=None, now=T0)
+        assert users.insert(db, user)
+        added.append(user)
+    return added
+
+
+def register_accounts(db, target: dict, accounts: list[dict], **target_type) -> None:
+    """Registers the accounts themselves for a league, or a tournament with target_type."""
+    for account in accounts:
+        registration = registrations.new_registration(
+            target["_id"], user_id=account["_id"], created_by=account["_id"], now=T0, **target_type
+        )
+        assert registrations.insert(db, registration)

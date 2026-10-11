@@ -1,8 +1,8 @@
 """The rounds of a Swiss edition (E175): the next one is paired once the current one has ended.
 
-Standing for the pairing is points (games plus byes), then seed. Withdrawn bots are no longer
-paired. The edition is done after min(rounds, participants − 1) rounds or when fewer than two
-bots are left.
+Standing for the pairing is points (games plus byes), then seed. Withdrawn participants are no
+longer paired. The edition is done after min(rounds, participants − 1) rounds or when fewer
+than two participants are left.
 """
 
 from datetime import datetime
@@ -10,7 +10,7 @@ from datetime import datetime
 from bson import ObjectId
 from pymongo.database import Database
 
-from sbm_store import edition_games, edition_tables, editions
+from sbm_store import edition_games, edition_tables, editions, participants
 from sbm_store.swiss_pairing import BLACK, WHITE, Player, pair
 
 
@@ -19,11 +19,11 @@ def advance(db: Database, edition: dict, now: datetime) -> bool:
     if edition_games.open_games(db, edition["_id"]):
         return False
     gone = set(edition["withdrawn"])
-    active = [entry for entry in edition["participants"] if entry["bot_id"] not in gone]
+    active = [entry for entry in edition["participants"] if participants.key(entry) not in gone]
     limit = min(edition["settings"]["rounds"], len(edition["participants"]) - 1)
     if edition["round"] >= limit or len(active) < 2:
         return True
-    points = {row.bot_id: row.points for row in edition_tables.table(db, edition)}
+    points = {row.key: row.points for row in edition_tables.table(db, edition)}
     players = _players(edition, active, points)
     played = {
         frozenset((pairing["white"], pairing["black"]))
@@ -61,15 +61,18 @@ def _players(edition: dict, active: list[dict], points: dict) -> list[Player]:
             blacks[pairing["black"]] = blacks.get(pairing["black"], 0) + 1
             last[pairing["white"]] = WHITE
             last[pairing["black"]] = BLACK
-    ordered = sorted(active, key=lambda entry: (-points.get(entry["bot_id"], 0.0), entry["seed"]))
+    ordered = sorted(
+        active, key=lambda entry: (-points.get(participants.key(entry), 0.0), entry["seed"])
+    )
+    keys = [participants.key(entry) for entry in ordered]
     return [
         Player(
-            bot_id=entry["bot_id"],
-            points=points.get(entry["bot_id"], 0.0),
-            whites=whites.get(entry["bot_id"], 0),
-            blacks=blacks.get(entry["bot_id"], 0),
-            last_color=last.get(entry["bot_id"]),
-            had_bye=entry["bot_id"] in byes,
+            bot_id=key,
+            points=points.get(key, 0.0),
+            whites=whites.get(key, 0),
+            blacks=blacks.get(key, 0),
+            last_color=last.get(key),
+            had_bye=key in byes,
         )
-        for entry in ordered
+        for key in keys
     ]

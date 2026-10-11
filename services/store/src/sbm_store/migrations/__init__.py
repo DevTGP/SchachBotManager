@@ -16,6 +16,7 @@ from sbm_store.migrations import (
     m0152_single_games,
     m0153_discipline_ratings,
     m0154_tournaments,
+    m0155_competition_players,
 )
 
 MIGRATIONS = [
@@ -36,4 +37,5 @@ MIGRATIONS = [
     ("0152_single_games", m0152_single_games.apply),
     ("0153_discipline_ratings", m0153_discipline_ratings.apply),
     ("0154_tournaments", m0154_tournaments.apply),
+    ("0155_competition_players", m0155_competition_players.apply),
 ]

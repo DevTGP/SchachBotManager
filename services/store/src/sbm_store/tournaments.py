@@ -30,6 +30,8 @@ DEFAULTS = {
     "tiebreak_pairs": 1,
     "min_participants": 2,
     "priority": 40,
+    # Hours an account has to declare readiness for a released game (E183).
+    "ready_hours": 48,
     "recurrence": None,
 }
 DEFAULT_TIEBREAKS = {
@@ -47,6 +49,7 @@ SETTINGS = (
     "tiebreak_pairs",
     "min_participants",
     "priority",
+    "ready_hours",
 )
 
 

@@ -11,6 +11,7 @@ from sbm_store import (
     edition_start,
     editions,
     matches,
+    participants,
     registrations,
     tournament_setup,
     tournaments,
@@ -77,11 +78,11 @@ def finish_waiting(db, edition_id: ObjectId, result_of) -> int:
 
 
 def stronger(order: list[dict]):
-    """A result_of where the bot earlier in order always wins."""
+    """A result_of where the participant earlier in order always wins."""
     rank = {bot["_id"]: number for number, bot in enumerate(order)}
 
     def result_of(match: dict) -> str:
-        white, black = match["white"]["bot_id"], match["black"]["bot_id"]
+        white, black = participants.key(match["white"]), participants.key(match["black"])
         return "1-0" if rank[white] < rank[black] else "0-1"
 
     return result_of

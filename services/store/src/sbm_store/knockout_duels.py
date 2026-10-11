@@ -2,10 +2,12 @@
 
 A duel plays games_per_pairing games, the better seed white in the odd ones. On equal points
 follow tiebreak_pairs pairs of games in the tiebreak discipline, then one Armageddon game in it:
-colours by lot, a draw is enough for black. A withdrawn bot loses its duel at once. An aborted
-game is played again with the same colours, as a new entry for the same phase and game. Once both
-duels feeding a place have a winner, the duel of the next round is added; a feeder without one
-(both bots withdrew) gives the other side a bye.
+colours by lot, a draw is enough for black. A withdrawn participant loses its duel at once, an
+account absent at the deadline of a game too; the duel's other waiting games are then aborted
+(E184). An aborted game of an undecided duel is played again with the same colours, as a new
+entry for the same phase and game. Once both duels feeding a place have a winner, the duel of
+the next round is added; a feeder without one (both sides withdrew or were absent) gives the
+other side a bye. Sides are participant keys (E182).
 """
 
 import copy
@@ -15,20 +17,23 @@ from datetime import datetime
 from bson import ObjectId
 from pymongo.database import Database
 
-from sbm_store import edition_games, editions, matches
+from sbm_store import edition_games, editions, jobs, matches
+from sbm_store import participants as participant_keys
 from sbm_store.edition_games import ARMAGEDDON, REGULAR, TIEBREAK
-from sbm_store.knockout_bracket import ARMAGEDDON as BY_ARMAGEDDON
 from sbm_store.knockout_bracket import (
+    ABSENCE,
     GAMES,
     WITHDRAWAL,
     new_duel,
     rounds,
     winner_side,
 )
+from sbm_store.knockout_bracket import ARMAGEDDON as BY_ARMAGEDDON
 from sbm_store.knockout_bracket import TIEBREAK as BY_TIEBREAK
 from sbm_store.league_table import SCORES
 
 OPEN = (matches.QUEUED, matches.RUNNING)
+DECIDED = "the duel was decided by absence"
 
 
 def advance(db: Database, edition: dict, now: datetime, rng: random.Random) -> bool:
@@ -37,14 +42,18 @@ def advance(db: Database, edition: dict, now: datetime, rng: random.Random) -> b
     gone = set(edition["withdrawn"])
     duels = copy.deepcopy(edition["duels"])
     changed = False
+    decided = []
     for duel in duels:
         if not duel["decided"] and duel["a"] is not None and duel["b"] is not None:
             changed |= _step(duel, games, gone, edition["settings"], rng)
+            if duel["decided"]:
+                decided.append(duel)
     changed |= _next_round(duels, edition["bracket_size"], gone)
     if changed:
         duels.sort(key=lambda duel: (duel["round"], duel["slot"]))
         saved = editions.save_plan(db, edition, {"duels": duels})
         if saved is not None:
+            _drop_waiting(db, decided, games, now)
             edition_games.lay_out(db, saved, now)
         return False
     total = rounds(edition["bracket_size"])
@@ -54,13 +63,17 @@ def advance(db: Database, edition: dict, now: datetime, rng: random.Random) -> b
 
 def _step(duel: dict, games: dict, gone: set, settings: dict, rng: random.Random) -> bool:
     """Adds the duel's next games or decides it; False if it waits for games."""
-    a, b = duel["a"]["bot_id"], duel["b"]["bot_id"]
+    a, b = participant_keys.key(duel["a"]), participant_keys.key(duel["b"])
     if a in gone or b in gone:
         winner = None if a in gone and b in gone else (b if a in gone else a)
         _decide(duel, winner, WITHDRAWAL)
         return True
     latest = _latest(duel["games"])
     found = {place: games.get(entry["match_id"]) for place, entry in latest.items()}
+    absent = _absence(latest, found)
+    if absent is not False:
+        _decide(duel, absent, ABSENCE)
+        return True
     if any(match is not None and match["status"] in OPEN for match in found.values()):
         return False
     again = [
@@ -102,6 +115,29 @@ def _decide(duel: dict, winner: ObjectId | None, decided_by: str) -> None:
     duel.update(decided=True, decided_by=decided_by, winner=winner)
 
 
+def _drop_waiting(db: Database, decided: list[dict], games: dict, now: datetime) -> None:
+    """Aborts the waiting games of duels decided before they were played out, which an absence
+    does (E184); a game already running ends as it is and counts for nothing."""
+    for duel in decided:
+        for entry in duel["games"]:
+            match = games.get(entry["match_id"])
+            if match is not None and match["status"] == matches.QUEUED:
+                jobs.cancel_match(db, match["_id"], now, running=False)
+                matches.abort(db, match["_id"], DECIDED, now)
+
+
+def _absence(latest: dict, found: dict) -> ObjectId | None | bool:
+    """The winner of a game lost by absence (None if both were absent); False without one."""
+    for place, entry in latest.items():
+        match = found[place]
+        if match is not None and match.get("termination") == matches.FORFEIT_ABSENT:
+            result = match["result"]
+            return (
+                entry["white"] if result == "1-0" else entry["black"] if result == "0-1" else None
+            )
+    return False
+
+
 def _latest(games: list[dict]) -> dict[tuple[str, int], dict]:
     """The last entry per phase and game; an earlier one was aborted and replaced."""
     return {(entry["phase"], entry["game"]): entry for entry in games}
@@ -112,7 +148,7 @@ def _game(phase: str, number: int, white: ObjectId, black: ObjectId) -> dict:
 
 
 def _add(duel: dict, phase: str, count: int) -> None:
-    a, b = duel["a"]["bot_id"], duel["b"]["bot_id"]
+    a, b = participant_keys.key(duel["a"]), participant_keys.key(duel["b"])
     for number in range(1, count + 1):
         white, black = (a, b) if number % 2 else (b, a)
         duel["games"].append(_game(phase, number, white, black))
@@ -155,4 +191,4 @@ def _next_round(duels: list[dict], bracket_size: int, gone: set) -> bool:
 
 def _staying(side: dict | None, gone: set) -> dict | None:
     """A side that withdrew after winning its duel does not move on."""
-    return None if side is None or side["bot_id"] in gone else side
+    return None if side is None or participant_keys.key(side) in gone else side

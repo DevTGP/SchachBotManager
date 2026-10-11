@@ -3,16 +3,21 @@
 Pure functions. The bracket has the next power of two of places; the seeds stand in the
 standard order (1–8, 4–5, 2–7, 3–6 for eight), so the best seeds get the byes and meet last.
 A duel is {round, slot, a, b, winner, decided, decided_by, games}; a and b are sides
-{bot_id, name, version, seed} or None, a the better seed; winner is a bot id.
+{bot_id, user_id, name, version, seed} or None, a the better seed; winner is the participant
+key of a bot or an account (E182), None if nobody goes on.
 """
 
 from collections.abc import Sequence
+
+from sbm_store import participants as participant_keys
 
 GAMES = "games"
 TIEBREAK = "tiebreak"
 ARMAGEDDON = "armageddon"
 BYE = "bye"
 WITHDRAWAL = "withdrawal"
+# An account did not turn up for a game by its deadline (E184).
+ABSENCE = "absence"
 
 
 def size(participants: int) -> int:
@@ -38,7 +43,13 @@ def seed_order(bracket_size: int) -> list[int]:
 def side(entry: dict | None) -> dict | None:
     if entry is None:
         return None
-    return {key: entry[key] for key in ("bot_id", "name", "version", "seed")}
+    return {
+        "bot_id": entry.get("bot_id"),
+        "user_id": entry.get("user_id"),
+        "name": entry["name"],
+        "version": entry.get("version"),
+        "seed": entry["seed"],
+    }
 
 
 def new_duel(round_number: int, slot: int, first: dict | None, second: dict | None) -> dict:
@@ -55,7 +66,7 @@ def new_duel(round_number: int, slot: int, first: dict | None, second: dict | No
         "games": [],
     }
     if b is None:
-        duel.update(decided=True, decided_by=BYE, winner=a["bot_id"] if a else None)
+        duel.update(decided=True, decided_by=BYE, winner=participant_keys.key(a) if a else None)
     return duel
 
 
@@ -74,7 +85,8 @@ def first_round(participants: Sequence[dict], bracket_size: int) -> list[dict]:
 def winner_side(duel: dict) -> dict | None:
     if duel["winner"] is None:
         return None
-    return duel["a"] if duel["a"] and duel["a"]["bot_id"] == duel["winner"] else duel["b"]
+    a = duel["a"]
+    return a if a and participant_keys.key(a) == duel["winner"] else duel["b"]
 
 
 def placements(
@@ -85,22 +97,27 @@ def placements(
     total = rounds(bracket_size)
     result = []
     for entry in participants:
-        bot_id = entry["bot_id"]
+        key = participant_keys.key(entry)
         place = None
         for duel in duels:
-            sides = {each["bot_id"] for each in (duel["a"], duel["b"]) if each}
-            if bot_id not in sides or not duel["decided"]:
+            sides = {participant_keys.key(each) for each in (duel["a"], duel["b"]) if each}
+            if key not in sides or not duel["decided"]:
                 continue
-            if duel["winner"] == bot_id:
+            if duel["winner"] == key:
                 if duel["round"] == total:
                     place = 1
                 continue
-            lost_by_leaving = duel["decided_by"] == WITHDRAWAL and bot_id in withdrawn
+            lost_by_leaving = duel["decided_by"] == WITHDRAWAL and key in withdrawn
             place = None if lost_by_leaving else 2 ** (total - duel["round"]) + 1
             break
-        bot = {key: entry[key] for key in ("bot_id", "name", "version")}
+        bot = {
+            "bot_id": entry.get("bot_id"),
+            "user_id": entry.get("user_id"),
+            "name": entry["name"],
+            "version": entry.get("version"),
+        }
         result.append(
-            {"bot": bot, "place": place, "withdrawn": bot_id in withdrawn, "seed": entry["seed"]}
+            {"bot": bot, "place": place, "withdrawn": key in withdrawn, "seed": entry["seed"]}
         )
     result.sort(key=lambda each: (each["place"] is None, each["place"] or 0, each["seed"]))
     for each in result:

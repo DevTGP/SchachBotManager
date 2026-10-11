@@ -31,14 +31,14 @@ def finish(db: Database, season: dict, now: datetime) -> None:
     settings = season["settings"]
     tables = season_tables.tables(db, season)
     seeds, outcomes = moves(
-        [[(row.bot_id, row.withdrawn) for row in table.rows] for table in tables],
+        [[(row.key, row.withdrawn) for row in table.rows] for table in tables],
         promotions=settings["promotions"],
         tier_size=settings["tier_size"],
     )
     final = []
     for table in tables:
         for row in table.rows:
-            row.outcome = outcomes[row.bot_id]
+            row.outcome = outcomes[row.key]
         final.append({"tier": table.tier, "table": [row.to_document() for row in table.rows]})
     league = leagues.get(db, season["league_id"])
     calendar = league.get("recurrence") if league is not None else None

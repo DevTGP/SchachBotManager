@@ -2,15 +2,22 @@
 
 An interactive game cannot start over, because a person or a remote bot waits for it. Every
 infrastructure error therefore aborts the match without a result instead of retrying it.
+
+A league or tournament game with an account is different (E185): it starts after connect_wait
+even without its people, whose clocks run while they are away, and an infrastructure error puts
+it back to wait for readiness again instead of aborting it.
 """
 
 import logging
+import math
+import time
 from collections.abc import Callable
 from datetime import datetime
 
+from bson import ObjectId
 from pymongo.database import Database
 from sbm.referee import Match, MatchRecord, MoveRecord, Player
-from sbm_store import jobs, matches, play
+from sbm_store import competition_readiness, jobs, matches, play
 
 from sbm_runner.game import COLORS, bot_player
 from sbm_runner.live_feed import LiveFeed
@@ -54,6 +61,8 @@ class InteractiveGame:
         self._connections: list[RelayConnection] = []
         self._people: list[HumanPlayer] = []
         self.match_id = job["payload"]["match_id"]
+        # Known from the job, so a stop before the match is read resets it as well.
+        self.competition = bool(job["payload"].get("competition"))
 
     def cancel(self) -> None:
         """Closes the seats' connections; the game then ends as aborted."""
@@ -66,6 +75,7 @@ class InteractiveGame:
             log.error("play job %s refers to the missing match %s", self._job["_id"], self.match_id)
             jobs.fail(self._db, self._job["_id"], self._now())
             return
+        self.competition = competition_readiness.is_competition(match)
         if match["status"] != matches.QUEUED:
             # A runner died while it held this game; it cannot be resumed.
             self._abort("the game was interrupted and cannot be resumed")
@@ -126,7 +136,8 @@ class InteractiveGame:
         connection = self._relays(str(self.match_id), side["seat_hash"])
         self._connections.append(connection)
         connection.open(self._config.relay_timeout.total_seconds())
-        grace = self._config.absent_grace.total_seconds()
+        # In a competition game the clock of an absent person runs out instead (E185).
+        grace = math.inf if self.competition else self._config.absent_grace.total_seconds()
         if side["kind"] == play.REMOTE:
             return RelayPlayer(side["name"], connection, absent_grace=grace)
         person = HumanPlayer(side["name"], connection, absent_grace=grace)
@@ -154,13 +165,28 @@ class InteractiveGame:
         )
 
     def _wait_for_seats(self) -> None:
+        """Up to connect_wait in all; a competition game then starts without the absent."""
+        deadline = time.monotonic() + self._config.connect_wait.total_seconds()
         for connection in self._connections:
-            if not connection.wait_present(self._config.connect_wait.total_seconds()):
+            if not connection.wait_present(max(0.0, deadline - time.monotonic())):
+                if self.competition:
+                    log.info("match %s starts without a player who is away", self.match_id)
+                    continue
                 raise SeatNotTaken("the player did not connect in time")
 
     def _abort(self, detail: str) -> None:
-        matches.abort(self._db, self.match_id, detail, self._now())
+        give_up(self._db, self.match_id, detail, self._now(), competition=self.competition)
         jobs.fail(self._db, self._job["_id"], self._now())
+
+
+def give_up(
+    db: Database, match_id: ObjectId, detail: str, now: datetime, *, competition: bool
+) -> None:
+    """Aborts an interactive game; a competition game waits for readiness again (E185)."""
+    if competition and competition_readiness.reset(db, match_id, now):
+        log.warning("competition match %s reset: %s", match_id, detail)
+        return
+    matches.abort(db, match_id, detail, now)
 
 
 def _reason(error: Exception) -> str:

@@ -76,6 +76,6 @@ def test_league_indexes_exist(db):
     assert db[LEAGUES].index_information()["name_key_1"]["unique"]
     assert db[SEASONS].index_information()["league_id_1_number_1"]["unique"]
     registered = db[REGISTRATIONS].index_information()
-    assert registered["target_type_1_target_id_1_bot_id_1"]["unique"]
+    assert registered["target_type_1_target_id_1_bot_id_1_user_id_1"]["unique"]
     assert "context.season_id_1_context.tier_1_status_1" in db[MATCHES].index_information()
     assert "competition_1_claimed_at_1" in db[JOBS].index_information()

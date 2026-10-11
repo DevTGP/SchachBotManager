@@ -26,6 +26,8 @@ DEFAULTS = {
     "tiebreaks": ["wins", "head_to_head", "sonneborn_berger"],
     "min_participants": 2,
     "priority": 50,
+    # Hours an account has to declare readiness for a released game (E183).
+    "ready_hours": 48,
     # The calendar (E171); not part of a season's snapshot.
     "recurrence": None,
 }
@@ -39,6 +41,7 @@ SETTINGS = (
     "tiebreaks",
     "min_participants",
     "priority",
+    "ready_hours",
 )
 
 

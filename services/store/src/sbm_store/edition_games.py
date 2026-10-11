@@ -3,7 +3,8 @@
 Each planned game names its match id in the plan (rounds, or the games of the duels), so laying
 out a plan again after a crash adds only what is missing and then confirms it with scheduled.
 A missing game of a withdrawn or deleted bot stays missing: deleting a bot takes its matches
-with it (E105), and they must not come back as waiting games.
+with it (E105), and they must not come back as waiting games. Participants are bots or accounts
+(E182); a game with an account gets no job but waits for readiness (E183).
 """
 
 from collections.abc import Iterator
@@ -12,16 +13,20 @@ from datetime import datetime
 from bson import ObjectId
 from pymongo.database import Database
 
-from sbm_store import editions, jobs, matches
+from sbm_store import editions, jobs, matches, participants
 from sbm_store.discipline import Discipline
-from sbm_store.names import BOTS, JOBS, MATCHES
+from sbm_store.names import BOTS, JOBS, MATCHES, USERS
 
 REGULAR = "regular"
 TIEBREAK = "tiebreak"
 ARMAGEDDON = "armageddon"
 PROJECTION = {
+    "white.kind": 1,
     "white.bot_id": 1,
+    "white.user_id": 1,
+    "black.kind": 1,
     "black.bot_id": 1,
+    "black.user_id": 1,
     "status": 1,
     "result": 1,
     "termination": 1,
@@ -35,7 +40,7 @@ def lay_out(db: Database, edition: dict, now: datetime) -> None:
     planned = list(_planned(edition))
     ids = [game["match_id"] for game in planned]
     existing = {match["_id"] for match in db[MATCHES].find({"_id": {"$in": ids}}, {"_id": 1})}
-    entries = {entry["bot_id"]: entry for entry in edition["participants"]}
+    entries = {participants.key(entry): entry for entry in edition["participants"]}
     staying = _staying(db, edition, entries)
     main = Discipline.from_document(settings["discipline_snapshot"])
     tiebreak = settings.get("tiebreak_discipline_snapshot")
@@ -92,19 +97,29 @@ def _planned(edition: dict) -> Iterator[dict]:
 
 def _staying(db: Database, edition: dict, entries: dict) -> set:
     """The participants that still exist and have not withdrawn."""
-    present = set(db[BOTS].distinct("_id", {"_id": {"$in": list(entries)}}))
+    keys = {"_id": {"$in": list(entries)}}
+    present = set(db[BOTS].distinct("_id", keys)) | set(db[USERS].distinct("_id", keys))
     return present - set(edition["withdrawn"])
 
 
 def _side(entry: dict) -> dict:
-    return {"_id": entry["bot_id"], "name": entry["name"], "version": entry["version"]}
+    """An edition entry as matches.side takes it; an account keeps its user_id."""
+    return {
+        "_id": participants.key(entry),
+        "user_id": entry.get("user_id"),
+        "name": entry["name"],
+        "version": entry["version"],
+    }
 
 
 def _add_jobs(db: Database, edition: dict, now: datetime) -> None:
     waiting = [
         match["_id"]
         for match in db[MATCHES]
-        .find({"context.edition_id": edition["_id"], "status": matches.QUEUED}, {"_id": 1})
+        .find(
+            {"context.edition_id": edition["_id"], "status": matches.QUEUED} | matches.BOTS_ONLY,
+            {"_id": 1},
+        )
         .sort("_id", 1)
     ]
     if not waiting:

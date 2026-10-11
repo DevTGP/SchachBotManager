@@ -1,4 +1,7 @@
-"""The play runner's main loop: up to slots interactive games at once, each in its own thread."""
+"""The play runner's main loop: up to slots interactive games at once, each in its own thread.
+
+Competition games with an account (E185) are not bound by max_games of E115, only by slots.
+"""
 
 import logging
 import threading
@@ -8,11 +11,18 @@ from datetime import UTC, datetime
 
 from pymongo.database import Database
 from pymongo.errors import PyMongoError
-from sbm_store import jobs, matches, play, play_settings, rating_recount, ratings
+from sbm_store import (
+    competition_readiness,
+    jobs,
+    play,
+    play_settings,
+    rating_recount,
+    ratings,
+)
 
 from sbm_runner.heartbeat import Heartbeat
 from sbm_runner.play.config import PlayConfig
-from sbm_runner.play.game import InteractiveGame, RelayFactory
+from sbm_runner.play.game import InteractiveGame, RelayFactory, give_up
 from sbm_runner.play.relay_connection import RelayConnection
 from sbm_runner.players import PlayerFactory, plain_player
 from sbm_runner.shutdown import Shutdown
@@ -69,16 +79,17 @@ class PlayWorker:
         """Starts one game if a slot is free; False if nothing was started."""
         self._reap()
         recover_expired_play(self._db, self._now())
-        # The setting on the website, at most the slots this container was given (E115).
-        slots = min(self._config.slots, play_settings.get(self._db).max_games)
-        if self.running >= slots:
+        if self.running >= self._config.slots:
             return False
+        # Beyond the setting on the website (E115) only competition games start (E185).
+        limited = self.running >= play_settings.get(self._db).max_games
         job = jobs.claim(
             self._db,
             play.PLAY_JOB,
             self._config.worker_id,
             now=self._now(),
             lease=self._config.lease,
+            matching=competition_readiness.COMPETITION_JOBS if limited else None,
         )
         if job is None:
             return False
@@ -107,7 +118,13 @@ class PlayWorker:
         for thread, game in list(self._games.items()):
             if thread.is_alive():
                 # Its bot did not finish its turn in time; the container stops it.
-                matches.abort(self._db, game.match_id, "the play runner stopped", self._now())
+                give_up(
+                    self._db,
+                    game.match_id,
+                    "the play runner stopped",
+                    self._now(),
+                    competition=game.competition,
+                )
         self._reap()
 
     def _run_game(self, job: dict, game: InteractiveGame) -> None:
@@ -124,7 +141,13 @@ class PlayWorker:
                 game.run()
         except Exception:
             log.exception("interactive match %s failed", game.match_id)
-            matches.abort(self._db, game.match_id, "internal error of the play runner", self._now())
+            give_up(
+                self._db,
+                game.match_id,
+                "internal error of the play runner",
+                self._now(),
+                competition=game.competition,
+            )
             jobs.fail(self._db, job["_id"], self._now())
         else:
             count_ratings(self._db)
@@ -153,11 +176,18 @@ def count_ratings(db: Database) -> None:
 
 
 def recover_expired_play(db: Database, now: datetime) -> int:
-    """Gives up play jobs whose runner died: an interactive game cannot start over."""
+    """Gives up play jobs whose runner died: an interactive game cannot start over, a
+    competition game waits for readiness again (E185)."""
     handled = 0
     for job in jobs.expired(db, play.PLAY_JOB, now):
         if jobs.fail_expired(db, job, now):
-            matches.abort(db, job["payload"]["match_id"], "the play runner stopped responding", now)
+            give_up(
+                db,
+                job["payload"]["match_id"],
+                "the play runner stopped responding",
+                now,
+                competition=bool(job["payload"].get("competition")),
+            )
             log.error("play job %s lost its runner %s, match aborted", job["_id"], job["worker_id"])
             handled += 1
     return handled

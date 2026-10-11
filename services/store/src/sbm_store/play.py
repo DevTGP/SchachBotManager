@@ -16,7 +16,7 @@ from sbm_store import jobs, matches, tokens
 from sbm_store.discipline import Discipline, is_rated
 from sbm_store.names import JOBS, MATCHES
 
-PLAY_JOB = "play"
+PLAY_JOB = jobs.PLAY
 HUMAN = "human"
 REMOTE = "remote"
 MATCH_TYPES = (HUMAN, REMOTE)

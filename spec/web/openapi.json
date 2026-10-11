@@ -3,7 +3,7 @@
   "info": {
     "title": "SchachBotManager web API",
     "version": "1",
-    "description": "Web API of SchachBotManager (backend-api.md, E73): public reading of matches, bots and the game queue; sessions, accounts and administration for invited users (E83, E84, E85); uploading bots and their verification (E91, E92, E93); own bots with their versions and source, and single games set by their owners (E95, E96, E97, E98); disciplines (E100); ratings of bots (E103); games of people and remote bots in the lists like those of bots (E119); leagues with seasons, registrations and tables (E131–E137); tournaments with editions in three formats and a calendar for leagues and tournaments (E170–E180). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32). Requests other than GET need the header X-SBM-CSRF: 1 (E84).",
+    "description": "Web API of SchachBotManager (backend-api.md, E73): public reading of matches, bots and the game queue; sessions, accounts and administration for invited users (E83, E84, E85); uploading bots and their verification (E91, E92, E93); own bots with their versions and source, and single games set by their owners (E95, E96, E97, E98); disciplines (E100); ratings of bots (E103); games of people and remote bots in the lists like those of bots (E119); leagues with seasons, registrations and tables (E131–E137); tournaments with editions in three formats and a calendar for leagues and tournaments (E170–E180); accounts playing in person in leagues and tournaments (E182–E186). All times are UTC in RFC 3339; durations are milliseconds. Errors carry a code that the frontend translates (E32). Requests other than GET need the header X-SBM-CSRF: 1 (E84).",
     "license": { "name": "MIT-0", "identifier": "MIT-0" }
   },
   "servers": [{ "url": "/api/v1" }],
@@ -167,6 +167,34 @@
           "403": { "$ref": "#/components/responses/Forbidden" },
           "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/MatchState" }
+        }
+      }
+    },
+    "/matches/{match_id}/ready": {
+      "parameters": [{ "$ref": "#/components/parameters/MatchId" }],
+      "post": {
+        "operationId": "ready_for_match",
+        "security": [{ "session": [] }],
+        "summary": "The account of a side of a released league or tournament game says it is ready and present (E183); the page repeats this every 15 seconds while it waits. The game starts once every account is ready and present. Returns the seat to join the game with.",
+        "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/ReadyRequest" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The seat for the game, the one sent if it still fits.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/PlaySeat" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthenticated" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/ReadyState" }
         }
       }
     },
@@ -666,7 +694,7 @@
       "post": {
         "operationId": "register_bot",
         "security": [{ "session": [] }],
-        "summary": "Registers a verified bot for a league that is not archived (E136); the owner (coder) or an admin. The bot enters at the next season start.",
+        "summary": "Registers a verified bot (its owner, a coder, or an admin, E136) or an active account that plays in person (the account itself in any role, or an admin, E182) for a league that is not archived. The participant enters at the next season start.",
         "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
         "requestBody": {
           "required": true,
@@ -691,20 +719,15 @@
         }
       }
     },
-    "/leagues/{league_id}/registrations/{bot_id}": {
+    "/leagues/{league_id}/registrations/{participant_id}": {
       "parameters": [
         { "$ref": "#/components/parameters/LeagueId" },
-        {
-          "name": "bot_id",
-          "in": "path",
-          "required": true,
-          "schema": { "$ref": "#/components/schemas/Id" }
-        }
+        { "$ref": "#/components/parameters/ParticipantId" }
       ],
       "delete": {
         "operationId": "deregister_bot",
         "security": [{ "session": [] }],
-        "summary": "Ends the registration of a bot; the owner (coder) or an admin. In a running season the bot withdraws: its waiting games become forfeit wins of the opponents (E136).",
+        "summary": "Ends the registration of a bot (its owner, a coder, or an admin) or of an account (the account itself or an admin, E182). In a running season the participant withdraws: its waiting games become forfeit wins of the opponents (E136).",
         "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
         "responses": {
           "204": { "description": "The bot is no longer registered." },
@@ -805,7 +828,7 @@
       "post": {
         "operationId": "register_tournament_bot",
         "security": [{ "session": [] }],
-        "summary": "Registers a verified bot for a tournament that is not archived (E179); the owner (coder) or an admin. The bot enters at the next edition start.",
+        "summary": "Registers a verified bot (its owner, a coder, or an admin, E179) or an active account that plays in person (the account itself in any role, or an admin, E182) for a tournament that is not archived. The participant enters at the next edition start.",
         "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
         "requestBody": {
           "required": true,
@@ -832,20 +855,15 @@
         }
       }
     },
-    "/tournaments/{tournament_id}/registrations/{bot_id}": {
+    "/tournaments/{tournament_id}/registrations/{participant_id}": {
       "parameters": [
         { "$ref": "#/components/parameters/TournamentId" },
-        {
-          "name": "bot_id",
-          "in": "path",
-          "required": true,
-          "schema": { "$ref": "#/components/schemas/Id" }
-        }
+        { "$ref": "#/components/parameters/ParticipantId" }
       ],
       "delete": {
         "operationId": "deregister_tournament_bot",
         "security": [{ "session": [] }],
-        "summary": "Ends the registration of a bot; the owner (coder) or an admin. In a running edition the bot withdraws: its waiting games become forfeit wins of the opponents, in a knockout it loses its duel (E179).",
+        "summary": "Ends the registration of a bot (its owner, a coder, or an admin) or of an account (the account itself or an admin, E182). In a running edition the participant withdraws: its waiting games become forfeit wins of the opponents, in a knockout it loses its duel (E179).",
         "parameters": [{ "$ref": "#/components/parameters/Csrf" }],
         "responses": {
           "204": { "description": "The bot is no longer registered." },
@@ -1052,6 +1070,24 @@
             "description": "The rating; an account without rated games stands at the start and has no disciplines.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/AccountRating" } }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthenticated" }
+        }
+      }
+    },
+    "/account/competition-games": {
+      "get": {
+        "operationId": "list_competition_games",
+        "security": [{ "session": [] }],
+        "summary": "The league and tournament games of the logged-in account that are not finished (E186).",
+        "responses": {
+          "200": {
+            "description": "The games.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CompetitionGameList" }
+              }
             }
           },
           "401": { "$ref": "#/components/responses/Unauthenticated" }
@@ -2026,6 +2062,13 @@
         "in": "path",
         "required": true,
         "schema": { "$ref": "#/components/schemas/Id" }
+      },
+      "ParticipantId": {
+        "name": "participant_id",
+        "in": "path",
+        "description": "The bot or, for an account that plays in person, the account (E182).",
+        "required": true,
+        "schema": { "$ref": "#/components/schemas/Id" }
       }
     },
     "responses": {
@@ -2117,6 +2160,10 @@
         "description": "The match is not a single game or not in a state that allows this (code match_state), or it cannot be queued again because a bot is no longer verified or its discipline is archived (code not_repeatable).",
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
       },
+      "ReadyState": {
+        "description": "The match is not a released league or tournament game of an account waiting for its start (code match_state, E183).",
+        "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+      },
       "TooLarge": {
         "description": "The request is larger than 3 MiB (code too_large).",
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
@@ -2150,7 +2197,7 @@
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
       },
       "RegistrationConflict": {
-        "description": "The bot is registered already (code already_registered), the league or tournament is archived (code league_state or tournament_state) or the bot is not verified (code bot_state).",
+        "description": "The bot or account is registered already (code already_registered), the league or tournament is archived (code league_state or tournament_state), the bot is not verified (code bot_state) or the account is not active (code user_state).",
         "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
       },
       "TournamentNameTaken": {
@@ -2207,7 +2254,8 @@
               "bot_state",
               "league_state",
               "tournament_state",
-              "already_registered"
+              "already_registered",
+              "user_state"
             ]
           },
           "message": {
@@ -2233,12 +2281,19 @@
         "description": "aborted: discarded after infrastructure errors and not played again (match-runner.md).",
         "enum": ["queued", "running", "finished", "aborted"]
       },
-      "Result": { "$ref": "../protocol/v1/game_over.schema.json#/properties/result" },
+      "Result": {
+        "description": "A result of the bot protocol, or 0-0 for a league or tournament game in which neither account was ready by the deadline (E184).",
+        "anyOf": [
+          { "$ref": "../protocol/v1/game_over.schema.json#/properties/result" },
+          { "const": "0-0" }
+        ]
+      },
       "Termination": {
-        "description": "How the match ended: a code of the bot protocol, or forfeit_withdrawn for a league game not played because a bot left the league (E136).",
+        "description": "How the match ended: a code of the bot protocol; forfeit_withdrawn for a league or tournament game not played because a participant withdrew (E136, E179); forfeit_absent for one not played because an account was not ready by the deadline (E184).",
         "anyOf": [
           { "$ref": "../protocol/v1/game_over.schema.json#/properties/termination" },
-          { "const": "forfeit_withdrawn" }
+          { "const": "forfeit_withdrawn" },
+          { "const": "forfeit_absent" }
         ]
       },
       "Discipline": {
@@ -2361,7 +2416,7 @@
         "additionalProperties": false
       },
       "Side": {
-        "description": "One side of a match: a bot, a person in the browser (human) or a coder's bot on their own machine (remote, E116). sdk and lang are filled once the bot reported ready; a person has neither.",
+        "description": "One side of a match: a bot, a person in the browser (human) or a coder's bot on their own machine (remote, E116). sdk and lang are filled once the bot reported ready; a person has neither. A person in a league or tournament game is an account (E182).",
         "type": "object",
         "properties": {
           "kind": { "enum": ["bot", "human", "remote"] },
@@ -2450,7 +2505,7 @@
           "black": { "$ref": "#/components/schemas/Side" },
           "discipline": { "$ref": "#/components/schemas/Discipline" },
           "rated": {
-            "description": "Played under a stored discipline from the standard position between two different bots, or by a person with an account against a bot, unless asked otherwise; only such matches count for the rating (E100, E103, E117, E158).",
+            "description": "Played under a stored discipline from the standard position between two different bots, by a person with an account against a bot, or in a league or tournament also between two accounts, unless asked otherwise; only such matches count for the rating (E100, E103, E117, E158, E182).",
             "type": "boolean"
           },
           "series": {
@@ -2480,6 +2535,10 @@
           "tournament": {
             "description": "Where a tournament game belongs (E178); null for other matches.",
             "oneOf": [{ "$ref": "#/components/schemas/TournamentPlace" }, { "type": "null" }]
+          },
+          "readiness": {
+            "description": "A league or tournament game with an account once it is released (E183); null otherwise.",
+            "oneOf": [{ "$ref": "#/components/schemas/Readiness" }, { "type": "null" }]
           }
         },
         "required": [
@@ -2493,6 +2552,7 @@
           "series",
           "league",
           "tournament",
+          "readiness",
           "result",
           "termination",
           "ply_count",
@@ -2504,6 +2564,65 @@
       "MatchSummary": {
         "allOf": [{ "$ref": "#/components/schemas/MatchFields" }],
         "unevaluatedProperties": false
+      },
+      "Readiness": {
+        "description": "The release of a league or tournament game with an account (E183): it starts once every account is ready and present, at the deadline if every account is ready; an account not ready by then loses unplayed (E184).",
+        "type": "object",
+        "properties": {
+          "released_at": { "$ref": "#/components/schemas/Timestamp" },
+          "deadline": { "$ref": "#/components/schemas/Timestamp" },
+          "started_at": {
+            "description": "When the game was handed to the play runner; null before.",
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          },
+          "white": {
+            "description": "null for a bot.",
+            "oneOf": [{ "$ref": "#/components/schemas/SideReadiness" }, { "type": "null" }]
+          },
+          "black": {
+            "description": "null for a bot.",
+            "oneOf": [{ "$ref": "#/components/schemas/SideReadiness" }, { "type": "null" }]
+          }
+        },
+        "required": ["released_at", "deadline", "started_at", "white", "black"],
+        "additionalProperties": false
+      },
+      "SideReadiness": {
+        "description": "ready: the account said it is ready, which stays; present: its page reported within the last 45 seconds (E183).",
+        "type": "object",
+        "properties": {
+          "ready": { "type": "boolean" },
+          "present": { "type": "boolean" }
+        },
+        "required": ["ready", "present"],
+        "additionalProperties": false
+      },
+      "CompetitionGame": {
+        "description": "A league or tournament game of the logged-in account that is not finished (E186).",
+        "type": "object",
+        "properties": {
+          "match": { "$ref": "#/components/schemas/MatchSummary" },
+          "color": { "enum": ["white", "black"] }
+        },
+        "required": ["match", "color"],
+        "additionalProperties": false
+      },
+      "CompetitionGameList": {
+        "description": "Released games first, by deadline; then waiting games in the order they will be released.",
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/CompetitionGame" } }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "ReadyRequest": {
+        "description": "seat: the seat this browser holds for the game, if any; a seat that still fits is kept, else a new one is issued (E183).",
+        "type": "object",
+        "properties": {
+          "seat": { "type": "string", "pattern": "^[A-Za-z0-9_-]{43}(?!\\n)$" }
+        },
+        "additionalProperties": false
       },
       "Move": {
         "type": "object",
@@ -3658,6 +3777,12 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 1000
+          },
+          "ready_hours": {
+            "description": "Hours an account has to get ready for a released game; not ready by then, it loses unplayed (E183, E184).",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 336
           }
         },
         "required": [
@@ -3669,7 +3794,8 @@
           "points",
           "tiebreaks",
           "min_participants",
-          "priority"
+          "priority",
+          "ready_hours"
         ],
         "additionalProperties": false
       },
@@ -3723,14 +3849,22 @@
         "additionalProperties": false
       },
       "LeagueBot": {
-        "description": "A bot as it was when it entered the season or registered.",
+        "description": "A participant as it was when it entered the season or edition or registered: a bot, or an account playing in person (kind human, E182).",
         "type": "object",
         "properties": {
-          "bot_id": { "$ref": "#/components/schemas/Id" },
-          "name": { "type": "string" },
-          "version": { "type": ["string", "null"] }
+          "kind": { "enum": ["bot", "human"] },
+          "bot_id": {
+            "description": "null for an account.",
+            "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }]
+          },
+          "user_id": {
+            "description": "null for a bot.",
+            "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }]
+          },
+          "name": { "description": "The bot's name or the username.", "type": "string" },
+          "version": { "description": "null for an account.", "type": ["string", "null"] }
         },
-        "required": ["bot_id", "name", "version"],
+        "required": ["kind", "bot_id", "user_id", "name", "version"],
         "additionalProperties": false
       },
       "LeagueRegistration": {
@@ -3832,6 +3966,12 @@
             "minimum": 0,
             "maximum": 1000
           },
+          "ready_hours": {
+            "description": "Hours an account has to get ready for a released game; not ready by then, it loses unplayed (E183, E184).",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 336
+          },
           "recurrence": {
             "description": "null: every season or edition waits for an admin to start it (E171).",
             "oneOf": [{ "$ref": "#/components/schemas/Recurrence" }, { "type": "null" }]
@@ -3861,6 +4001,7 @@
           "tiebreaks",
           "min_participants",
           "priority",
+          "ready_hours",
           "recurrence",
           "archived",
           "registered",
@@ -4214,6 +4355,13 @@
             "minimum": 0,
             "maximum": 1000,
             "default": 50
+          },
+          "ready_hours": {
+            "description": "Hours an account has to get ready for a released game; not ready by then, it loses unplayed (E183, E184).",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 336,
+            "default": 48
           }
         },
         "required": ["name", "discipline_id"],
@@ -4272,6 +4420,12 @@
             "minimum": 0,
             "maximum": 1000
           },
+          "ready_hours": {
+            "description": "Hours an account has to get ready for a released game; not ready by then, it loses unplayed (E183, E184).",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 336
+          },
           "recurrence": {
             "description": "null: every season or edition waits for an admin to start it (E171).",
             "oneOf": [{ "$ref": "#/components/schemas/Recurrence" }, { "type": "null" }]
@@ -4282,9 +4436,13 @@
         "additionalProperties": false
       },
       "RegistrationRequest": {
+        "description": "Either a verified bot or an account that plays in person (E182).",
         "type": "object",
-        "properties": { "bot_id": { "$ref": "#/components/schemas/Id" } },
-        "required": ["bot_id"],
+        "properties": {
+          "bot_id": { "$ref": "#/components/schemas/Id" },
+          "user_id": { "$ref": "#/components/schemas/Id" }
+        },
+        "oneOf": [{ "required": ["bot_id"] }, { "required": ["user_id"] }],
         "additionalProperties": false
       },
       "Recurrence": {
@@ -4361,6 +4519,12 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 1000
+          },
+          "ready_hours": {
+            "description": "Hours an account has to get ready for a released game; not ready by then, it loses unplayed (E183, E184).",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 336
           }
         },
         "required": [
@@ -4372,7 +4536,8 @@
           "tiebreak_discipline_id",
           "tiebreak_pairs",
           "min_participants",
-          "priority"
+          "priority",
+          "ready_hours"
         ],
         "additionalProperties": false
       },
@@ -4474,6 +4639,12 @@
             "minimum": 0,
             "maximum": 1000
           },
+          "ready_hours": {
+            "description": "Hours an account has to get ready for a released game; not ready by then, it loses unplayed (E183, E184).",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 336
+          },
           "tiebreak_discipline_name": {
             "description": "Current name of the tiebreak discipline; null without one.",
             "type": ["string", "null"]
@@ -4507,6 +4678,7 @@
           "tiebreak_pairs",
           "min_participants",
           "priority",
+          "ready_hours",
           "tiebreak_discipline_name",
           "recurrence",
           "archived",
@@ -4979,6 +5151,13 @@
             "maximum": 1000,
             "default": 40
           },
+          "ready_hours": {
+            "description": "Hours an account has to get ready for a released game; not ready by then, it loses unplayed (E183, E184).",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 336,
+            "default": 48
+          },
           "recurrence": {
             "description": "null: every season or edition waits for an admin to start it (E171).",
             "oneOf": [{ "$ref": "#/components/schemas/Recurrence" }, { "type": "null" }],
@@ -5037,6 +5216,12 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 1000
+          },
+          "ready_hours": {
+            "description": "Hours an account has to get ready for a released game; not ready by then, it loses unplayed (E183, E184).",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 336
           },
           "recurrence": {
             "description": "null: every season or edition waits for an admin to start it (E171).",

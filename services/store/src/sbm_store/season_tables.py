@@ -10,7 +10,9 @@ from sbm_store.names import MATCHES
 
 PROJECTION = {
     "white.bot_id": 1,
+    "white.user_id": 1,
     "black.bot_id": 1,
+    "black.user_id": 1,
     "status": 1,
     "result": 1,
     "termination": 1,

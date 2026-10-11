@@ -123,3 +123,21 @@ def test_claim_can_take_only_jobs_queued_before_a_time(db):
         jobs.claim(db, jobs.VERIFICATION, "w1", now=later, lease=LEASE, created_before=T0 + LEASE)
         is None
     )
+
+
+def test_claim_can_take_only_matching_jobs(db):
+    plain = jobs.new_verification_job(ObjectId(), now=T0)
+    marked = jobs.new_verification_job(ObjectId(), now=T0 + LEASE)
+    marked["payload"]["competition"] = True
+    jobs.insert(db, plain)
+    jobs.insert(db, marked)
+    only_marked = {"payload.competition": True}
+    later = T0 + 3 * LEASE
+
+    claimed = jobs.claim(db, jobs.VERIFICATION, "w1", now=later, lease=LEASE, matching=only_marked)
+
+    assert claimed["_id"] == marked["_id"]
+    assert (
+        jobs.claim(db, jobs.VERIFICATION, "w1", now=later, lease=LEASE, matching=only_marked)
+        is None
+    )

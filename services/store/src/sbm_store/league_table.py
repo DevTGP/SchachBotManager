@@ -1,11 +1,13 @@
 """The table of a tier or tournament edition, computed from its finished matches (E135, E177).
 
-Pure functions: entries are the bots as the season or edition stores them (bot_id, name,
-version, lot), games their matches with white, black, status, result, termination and
-ply_count. Aborted and unfinished games do not count. Forfeit wins count as wins but not for
-head to head, Sonneborn-Berger, Buchholz or the number of moves (E25). A bye of the Swiss
-system counts as a win's points without a game. After the tiebreaks the lot decides, the
-smaller first; withdrawn bots stand at the end without a rank.
+Pure functions: entries are the participants as the season or edition stores them (bot_id
+or user_id, name, version, lot), games their matches with white, black, status, result,
+termination and ply_count. Rows are keyed by participants.key (E182). Aborted and unfinished
+games do not count. Forfeit wins, from a withdrawal or an absence, count as wins but not for
+head to head, Sonneborn-Berger, Buchholz or the number of moves (E25, E184); "0-0" after both
+sides stayed away is a loss for both. A bye of the Swiss system counts as a win's points
+without a game. After the tiebreaks the lot decides, the smaller first; withdrawn
+participants stand at the end without a rank.
 """
 
 from collections.abc import Callable, Iterable, Mapping, Sequence
@@ -13,10 +15,15 @@ from dataclasses import dataclass, field
 
 from bson import ObjectId
 
+from sbm_store import participants
+
 FINISHED = "finished"
 FORFEIT = "forfeit_withdrawn"
-# The share of the point white and black score per result.
-SCORES = {"1-0": (1.0, 0.0), "0-1": (0.0, 1.0), "1/2-1/2": (0.5, 0.5)}
+# A competition game an account did not turn up for by its deadline (E184).
+FORFEIT_ABSENT = "forfeit_absent"
+FORFEITS = (FORFEIT, FORFEIT_ABSENT)
+# The share of the point white and black score per result; "0-0" when both stayed away.
+SCORES = {"1-0": (1.0, 0.0), "0-1": (0.0, 1.0), "1/2-1/2": (0.5, 0.5), "0-0": (0.0, 0.0)}
 WINS = "wins"
 HEAD_TO_HEAD = "head_to_head"
 SONNEBORN_BERGER = "sonneborn_berger"
@@ -29,11 +36,12 @@ EDITION_TIEBREAKS = (*TIEBREAKS, BUCHHOLZ)
 
 @dataclass(frozen=True)
 class Game:
-    """A counted game; score is white's share of the point."""
+    """A counted game between two participant keys and the share of the point of each."""
 
     white: ObjectId
     black: ObjectId
-    score: float
+    white_score: float
+    black_score: float
     forfeit: bool
     plies: int
 
@@ -54,12 +62,12 @@ class Row:
     plies: int = 0
     rank: int | None = None
     outcome: str | None = None
-    # The counted games of the bot that were played: opponent and own share of the point.
+    # The counted games of the participant that were played: opponent and own share.
     played: list[tuple[ObjectId, float]] = field(default_factory=list)
 
     @property
-    def bot_id(self) -> ObjectId:
-        return self.bot["bot_id"]
+    def key(self) -> ObjectId:
+        return participants.key(self.bot)
 
     def to_document(self) -> dict:
         return {
@@ -89,10 +97,10 @@ def counted_games(matches: Iterable[dict]) -> list[Game]:
         score = SCORES.get(match.get("result"))
         if match["status"] != FINISHED or score is None:
             continue
-        forfeit = match.get("termination") == FORFEIT
+        forfeit = match.get("termination") in FORFEITS
         plies = 0 if forfeit else match.get("ply_count", 0)
-        white, black = match["white"]["bot_id"], match["black"]["bot_id"]
-        games.append(Game(white, black, score[0], forfeit, plies))
+        white, black = participants.key(match["white"]), participants.key(match["black"])
+        games.append(Game(white, black, score[0], score[1], forfeit, plies))
     return games
 
 
@@ -106,24 +114,24 @@ def table(
     byes: Mapping[ObjectId, int] | None = None,
 ) -> list[Row]:
     """The rows in their order, ranks set; points holds win, draw and loss, byes the number of
-    byes per bot."""
+    byes per participant key."""
     gone = set(withdrawn)
     rows = {
-        entry["bot_id"]: Row(
-            bot={key: entry[key] for key in ("bot_id", "name", "version")},
+        participants.key(entry): Row(
+            bot=row_participant(entry),
             lot=entry["lot"],
-            withdrawn=entry["bot_id"] in gone,
+            withdrawn=participants.key(entry) in gone,
         )
         for entry in entries
     }
     counted = [game for game in games if game.white in rows and game.black in rows]
     for game in counted:
-        _add(rows[game.white], game.black, game.score, game, points)
-        _add(rows[game.black], game.white, 1.0 - game.score, game, points)
-    for bot_id, count in (byes or {}).items():
-        if bot_id in rows:
-            rows[bot_id].byes += count
-            rows[bot_id].points += count * points["win"]
+        _add(rows[game.white], game.black, game.white_score, game, points)
+        _add(rows[game.black], game.white, game.black_score, game, points)
+    for key, count in (byes or {}).items():
+        if key in rows:
+            rows[key].byes += count
+            rows[key].points += count * points["win"]
     for row in rows.values():
         row.buchholz = sum(rows[opponent].points for opponent, _ in row.played)
     active = [row for row in rows.values() if not row.withdrawn]
@@ -134,6 +142,16 @@ def table(
         (row for row in rows.values() if row.withdrawn), key=lambda row: (-row.points, row.lot)
     )
     return ranked + rest
+
+
+def row_participant(entry: dict) -> dict:
+    """The participant as a row names it: bot_id or user_id, name and version."""
+    return {
+        "bot_id": entry.get("bot_id"),
+        "user_id": entry.get("user_id"),
+        "name": entry["name"],
+        "version": entry.get("version"),
+    }
 
 
 def _add(row: Row, opponent: ObjectId, score: float, game: Game, points: dict) -> None:
@@ -166,7 +184,7 @@ def _split(group: list[Row], keys: list[Callable], games, rows, points) -> list[
     values = keys[0](group, games, rows, points)
     result = []
     for value in sorted(set(values.values()), reverse=True):
-        level = [row for row in group if values[row.bot_id] == value]
+        level = [row for row in group if values[row.key] == value]
         result += _split(level, keys[1:], games, rows, points)
     return result
 
@@ -182,38 +200,38 @@ def _criterion(name: str) -> Callable:
 
 
 def _by_points(group, games, rows, points) -> dict:
-    return {row.bot_id: row.points for row in group}
+    return {row.key: row.points for row in group}
 
 
 def _by_wins(group, games, rows, points) -> dict:
-    return {row.bot_id: row.wins for row in group}
+    return {row.key: row.wins for row in group}
 
 
 def _by_head_to_head(group, games, rows, points) -> dict:
-    """Points from the games the bots level with each other played among themselves."""
-    level = {row.bot_id for row in group}
+    """Points from the games the participants level with each other played among themselves."""
+    level = {row.key for row in group}
     values = dict.fromkeys(level, 0.0)
     for game in games:
         if game.forfeit or game.white not in level or game.black not in level:
             continue
-        values[game.white] += _points_for(game.score, points)
-        values[game.black] += _points_for(1.0 - game.score, points)
+        values[game.white] += _points_for(game.white_score, points)
+        values[game.black] += _points_for(game.black_score, points)
     return values
 
 
 def _by_sonneborn_berger(group, games, rows, points) -> dict:
     return {
-        row.bot_id: sum(score * rows[opponent].points for opponent, score in row.played)
+        row.key: sum(score * rows[opponent].points for opponent, score in row.played)
         for row in group
     }
 
 
 def _by_buchholz(group, games, rows, points) -> dict:
-    return {row.bot_id: row.buchholz for row in group}
+    return {row.key: row.buchholz for row in group}
 
 
 def _by_fewer_moves(group, games, rows, points) -> dict:
-    return {row.bot_id: -row.plies for row in group}
+    return {row.key: -row.plies for row in group}
 
 
 def _points_for(score: float, points: dict) -> float:

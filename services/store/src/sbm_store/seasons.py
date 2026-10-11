@@ -14,6 +14,7 @@ from pymongo import ASCENDING, DESCENDING
 from pymongo.database import Database
 from pymongo.errors import DuplicateKeyError
 
+from sbm_store import participants
 from sbm_store.names import SEASONS
 
 SCHEMA_VERSION = 1
@@ -124,16 +125,20 @@ def running(db: Database) -> list[dict]:
 
 
 def running_with_bot(
-    db: Database, bot_id: ObjectId, league_id: ObjectId | None = None
+    db: Database, participant: ObjectId, league_id: ObjectId | None = None
 ) -> list[dict]:
-    query: dict = {"status": RUNNING, "tiers.entries.bot_id": bot_id}
+    """The running seasons a bot or an account plays in (E182)."""
+    query: dict = {
+        "status": RUNNING,
+        "$or": [{"tiers.entries.bot_id": participant}, {"tiers.entries.user_id": participant}],
+    }
     if league_id is not None:
         query["league_id"] = league_id
     return list(db[SEASONS].find(query))
 
 
-def add_withdrawn(db: Database, season_id: ObjectId, bot_id: ObjectId) -> None:
-    db[SEASONS].update_one({"_id": season_id}, {"$addToSet": {"withdrawn": bot_id}})
+def add_withdrawn(db: Database, season_id: ObjectId, participant: ObjectId) -> None:
+    db[SEASONS].update_one({"_id": season_id}, {"$addToSet": {"withdrawn": participant}})
 
 
 def finish(db: Database, season_id: ObjectId, final: list[dict], now: datetime) -> bool:
@@ -144,9 +149,9 @@ def finish(db: Database, season_id: ObjectId, final: list[dict], now: datetime) 
     return result.modified_count == 1
 
 
-def tier_of(season: dict, bot_id: ObjectId) -> int | None:
-    """The tier of a bot in a started season; None if it does not play in it."""
+def tier_of(season: dict, participant: ObjectId) -> int | None:
+    """The tier of a bot or account in a started season; None if it does not play in it."""
     for tier in season["tiers"]:
-        if any(entry["bot_id"] == bot_id for entry in tier["entries"]):
+        if any(participants.key(entry) == participant for entry in tier["entries"]):
             return tier["tier"]
     return None

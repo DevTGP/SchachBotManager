@@ -16,6 +16,7 @@ LIMITS = {
     "tiebreak_pairs": (0, 5),
     "min_participants": (2, 1024),
     "priority": (0, 1000),
+    "ready_hours": (1, 336),
 }
 MAX_TIEBREAKS = 5
 # The format is fixed once the tournament exists.
