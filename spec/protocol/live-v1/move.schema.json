@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "move (runner to gateway)",
+  "description": "The next move of the match, plies counting up from 1 without gaps.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "move" },
+    "move": { "$ref": "common.schema.json#/$defs/move" }
+  },
+  "required": ["type", "move"],
+  "additionalProperties": false
+}

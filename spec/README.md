@@ -14,6 +14,7 @@ Quelle der Wahrheit für Referee, SDKs und Doku. Änderungen erfolgen hier zuers
 | `protocol/viewer-v1/` | Nachrichten vom SDK an das Viewer-Programm: `start`, `move`, `log`, `game_over`; jede Zeile passt zu `viewer_message`, Aufbau wie `protocol/v<N>/` mit `examples/` | E106, E107 |
 | `protocol/play-v1/` | Spielprotokoll des Browsers nach `joined`: `state` und `error` vom Server, `move` und `resign` vom Browser | E114 |
 | `protocol/gateway-v1/`, `protocol/relay-v1/` | Eröffnung der WebSocket-Verbindung zum Gateway (`join`, `joined`, `refused`) und Zeilen zwischen Play-Runner und Gateway (`attach`, `line`, `present`, `absent`, `refused`); Aufbau wie `protocol/v<N>/` mit `examples/` | E112 |
+| `protocol/live-v1/` | Züge laufender Partien von den Runnern an den Gateway (`open`, `move`, `end`); der Gateway reicht jeden Zug als Server-Sent Event `move` an die Zuschauer weiter; Aufbau wie `protocol/v<N>/` mit `examples/` | E102, E142 |
 | `api/api.schema.json` | Schema der API-Dateien | E39 |
 | `api/<modul>.json` | Kanonische, sprachneutrale Bot-API, je Thema eine Datei (Grundtypen, Typen, Konstanten, Fehler, `Move`, `Board` in Gruppen, `Clock`, `Bot`, `Log`, Laufzeit) | E21, E39, E45–E49 |
 | `testvectors/perft.schema.json`, `calls.schema.json` | Schemas der Vektordateien: Perft-Zählungen und Funktionsaufrufe | E37, E55 |

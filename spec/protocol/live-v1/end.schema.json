@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "end (runner to gateway)",
+  "description": "The match is over and its result is stored, or it was aborted or handed back to the queue. The runner closes the connection afterwards; a connection that closes without end counts as ended too.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "end" }
+  },
+  "required": ["type"],
+  "additionalProperties": false
+}

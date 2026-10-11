@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "open (runner to gateway)",
+  "description": "First line on a new live connection: the runner plays this match and sends its moves on this connection. After open the runner sends every move played so far, also after it connected again. A newer connection for the same match replaces the older one; the viewers of the older one get the event end.",
+  "type": "object",
+  "properties": {
+    "type": { "const": "open" },
+    "v": { "$ref": "common.schema.json#/$defs/version" },
+    "match_id": { "$ref": "../gateway-v1/common.schema.json#/$defs/match_id" }
+  },
+  "required": ["type", "v", "match_id"],
+  "additionalProperties": false
+}

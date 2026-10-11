@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Common definitions of the live protocol, version 1",
+  "description": "Moves of running matches from the runners to the gateway, which passes them on to the viewers as server-sent events (E102, docs/komponenten/gateway.md).",
+  "$defs": {
+    "version": {
+      "description": "Version of the live protocol, carried by open.",
+      "const": 1
+    },
+    "move": {
+      "description": "One move as the web API shows it (spec/web/openapi.json, schema Move). The gateway sends it unchanged as the data of the event move.",
+      "type": "object",
+      "properties": {
+        "ply": { "description": "1 for White's first move.", "type": "integer", "minimum": 1 },
+        "uci": { "$ref": "../v1/common.schema.json#/$defs/uci" },
+        "san": { "type": "string", "minLength": 1 },
+        "fen": { "description": "Position after the move.", "type": "string" },
+        "spent_ms": { "description": "Thinking time of this move.", "type": "integer", "minimum": 0 },
+        "clock_ms": {
+          "description": "The mover's remaining time after the move, increment included.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "info": {
+          "oneOf": [{ "$ref": "../v1/move.schema.json#/properties/info" }, { "type": "null" }]
+        }
+      },
+      "required": ["ply", "uci", "san", "fen", "spent_ms", "clock_ms", "info"],
+      "additionalProperties": false
+    }
+  }
+}
