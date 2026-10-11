@@ -2,7 +2,6 @@
 
 from datetime import timedelta
 
-from conftest import QUICK
 from sbm.referee import STANDARD_FEN
 from sbm_store import (
     disciplines,
@@ -13,10 +12,14 @@ from sbm_store import (
     registrations,
     seasons,
 )
+from sbm_store.discipline import Discipline
 from sbm_store.enqueue import enqueue_match
 from sbm_store.names import JOBS, MATCHES
 
 from sbm_runner.worker import utc_now
+
+# Defined here: several test folders have a conftest, so `from conftest import` may pick another.
+QUICK = Discipline("Quick", initial_time_ms=10_000, increment_ms=0, max_moves=3)
 
 
 def league_of(db, reference_bots, **settings) -> dict:
