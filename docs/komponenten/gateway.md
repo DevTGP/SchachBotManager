@@ -79,6 +79,18 @@ Grenzen je Adresse, Konto und Token (gleichzeitig und pro Tag) und die Plätze i
 | Aufgeben | `resign`, mit Rückfrage; während der Bot rechnet, wirkt es zu Beginn des nächsten eigenen Zuges |
 | Neuladen | Die SPA verbindet sich neu und nimmt den Sitz wieder ein; der `HumanPlayer` sendet den ganzen Stand erneut, die laufende Uhr um die Zeit seit dem letzten Stand verringert |
 
+## Wettbewerbspartien (E183–E185)
+
+Liga- und Turnierpartien mit einem Menschen laufen über denselben Weg, werden aber nicht über `POST /play` angelegt:
+
+| Schritt | Ablauf |
+|---------|--------|
+| Freigabe | Der Queue-Runner gibt die Partie frei und setzt die Frist (`ready_hours`, E183) |
+| Bereit | `/play` listet die eigenen Wettbewerbspartien (`GET /account/competition-games`); auf `/play/:id` meldet „Bereit“ die Seite über `POST /matches/{id}/ready` und erhält einen Sitz. Die Seite wiederholt das alle 15 s, solange sie offen ist (Anwesenheit) |
+| Start | Sind alle Menschen bereit und anwesend, legt der Queue-Runner den Job `play` an; die Seite sieht den Start und verbindet sich wie bei E114 |
+| Abwesenheit | Der Play-Runner wartet `connect_wait` (30 s) auf die Sitze und beginnt dann auch ohne sie; die Uhr eines fehlenden Menschen läuft weiter, ohne Abbruch nach 60 s |
+| Fehler | Infrastrukturfehler setzen die Partie zurück (wieder `queued`, neue Frist), statt sie abzubrechen |
+
 ## Wertung (E117)
 
 Spielt ein Mensch mit Konto unter einer gespeicherten Disziplin aus der Grundstellung, ist die Partie `rated`; Gäste, freie Zeiten und Remote-Partien nicht. Der Play-Runner verbucht nach jeder Partie sofort (`sbm_store.ratings.count_pending`), außer während eine Neuberechnung ansteht (E105); ein Datenbankfehler dabei wird nur protokolliert, der nächste Lauf holt es nach. Das Rating des Kontos steht auf der Kontoseite und mit Namen in der Rangliste der Spieler (E118). Interaktive Partien sind öffentlich wie Botpartien und stehen, solange sie laufen, in der Queue unter den laufenden Spielen (E119).

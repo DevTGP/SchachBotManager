@@ -67,6 +67,7 @@ Alle Pfade relativ zu `backend/src/sbm_api/`.
 | `recurrence_request.py` | Kalender in den Bodys von Ligen und Turnieren und seine Ausgabe (Schema `Recurrence`, E171) |
 | `bot_choice.py` | Bot-Wahl als Id oder `"random"`; `check_pool`, `draw`, `pairings`, `label` (E162) |
 | `bot_description.py` | `check`: Beschreibung als reiner Text, Zeilenenden als LF (E95) |
+| `participant_access.py` | Wer einen Teilnehmer an- oder abmeldet: einen Bot sein Besitzer oder ein Admin (nur geprüft), ein Konto es selbst in jeder Rolle oder ein Admin (nur aktiv); Admins an Fremdem ins Audit (E136, E179, E182) |
 | `settings_groups.py` | Die vier Gruppen von `/admin/settings` mit Store-Modul und Typ; `PROBLEMS` für Regeln zwischen Feldern (E154) |
 
 ### Ausgaben (Views und Hilfen)
@@ -91,6 +92,8 @@ Alle Pfade relativ zu `backend/src/sbm_api/`.
 | `bot_edition_view.py` | Ausgabe eines Bots mit Setzplatz, Platz oder Punkten (Schema `BotEdition`, E180) |
 | `rating_history_view.py` | Rating-Verlauf je Disziplin, meistgespielte zuerst (Schema `DisciplineRatingHistory`, E140) |
 | `bot_record_view.py` | Bilanz gesamt und je Disziplin, freie Bedenkzeit zuletzt (Schema `BotRecord`, E141) |
+| `participant_view.py` | `participant`: Teilnehmer als Bot oder Konto mit `kind`, `bot_id`, `user_id`, Name und Version (Schema `LeagueBot`, E182) |
+| `readiness_view.py` | Bereitschaft einer Wettbewerbspartie mit Frist und Stand je Konto-Seite; `null` vor der Freigabe (Schema `Readiness`, E183) |
 | `user_view.py` | `current_user_view`, `session_view`, `user_view`; der Hash geht nie hinaus |
 | `invite_view.py` | Einladung ohne Token-Hash |
 | `token_view.py` | API-Token für die Kontoseite; der Token selbst nur einmal beim Anlegen (E116) |
@@ -146,8 +149,10 @@ Alle unter `routes/`; je Modul ein Blueprint mit dem Modulnamen.
 | `routes/own_bot.py` | `PATCH /bots/{id}`: Beschreibung, Zurückziehen (E95, E96) |
 | `routes/own_matches.py` | `POST /matches` für Coder (E98) |
 | `routes/own_match_actions.py` | `POST /matches/{id}/withdraw` (E157) |
-| `routes/league_registrations.py` | `POST /leagues/{id}/registrations`, `DELETE …/registrations/{bot_id}` durch Besitzer oder Admin; Abmelden in laufender Saison ist ein Rückzug (E136) |
-| `routes/tournament_registrations.py` | `POST /tournaments/{id}/registrations`, `DELETE …/registrations/{bot_id}` durch Besitzer oder Admin; Abmelden in laufender Ausgabe ist ein Rückzug; Admins an fremden Bots ins Audit (`tournament.register`, `tournament.deregister`) (E179) |
+| `routes/league_registrations.py` | `POST /leagues/{id}/registrations` mit `bot_id` oder `user_id`, `DELETE …/registrations/{participant_id}` nach `participant_access.py`; Abmelden in laufender Saison ist ein Rückzug (E136, E182) |
+| `routes/tournament_registrations.py` | `POST /tournaments/{id}/registrations` mit `bot_id` oder `user_id`, `DELETE …/registrations/{participant_id}` nach `participant_access.py`; Abmelden in laufender Ausgabe ist ein Rückzug; Admins an fremden Bots und Konten ins Audit (`tournament.register`, `tournament.deregister`, `…_account`) (E179, E182) |
+| `routes/account_competition_games.py` | `GET /account/competition-games`: offene Liga- und Turnierpartien des eigenen Kontos, freigegebene zuerst nach Frist (E183) |
+| `routes/match_ready.py` | `POST /matches/{id}/ready`: Konto einer Seite ist bereit und anwesend, Antwort mit Sitz nach gateway-v1; die Seite wiederholt das, solange sie wartet (E183) |
 | `routes/play.py` | `POST /play`: Gast oder Konto gegen einen geprüften Bot (E114) |
 | `routes/remote.py` | `POST /remote/matches` mit API-Token (E116) |
 
@@ -157,7 +162,7 @@ Jede Route beginnt mit `require_admin()`; jede ändernde schreibt mit `admin_aud
 
 | Modul | Aufgabe |
 |-------|---------|
-| `routes/admin_users.py` | Konten auflisten, Rolle/Aktiv ändern (`user.update`), Reset-Link (`password_reset.create`) (E83, E85) |
+| `routes/admin_users.py` | Konten auflisten, Rolle/Aktiv ändern (`user.update`; Deaktivieren beendet die Anmeldungen des Kontos, E182), Reset-Link (`password_reset.create`) (E83, E85) |
 | `routes/admin_invites.py` | Einladungen auflisten, anlegen (`invite.create`), zurückziehen (`invite.revoke`) |
 | `routes/admin_bots.py` | Sperren/Freigeben (`bot.update`), endgültig löschen (`bot.delete`) (E93, E105) |
 | `routes/admin_bot_checks.py` | Neuprüfung eines Bots (`bot.recheck`) oder einer Sprache (`bot.recheck_language`), Override (`bot.override`) (E153) |

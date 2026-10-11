@@ -217,6 +217,20 @@ Einheitliche Darstellung nach der Durchsicht aller Seiten:
 Namen von Bots stehen nirgends mehr mit Version; eine Spalte „Version“ haben nur Botliste, Rangliste, „Meine Bots“, Bilanz und Versionen eines Bots. Ein Test (`src/i18n/keys.test.ts`) prüft, dass `de.json` und `en.json` dieselben Schlüssel haben.
 
 
+## Spieler in Wettbewerben (E182–E186)
+
+| Datei | Inhalt |
+|-------|--------|
+| `src/api/competitionGames.ts`, `src/api/participants.ts` | Eigene Wettbewerbspartien (`GET /account/competition-games`) und „Bereit“ (`POST /matches/{id}/ready`); Teilnehmer als Bot oder Konto mit Name und Link |
+| `src/components/registration/SelfRegistration.tsx`, `AccountRegistration.tsx` | Liga- und Turnierseite: Knopf zum An- und Abmelden des eigenen Kontos; für Admins Auswahl eines Kontos aus `GET /admin/users` |
+| `src/pages/play/OwnCompetitionGames.tsx` | `/play`: Liste der eigenen Liga- und Turnierpartien mit Gegner, Farbe und Frist bzw. Zustand, Link auf `/play/:id`; nur mit Konto |
+| `src/pages/play/CompetitionGame.tsx` | `/play/:id` einer Wettbewerbspartie: Frist, eigener Stand und der des Gegners, Knopf „Bereit“, Anwesenheit alle 15 s, nach dem Start das Brett |
+| `src/pages/play/Game.tsx` | Das Brett einer interaktiven Partie, gemeinsam für `/play` und Wettbewerbe; bei Wettbewerben „Dein Gegner denkt nach …“ auch gegen Menschen |
+| `src/format/competition.ts` | Name des Wettbewerbs einer Partie (Liga mit Saison bzw. Turnier mit Ausgabe) |
+
+- Der Sitz einer Wettbewerbspartie liegt im `localStorage` unter eigener Art (`seats.ts`, `"ready"`), getrennt von Partien aus `/play`.
+- Editoren und Einstellungen von Ligen und Turnieren zeigen `ready_hours`; Spielpläne zeigen `forfeit_absent` als kampflos, `0-0` als Ergebnis. Namen von Konten sind nicht verlinkt.
+
 ## Turniere und Kalender (Stand M6, E170–E180)
 
 | Datei | Inhalt |

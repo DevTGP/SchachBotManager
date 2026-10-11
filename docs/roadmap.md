@@ -152,7 +152,7 @@ Nach M7, Turniere erst nach M4 Schritt 3 (E150). Drei Schritte:
 2. Einzelspiele: fehlende Teile ergänzen.
 3. Turniere auf dem gemeinsamen Modell für Wettbewerbe aus M4: Rundenturnier, Schweizer System und K.-o. (E170); Ligen und Turniere wiederkehrend nach Kalender (E171).
 
-Stand: Schritt 1 ist umgesetzt (E151–E154), Schritt 2 ebenso (E155–E161), Schritt 3 ebenso (E170–E180, Migration `0154`); danach Anmeldung jedes Bots durch Admins (E181).
+Stand: Schritt 1 ist umgesetzt (E151–E154), Schritt 2 ebenso (E155–E161), Schritt 3 ebenso (E170–E180, Migration `0154`); danach Anmeldung jedes Bots durch Admins (E181); danach Spieler in Ligen und Turnieren (E182–E186, Migration `0155`).
 
 ### M7 – Mensch gegen Bot, lokaler Bot gegen Web-API (P2)
 

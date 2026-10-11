@@ -93,6 +93,11 @@ Jedes Ende bekommt einen maschinenlesbaren `termination`-Code (Liste in [bot-pro
 - Partie-Jobs holt `queue_order.claim_match`: höchste Priorität zuerst, bei gleicher Priorität der Wettbewerb (`competition`, `league:<id>`, `tournament:<id>` oder `single`), dessen letzter Abruf (`claimed_at`) am längsten zurückliegt, darin der älteste Job. Verifikationsjobs behalten ihren Vorrang nach Wartezeit (E89).
 - Eine Liga- oder Turnierpartie spielt der Runner wie ein Einzelspiel mit dem Schnappschuss der Disziplin aus der Saison bzw. Ausgabe; die Tabelle entsteht beim Lesen aus den beendeten Partien (E135).
 
+### Spieler in Wettbewerben (E182–E185)
+
+- Nach Ligen und Turnieren ruft der Worker `readiness_tick.advance_readiness` auf (`sbm_store.competition_readiness`), auch bei pausierter Queue: zuerst Partien nach Frist beenden (`expire`, `forfeit_absent` bzw. `0-0`, E184), dann Partien starten, deren Menschen bereit und anwesend sind oder zur Frist bereit waren (`start_ready`, legt den Job `play` an), zuletzt die nächsten freigeben (`release`, E183). Fehler behandelt er wie bei den Ligen.
+- Partien mit einem Menschen bekommen beim Start einer Saison oder Ausgabe keinen Job; der Queue-Runner spielt nur Partien ohne Menschen. Mensch gegen Bot und Mensch gegen Mensch spielt der Play-Runner.
+
 ### Stand M4 Schritt 5 (E142)
 
 - Mit `SBM_LIVE_ADDRESS` (`host:port`, im Stack `sbm-live:9001`) sendet jeder Runner, Queue wie Play, die Züge seiner laufenden Partien an den Gateway (live-v1, `live_feed.LiveFeed`). Der Feed öffnet vor `matches.start`, bekommt jeden Zug über denselben `on_move` wie die Datenbank und endet im `finally` nach dem Speichern des Ergebnisses; so endet er auch bei Abbruch und Fehlern.
@@ -110,6 +115,7 @@ Jedes Ende bekommt einen maschinenlesbaren `termination`-Code (Liste in [bot-pro
 - Eine Remote-Seite ist ein `RelayPlayer`: Ihre Zeilen gehen unverändert an den Referee und werden wie die eines Bots geprüft. Eine Seite der Art `human` ist ein `HumanPlayer` (E114), der zwischen Referee und Browser (play-v1) übersetzt und über `on_move` jeden Zug sieht.
 - Die Plätze kommen aus den Einstellungen auf `/admin/play` (`max_games`), höchstens `SBM_PLAY_SLOTS` (E115).
 - Kein Neustart: Infrastrukturfehler, verlorene Leases, ein nicht eingenommener Sitz, ein Client, der länger als 60 s fehlt, und SIGTERM brechen die Partie ab (`aborted`), Einzelheiten in [gateway.md](gateway.md).
+- Ausnahme seit E185: Liga- und Turnierpartien mit einem Menschen (Job mit `payload.competition`). Sie beginnen nach `connect_wait` auch ohne alle Sitze, die Uhr eines fehlenden oder getrennten Menschen läuft weiter. Infrastrukturfehler, verlorene Lease und SIGTERM setzen sie zurück statt sie abzubrechen (`play.game.give_up` → `competition_readiness.reset`): `queued` ohne Züge, neue Frist, Bereitschaft gelöscht. `max_games` (E115) gilt für sie nicht, nur `SBM_PLAY_SLOTS`.
 
 ### Stand M6 (E152–E154)
 

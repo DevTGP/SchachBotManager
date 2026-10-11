@@ -59,7 +59,8 @@ Alle Pfade relativ zu `services/store/src/sbm_store/`.
 | `play.py` | Interaktive Partien (`human`, `remote`) mit Sitz-Hash, `origin` für die Grenzen und Job der Art `play` (E113–E116) |
 | `discipline.py` | Dataclass `Discipline` als `discipline_snapshot` der Partie; `is_rated` (gespeicherte Disziplin und Grundstellung, E100) |
 | `disciplines.py` | Collection `disciplines`: anlegen, ändern, archivieren, `snapshot` für Partien; `NameTaken` bei doppeltem Namen (E100); `by_name` findet eine Disziplin über `name_key` unabhängig von Groß- und Kleinschreibung, auch archiviert (E169) |
-| `opponents.py` | Bilanz eines Bots gegen jeden Gegner per Aggregation (E161) |
+| `opponents.py` | Bilanz eines Bots gegen jeden Gegner per Aggregation; Gegner können auch Konten sein (E161, E182) |
+| `competition_games.py` | Offene Liga- und Turnierpartien eines Kontos, freigegebene zuerst nach Frist (E186) |
 | `bot_record.py` | Siege, Remis, Niederlagen eines Bots je Disziplin per Aggregation; `Counts` (E141) |
 | `rating_history.py` | Rating vorher und nachher je verbuchter Partie eines Bots, nach Disziplin (E140) |
 
@@ -79,7 +80,10 @@ Alle Pfade relativ zu `services/store/src/sbm_store/`.
 |-------|---------|
 | `leagues.py` | Collection `leagues`: Einstellungen je Liga, Name eindeutig über `name_key`, archivieren statt löschen; `NameTaken` (E131) |
 | `seasons.py` | Collection `seasons`: `planned → running → finished`, Freigabe, fällige Saisons, Aufstellung in `tiers`, Kopie der Einstellungen samt `discipline_snapshot`, Endtabellen in `final` (E132) |
-| `registrations.py` | Collection `registrations`: höchstens eine aktive Anmeldung je Bot und Liga bzw. Turnier (`target_type`, dünner eindeutiger Index), Abmelden behält das Dokument als `left` (E136, E179) |
+| `registrations.py` | Collection `registrations`: höchstens eine aktive Anmeldung je Bot oder Konto und Liga bzw. Turnier (`target_type`, eindeutiger Teilindex über `bot_id` und `user_id`), Abmelden behält das Dokument als `left`, Deaktivieren eines Kontos mit Grund `deactivated` (E136, E179, E182) |
+| `participants.py` | Teilnehmer als Bot (`bot_id`) oder Konto (`user_id`): `key`, `is_human`, `side_query` (E182) |
+| `competition_entrants.py` | Wer von den Angemeldeten starten darf: Bots geprüft, Konten aktiv; Einträge mit `bot_id` oder `user_id`, Name und Version (E136, E179, E182) |
+| `competition_readiness.py` | Partien mit Konten: `release` nach Runde und Brett (ein Konto hat höchstens eine freigegebene Partie), `mark_ready`, `start_ready` legt den Play-Job an, `expire` wertet zur Frist (`forfeit_absent`, beide abwesend 0-0), `reset` nach Infrastrukturfehlern (E183–E185) |
 | `league_setup.py` | Liga mit erster Saison anlegen, eine wartende Saison von Hand starten, nach einem geänderten Kalender den Start neu berechnen (`follow_calendar`) (E131, E132, E171) |
 | `league_lineup.py` | Reine Funktionen: Aufstellung in Stufen beim Start, Auf- und Abstieg am Ende (E133) |
 | `league_pairing.py` | Reine Funktionen: Rundenturnier nach Berger je Stufe, wiederholt nach `games_per_pairing` (E134) |
@@ -158,6 +162,7 @@ Alle Pfade relativ zu `services/store/src/sbm_store/`.
 | `0152_single_games` | Dünne Indizes für Serien, `created_by` und Disziplin in `matches` (E155, E156) |
 | `0153_discipline_ratings` | Entfernt Index und Einzelwerte `rating`, fordert eine Neuberechnung an, falls verbuchte Partien existieren (E163) |
 | `0154_tournaments` | Indizes für Turniere, Ausgaben und Partien einer Ausgabe; rechnet `pause_minutes` der Ligen in einen Kalender um und entfernt es aus Saisons (E171–E173) |
+| `0155_competition_players` | `user_id` in Anmeldungen, eindeutiger Teilindex über Bot und Konto, Indizes für Konten in Saisons, Ausgaben und Partien sowie für die Bereitschaft; `ready_hours` 48 für Ligen und Turniere (E182–E185) |
 
 ## Ablauf
 

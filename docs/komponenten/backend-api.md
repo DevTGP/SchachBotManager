@@ -254,6 +254,19 @@ Zufall, Rating je Disziplin, Ersteller (E162–E164):
 - Audit-Ziele kennen `tournament` (`audit_targets.py`).
 - Neuer Fehlercode `tournament_state` (409: Turnier archiviert, keine wartende oder schon fällige Ausgabe). `league_state` bedeutet beim Start jetzt: keine wartende oder schon fällige Saison.
 
+### Spieler in Wettbewerben (E182–E186)
+
+| Endpunkt | Aufgabe |
+|----------|---------|
+| `POST /leagues/{id}/registrations`, `POST /tournaments/{id}/registrations` | Zusätzlich `user_id` statt `bot_id` (genau eines): ein Konto meldet sich selbst an, Admins jedes aktive Konto (`participant_access.py`); Audit `league.register_account` bzw. `tournament.register_account` für fremde Konten. Fehlercodes `already_registered` (Feld `user_id`) und `user_state` (409, Konto inaktiv) |
+| `DELETE /leagues/{id}/registrations/{participant_id}`, ebenso für Turniere | Id eines Bots oder Kontos; ein Konto meldet sich selbst ab, Admins jedes (Audit `…deregister_account`) |
+| `GET /account/competition-games` | Wartende und laufende Wettbewerbspartien des Kontos mit seiner Farbe (`routes/account_competition_games.py`, `sbm_store.competition_games`) |
+| `POST /matches/{id}/ready` | Eigene Seite bereit und anwesend; Antwort `PlaySeat` (neuer Sitz, wenn der mitgeschickte nicht passt); 409, wenn nicht freigegeben oder schon gestartet (`routes/match_ready.py`) |
+
+- Teilnehmer in Anmeldungen, Stufen, Tabellen, Spielplänen, Ausgaben und Turnierbäumen haben `kind`, `bot_id` oder `user_id` (`participant_view.py`).
+- Partien zeigen `readiness` (`readiness_view.py`): Frist, Start und je menschlicher Seite `ready` und `present`, `null` für Bots.
+- Ligen und Turniere nehmen `ready_hours` (1 bis 336, Standard 48). Deaktivieren eines Kontos beendet seine Anmeldungen (`routes/admin_users.py`).
+
 ## Rollen und Rechte
 
 | Rolle | Darf |

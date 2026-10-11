@@ -157,6 +157,15 @@ Große Binärdaten (Quelldateien, Artefakte, Bot-Logs) liegen in GridFS in derse
 - Partien eines Turniers: `type` `tournament`, `context` mit `tournament_id`, `tournament_name`, `edition_id`, `edition_number`, `format`, `round`, `board`, `phase` und `game` (die letzten beiden nur beim K.-o., sonst `null`). Die IDs der Partien stehen schon im Plan, bevor die Partien angelegt werden.
 - Migration `0154_tournaments` legt die Indizes an: eindeutig `name_key` von `tournaments`, eindeutig `(tournament_id, number)`, `status` und `participants.bot_id` von `editions`, dünn besetzt `(context.edition_id, status)` von `matches`. Sie rechnet `pause_minutes` der Ligen in einen Kalender um (E171) und setzt `recurrence: null` an Ligen ohne Pause.
 
+## Spieler in Wettbewerben (E182–E185)
+
+- `registrations`: zusätzlich `user_id`; genau eines von `bot_id` und `user_id` ist gesetzt. `left_reason` kennt `deactivated` (Konto deaktiviert). Schlüssel eines Teilnehmers ist seine Bot- oder Konto-Id (`sbm_store.participants`).
+- `seasons.tiers[].entries[]` und `editions.participants[]` haben zusätzlich `user_id`; ein Konto steht dort mit `bot_id` und `version` `null` und dem Nutzernamen (`sbm_store.competition_entrants`).
+- `leagues.ready_hours` und `tournaments.ready_hours` (Standard 48), im Schnappschuss von Saison und Ausgabe.
+- Partien mit einem Menschen: Seite `kind` `human` mit `user_id` und `seat_hash`. Nach der Freigabe `readiness` mit `released_at`, `deadline`, `started_at` und je menschlicher Seite (`white`, `black`) `ready_at` und `seen_at`; bei Bots `null` (`sbm_store.competition_readiness`). `termination` kennt `forfeit_absent`, `result` `0-0` (E184); `duels[].decided_by` kennt `absence`.
+- Jobs der Art `play` für Wettbewerbspartien tragen `payload.competition: true`.
+- Migration `0155_competition_players` setzt `user_id: null` an alten Anmeldungen, ersetzt den eindeutigen Teilindex aktiver Anmeldungen durch `(target_type, target_id, bot_id, user_id)`, legt Indizes auf `(user_id, status)` von `registrations`, `tiers.entries.user_id` von `seasons`, `participants.user_id` von `editions`, dünn besetzt `(white.user_id, created_at)` und `(black.user_id, created_at)` sowie `(status, readiness.started_at)` für freigegebene Partien von `matches` an und setzt `ready_hours` an Ligen und Turnieren.
+
 ## Zu beachten
 
 - **Tabellen sind abgeleitete Daten.** Sie werden jederzeit aus `matches` neu berechnet (E135); gespeichert wird nur die Endtabelle einer Saison oder Ausgabe.

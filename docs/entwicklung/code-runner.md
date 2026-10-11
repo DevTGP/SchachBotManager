@@ -14,7 +14,7 @@ Der Runner unter `services/runner` (Paket `sbm-runner`, Modul `sbm_runner`) spie
 Lesereihenfolge:
 
 1. `cli.py` – Rollen, Sandbox, Spielerfabrik.
-2. `worker.py` – Hauptschleife des Queue-Runners: Wiederaufnahme, Ratings, Ligen, Turniere, Abruf, Arbeit.
+2. `worker.py` – Hauptschleife des Queue-Runners: Wiederaufnahme, Ratings, Ligen, Turniere, Bereitschaft, Abruf, Arbeit.
 3. `game.py` mit `match_settings.py`, `recorder.py`, `players.py` – eine Partie.
 4. `heartbeat.py`, `stopper.py`, `retries.py`, `recovery.py`, `shutdown.py` – Leases und Fehlerfälle.
 5. `verification/pipeline.py` – ein Verifikationsjob.
@@ -31,9 +31,10 @@ Lesereihenfolge:
 | [`cli.py`](../../services/runner/src/sbm_runner/cli.py) | `sbm-runner`: Logging, Signal-Handler, Rolle `queue`/`play`, Start der Sandbox |
 | [`config.py`](../../services/runner/src/sbm_runner/config.py) | `RunnerConfig`: Abfrage-Intervall, Lease, Heartbeat, `max_attempts`, `retry_delay`, `verification_wait` (E89), `live_address` (E142); `default_worker_id` |
 | [`enqueue_cli.py`](../../services/runner/src/sbm_runner/enqueue_cli.py) | `sbm-enqueue`: baut eine `Discipline`, prüft sie mit `MatchSettings` des Referees und ruft `sbm_store.enqueue.enqueue_match`; `--discipline` holt eine gespeicherte Disziplin über `sbm_store.disciplines.by_name` und `snapshot` (E169) |
-| [`worker.py`](../../services/runner/src/sbm_runner/worker.py) | `Worker`: ein Job nach dem anderen; je Runde zuerst `advance_leagues`, dann `advance_tournaments`; Abrufreihenfolge alte Verifikation → Partie (über `sbm_store.queue_order.claim_match`: höchste Priorität, Wettbewerbe abwechselnd, E134) → Verifikation (E89); Ratings nach jeder Partie (E103), Neuberechnung vor dem Abruf (E105); `utc_now` |
+| [`worker.py`](../../services/runner/src/sbm_runner/worker.py) | `Worker`: ein Job nach dem anderen; je Runde zuerst `advance_leagues`, dann `advance_tournaments`, dann `advance_readiness` (E183); Abrufreihenfolge alte Verifikation → Partie (über `sbm_store.queue_order.claim_match`: höchste Priorität, Wettbewerbe abwechselnd, E134) → Verifikation (E89); Ratings nach jeder Partie (E103), Neuberechnung vor dem Abruf (E105); `utc_now` |
 | [`league_tick.py`](../../services/runner/src/sbm_runner/league_tick.py) | `advance_leagues`: je Runde Spielplan nach Absturz neu anlegen, Partien zurückgezogener Bots kampflos werten, fertige Saisons beenden, fällige starten (E132–E136); ein Fehler wird geloggt und hält den Runner nicht an |
 | [`tournament_tick.py`](../../services/runner/src/sbm_runner/tournament_tick.py) | `advance_tournaments`: je Runde `sbm_store.edition_progress.advance_running` (fehlende Partien, kampflose Siege, Schweizer Runden, K.-o.-Duelle, Ende), dann `edition_start.start_due` (E173–E177); ein Fehler wird geloggt und hält den Runner nicht an |
+| [`readiness_tick.py`](../../services/runner/src/sbm_runner/readiness_tick.py) | `advance_readiness`: je Runde Partien mit Konten über `sbm_store.competition_readiness` – erst `expire` (Frist abgelaufen), dann `start_ready` (Play-Job), dann `release` (nächste freigeben) (E183, E184); ein Fehler wird geloggt und hält den Runner nicht an |
 | [`game.py`](../../services/runner/src/sbm_runner/game.py) | `run_job`: spielt die Partie eines Jobs mit dem Referee und speichert das Ergebnis; `bot_player` lässt nur Bots in `verified` spielen; sendet jeden Zug zusätzlich über `LiveFeed` an den Gateway (E142) |
 | [`match_settings.py`](../../services/runner/src/sbm_runner/match_settings.py) | `MatchSettings` des Referees aus `discipline_snapshot` und `start_fen` einer gespeicherten Partie |
 | [`players.py`](../../services/runner/src/sbm_runner/players.py) | `PlayerFactory`, `UnsupportedBot`, erlaubte Referenzbots (`BUILTIN_MODULES`), `plain_player`/`PlainPlayer` ohne Sandbox (E72) |
@@ -79,8 +80,8 @@ Zur Sandbox gehören außerhalb des Pakets [`sandbox/python.cfg`](../../sandbox/
 |-------|---------|
 | [`__init__.py`](../../services/runner/src/sbm_runner/play/__init__.py) | Paketbeschreibung |
 | [`config.py`](../../services/runner/src/sbm_runner/play/config.py) | `PlayConfig` aus `SBM_RELAY_ADDRESS`, `SBM_LIVE_ADDRESS`, `SBM_PLAY_SLOTS`, `SBM_WORKER_ID`; Wartezeiten für Sitze, Abwesenheit, Relay und Stopp |
-| [`worker.py`](../../services/runner/src/sbm_runner/play/worker.py) | `PlayWorker`: bis `min(slots, max_games)` Partien in eigenen Threads mit eigenem Heartbeat; `recover_expired_play`, `count_ratings` |
-| [`game.py`](../../services/runner/src/sbm_runner/play/game.py) | `InteractiveGame`: Seiten aufbauen, auf Sitze warten, spielen, speichern; jeder Fehler bricht ab statt zu wiederholen (E113); Züge auch an den Live-Kanal (E142) |
+| [`worker.py`](../../services/runner/src/sbm_runner/play/worker.py) | `PlayWorker`: bis `min(slots, max_games)` Partien in eigenen Threads mit eigenem Heartbeat, darüber hinaus bis `slots` nur Wettbewerbspartien (E185); `recover_expired_play`, `count_ratings` |
+| [`game.py`](../../services/runner/src/sbm_runner/play/game.py) | `InteractiveGame`: Seiten aufbauen, auf Sitze warten, spielen, speichern; jeder Fehler bricht ab statt zu wiederholen (E113), eine Wettbewerbspartie wartet stattdessen über `give_up` wieder auf Bereitschaft (E185); Züge auch an den Live-Kanal (E142) |
 | [`relay_connection.py`](../../services/runner/src/sbm_runner/play/relay_connection.py) | `RelayConnection`: TCP-Verbindung eines Sitzes zum Gateway (relay-v1), Lesethread, `present`/`absent`; `RelayClosed`, `SeatAbandoned` |
 | [`relay_player.py`](../../services/runner/src/sbm_runner/play/relay_player.py) | `RelayPlayer`: Remote-Bot, Zeilen des Bot-Protokolls v1 unverändert (E116) |
 | [`human_player.py`](../../services/runner/src/sbm_runner/play/human_player.py) | `HumanPlayer`: übersetzt zwischen Referee und Browser (play-v1), legale Züge aus dem Kern, Stand erneut nach Neuladen (E114) |
@@ -89,7 +90,7 @@ Zur Sandbox gehören außerhalb des Pakets [`sandbox/python.cfg`](../../sandbox/
 
 ### Partie aus der Queue
 
-1. `Worker.step` ruft `recover_expired` (`recovery.py`), `_recount_ratings`, `advance_leagues` (`league_tick.py`) und `advance_tournaments` (`tournament_tick.py`); ist die Queue pausiert (`queue_settings`), endet der Schritt.
+1. `Worker.step` ruft `recover_expired` (`recovery.py`), `_recount_ratings`, `advance_leagues` (`league_tick.py`), `advance_tournaments` (`tournament_tick.py`) und `advance_readiness` (`readiness_tick.py`); ist die Queue pausiert (`queue_settings`), endet der Schritt.
 2. `Worker._claim` holt eine Partie per `sbm_store.queue_order.claim_match` (höchste Priorität; bei Gleichstand der Wettbewerb mit dem ältesten `claimed_at`, darin die älteste Partie, E134), eine Verifikation per `sbm_store.jobs.claim`. Um ihn laufen `Heartbeat` und `Stopper`.
 3. `game.run_job` lädt die Partie, setzt eine von einem toten Worker hinterlassene `running`-Partie zurück und baut beide Spieler über `bot_player` und die `PlayerFactory`.
 4. Für einen hochgeladenen Bot ruft `Sandbox.player` beim Start des `JailPlayer` `checkout.checkout`: frische Kopie aus GridFS, die nsjail als `/bot` einhängt. Referenzbots bekommen das leere Verzeichnis `no_files`.
@@ -117,11 +118,11 @@ Fehler: `retry_or_reject`; nach `max_attempts` `reject_internal`. Bei `Shutdown`
 1. `PlayWorker.step` räumt beendete Threads ab, gibt abgelaufene Play-Jobs auf (`recover_expired_play`, Abbruch der Partie) und prüft die freien Plätze.
 2. `jobs.claim` mit `play.PLAY_JOB`; je Job ein Thread mit `Heartbeat` um `InteractiveGame.run`.
 3. `InteractiveGame.run` bricht eine Partie ab, die nicht mehr `queued` ist. Je Seite: Bot über `bot_player`, sonst `RelayConnection.open` (`attach`) und `RelayPlayer` (Art `remote`) oder `HumanPlayer` (Art `human`).
-4. `_wait_for_seats` wartet bis `connect_wait` auf `present` jeder Verbindung (`SeatNotTaken`).
+4. `_wait_for_seats` wartet bis `connect_wait` auf `present` jeder Verbindung (`SeatNotTaken`). Eine Wettbewerbspartie beginnt danach auch ohne die Abwesenden; deren Uhr läuft (E185).
 5. `Match.play` mit `on_move`, das `Recorder` und `HumanPlayer.observe` bedient.
 6. `_store` speichert das Ergebnis; ein Mensch hat kein `sdk`/`lang`. Danach `count_ratings`, außer eine Neuberechnung steht an.
 
-Jeder Fehler endet mit `_abort` (`matches.abort`, `jobs.fail`). `PlayWorker.stop` schließt bei SIGTERM alle Sitze und bricht hängende Partien nach `stop_wait` ab.
+Jeder Fehler endet mit `_abort` über `give_up` (`matches.abort`, `jobs.fail`); eine Wettbewerbspartie setzt `competition_readiness.reset` stattdessen zurück auf die Bereitschaft (E185). `PlayWorker.stop` schließt bei SIGTERM alle Sitze und bricht hängende Partien nach `stop_wait` ab.
 
 ## Konventionen
 
@@ -130,7 +131,7 @@ Jeder Fehler endet mit `_abort` (`matches.abort`, `jobs.fail`). `PlayWorker.stop
 - **`UnsupportedBot`** heißt: Partie abbrechen, nicht wiederholen.
 - **`Shutdown` erbt von `BaseException`**, damit kein `except Exception` es schluckt. Wer einen Job hält, gibt ihn im `except Shutdown` frei und wirft weiter.
 - **Nur der Halter eines Jobs ändert seine Partie.** `recovery.py` lässt die Partie stehen; der nächste Halter setzt sie in `run_job` zurück.
-- **Interaktive Partien wiederholen nie** (E113): Abbruch statt `retry`.
+- **Interaktive Partien wiederholen nie** (E113): Abbruch statt `retry`; Wettbewerbspartien warten nach einem Fehler wieder auf Bereitschaft (E185).
 - **Datenbank nur über `sbm_store`:** Kein Modul greift direkt auf Collections zu. Konstanten wie `jobs.MATCH`, `bots.VERIFIED`, `play.PLAY_JOB` kommen von dort.
 - **Konfiguration:** eingefrorene Dataclasses mit Standardwerten; `from_env(environ)` liest nur die Umgebungsvariablen und wirft `ValueError` mit Variablenname und Wert.
 - **Bot-Prozesse:** Umgebung nur `SBM_BOT_DIR` für nsjail, `close_fds=True`. Jede cgroup wird in `finally` beendet (`kill`) und entfernt; Checkouts räumt `BotDir.remove` auf.

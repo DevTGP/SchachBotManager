@@ -37,8 +37,10 @@ Pfade relativ zu `frontend/src/`.
 | `api/endpoints.ts` | Lesende öffentliche Endpunkte: Partien, Serien, Gegner, Bots, Ratings, Queue, Disziplinen |
 | `api/account.ts` | Sitzung, Anmeldung, Einladung, Passwort, eigenes Rating, Grenzen, API-Tokens |
 | `api/admin.ts` | Nutzer, Einladungen, Partien ansetzen, Queue-Eingriffe, Bot-Sperre und -Löschung, Neuprüfung, Disziplinen, Ligen anlegen, ändern und wartende Saison starten (E171), Play-Grenzen, Einstellungen, Audit-Log |
-| `api/leagues.ts` | Ligen, Liga mit Anmeldungen, Saison mit Tabellen, Ligen eines Bots; Bot an- und abmelden (E136, E137); Spielplan einer Stufe und Saisons eines Bots (E138, E139) |
-| `api/tournaments.ts` | Turniere, Turnier mit Ausgaben und Anmeldungen, Ausgabe, Runden einer Ausgabe, Turniere und Ausgaben eines Bots; Bot an- und abmelden (E170–E180) |
+| `api/leagues.ts` | Ligen, Liga mit Anmeldungen, Saison mit Tabellen, Ligen eines Bots; Bot oder Konto an- und abmelden (E136, E137, E182); Spielplan einer Stufe und Saisons eines Bots (E138, E139) |
+| `api/tournaments.ts` | Turniere, Turnier mit Ausgaben und Anmeldungen, Ausgabe, Runden einer Ausgabe, Turniere und Ausgaben eines Bots; Bot oder Konto an- und abmelden (E170–E180, E182) |
+| `api/participants.ts` | `participantId`: Kennung einer Anmeldung, `bot_id` eines Bots oder `user_id` eines Kontos (E182) |
+| `api/competitionGames.ts` | Eigene offene Liga- und Turnierpartien (`GET /account/competition-games`) und `declareReady` (`POST /matches/{id}/ready`, E183) |
 | `api/adminTournaments.ts` | Turnier anlegen, ändern und wartende Ausgabe starten (E170–E172) |
 | `api/botHistory.ts` | Rating-Verlauf und Bilanz eines Bots (E140, E141) |
 | `api/bots.ts` | Upload als `FormData`, Bot, eigene Bots, Dateien und ZIP, eigene Partien ansetzen und zurückziehen |
@@ -96,7 +98,7 @@ Pfade relativ zu `frontend/src/`.
 | `components/RecurrenceText.tsx` | Kalender als Text in Ortszeit: Intervall mit erstem Start oder Start durch Admins (E171) |
 | `components/QueuedNotice.tsx` | Bestätigung nach dem Ansetzen, Link auf die Serie (E155) |
 | `components/CopyButton.tsx`, `OneTimeLinkBox.tsx` | In die Zwischenablage kopieren; einmal sichtbarer Link (E83) |
-| `format/*.ts` | Reine Formatierer: `pairing` (Seiten alphabetisch, Ergebnis gedreht, `compareSides`, E165), `botGroups` (Versionen je Name), `clock`, `dateTime`, `duration` (Sekunden/Minuten mit Komma ↔ ms, E168), `points` (½), `recurrence` (Intervall als größte passende Einheit, E171, E180), `rating` (2500 → 2550, ohne Partien „–“), `result`, `score` (Sicht von Weiß), `timeControl` („3 min + 2 s“, E168); `botLabel` ist seit E165 entfallen |
+| `format/*.ts` | Reine Formatierer: `pairing` (Seiten alphabetisch, Ergebnis gedreht, `compareSides`, E165), `botGroups` (Versionen je Name), `clock`, `dateTime`, `duration` (Sekunden/Minuten mit Komma ↔ ms, E168), `points` (½), `recurrence` (Intervall als größte passende Einheit, E171, E180), `rating` (2500 → 2550, ohne Partien „–“), `result`, `score` (Sicht von Weiß), `timeControl` („3 min + 2 s“, E168), `competition` („Bundesliga, Saison 2“, E183); `botLabel` ist seit E165 entfallen |
 | `chess/fen.ts` | Felder der FEN lesen: Seite am Zug, Zugnummer, Materialbilanz, Felder eines UCI-Zugs; keine Regeln |
 | `upload/selection.ts` | Welche Dateien eines Ordners hochgeladen werden, Grenzen 100 Dateien und 1 MB (E92) |
 | `upload/version.ts` | Muster für Name und Version, Vorschlag der nächsten Patch-Version |
@@ -122,20 +124,20 @@ Pfade relativ zu `frontend/src/`.
 |-------|---------|
 | `protocol.ts` | Nachrichten von gateway-v1 (`join`, `joined`, `refused`) und play-v1 (`state`, `move`, `resign`, `error`); unbekannte werden verworfen |
 | `usePlayGame.ts` | WebSocket je Sitz: `join` beim Öffnen, Phasen `connecting` … `lost`, Neuverbindung nach 0,5–8 s, Aufgabe nach 55 s ohne Verbindung; Close-Code 1000 heißt Ende |
-| `seats.ts` | Sitz-Token je Partie im `localStorage`, ohne Speicher nur für die Dauer der Seite (E113) |
+| `seats.ts` | Sitz-Token je Partie im `localStorage`, ohne Speicher nur für die Dauer der Seite (E113); Art `play` für Partien aus `/play`, `ready` für Wettbewerbspartien (E183) |
 
 ### Seiten (`pages/`)
 
 | Bereich | Module |
 |---------|--------|
 | Öffentlich | `StartPage` (Idee des Projekts, keine Abfragen, E166), `MatchesPage` (Filter in der URL, E156, E119), `MatchPage` (Viewer mit `useLiveMatch`, folgt laufenden Partien über den Live-Kanal), `MatchSeries` (Platz in der Serie), `QueuePage` (`QueueTable` in der Sicht `public`), `BotsPage`, `RatingsPage` mit `ranking.ts` (Bots und Spieler gemeinsam sortiert, E118, E163), `series/SeriesPage` (E155), `MatchLeague` (Liga, Saison und Runde einer Ligapartie), `MatchTournament` (Turnier, Ausgabe und Runde einer Turnierpartie, E178, E180), `NotFoundPage` |
-| Ligen (`leagues/`) | `LeaguesPage`, `LeaguePage` mit `LeagueFacts`, `LeagueSeasons`, `NextSeason`, `LeagueRegistrations` und `LeagueRegisterForm` (E136, E137), `SeasonPage` mit `TierTable` je Staffel (E134) und darin `TierSchedule` (E138) |
-| Turniere (`tournaments/`) | `TournamentsPage`, `TournamentPage` mit `TournamentFacts`, `TournamentEditions`, `NextEdition`, `TournamentRegistrations` und `TournamentRegisterForm`, `EditionPage` mit `EditionState`, `EditionParticipants`, `EditionTable` (Round-Robin und Schweizer System), `EditionRoundsSection`, `KnockoutBracket` und `KnockoutPlacements` (K.-o.) (E170–E180) |
+| Ligen (`leagues/`) | `LeaguesPage`, `LeaguePage` mit `LeagueFacts`, `LeagueSeasons`, `NextSeason`, `LeagueRegistrations` und `LeagueRegisterForm` (E136, E137) samt `components/registration/SelfRegistration` und `AccountRegistration` (E182), `SeasonPage` mit `TierTable` je Staffel (E134) und darin `TierSchedule` (E138) |
+| Turniere (`tournaments/`) | `TournamentsPage`, `TournamentPage` mit `TournamentFacts`, `TournamentEditions`, `NextEdition`, `TournamentRegistrations` und `TournamentRegisterForm` samt `SelfRegistration` und `AccountRegistration` (E182), `EditionPage` mit `EditionState`, `EditionParticipants`, `EditionTable` (Round-Robin und Schweizer System), `EditionRoundsSection`, `KnockoutBracket` und `KnockoutPlacements` (K.-o.) (E170–E180) |
 | Konto (`account/`) | `LoginPage`, `InvitePage` und `ResetPasswordPage` (Token aus `#`), `AccountPage` mit `OwnRating` (E117) und `ApiTokens` (E116) |
 | Upload (`upload/`) | `UploadPage` mit `FileDrop` (Ordner oder Dateien, auch per Ziehen, Name, Version, Beschreibung, E91), `SelectedFiles` (Hochgeladenes und Weggelassenes) |
 | Bot (`bot/`) | `BotPage` (fragt während Verifikation und Neuprüfung alle 3 s) mit `BotHeader` (Name, Version, Status), `BotActions` (Schnellstart, Besitzer) und `BotAdmin` (Eingriffe der Admins), `BotSummary`, `BotDescription`, `BotVersions` mit `playLink.ts` (E160), `BotOpponents` (E161), `BotFiles` mit `FileView` (nur UTF-8-Text, E97), `ReportView`, `ReportStages`, `FindingsTable`, `TestGamesTable`, `reportFacts.ts`, `BotRechecks` (E153), `BotLeagues` (Ligen des Bots), `BotSeasons` (E139), `BotRatingChart` mit `ratingChart.ts` (SVG, E140), `BotResults` (E141), `BotTournaments` und `BotEditions` (E179, E180); Eingriffe `BotOwnerSwitch` (E96), `BotStatusSwitch` (E93), `BotChecks` (E153), `BotDelete` (E105) |
 | Meine Bots (`ownBots/`) | `OwnBotsPage`, `OwnBotGroups` (nach Name gruppiert), `OwnMatchForm` mit `ownMatchOrder.ts` und `ownLimits.ts` (E98, E154), `OwnWaitingMatches` (E157) |
-| Spielen (`play/`) | `PlaySetupPage` (`POST /play`, Sitz speichern, weiter zu `/play/:id`), `GamePage` (nimmt `createSocket` für Tests), `PlayBoard` (nur Züge aus `legal_moves`), `PromotionChoice`, `GameClock` |
+| Spielen (`play/`) | `PlaySetupPage` (`POST /play`, Sitz speichern, weiter zu `/play/:id`) mit `OwnCompetitionGames` (eigene Wettbewerbspartien, E183), `GamePage` (nimmt `createSocket` für Tests; mit Sitz `Game`, sonst für angemeldete Konten `CompetitionGame` mit „Bereit“ und Anwesenheit alle 15 s, E183), `Game` (Brett einer Partie), `PlayBoard` (nur Züge aus `legal_moves`), `PromotionChoice`, `GameClock` |
 | Admin (`admin/`) | `AdminLayout` (Reiter, `RequireRole role="admin"`); Reiter „Queue“: `AdminMatchesPage` mit `QueueControl`, `AdminQueueTable` (`QueueTable` in der Sicht `admin`), `QueueEntryActions` (E152, E167), `EnqueueForm` mit `MatchFields` und `matchOrder.ts`; Reiter „Neuprüfung“: `RecheckLanguage` unter `/admin/rechecks` (E153); `MatchRepeat` (Partieseite, E152); `AdminUsersPage`; `AdminInvitesPage` mit `InviteForm`; `AdminDisciplinesPage` mit `DisciplineEditor` und `disciplineForm.ts` (E100); `AdminLeaguesPage` mit `LeagueEditor`, `TiebreakField` und `leagueForm.ts` (E131, E132, Kalender seit E171); `AdminTournamentsPage` mit `TournamentEditor`, `tournamentForm.ts` und `startable.ts` (E170, E172); `RecurrenceField` mit `recurrenceForm.ts` für Ligen und Turniere (E171); `AdminPlayPage` (E115); `AdminAuditPage` mit `AuditTable` (Ziel mit Namen, E151, E169); `AdminSettingsPage` mit `SettingsGroupFields` und `settingsFields.ts`, ein Speichern für alle Gruppen (E154, E168) |
 
 ## Ablauf
@@ -155,6 +157,12 @@ Pfade relativ zu `frontend/src/`.
 3. `usePlayGame` öffnet `ws(s)://<host>/api/v1/play/socket` (`socketUrl`) und sendet `joinMessage`. Nach `joined` ist die Phase `waiting`, jeder `state` ersetzt den Stand ganz.
 4. `PlayBoard` bietet nur Züge aus `state.legal_moves`; mehrere Züge zwischen denselben Feldern gehen über `PromotionChoice`. `move` sendet `moveMessage`, ein `error` landet in `problem`.
 5. Bricht die Verbindung ohne Code 1000 ab, verbindet der Hook neu; der Server schickt den Stand erneut ([gateway.md](../komponenten/gateway.md)).
+
+**Wettbewerbspartie eines Kontos** (`/play/:id`, E183):
+
+1. `GamePage` findet keinen Sitz der Art `play` und zeigt für ein angemeldetes Konto `CompetitionGame`; es fragt `fetchCompetitionGames` alle 5 s.
+2. Ist die Partie freigegeben, sendet „Bereit“ `declareReady` und speichert den Sitz mit `saveSeat(id, seat, "ready")`. Solange die Seite offen ist, wiederholt `usePresence` das alle 15 s; das Konto gilt so als anwesend.
+3. Hat der Runner die Partie gestartet (`readiness.started_at` oder Status nicht mehr `queued`), zeigt `CompetitionGame` das Brett mit `Game` und dem Sitz der Art `ready`; weiter wie oben ab Schritt 3.
 
 ## Konventionen
 
