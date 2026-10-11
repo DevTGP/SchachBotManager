@@ -47,6 +47,30 @@ describe("league pages", () => {
     expect(post?.body).toEqual({ bot_id: SHARP_ID });
   });
 
+  it("lets an admin register any verified bot, reference bots included", async () => {
+    const user = userEvent.setup();
+    const api = mockApi({
+      "/session": { user: ADMIN },
+      [`/leagues/${LEAGUE_ID}`]: leagueDetail(),
+      "/bots": { items: [...BOTS, SHARP] },
+      [`/leagues/${LEAGUE_ID}/registrations`]: registration(),
+    });
+    renderRoute(`/leagues/${LEAGUE_ID}`);
+
+    const choice = await screen.findByRole("combobox", { name: "Bot" });
+    expect(
+      within(choice)
+        .getAllByRole("option")
+        .map((option) => option.textContent),
+    ).toEqual(["Material", "Sharp"]);
+    await user.click(screen.getByRole("button", { name: "Register" }));
+
+    await waitFor(() => expect(api.calls.some((call) => call.method === "POST")).toBe(true));
+    const post = api.calls.find((call) => call.method === "POST");
+    expect(post?.body).toEqual({ bot_id: BOTS[1]!.id });
+    expect(api.calls.some((call) => call.url.pathname === "/api/v1/account/bots")).toBe(false);
+  });
+
   it("names a bot registered already", async () => {
     const user = userEvent.setup();
     mockApi({
@@ -157,6 +181,30 @@ describe("leagues of a bot", () => {
       `DELETE /api/v1/leagues/${LEAGUE_ID}/registrations/${SHARP_ID}`,
       `POST /api/v1/leagues/${LEAGUE_ID}/registrations`,
     ]);
+  });
+});
+
+describe("leagues of a reference bot", () => {
+  it("lets an admin register it in a league", async () => {
+    const user = userEvent.setup();
+    const material = BOTS[1]!;
+    const api = mockApi({
+      "/session": { user: ADMIN },
+      [`/bots/${material.id}`]: botDetail({ ...material, details: null }),
+      [`/bots/${material.id}/opponents`]: { items: [] },
+      [`/bots/${material.id}/leagues`]: { items: [] },
+      "/leagues": { items: [league()] },
+      [`/leagues/${LEAGUE_ID}/registrations`]: registration(),
+    });
+    renderRoute(`/bots/${material.id}`);
+
+    const choice = await screen.findByRole("combobox", { name: "League" });
+    const form = choice.closest("form")!;
+    await user.click(within(form).getByRole("button", { name: "Register" }));
+    await waitFor(() => expect(api.calls.some((call) => call.method === "POST")).toBe(true));
+    expect(api.calls.find((call) => call.method === "POST")!.body).toEqual({
+      bot_id: material.id,
+    });
   });
 });
 

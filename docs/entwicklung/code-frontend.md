@@ -47,6 +47,7 @@ Pfade relativ zu `frontend/src/`.
 | `hooks/useApi.ts` | Laden je `key`, Abbruch per `AbortSignal`, optionales Abfrageintervall (fest oder abhängig von den Daten), `reload`; Daten bleiben bei Fehlern stehen |
 | `hooks/polling.ts` | Intervalle: wartende Partie und laufende ohne Event-Stream 2 s, Listen und Queue 10 s, Verifikation 3 s (E76, E77, E142) |
 | `hooks/useLiveMatch.ts` | Partie für die Partieseite: lädt über `useApi`, folgt einer laufenden Partie über `EventSource` (`matchLiveUrl`) und hängt die Züge an; fragt bei offenem Strom nicht nach, sonst alle 2 s; Lücke schließt den Strom, `end` lädt neu (E142) |
+| `hooks/useRegistrableBots.ts` | Bots für die Anmeldung in Ligen und Turnieren: Admins alle geprüften (`GET /bots`), Coder ihre eigenen (E181) |
 | `hooks/useSubmit.ts` | Eine Änderung zur Zeit: `pending`, `error` (`ApiError` oder Übersetzungsschlüssel), `submit`, `fail` |
 | `hooks/useLocale.ts` | Aktive Sprache `de`/`en` für `Intl`-Formate |
 

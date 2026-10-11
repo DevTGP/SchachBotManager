@@ -75,6 +75,20 @@ def test_others_may_not_register_a_bot_but_admins_may(login, admin, db):
     assert active(db, tournament, bot) is None
 
 
+def test_only_admins_register_reference_bots(login, admin, db, reference_bots):
+    coder, _ = login()
+    tournament = store_tournament(db)
+    material = reference_bots[1]
+
+    assert register(coder, tournament, material).status_code == 403
+    response = register(admin, tournament, material)
+    assert response.status_code == 201
+    assert response.json["bot"]["name"] == "Material"
+    audit = db[AUDIT_LOG].find_one({"action": "tournament.register"})
+    assert audit["target"] == material["_id"]
+    assert deregister(admin, tournament, material).status_code == 204
+
+
 def test_leaving_a_running_edition_forfeits_the_waiting_games(login, db):
     client, user = login()
     bot = own_bot(db, user)

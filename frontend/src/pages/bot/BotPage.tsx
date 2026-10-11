@@ -94,10 +94,10 @@ function BotView({ bot, onChange }: { bot: BotDetail; onChange: () => void }) {
         <BotSummary bot={bot} />
       </section>
       <BotVersions versions={bot.versions} current={bot.id} play={play} />
-      {!bot.builtin && <BotLeagues bot={bot} mayManage={isOwner || viewer.isAdmin} />}
-      {!bot.builtin && <BotSeasons botId={bot.id} />}
-      {!bot.builtin && <BotTournaments bot={bot} mayManage={isOwner || viewer.isAdmin} />}
-      {!bot.builtin && <BotEditions botId={bot.id} />}
+      <BotLeagues bot={bot} mayManage={isOwner || viewer.isAdmin} />
+      <BotSeasons botId={bot.id} />
+      <BotTournaments bot={bot} mayManage={isOwner || viewer.isAdmin} />
+      <BotEditions botId={bot.id} />
       <BotRatingChart botId={bot.id} />
       <BotResults botId={bot.id} />
       <BotOpponents botId={bot.id} />

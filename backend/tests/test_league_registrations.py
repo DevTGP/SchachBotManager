@@ -68,6 +68,20 @@ def test_others_may_not_register_a_bot_but_admins_may(login, admin, db):
     assert deregister(owner_client, league, bot).status_code == 204
 
 
+def test_only_admins_register_reference_bots(login, admin, db, reference_bots):
+    coder, _ = login()
+    league = store_league(db)
+    material = reference_bots[1]
+
+    assert register(coder, league, material).status_code == 403
+    response = register(admin, league, material)
+    assert response.status_code == 201
+    assert response.json["bot"]["name"] == "Material"
+    assert db[AUDIT_LOG].find_one({"action": "league.register"})["target"] == material["_id"]
+    assert deregister(coder, league, material).status_code == 403
+    assert deregister(admin, league, material).status_code == 204
+
+
 def test_leaving_a_running_season_forfeits_the_waiting_games(login, db, reference_bots):
     client, user = login()
     bot = own_bot(db, user)

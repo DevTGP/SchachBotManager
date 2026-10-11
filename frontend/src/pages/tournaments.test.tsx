@@ -56,6 +56,30 @@ describe("tournament pages", () => {
     expect(post.body).toEqual({ bot_id: SHARP_ID });
   });
 
+  it("lets an admin register a reference bot", async () => {
+    const user = userEvent.setup();
+    const api = mockApi({
+      "/session": { user: ADMIN },
+      [`/tournaments/${TOURNAMENT_ID}`]: tournamentDetail(),
+      "/bots": { items: BOTS },
+      [`/tournaments/${TOURNAMENT_ID}/registrations`]: tournamentRegistration(),
+    });
+    renderRoute(`/tournaments/${TOURNAMENT_ID}`);
+
+    const choice = await screen.findByRole("combobox", { name: "Bot" });
+    expect(
+      within(choice)
+        .getAllByRole("option")
+        .map((option) => option.textContent),
+    ).toEqual(["Material"]);
+    await user.click(screen.getByRole("button", { name: "Register" }));
+
+    await waitFor(() => expect(api.calls.some((call) => call.method === "POST")).toBe(true));
+    expect(api.calls.find((call) => call.method === "POST")!.body).toEqual({
+      bot_id: BOTS[1]!.id,
+    });
+  });
+
   it("names the knockout rules and the calendar of a tournament", async () => {
     mockApi({
       "/session": { user: null },

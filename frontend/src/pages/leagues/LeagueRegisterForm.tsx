@@ -1,16 +1,18 @@
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { fetchOwnBots } from "../../api/bots";
 import { registerBot } from "../../api/leagues";
 import type { LeagueDetail } from "../../api/types";
 import { ApiContent } from "../../components/ApiContent";
 import { BotPicker } from "../../components/BotPicker";
 import { FormError } from "../../components/FormError";
-import { useApi } from "../../hooks/useApi";
+import { useRegistrableBots } from "../../hooks/useRegistrableBots";
 import { useSubmit } from "../../hooks/useSubmit";
 
-/** Coders register one of their verified bots that is not in the league yet (E136). */
+/**
+ * Coders register one of their verified bots that is not in the league yet (E136), admins any
+ * verified bot (E181).
+ */
 export function LeagueRegisterForm({
   league,
   onChange,
@@ -19,7 +21,7 @@ export function LeagueRegisterForm({
   onChange: () => void;
 }) {
   const { t } = useTranslation();
-  const own = useApi(fetchOwnBots, "account/bots");
+  const candidates = useRegistrableBots();
   const { pending, error, submit } = useSubmit();
   const [chosen, setChosen] = useState("");
   const registered = new Set(league.registrations.map((entry) => entry.bot.bot_id));
@@ -27,7 +29,7 @@ export function LeagueRegisterForm({
   return (
     <section>
       <h2>{t("leagues.register")}</h2>
-      <ApiContent state={own}>
+      <ApiContent state={candidates}>
         {(bots) => {
           const free = bots.filter((bot) => bot.status === "verified" && !registered.has(bot.id));
           if (free.length === 0) return <p className="muted">{t("leagues.noFreeBots")}</p>;
