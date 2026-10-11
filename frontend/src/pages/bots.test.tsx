@@ -222,6 +222,12 @@ describe("bot page", () => {
       [`/bots/${SHARP_ID}`]: botDetail({ status: "verified" }),
       [`/bots/${SHARP_ID}/opponents`]: { items: [] },
       [`/bots/${SHARP_ID}/leagues`]: { items: [] },
+      [`/bots/${SHARP_ID}/seasons`]: { items: [] },
+      [`/bots/${SHARP_ID}/rating-history`]: { items: [] },
+      [`/bots/${SHARP_ID}/record`]: {
+        total: { games: 0, wins: 0, draws: 0, losses: 0 },
+        disciplines: [],
+      },
       [`/admin/bots/${SHARP_ID}`]: () =>
         Response.json({ code: "bot_playing", message: "busy" }, { status: 409 }),
     });

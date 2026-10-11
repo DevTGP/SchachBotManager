@@ -89,3 +89,12 @@ main {
   gap: 1rem;
   margin-top: 1rem;
 }
+
+.schedule-round {
+  margin: 0.25rem 0;
+}
+
+.schedule-round summary {
+  cursor: pointer;
+  padding: 0.25rem 0;
+}

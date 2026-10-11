@@ -1,5 +1,12 @@
 import { getJson, sendJson } from "./client";
-import type { League, LeagueDetail, LeagueRegistration, Season } from "./types";
+import type {
+  BotSeason,
+  League,
+  LeagueDetail,
+  LeagueRegistration,
+  Season,
+  SeasonSchedule,
+} from "./types";
 
 function leaguePath(id: string): string {
   return `/leagues/${encodeURIComponent(id)}`;
@@ -19,6 +26,22 @@ export function fetchLeague(id: string, signal?: AbortSignal): Promise<LeagueDet
 /** A season with the tables of its tiers (E135, E137). */
 export function fetchSeason(id: string, signal?: AbortSignal): Promise<Season> {
   return getJson(`/seasons/${encodeURIComponent(id)}`, undefined, signal);
+}
+
+/** The rounds of one tier of a started season with the state of each game (E138). */
+export function fetchSeasonSchedule(
+  id: string,
+  tier: number,
+  signal?: AbortSignal,
+): Promise<SeasonSchedule> {
+  return getJson(`/seasons/${encodeURIComponent(id)}/schedule`, { tier }, signal);
+}
+
+/** The seasons this bot version played in, newest first, with its place there (E139). */
+export async function fetchBotSeasons(botId: string, signal?: AbortSignal): Promise<BotSeason[]> {
+  const path = `/bots/${encodeURIComponent(botId)}/seasons`;
+  const list = await getJson<{ items: BotSeason[] }>(path, undefined, signal);
+  return list.items;
 }
 
 /** The leagues a bot is registered in (E136). */

@@ -19,3 +19,37 @@
 .series-score {
   font-size: 1.25rem;
 }
+
+.rating-chart {
+  margin: 0 0 1rem;
+  max-width: 48rem;
+}
+
+.rating-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.rating-chart polyline {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.rating-chart circle {
+  fill: var(--accent);
+}
+
+.rating-chart .frame {
+  stroke: var(--border);
+}
+
+.rating-chart text {
+  fill: var(--muted);
+  font-size: 11px;
+}

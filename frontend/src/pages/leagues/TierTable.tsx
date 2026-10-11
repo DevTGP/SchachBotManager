@@ -4,9 +4,21 @@ import { Link } from "react-router";
 import type { SeasonTier } from "../../api/types";
 import { sideLabel } from "../../format/botLabel";
 import { formatPoints } from "../../format/points";
+import { TierSchedule } from "./TierSchedule";
 
-/** The table of one tier; withdrawn bots stand at the end without a rank (E135). */
-export function TierTable({ tier, seasonId }: { tier: SeasonTier; seasonId: string }) {
+/**
+ * The table of one tier, withdrawn bots at the end without a rank (E135), and below it the
+ * schedule of the tier (E138).
+ */
+export function TierTable({
+  tier,
+  seasonId,
+  running,
+}: {
+  tier: SeasonTier;
+  seasonId: string;
+  running: boolean;
+}) {
   const { t } = useTranslation();
   return (
     <section>
@@ -57,6 +69,7 @@ export function TierTable({ tier, seasonId }: { tier: SeasonTier; seasonId: stri
           </tbody>
         </table>
       </div>
+      <TierSchedule seasonId={seasonId} tier={tier.tier} running={running} />
     </section>
   );
 }

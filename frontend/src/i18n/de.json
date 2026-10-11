@@ -224,7 +224,23 @@
     "wins": "Siege",
     "draws": "Remis",
     "losses": "Niederlagen",
-    "noLeagues": "Der Bot ist in keiner Liga angemeldet."
+    "noLeagues": "Der Bot ist in keiner Liga angemeldet.",
+    "seasons": "Ligasaisons",
+    "noSeasons": "Diese Version hat noch in keiner Ligasaison gespielt.",
+    "season": "Saison",
+    "seasonNumber": "Saison {{number}}",
+    "tier": "Stufe",
+    "rankOf": "{{rank}} von {{size}}",
+    "ratingHistory": "Rating-Verlauf",
+    "noRatingHistory": "Noch keine gewertete Partie.",
+    "ratingChartLabel": "Rating in {{discipline}} über {{games}} Partien",
+    "ratingSummary": "Jetzt {{value}} nach {{games}} Partien; höchstens {{high}}, mindestens {{low}}.",
+    "ratingStart": "Start: {{value}}",
+    "ratingAfter": "Nach Partie {{game}}: {{value}}",
+    "results": "Ergebnisse nach Disziplin",
+    "noResults": "Noch keine beendeten Partien.",
+    "freeTimes": "Freie Bedenkzeit",
+    "total": "Gesamt"
   },
   "upload": {
     "title": "Bot hochladen",
@@ -721,7 +737,14 @@
     "games": "Partien der Stufe",
     "outcome": "Ergebnis",
     "wins": "{{wins}} ({{forfeits}} kampflos)",
-    "place": "Stufe {{tier}}, Runde {{round}}, Brett {{board}}"
+    "place": "Stufe {{tier}}, Runde {{round}}, Brett {{board}}",
+    "schedule": "Spielplan",
+    "noSchedule": "Keine Partien in dieser Stufe.",
+    "round": "Runde {{round}}",
+    "roundProgress": "{{finished}} von {{games}} beendet",
+    "board": "Brett",
+    "bye": "Spielfrei: {{bot}}",
+    "forfeitResult": "{{result}} kampflos"
   },
   "leagueError": {
     "name": "Der Name muss 1 bis 40 Zeichen lang sein.",

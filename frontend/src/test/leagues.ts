@@ -1,4 +1,13 @@
-import type { League, LeagueDetail, LeagueRegistration, Season, TableRow } from "../api/types";
+import type {
+  BotSeason,
+  League,
+  LeagueDetail,
+  LeagueRegistration,
+  ScheduleGame,
+  Season,
+  SeasonSchedule,
+  TableRow,
+} from "../api/types";
 
 export const LEAGUE_ID = "665f0000000000000000e001";
 export const SEASON_ID = "665f0000000000000000f001";
@@ -117,6 +126,70 @@ export function season(overrides: Partial<Season> = {}): Season {
         ],
       },
     ],
+    ...overrides,
+  };
+}
+
+const RANDOM = { bot_id: "665f0000000000000000000a", name: "Random", version: "1.0.0" };
+const MATERIAL = { bot_id: "665f0000000000000000000b", name: "Material", version: "1.0.0" };
+
+function game(overrides: Partial<ScheduleGame>): ScheduleGame {
+  return {
+    match_id: "m1",
+    board: 1,
+    white: MATERIAL,
+    black: RANDOM,
+    status: "finished",
+    result: "1-0",
+    termination: "checkmate",
+    ...overrides,
+  };
+}
+
+/** Tier 1 of the season: round 1 is over, one of its games lost by forfeit; round 2 waits. */
+export function schedule(): SeasonSchedule {
+  return {
+    tier: 1,
+    rounds: [
+      {
+        round: 1,
+        bye: null,
+        games: [game({ match_id: "m1", result: "0-1", termination: "forfeit_withdrawn" })],
+      },
+      {
+        round: 2,
+        bye: { bot_id: "665f0000000000000000000c", name: "Sharp", version: "1.0.0" },
+        games: [
+          game({
+            match_id: "m2",
+            white: RANDOM,
+            black: MATERIAL,
+            status: "queued",
+            result: null,
+            termination: null,
+          }),
+        ],
+      },
+    ],
+  };
+}
+
+export function botSeason(overrides: Partial<BotSeason> = {}): BotSeason {
+  return {
+    season_id: SEASON_ID,
+    league_id: LEAGUE_ID,
+    league_name: "Bundesliga",
+    number: 1,
+    status: "finished",
+    started_at: "2026-05-01T10:00:00.000Z",
+    finished_at: "2026-05-02T10:00:00.000Z",
+    tier: 1,
+    rank: 2,
+    tier_size: 4,
+    games: 6,
+    points: 3.5,
+    withdrawn: false,
+    outcome: "stayed",
     ...overrides,
   };
 }

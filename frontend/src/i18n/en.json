@@ -224,7 +224,23 @@
     "wins": "Wins",
     "draws": "Draws",
     "losses": "Losses",
-    "noLeagues": "The bot is not registered in any league."
+    "noLeagues": "The bot is not registered in any league.",
+    "seasons": "League seasons",
+    "noSeasons": "This version has not played in a league season yet.",
+    "season": "Season",
+    "seasonNumber": "Season {{number}}",
+    "tier": "Tier",
+    "rankOf": "{{rank}} of {{size}}",
+    "ratingHistory": "Rating history",
+    "noRatingHistory": "No rated game yet.",
+    "ratingChartLabel": "Rating in {{discipline}} over {{games}} games",
+    "ratingSummary": "Now {{value}} after {{games}} games; highest {{high}}, lowest {{low}}.",
+    "ratingStart": "Start: {{value}}",
+    "ratingAfter": "After game {{game}}: {{value}}",
+    "results": "Results by discipline",
+    "noResults": "No finished games yet.",
+    "freeTimes": "Free time control",
+    "total": "Total"
   },
   "upload": {
     "title": "Upload a bot",
@@ -721,7 +737,14 @@
     "games": "Games of the tier",
     "outcome": "Outcome",
     "wins": "{{wins}} ({{forfeits}} by forfeit)",
-    "place": "tier {{tier}}, round {{round}}, board {{board}}"
+    "place": "tier {{tier}}, round {{round}}, board {{board}}",
+    "schedule": "Schedule",
+    "noSchedule": "No games in this tier.",
+    "round": "Round {{round}}",
+    "roundProgress": "{{finished}} of {{games}} finished",
+    "board": "Board",
+    "bye": "Bye: {{bot}}",
+    "forfeitResult": "{{result}} by forfeit"
   },
   "leagueError": {
     "name": "The name needs 1 to 40 characters.",

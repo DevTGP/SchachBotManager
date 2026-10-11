@@ -227,6 +227,63 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/bots/{bot_id}/seasons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** The started seasons this bot version played in, newest first, with its place; for a running season the current one (E139). Visible like the bot. */
+        get: operations["get_bot_seasons"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bots/{bot_id}/rating-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** The rating of a bot before and after each counted game, per discipline in the order they were counted (E140). Visible like the bot. */
+        get: operations["get_bot_rating_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bots/{bot_id}/record": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** Wins, draws and losses of a bot over all its finished games and per discipline (E141). Visible like the bot. */
+        get: operations["get_bot_record"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/bots/{bot_id}/source": {
         parameters: {
             query?: never;
@@ -419,6 +476,27 @@ export interface paths {
         };
         /** A season with the tables of its tiers (E135, E137); the final tables once it has finished. */
         get: operations["get_season"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seasons/{season_id}/schedule": {
+        parameters: {
+            query: {
+                tier: number;
+            };
+            header?: never;
+            path: {
+                season_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** The schedule of one tier of a started season by rounds and boards, with the state of each game (E138). 404 if the season does not have the tier (yet). */
+        get: operations["get_season_schedule"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1954,6 +2032,97 @@ export interface components {
             discipline: components["schemas"]["Discipline"] | null;
             tiers: components["schemas"]["SeasonTier"][];
         };
+        /** @description A game of the schedule as it stands. */
+        ScheduleGame: {
+            match_id: components["schemas"]["Id"];
+            board: number;
+            white: components["schemas"]["LeagueBot"];
+            black: components["schemas"]["LeagueBot"];
+            status: components["schemas"]["MatchStatus"];
+            /** @description null until the game ends. */
+            result: components["schemas"]["result"] | null;
+            /** @description forfeit_withdrawn for a game lost by forfeit (E136); null until the game ends. */
+            termination: components["schemas"]["Termination"] | null;
+        };
+        ScheduleRound: {
+            round: number;
+            /** @description The bot without a game in this round when the tier has an odd number of bots (E134); null otherwise. */
+            bye: components["schemas"]["LeagueBot"] | null;
+            games: components["schemas"]["ScheduleGame"][];
+        };
+        /** @description The schedule of one tier of a season (E138). */
+        SeasonSchedule: {
+            tier: number;
+            /** @description In the order of the rounds, the games of each by board. */
+            rounds: components["schemas"]["ScheduleRound"][];
+        };
+        /** @description A season one bot version played in, with its place there (E139). */
+        BotSeason: {
+            season_id: components["schemas"]["Id"];
+            league_id: components["schemas"]["Id"];
+            league_name: string;
+            number: number;
+            /** @enum {unknown} */
+            status: "running" | "finished";
+            started_at: components["schemas"]["Timestamp"];
+            finished_at: components["schemas"]["Timestamp"] | null;
+            tier: number;
+            /** @description The place in the tier, current while the season runs; null once the bot has withdrawn. */
+            rank: number | null;
+            /** @description Bots in the tier. */
+            tier_size: number;
+            games: number;
+            points: number;
+            withdrawn: boolean;
+            /**
+             * @description Set once the season has finished.
+             * @enum {unknown}
+             */
+            outcome: "promoted" | "relegated" | "stayed" | "withdrawn" | null;
+        };
+        BotSeasonList: {
+            items: components["schemas"]["BotSeason"][];
+        };
+        /** @description The rating of the bot before and after one counted game. */
+        RatingPoint: {
+            match_id: components["schemas"]["Id"];
+            finished_at: components["schemas"]["Timestamp"];
+            before: number;
+            after: number;
+        };
+        DisciplineRatingHistory: {
+            discipline_id: components["schemas"]["Id"];
+            name: string;
+            /** @description In the order the games were counted (E104). */
+            games: components["schemas"]["RatingPoint"][];
+        };
+        /** @description The rating history of a bot (E140). */
+        RatingHistory: {
+            /** @description One entry per discipline with counted games, most games first. */
+            items: components["schemas"]["DisciplineRatingHistory"][];
+        };
+        /** @description Wins include those by forfeit (E136). */
+        RecordCounts: {
+            games: number;
+            wins: number;
+            draws: number;
+            losses: number;
+        };
+        DisciplineRecord: {
+            /** @description null for games with free times and no stored discipline. */
+            discipline_id: components["schemas"]["Id"] | null;
+            name: string | null;
+            games: number;
+            wins: number;
+            draws: number;
+            losses: number;
+        };
+        /** @description The results of a bot in all its finished games except those against itself, rated or not, against bots and people (E141). */
+        BotRecord: {
+            total: components["schemas"]["RecordCounts"];
+            /** @description Most games first; free times last. */
+            disciplines: components["schemas"]["DisciplineRecord"][];
+        };
         /** @description A new league; fields left out take their default (E131). */
         LeagueRequest: {
             name: components["schemas"]["LeagueName"];
@@ -2712,6 +2881,78 @@ export interface operations {
             404: components["responses"]["NotFound"];
         };
     };
+    get_bot_seasons: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The seasons. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotSeasonList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    get_bot_rating_history: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The rating history. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RatingHistory"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    get_bot_record: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The record. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BotRecord"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
     get_bot_source: {
         parameters: {
             query?: never;
@@ -2976,6 +3217,32 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Season"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    get_season_schedule: {
+        parameters: {
+            query: {
+                tier: number;
+            };
+            header?: never;
+            path: {
+                season_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The schedule. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeasonSchedule"];
                 };
             };
             400: components["responses"]["BadRequest"];

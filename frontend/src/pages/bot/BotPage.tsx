@@ -15,7 +15,10 @@ import { BotFiles } from "./BotFiles";
 import { BotLeagues } from "./BotLeagues";
 import { BotOpponents } from "./BotOpponents";
 import { BotOwnerSwitch } from "./BotOwnerSwitch";
+import { BotRatingChart } from "./BotRatingChart";
 import { BotRechecks } from "./BotRechecks";
+import { BotResults } from "./BotResults";
+import { BotSeasons } from "./BotSeasons";
 import { BotStatusSwitch } from "./BotStatusSwitch";
 import { BotSummary } from "./BotSummary";
 import { BotVersions } from "./BotVersions";
@@ -81,6 +84,9 @@ export function BotPage() {
                 mayManage={isOwner || viewer.isAdmin}
               />
             )}
+            {!data.builtin && <BotSeasons key={`seasons-${data.id}`} botId={data.id} />}
+            <BotRatingChart key={`rating-${data.id}`} botId={data.id} />
+            <BotResults key={`results-${data.id}`} botId={data.id} />
             <BotOpponents key={`opponents-${data.id}`} botId={data.id} />
             {data.details && data.details.files.length > 0 && (
               <BotFiles key={data.id} botId={data.id} files={data.details.files} />

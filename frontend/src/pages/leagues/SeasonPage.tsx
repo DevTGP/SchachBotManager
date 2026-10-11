@@ -46,7 +46,12 @@ export function SeasonPage() {
             <p className="muted">{t("seasons.notStarted")}</p>
           )}
           {data.tiers.map((tier) => (
-            <TierTable key={tier.tier} tier={tier} seasonId={data.id} />
+            <TierTable
+              key={tier.tier}
+              tier={tier}
+              seasonId={data.id}
+              running={data.status === "running"}
+            />
           ))}
         </>
       )}
