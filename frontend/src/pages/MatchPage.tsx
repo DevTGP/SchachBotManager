@@ -7,6 +7,7 @@ import { useApi } from "../hooks/useApi";
 import { POLL_MATCH_MS } from "../hooks/polling";
 import { Viewer } from "../viewer/Viewer";
 import { MatchRepeat } from "./admin/MatchRepeat";
+import { MatchLeague } from "./MatchLeague";
 import { MatchSeries } from "./MatchSeries";
 
 /** Moves can still come; only then the viewer asks again (E76). */
@@ -27,6 +28,7 @@ export function MatchPage() {
         <>
           <Viewer match={data} live={isLive(data)} />
           <MatchSeries place={data.series} />
+          <MatchLeague place={data.league} />
           <MatchRepeat match={data} />
         </>
       )}

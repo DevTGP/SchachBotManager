@@ -14,7 +14,8 @@
     "account": "Konto",
     "admin": "Verwaltung",
     "ownBots": "Meine Bots",
-    "play": "Spielen"
+    "play": "Spielen",
+    "leagues": "Ligen"
   },
   "common": {
     "loading": "Lädt …",
@@ -47,7 +48,9 @@
     "too_many_games": "Bitte erst die laufende Partie beenden.",
     "match_state": "Die Partie ist (nicht mehr) in einem Zustand, der das erlaubt. Bitte die Seite neu laden.",
     "not_repeatable": "Die Partie lässt sich nicht wiederholen: Ein Bot ist nicht mehr geprüft oder die Disziplin ist archiviert.",
-    "bot_state": "Der Bot ist (nicht mehr) in einem Zustand, der das erlaubt. Bitte die Seite neu laden."
+    "bot_state": "Der Bot ist (nicht mehr) in einem Zustand, der das erlaubt. Bitte die Seite neu laden.",
+    "league_state": "Die Liga ist (nicht mehr) in einem Zustand, der das erlaubt. Bitte die Seite neu laden.",
+    "already_registered": "Der Bot ist in dieser Liga schon angemeldet."
   },
   "start": {
     "intro": "Schachbots treten hier gegeneinander an. Alle Partien sind öffentlich ansehbar.",
@@ -72,7 +75,10 @@
     "allOpponents": "Alle Gegner",
     "discipline": "Disziplin",
     "allDisciplines": "Alle Disziplinen",
-    "mine": "Von mir angesetzt"
+    "mine": "Von mir angesetzt",
+    "seasonFilter": "Nur Partien einer Saison.",
+    "seasonTierFilter": "Nur Partien der Stufe {{tier}} einer Saison.",
+    "clearSeason": "Alle Partien zeigen"
   },
   "matchTable": {
     "players": "Partie",
@@ -217,7 +223,8 @@
     "games": "Partien",
     "wins": "Siege",
     "draws": "Remis",
-    "losses": "Niederlagen"
+    "losses": "Niederlagen",
+    "noLeagues": "Der Bot ist in keiner Liga angemeldet."
   },
   "upload": {
     "title": "Bot hochladen",
@@ -494,7 +501,8 @@
     "recheck": "Neu prüfen",
     "rechecksQueued_one": "{{count}} Neuprüfung eingereiht.",
     "rechecksQueued_other": "{{count}} Neuprüfungen eingereiht.",
-    "settings": "Einstellungen"
+    "settings": "Einstellungen",
+    "leagues": "Ligen"
   },
   "notFound": {
     "title": "Seite nicht gefunden",
@@ -632,5 +640,99 @@
   },
   "matchForm": {
     "rated": "Gewertet"
+  },
+  "tiebreak": {
+    "wins": "Siege",
+    "head_to_head": "Direkter Vergleich",
+    "sonneborn_berger": "Sonneborn-Berger",
+    "fewer_moves": "Weniger Halbzüge",
+    "lot": "Los"
+  },
+  "outcome": {
+    "promoted": "Aufstieg",
+    "relegated": "Abstieg",
+    "stayed": "Bleibt",
+    "withdrawn": "Zurückgezogen"
+  },
+  "seasonStatus": {
+    "planned": "Geplant",
+    "running": "Läuft",
+    "finished": "Beendet"
+  },
+  "leagues": {
+    "title": "Ligen",
+    "intro": "Angemeldete Bots spielen je Saison in ihrer Stufe jeder gegen jeden. Die Besten steigen auf, die Letzten ab.",
+    "empty": "Noch keine Ligen.",
+    "name": "Name",
+    "discipline": "Disziplin",
+    "tiers": "Stufen",
+    "tierSize": "Bots je Stufe",
+    "gamesPerPairing": "Partien je Paarung",
+    "promotions": "Auf-/Absteiger",
+    "points": "Punkte",
+    "win": "Punkte für Sieg",
+    "draw": "Punkte für Remis",
+    "loss": "Punkte für Niederlage",
+    "tiebreaks": "Feinwertung",
+    "tiebreakSlot": "{{slot}}. Kriterium",
+    "lotHint": "Am Ende entscheidet das Los, das beim Saisonstart gezogen wird.",
+    "minParticipants": "Mindestzahl Bots",
+    "pauseMinutes": "Pause zwischen Saisons (min)",
+    "registered": "Angemeldet",
+    "season": "Saison",
+    "seasonNumber": "Saison {{number}}",
+    "seasonState": "Saison {{number}}: {{status}}",
+    "seasons": "Saisons",
+    "participants": "Bots",
+    "archived": "archiviert",
+    "archivedHint": "Die Liga ist archiviert: Eine laufende Saison wird zu Ende gespielt, eine neue beginnt nicht.",
+    "awaitingRelease": "Die erste Saison wartet auf die Freigabe durch einen Admin.",
+    "startsAfter_one": "Die nächste Saison beginnt frühestens {{at}}, sobald {{count}} Bot angemeldet ist.",
+    "startsAfter_other": "Die nächste Saison beginnt frühestens {{at}}, sobald {{count}} Bots angemeldet sind.",
+    "registrations": "Angemeldete Bots",
+    "noRegistrations": "Noch kein Bot angemeldet.",
+    "tier": "Stufe",
+    "since": "Angemeldet seit",
+    "nextSeason": "ab der nächsten Saison",
+    "deregister": "Abmelden",
+    "register": "Bot anmelden",
+    "registerButton": "Anmelden",
+    "registerHint": "Der Bot spielt ab dem nächsten Saisonstart. Beim Abmelden während einer Saison gehen seine offenen Partien kampflos verloren.",
+    "noFreeBots": "Kein geprüfter eigener Bot, der hier noch nicht angemeldet ist.",
+    "bot": "Bot",
+    "league": "Liga",
+    "new": "Neue Liga",
+    "create": "Liga anlegen",
+    "edit": "Liga {{name}} bearbeiten",
+    "editHint": "Änderungen gelten ab dem nächsten Saisonstart; eine laufende Saison behält ihre Einstellungen.",
+    "nameTaken": "Eine andere Liga hat schon diesen Namen.",
+    "release": "Erste Saison freigeben"
+  },
+  "seasons": {
+    "title": "{{league}} – Saison {{number}}",
+    "toLeague": "Zur Liga",
+    "started": "begonnen {{at}}",
+    "finished": "beendet {{at}}",
+    "startedAt": "Beginn",
+    "finishedAt": "Ende",
+    "notStarted": "Die Saison hat noch nicht begonnen.",
+    "tier": "Stufe {{tier}}",
+    "progress": "{{finished}} von {{games}} Partien beendet.",
+    "games": "Partien der Stufe",
+    "outcome": "Ergebnis",
+    "wins": "{{wins}} ({{forfeits}} kampflos)",
+    "place": "Stufe {{tier}}, Runde {{round}}, Brett {{board}}"
+  },
+  "leagueError": {
+    "name": "Der Name muss 1 bis 40 Zeichen lang sein.",
+    "discipline_id": "Bitte eine Disziplin wählen, die nicht archiviert ist.",
+    "tiers": "Es sind 1 bis 10 Stufen möglich.",
+    "tier_size": "Eine Stufe hat 2 bis 32 Bots.",
+    "games_per_pairing": "Je Paarung sind 1 bis 10 Partien möglich.",
+    "promotions": "Höchstens die Hälfte einer Stufe darf auf- bzw. absteigen.",
+    "points": "Punkte von 0 bis 10 in halben Schritten; Sieg mehr als Niederlage und Sieg ≥ Remis ≥ Niederlage.",
+    "tiebreaks": "Jedes Kriterium der Feinwertung höchstens einmal.",
+    "min_participants": "Die Mindestzahl liegt zwischen 2 und 320.",
+    "pause_minutes": "Die Pause liegt zwischen 0 und 43200 Minuten."
   }
 }

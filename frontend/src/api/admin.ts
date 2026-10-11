@@ -15,6 +15,9 @@ import type {
   EnqueuedMatches,
   EstimateSettings,
   Invite,
+  League,
+  LeagueRequest,
+  LeagueUpdate,
   OneTimeLink,
   PlaySettings,
   RatingRule,
@@ -125,6 +128,21 @@ export function createDiscipline(request: DisciplineRequest): Promise<StoredDisc
 /** Changes settings or archives a discipline; disciplines are never deleted (E100). */
 export function updateDiscipline(id: string, change: DisciplineUpdate): Promise<StoredDiscipline> {
   return sendJson("PATCH", `/admin/disciplines/${encodeURIComponent(id)}`, change);
+}
+
+/** A new league with its first season planned; an admin releases that season (E131, E132). */
+export function createLeague(request: LeagueRequest): Promise<League> {
+  return sendJson("POST", "/admin/leagues", request);
+}
+
+/** Changes settings from the next season start, or archives a league (E131). */
+export function updateLeague(id: string, change: LeagueUpdate): Promise<League> {
+  return sendJson("PATCH", `/admin/leagues/${encodeURIComponent(id)}`, change);
+}
+
+/** Releases the first season; later ones start by themselves (E132). */
+export function startLeague(id: string): Promise<League> {
+  return sendJson("POST", `/admin/leagues/${encodeURIComponent(id)}/start`);
 }
 
 export function fetchPlaySettings(signal?: AbortSignal): Promise<PlaySettings> {

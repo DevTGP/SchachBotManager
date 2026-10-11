@@ -10,6 +10,7 @@ const NAV = [
   { to: "/queue", key: "nav.queue", end: false },
   { to: "/bots", key: "nav.bots", end: false },
   { to: "/ratings", key: "nav.ratings", end: false },
+  { to: "/leagues", key: "nav.leagues", end: false },
   { to: "/play", key: "nav.play", end: false },
 ] as const;
 

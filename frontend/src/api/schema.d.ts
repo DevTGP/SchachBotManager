@@ -208,6 +208,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/bots/{bot_id}/leagues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** The active league registrations of a bot (E137). Visible like the bot. */
+        get: operations["get_bot_leagues"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/bots/{bot_id}/source": {
         parameters: {
             query?: never;
@@ -306,6 +325,100 @@ export interface paths {
         };
         /** One discipline (E100). */
         get: operations["get_discipline"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/leagues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** All leagues ordered by name, the archived ones included (E137). */
+        get: operations["list_leagues"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/leagues/{league_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                league_id: components["parameters"]["LeagueId"];
+            };
+            cookie?: never;
+        };
+        /** A league with its seasons and registrations (E137). */
+        get: operations["get_league"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/leagues/{league_id}/registrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                league_id: components["parameters"]["LeagueId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Registers a verified bot for a league that is not archived (E136); the owner (coder) or an admin. The bot enters at the next season start. */
+        post: operations["register_bot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/leagues/{league_id}/registrations/{bot_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                league_id: components["parameters"]["LeagueId"];
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Ends the registration of a bot; the owner (coder) or an admin. In a running season the bot withdraws: its waiting games become forfeit wins of the opponents (E136). */
+        delete: operations["deregister_bot"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/seasons/{season_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                season_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** A season with the tables of its tiers (E135, E137); the final tables once it has finished. */
+        get: operations["get_season"];
         put?: never;
         post?: never;
         delete?: never;
@@ -654,6 +767,61 @@ export interface paths {
         patch: operations["update_discipline"];
         trace?: never;
     };
+    "/admin/leagues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A new league with its first season, planned until an admin releases it (admin, E131, E132). */
+        post: operations["create_league"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/leagues/{league_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                league_id: components["parameters"]["LeagueId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Changes or archives a league (admin, E131); a running season keeps its copy of the settings. */
+        patch: operations["update_league"];
+        trace?: never;
+    };
+    "/admin/leagues/{league_id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                league_id: components["parameters"]["LeagueId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Releases the first season (admin, E132): it starts as soon as enough bots are registered; later seasons follow on their own. */
+        post: operations["start_league"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/bots/recheck": {
         parameters: {
             query?: never;
@@ -932,7 +1100,7 @@ export interface components {
         Timestamp: string;
         Error: {
             /** @enum {unknown} */
-            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large" | "builtin_bot" | "bot_verifying" | "bot_playing" | "no_capacity" | "too_many_games" | "match_state" | "not_repeatable" | "bot_state";
+            code: "invalid_parameter" | "not_found" | "unavailable" | "internal" | "unauthenticated" | "forbidden" | "csrf_failed" | "invalid_credentials" | "invalid_token" | "username_taken" | "too_many_attempts" | "name_taken" | "upload_conflict" | "invalid_upload" | "too_large" | "builtin_bot" | "bot_verifying" | "bot_playing" | "no_capacity" | "too_many_games" | "match_state" | "not_repeatable" | "bot_state" | "league_state" | "already_registered";
             /** @description English text for logs; not shown to users, except as the detail of invalid_upload. */
             message: string;
             /** @description The invalid parameter, for invalid_parameter. */
@@ -950,7 +1118,8 @@ export interface components {
          */
         MatchStatus: "queued" | "running" | "finished" | "aborted";
         Result: components["schemas"]["result"];
-        Termination: components["schemas"]["termination"];
+        /** @description How the match ended: a code of the bot protocol, or forfeit_withdrawn for a league game not played because a bot left the league (E136). */
+        Termination: components["schemas"]["termination"] | "forfeit_withdrawn";
         /** @description The conditions the match was played under, copied when it was created. */
         Discipline: {
             name: string;
@@ -1040,10 +1209,10 @@ export interface components {
         MatchFields: {
             id: components["schemas"]["Id"];
             /**
-             * @description single: two bots from the queue; human: a person in the browser against a bot (E114); remote: a coder's bot on their own machine against a bot (E116).
+             * @description single: two bots from the queue; league: a game of a league season (E134); human: a person in the browser against a bot (E114); remote: a coder's bot on their own machine against a bot (E116).
              * @enum {unknown}
              */
-            type: "single" | "human" | "remote";
+            type: "single" | "league" | "human" | "remote";
             status: components["schemas"]["MatchStatus"];
             white: components["schemas"]["Side"];
             black: components["schemas"]["Side"];
@@ -1055,11 +1224,13 @@ export interface components {
             /** @description null until the match ends. */
             result: components["schemas"]["result"] | null;
             /** @description null until the match ends. */
-            termination: components["schemas"]["termination"] | null;
+            termination: components["schemas"]["Termination"] | null;
             ply_count: number;
             created_at: components["schemas"]["Timestamp"];
             started_at: components["schemas"]["Timestamp"] | null;
             finished_at: components["schemas"]["Timestamp"] | null;
+            /** @description Where a league game belongs (E137); null for other matches. */
+            league: components["schemas"]["LeaguePlace"] | null;
         };
         MatchSummary: components["schemas"]["MatchFields"];
         Move: {
@@ -1201,7 +1372,7 @@ export interface components {
              */
             color: "white" | "black";
             result: components["schemas"]["result"];
-            termination: components["schemas"]["termination"];
+            termination: components["schemas"]["Termination"];
             detail: string;
             plies: number;
             passed: boolean;
@@ -1617,6 +1788,257 @@ export interface components {
         MatchPriority: {
             priority: number;
         };
+        /** @description League, season, tier, round and board of a league game; name and number as they were when the season started. */
+        LeaguePlace: {
+            league_id: components["schemas"]["Id"];
+            league_name: string;
+            season_id: components["schemas"]["Id"];
+            season_number: number;
+            /** @description 1 is the top tier. */
+            tier: number;
+            round: number;
+            /** @description Board within the round, from 1. */
+            board: number;
+        };
+        /** @description 1 to 40 characters without control characters, unique regardless of case (E131); the API removes leading and trailing spaces. */
+        LeagueName: string;
+        /** @description Points for a win, a draw and a loss; a win gives more than a loss and win ≥ draw ≥ loss (E131). */
+        LeaguePoints: {
+            win: number;
+            draw: number;
+            loss: number;
+        };
+        /**
+         * @description wins: more wins, forfeits included; head_to_head: more points in the games among the bots still tied; sonneborn_berger: higher sum of the share won (1, 0.5, 0) times the opponent's points; fewer_moves: fewer half-moves in own games. The last three leave forfeits out (E135).
+         * @enum {unknown}
+         */
+        Tiebreak: "wins" | "head_to_head" | "sonneborn_berger" | "fewer_moves";
+        /** @description The settings of a league (E131); a season keeps a copy from its start. */
+        LeagueSettings: {
+            /** @description A discipline not archived when it is set. */
+            discipline_id: components["schemas"]["Id"];
+            /** @description Number of tiers; a new bottom tier is a higher number (E101). */
+            tiers: number;
+            /** @description Bots per tier, the same in every tier. */
+            tier_size: number;
+            /** @description Each round robin is played this often, the colours swapped each time. */
+            games_per_pairing: number;
+            /** @description Bots promoted, and as many relegated, between two tiers; at most half the tier size. */
+            promotions: number;
+            points: components["schemas"]["LeaguePoints"];
+            /** @description Applied in order after the points; the lot drawn at the season start comes last. */
+            tiebreaks: components["schemas"]["Tiebreak"][];
+            /** @description A due season starts once at least this many bots can play. */
+            min_participants: number;
+            /** @description Minutes from the end of a season to the earliest start of the next. */
+            pause_minutes: number;
+            /** @description Queue priority of the league's matches; coders' games have 50 by default. */
+            priority: number;
+        };
+        /**
+         * @description planned: waiting for its start; running: matches are queued or played; finished: final table stored (E132).
+         * @enum {unknown}
+         */
+        SeasonStatus: "planned" | "running" | "finished";
+        SeasonSummary: {
+            id: components["schemas"]["Id"];
+            number: number;
+            status: components["schemas"]["SeasonStatus"];
+            /** @description Earliest start; null until an admin releases the first season (E132). */
+            starts_after: components["schemas"]["Timestamp"] | null;
+            /** @description Bots in the tiers; 0 before the start. */
+            participants: number;
+            started_at: components["schemas"]["Timestamp"] | null;
+            finished_at: components["schemas"]["Timestamp"] | null;
+        };
+        League: components["schemas"]["LeagueFields"];
+        LeagueList: {
+            items: components["schemas"]["League"][];
+        };
+        /** @description A bot as it was when it entered the season or registered. */
+        LeagueBot: {
+            bot_id: components["schemas"]["Id"];
+            name: string;
+            version: string | null;
+        };
+        /** @description An active registration of a bot (E136). */
+        LeagueRegistration: {
+            league_id: components["schemas"]["Id"];
+            league_name: string;
+            bot: components["schemas"]["LeagueBot"];
+            created_at: components["schemas"]["Timestamp"];
+            /** @description The tier of the bot in the running season; null on the waiting list or between seasons. */
+            tier: number | null;
+        };
+        LeagueRegistrationList: {
+            items: components["schemas"]["LeagueRegistration"][];
+        };
+        /** @description A league with all its seasons, newest first, and its registrations in the order they came (E137). */
+        LeagueDetail: {
+            seasons: components["schemas"]["SeasonSummary"][];
+            registrations: components["schemas"]["LeagueRegistration"][];
+        } & components["schemas"]["LeagueFields"];
+        /** @description The fields of League, open for extension by LeagueDetail. */
+        LeagueFields: {
+            id: components["schemas"]["Id"];
+            name: components["schemas"]["LeagueName"];
+            /** @description Current name of the league's discipline. */
+            discipline_name: string;
+            /** @description A discipline not archived when it is set. */
+            discipline_id: components["schemas"]["Id"];
+            /** @description Number of tiers; a new bottom tier is a higher number (E101). */
+            tiers: number;
+            /** @description Bots per tier, the same in every tier. */
+            tier_size: number;
+            /** @description Each round robin is played this often, the colours swapped each time. */
+            games_per_pairing: number;
+            /** @description Bots promoted, and as many relegated, between two tiers; at most half the tier size. */
+            promotions: number;
+            points: components["schemas"]["LeaguePoints"];
+            /** @description Applied in order after the points; the lot drawn at the season start comes last. */
+            tiebreaks: components["schemas"]["Tiebreak"][];
+            /** @description A due season starts once at least this many bots can play. */
+            min_participants: number;
+            /** @description Minutes from the end of a season to the earliest start of the next. */
+            pause_minutes: number;
+            /** @description Queue priority of the league's matches; coders' games have 50 by default. */
+            priority: number;
+            /** @description Finishes its running season but starts no new one. */
+            archived: boolean;
+            /** @description Bots registered now. */
+            registered: number;
+            /** @description The latest season. */
+            season: components["schemas"]["SeasonSummary"] | null;
+            created_at: components["schemas"]["Timestamp"];
+            updated_at: components["schemas"]["Timestamp"];
+        };
+        /** @description A bot in the table of a tier (E135). wins includes forfeit_wins. */
+        TableRow: {
+            bot: components["schemas"]["LeagueBot"];
+            /** @description null for a withdrawn bot, which stands at the end. */
+            rank: number | null;
+            games: number;
+            wins: number;
+            forfeit_wins: number;
+            draws: number;
+            losses: number;
+            points: number;
+            withdrawn: boolean;
+            /**
+             * @description Set once the season has finished.
+             * @enum {unknown}
+             */
+            outcome: "promoted" | "relegated" | "stayed" | "withdrawn" | null;
+        };
+        SeasonTier: {
+            tier: number;
+            /** @description Matches of the tier. */
+            games: number;
+            /** @description Matches of the tier that ended, forfeits and aborted ones included. */
+            finished: number;
+            table: components["schemas"]["TableRow"][];
+        };
+        /** @description A season with its tables (E137); tiers and settings are empty until it starts. */
+        Season: {
+            id: components["schemas"]["Id"];
+            league_id: components["schemas"]["Id"];
+            league_name: string;
+            number: number;
+            status: components["schemas"]["SeasonStatus"];
+            starts_after: components["schemas"]["Timestamp"] | null;
+            started_at: components["schemas"]["Timestamp"] | null;
+            finished_at: components["schemas"]["Timestamp"] | null;
+            /** @description The league's settings at the start; null before. */
+            settings: components["schemas"]["LeagueSettings"] | null;
+            /** @description The discipline at the start; null before. */
+            discipline: components["schemas"]["Discipline"] | null;
+            tiers: components["schemas"]["SeasonTier"][];
+        };
+        /** @description A new league; fields left out take their default (E131). */
+        LeagueRequest: {
+            name: components["schemas"]["LeagueName"];
+            /** @description A discipline not archived when it is set. */
+            discipline_id: components["schemas"]["Id"];
+            /**
+             * @description Number of tiers; a new bottom tier is a higher number (E101).
+             * @default 1
+             */
+            tiers: number;
+            /**
+             * @description Bots per tier, the same in every tier.
+             * @default 10
+             */
+            tier_size: number;
+            /**
+             * @description Each round robin is played this often, the colours swapped each time.
+             * @default 2
+             */
+            games_per_pairing: number;
+            /**
+             * @description Bots promoted, and as many relegated, between two tiers; at most half the tier size.
+             * @default 2
+             */
+            promotions: number;
+            /**
+             * @default {
+             *       "win": 1,
+             *       "draw": 0.5,
+             *       "loss": 0
+             *     }
+             */
+            points: components["schemas"]["LeaguePoints"];
+            /**
+             * @description Applied in order after the points; the lot drawn at the season start comes last.
+             * @default [
+             *       "wins",
+             *       "head_to_head",
+             *       "sonneborn_berger"
+             *     ]
+             */
+            tiebreaks: components["schemas"]["Tiebreak"][];
+            /**
+             * @description A due season starts once at least this many bots can play.
+             * @default 2
+             */
+            min_participants: number;
+            /**
+             * @description Minutes from the end of a season to the earliest start of the next.
+             * @default 60
+             */
+            pause_minutes: number;
+            /**
+             * @description Queue priority of the league's matches; coders' games have 50 by default.
+             * @default 50
+             */
+            priority: number;
+        };
+        /** @description At least one field; changes apply from the next season start (E131). */
+        LeagueUpdate: {
+            name?: components["schemas"]["LeagueName"];
+            /** @description A discipline not archived when it is set. */
+            discipline_id?: components["schemas"]["Id"];
+            /** @description Number of tiers; a new bottom tier is a higher number (E101). */
+            tiers?: number;
+            /** @description Bots per tier, the same in every tier. */
+            tier_size?: number;
+            /** @description Each round robin is played this often, the colours swapped each time. */
+            games_per_pairing?: number;
+            /** @description Bots promoted, and as many relegated, between two tiers; at most half the tier size. */
+            promotions?: number;
+            points?: components["schemas"]["LeaguePoints"];
+            /** @description Applied in order after the points; the lot drawn at the season start comes last. */
+            tiebreaks?: components["schemas"]["Tiebreak"][];
+            /** @description A due season starts once at least this many bots can play. */
+            min_participants?: number;
+            /** @description Minutes from the end of a season to the earliest start of the next. */
+            pause_minutes?: number;
+            /** @description Queue priority of the league's matches; coders' games have 50 by default. */
+            priority?: number;
+            archived?: boolean;
+        };
+        RegistrationRequest: {
+            bot_id: components["schemas"]["Id"];
+        };
         /**
          * @description PGN result; * if the game was aborted without rating.
          * @enum {unknown}
@@ -1828,6 +2250,33 @@ export interface components {
                 "application/json": components["schemas"]["SessionState"];
             };
         };
+        /** @description Another league has the name, also in another case (code name_taken). */
+        LeagueNameTaken: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description The league is archived or its first season was released already (code league_state). */
+        LeagueState: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description The bot is registered already (code already_registered), the league is archived (code league_state) or the bot is not verified (code bot_state). */
+        RegistrationConflict: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
     };
     parameters: {
         /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
@@ -1841,6 +2290,7 @@ export interface components {
         Limit: number;
         /** @description Number of items to skip. */
         Offset: number;
+        LeagueId: components["schemas"]["Id"];
     };
     requestBodies: never;
     headers: never;
@@ -1876,12 +2326,16 @@ export interface operations {
                 status?: components["schemas"]["MatchStatus"];
                 /** @description Only matches in which this bot plays either colour. */
                 bot_id?: components["schemas"]["Id"];
-                /** @description bots: only matches between two bots (type single); players: only games of people in the browser and of remote bots (types human and remote, E119). */
+                /** @description bots: only matches between two bots (types single and league); players: only games of people in the browser and of remote bots (types human and remote, E119). */
                 kind?: "bots" | "players";
                 /** @description Only matches played under this stored discipline (E156). */
                 discipline_id?: components["schemas"]["Id"];
                 /** @description Only with bot_id: only matches of these two bots against each other (E156). */
                 opponent_id?: components["schemas"]["Id"];
+                /** @description Only the matches of this league season (E137). */
+                season_id?: components["schemas"]["Id"];
+                /** @description Only with season_id: only the matches of this tier. */
+                tier?: number;
                 /** @description true: only matches the signed-in account set with POST /matches or POST /admin/matches (E156); needs a session. */
                 mine?: boolean;
                 /** @description Page size. */
@@ -2234,6 +2688,30 @@ export interface operations {
             404: components["responses"]["NotFound"];
         };
     };
+    get_bot_leagues: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The registrations. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeagueRegistrationList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
     get_bot_source: {
         parameters: {
             query?: never;
@@ -2368,6 +2846,136 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StoredDiscipline"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    list_leagues: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The leagues. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeagueList"];
+                };
+            };
+        };
+    };
+    get_league: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                league_id: components["parameters"]["LeagueId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The league. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeagueDetail"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    register_bot: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                league_id: components["parameters"]["LeagueId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegistrationRequest"];
+            };
+        };
+        responses: {
+            /** @description The registration. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeagueRegistration"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["RegistrationConflict"];
+        };
+    };
+    deregister_bot: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                league_id: components["parameters"]["LeagueId"];
+                bot_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The bot is no longer registered. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    get_season: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                season_id: components["schemas"]["Id"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The season. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Season"];
                 };
             };
             400: components["responses"]["BadRequest"];
@@ -2999,6 +3607,101 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["DisciplineNameTaken"];
+        };
+    };
+    create_league: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeagueRequest"];
+            };
+        };
+        responses: {
+            /** @description The new league. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["League"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["LeagueNameTaken"];
+        };
+    };
+    update_league: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                league_id: components["parameters"]["LeagueId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeagueUpdate"];
+            };
+        };
+        responses: {
+            /** @description The changed league. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["League"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["LeagueNameTaken"];
+        };
+    };
+    start_league: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Protection against cross-site requests: browsers send this header from other sites only after a CORS preflight, which the API never allows (E84). Without it the API answers 403 with code csrf_failed. */
+                "X-SBM-CSRF": components["parameters"]["Csrf"];
+            };
+            path: {
+                league_id: components["parameters"]["LeagueId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The league. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["League"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["LeagueState"];
         };
     };
     recheck_language: {

@@ -14,7 +14,8 @@
     "account": "Account",
     "admin": "Admin",
     "ownBots": "My bots",
-    "play": "Play"
+    "play": "Play",
+    "leagues": "Leagues"
   },
   "common": {
     "loading": "Loading …",
@@ -47,7 +48,9 @@
     "too_many_games": "Finish your running game first.",
     "match_state": "The game is not in a state that allows this (any more). Please reload the page.",
     "not_repeatable": "The game cannot be repeated: a bot is no longer verified or the discipline is archived.",
-    "bot_state": "The bot is not (or no longer) in a state that allows this. Please reload the page."
+    "bot_state": "The bot is not (or no longer) in a state that allows this. Please reload the page.",
+    "league_state": "The league is not (or no longer) in a state that allows this. Please reload the page.",
+    "already_registered": "The bot is registered in this league already."
   },
   "start": {
     "intro": "Chess bots compete against each other here. All games are public.",
@@ -72,7 +75,10 @@
     "allOpponents": "All opponents",
     "discipline": "Discipline",
     "allDisciplines": "All disciplines",
-    "mine": "Set by me"
+    "mine": "Set by me",
+    "seasonFilter": "Only the games of one season.",
+    "seasonTierFilter": "Only the games of tier {{tier}} of one season.",
+    "clearSeason": "Show all games"
   },
   "matchTable": {
     "players": "Game",
@@ -217,7 +223,8 @@
     "games": "Games",
     "wins": "Wins",
     "draws": "Draws",
-    "losses": "Losses"
+    "losses": "Losses",
+    "noLeagues": "The bot is not registered in any league."
   },
   "upload": {
     "title": "Upload a bot",
@@ -494,7 +501,8 @@
     "recheck": "Check again",
     "rechecksQueued_one": "{{count}} recheck queued.",
     "rechecksQueued_other": "{{count}} rechecks queued.",
-    "settings": "Settings"
+    "settings": "Settings",
+    "leagues": "Leagues"
   },
   "notFound": {
     "title": "Page not found",
@@ -632,5 +640,99 @@
   },
   "matchForm": {
     "rated": "Rated"
+  },
+  "tiebreak": {
+    "wins": "Wins",
+    "head_to_head": "Head-to-head",
+    "sonneborn_berger": "Sonneborn-Berger",
+    "fewer_moves": "Fewer half-moves",
+    "lot": "Lot"
+  },
+  "outcome": {
+    "promoted": "Promoted",
+    "relegated": "Relegated",
+    "stayed": "Stays",
+    "withdrawn": "Withdrawn"
+  },
+  "seasonStatus": {
+    "planned": "Planned",
+    "running": "Running",
+    "finished": "Finished"
+  },
+  "leagues": {
+    "title": "Leagues",
+    "intro": "Each season, registered bots play a round robin within their tier. The best are promoted, the last relegated.",
+    "empty": "No leagues yet.",
+    "name": "Name",
+    "discipline": "Discipline",
+    "tiers": "Tiers",
+    "tierSize": "Bots per tier",
+    "gamesPerPairing": "Games per pairing",
+    "promotions": "Promoted/relegated",
+    "points": "Points",
+    "win": "Points for a win",
+    "draw": "Points for a draw",
+    "loss": "Points for a loss",
+    "tiebreaks": "Tiebreaks",
+    "tiebreakSlot": "Criterion {{slot}}",
+    "lotHint": "The lot drawn at the season start decides last.",
+    "minParticipants": "Minimum bots",
+    "pauseMinutes": "Pause between seasons (min)",
+    "registered": "Registered",
+    "season": "Season",
+    "seasonNumber": "Season {{number}}",
+    "seasonState": "Season {{number}}: {{status}}",
+    "seasons": "Seasons",
+    "participants": "Bots",
+    "archived": "archived",
+    "archivedHint": "The league is archived: a running season is played to the end, no new one starts.",
+    "awaitingRelease": "The first season waits for an admin to release it.",
+    "startsAfter_one": "The next season starts {{at}} at the earliest, once {{count}} bot is registered.",
+    "startsAfter_other": "The next season starts {{at}} at the earliest, once {{count}} bots are registered.",
+    "registrations": "Registered bots",
+    "noRegistrations": "No bot registered yet.",
+    "tier": "Tier",
+    "since": "Registered since",
+    "nextSeason": "from the next season",
+    "deregister": "Deregister",
+    "register": "Register a bot",
+    "registerButton": "Register",
+    "registerHint": "The bot plays from the next season start. Leaving during a season loses its open games by forfeit.",
+    "noFreeBots": "No verified bot of yours that is not registered here yet.",
+    "bot": "Bot",
+    "league": "League",
+    "new": "New league",
+    "create": "Create league",
+    "edit": "Edit league {{name}}",
+    "editHint": "Changes apply from the next season start; a running season keeps its settings.",
+    "nameTaken": "Another league already has this name.",
+    "release": "Release first season"
+  },
+  "seasons": {
+    "title": "{{league}} – season {{number}}",
+    "toLeague": "To the league",
+    "started": "started {{at}}",
+    "finished": "finished {{at}}",
+    "startedAt": "Start",
+    "finishedAt": "End",
+    "notStarted": "The season has not started yet.",
+    "tier": "Tier {{tier}}",
+    "progress": "{{finished}} of {{games}} games finished.",
+    "games": "Games of the tier",
+    "outcome": "Outcome",
+    "wins": "{{wins}} ({{forfeits}} by forfeit)",
+    "place": "tier {{tier}}, round {{round}}, board {{board}}"
+  },
+  "leagueError": {
+    "name": "The name needs 1 to 40 characters.",
+    "discipline_id": "Please choose a discipline that is not archived.",
+    "tiers": "A league has 1 to 10 tiers.",
+    "tier_size": "A tier has 2 to 32 bots.",
+    "games_per_pairing": "A pairing has 1 to 10 games.",
+    "promotions": "At most half a tier may be promoted or relegated.",
+    "points": "Points from 0 to 10 in halves; a win above a loss and win ≥ draw ≥ loss.",
+    "tiebreaks": "Each tiebreak at most once.",
+    "min_participants": "The minimum lies between 2 and 320.",
+    "pause_minutes": "The pause lies between 0 and 43200 minutes."
   }
 }

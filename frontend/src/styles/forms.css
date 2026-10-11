@@ -52,6 +52,13 @@ button.link {
   align-self: flex-start;
 }
 
+.form fieldset {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.75rem;
+  margin: 0;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));

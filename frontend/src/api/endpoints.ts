@@ -21,12 +21,16 @@ export interface MatchQuery {
   disciplineId?: string;
   /** Only the games the signed-in account set; needs a session (E156). */
   mine?: boolean;
+  /** The games of one season of a league, optionally of one tier (E137). */
+  seasonId?: string;
+  tier?: number;
   limit?: number;
   offset?: number;
 }
 
 export function fetchMatches(query: MatchQuery, signal?: AbortSignal): Promise<MatchPage> {
-  const { status, kind, botId, opponentId, disciplineId, mine, limit, offset } = query;
+  const { status, kind, botId, opponentId, disciplineId, mine, seasonId, tier, limit, offset } =
+    query;
   return getJson(
     "/matches",
     {
@@ -36,6 +40,8 @@ export function fetchMatches(query: MatchQuery, signal?: AbortSignal): Promise<M
       opponent_id: opponentId,
       discipline_id: disciplineId,
       mine: mine ? "true" : undefined,
+      season_id: seasonId,
+      tier: seasonId ? tier : undefined,
       limit,
       offset,
     },

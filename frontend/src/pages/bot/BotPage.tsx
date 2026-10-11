@@ -12,6 +12,7 @@ import { BotChecks } from "./BotChecks";
 import { BotDelete } from "./BotDelete";
 import { BotDescription } from "./BotDescription";
 import { BotFiles } from "./BotFiles";
+import { BotLeagues } from "./BotLeagues";
 import { BotOpponents } from "./BotOpponents";
 import { BotOwnerSwitch } from "./BotOwnerSwitch";
 import { BotRechecks } from "./BotRechecks";
@@ -73,6 +74,13 @@ export function BotPage() {
               <Link to={`/matches?bot=${data.id}`}>{t("bot.matches")}</Link>
             </p>
             <BotVersions versions={data.versions} current={data.id} play={play} />
+            {!data.builtin && (
+              <BotLeagues
+                key={`leagues-${data.id}`}
+                bot={data}
+                mayManage={isOwner || viewer.isAdmin}
+              />
+            )}
             <BotOpponents key={`opponents-${data.id}`} botId={data.id} />
             {data.details && data.details.files.length > 0 && (
               <BotFiles key={data.id} botId={data.id} files={data.details.files} />

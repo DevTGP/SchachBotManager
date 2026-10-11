@@ -8,6 +8,7 @@ const SECTIONS = [
   { to: "/admin/users", key: "admin.users", end: false },
   { to: "/admin/invites", key: "admin.invites", end: false },
   { to: "/admin/disciplines", key: "admin.disciplines", end: false },
+  { to: "/admin/leagues", key: "admin.leagues", end: false },
   { to: "/admin/play", key: "admin.play", end: false },
   { to: "/admin/audit", key: "admin.audit", end: false },
   { to: "/admin/settings", key: "admin.settings", end: false },

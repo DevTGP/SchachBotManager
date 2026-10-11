@@ -75,6 +75,7 @@ export function summary(overrides: Partial<MatchSummary> = {}): MatchSummary {
     started_at: "2026-05-01T12:00:00.000Z",
     finished_at: "2026-05-01T12:05:00.000Z",
     series: null,
+    league: null,
     ...overrides,
   };
 }
