@@ -125,9 +125,13 @@ services:
   # container with a few capabilities: SYS_ADMIN for namespaces, mounts and the cgroup tree,
   # SETUID and SETGID for the bots' user mapping. The container's seccomp and AppArmor profiles
   # forbid exactly these steps; nsjail puts its own seccomp policy on every bot instead.
+  # The moves of each game go to the gateway on the live network for the viewers (E142).
   runner: &runner
     <<: [*python, *hardening]
     image: sbm-runner
+    networks:
+      - internal
+      - live
     build:
       context: ..
       dockerfile: deploy/python.Dockerfile
@@ -150,6 +154,7 @@ services:
       SBM_MONGO_URI: mongodb://sbm_runner:${MONGO_RUNNER_PASSWORD:?}@mongo:27017/?authSource=${SBM_MONGO_DB:-sbm}
       SBM_MONGO_DB: ${SBM_MONGO_DB:-sbm}
       SBM_WORKER_ID: runner-1
+      SBM_LIVE_ADDRESS: sbm-live:9001
     command: ["sbm-runner"]
     # SIGTERM hands the running game back to the queue (E75).
     stop_grace_period: 30s
@@ -162,18 +167,22 @@ services:
     networks:
       - internal
       - relay
+      - live
     environment:
       SBM_MONGO_URI: mongodb://sbm_runner:${MONGO_RUNNER_PASSWORD:?}@mongo:27017/?authSource=${SBM_MONGO_DB:-sbm}
       SBM_MONGO_DB: ${SBM_MONGO_DB:-sbm}
       SBM_WORKER_ID: runner-play-1
       SBM_RUNNER_ROLE: play
       SBM_RELAY_ADDRESS: sbm-relay:9000
+      SBM_LIVE_ADDRESS: sbm-live:9001
       SBM_PLAY_SLOTS: ${PLAY_SLOTS:-2}
     # SIGTERM aborts the running interactive games; they cannot start over (E113).
 
   # WebSockets of browsers and remote bots (gateway.md, E112). No database access: the play
   # runner attaches each seat over the relay network, where the gateway listens only on its
-  # address there, so the frontend cannot reach the relay port.
+  # address there, so the frontend cannot reach the relay port. Likewise both runners send the
+  # moves of their games over the live network, and the frontend passes the viewers' event
+  # streams to port 8002 (E142).
   gateway:
     <<: [*python, *hardening]
     restart: unless-stopped
@@ -184,8 +193,12 @@ services:
       relay:
         aliases:
           - sbm-relay
+      live:
+        aliases:
+          - sbm-live
     environment:
       SBM_RELAY_HOST: sbm-relay
+      SBM_LIVE_HOST: sbm-live
     command: ["sbm-gateway"]
     healthcheck:
       test:
@@ -231,6 +244,9 @@ networks:
     internal: true
   # Only the play runner and the gateway (E112).
   relay:
+    internal: true
+  # Only the two runners and the gateway (E142).
+  live:
     internal: true
   local-web:
     external: true
