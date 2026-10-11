@@ -77,6 +77,7 @@ export function summary(overrides: Partial<MatchSummary> = {}): MatchSummary {
     series: null,
     league: null,
     tournament: null,
+    readiness: null,
     ...overrides,
   };
 }

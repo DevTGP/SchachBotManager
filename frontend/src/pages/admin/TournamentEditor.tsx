@@ -19,7 +19,8 @@ import {
 
 const MAX_NAME = 40;
 
-type NumberKey = "gamesPerPairing" | "rounds" | "tiebreakPairs" | "minParticipants" | "priority";
+type NumberKey =
+  "gamesPerPairing" | "rounds" | "tiebreakPairs" | "minParticipants" | "priority" | "readyHours";
 
 /**
  * Creates a tournament or changes one; changes apply from the next edition start, the format
@@ -157,6 +158,7 @@ export function TournamentEditor({
       <div className="form-row">
         {number("minParticipants", "tournaments.minParticipants", 2)}
         {number("priority", "admin.priority")}
+        {number("readyHours", "registration.readyHours", 1)}
       </div>
       <RecurrenceField value={form.recurrence} onChange={(recurrence) => update({ recurrence })} />
       <FormError error={shown} rules="tournamentError" />

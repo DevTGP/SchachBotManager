@@ -1,6 +1,7 @@
 import type {
   BotSeason,
   League,
+  LeagueBot,
   LeagueDetail,
   LeagueRegistration,
   ScheduleGame,
@@ -27,6 +28,7 @@ export function league(overrides: Partial<League> = {}): League {
     min_participants: 4,
     recurrence: null,
     priority: 50,
+    ready_hours: 48,
     archived: false,
     registered: 1,
     season: {
@@ -48,7 +50,13 @@ export function registration(overrides: Partial<LeagueRegistration> = {}): Leagu
   return {
     league_id: LEAGUE_ID,
     league_name: "Bundesliga",
-    bot: { bot_id: "665f0000000000000000000a", name: "Random", version: "1.0.0" },
+    bot: {
+      kind: "bot",
+      bot_id: "665f0000000000000000000a",
+      user_id: null,
+      name: "Random",
+      version: "1.0.0",
+    },
     created_at: "2026-05-01T10:00:00.000Z",
     tier: null,
     ...overrides,
@@ -67,7 +75,7 @@ export function leagueDetail(overrides: Partial<LeagueDetail> = {}): LeagueDetai
 
 function row(name: string, botId: string, overrides: Partial<TableRow>): TableRow {
   return {
-    bot: { bot_id: botId, name, version: "1.0.0" },
+    bot: { kind: "bot", bot_id: botId, user_id: null, name, version: "1.0.0" },
     rank: 1,
     games: 2,
     wins: 2,
@@ -130,8 +138,20 @@ export function season(overrides: Partial<Season> = {}): Season {
   };
 }
 
-const RANDOM = { bot_id: "665f0000000000000000000a", name: "Random", version: "1.0.0" };
-const MATERIAL = { bot_id: "665f0000000000000000000b", name: "Material", version: "1.0.0" };
+const RANDOM: LeagueBot = {
+  kind: "bot",
+  bot_id: "665f0000000000000000000a",
+  user_id: null,
+  name: "Random",
+  version: "1.0.0",
+};
+const MATERIAL: LeagueBot = {
+  kind: "bot",
+  bot_id: "665f0000000000000000000b",
+  user_id: null,
+  name: "Material",
+  version: "1.0.0",
+};
 
 function game(overrides: Partial<ScheduleGame>): ScheduleGame {
   return {
@@ -158,7 +178,13 @@ export function schedule(): SeasonSchedule {
       },
       {
         round: 2,
-        bye: { bot_id: "665f0000000000000000000c", name: "Sharp", version: "1.0.0" },
+        bye: {
+          kind: "bot",
+          bot_id: "665f0000000000000000000c",
+          user_id: null,
+          name: "Sharp",
+          version: "1.0.0",
+        },
         games: [
           game({
             match_id: "m2",

@@ -52,8 +52,9 @@
     "not_repeatable": "The game cannot be repeated: a bot is no longer verified or the discipline is archived.",
     "bot_state": "The bot is not (or no longer) in a state that allows this. Please reload the page.",
     "league_state": "The league is not (or no longer) in a state that allows this. Please reload the page.",
-    "already_registered": "The bot is registered here already.",
-    "tournament_state": "The tournament is (no longer) in a state that allows this. Please reload the page."
+    "already_registered": "The bot or account is registered here already.",
+    "tournament_state": "The tournament is (no longer) in a state that allows this. Please reload the page.",
+    "user_state": "The account is not (or no longer) in a state that allows this. Please reload the page."
   },
   "start": {
     "title": "Chess bots in competition",
@@ -172,7 +173,9 @@
     "insufficient_material": "Insufficient material",
     "timeout_insufficient_material": "Time forfeit with insufficient material",
     "max_moves": "Move limit reached",
-    "aborted": "Aborted"
+    "aborted": "Aborted",
+    "forfeit_withdrawn": "Forfeit (withdrawn)",
+    "forfeit_absent": "Forfeit (not ready)"
   },
   "bots": {
     "title": "Bots",
@@ -659,7 +662,8 @@
       "no_game": "The game is no longer waiting for you.",
       "other": "Something went wrong; please try again."
     },
-    "ratedHint": "Logged in and under a discipline, the game counts for your rating (account page and ranking); as a guest or with free times it is unrated."
+    "ratedHint": "Logged in and under a discipline, the game counts for your rating (account page and ranking); as a guest or with free times it is unrated.",
+    "opponentThinks": "Your opponent is thinking …"
   },
   "playError": {
     "bot_id": "Choose a verified bot.",
@@ -996,5 +1000,36 @@
   },
   "explore": {
     "label": "Go on to"
+  },
+  "registration": {
+    "self": "Play yourself",
+    "selfHint": "You play with your account and its rating. Each of your games waits until you click “Ready” – at most {{hours}} hours after its release; whoever is not ready by then loses by forfeit. Your games are listed under “Play”.",
+    "join": "Join",
+    "account": "Register an account",
+    "accountLabel": "Account",
+    "noFreeAccounts": "All active accounts are registered already.",
+    "readyHours": "Deadline for “Ready” (hours)"
+  },
+  "competitionGame": {
+    "title": "Your league and tournament games",
+    "listHint": "A released game starts as soon as you and your opponent are ready on its page.",
+    "competition": "Competition",
+    "opponent": "Opponent",
+    "state": "State",
+    "running": "running",
+    "waiting": "not released yet",
+    "until": "ready by {{at}}",
+    "notOpen": "This game is not an open league or tournament game of your account.",
+    "notReleased": "This game is not released yet. It is released when its turn in the queue comes.",
+    "deadline": "Ready by {{at}}",
+    "notReady": "You are not ready yet.",
+    "youReady": "You are ready. The game starts as soon as your opponent is ready too.",
+    "ready": "Ready",
+    "hint": "Keep this page open while you wait: the game only starts while both sides are here. Whoever is not ready by the deadline loses by forfeit.",
+    "opponentBot": "Your opponent is a bot and always ready.",
+    "opponentNotReady": "Your opponent is not ready yet.",
+    "opponentReady": "Your opponent is ready.",
+    "opponentAway": "Your opponent is ready but does not have the page open right now.",
+    "toMatch": "To the game"
   }
 }

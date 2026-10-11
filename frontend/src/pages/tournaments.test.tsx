@@ -3,7 +3,16 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import type { Bot } from "../api/types";
-import { ADMIN, BOTS, CODER, SHARP_ID, botDetail, match, storedDiscipline } from "../test/fixtures";
+import {
+  ADMIN,
+  BOTS,
+  CODER,
+  PLAYER,
+  SHARP_ID,
+  botDetail,
+  match,
+  storedDiscipline,
+} from "../test/fixtures";
 import { schedule } from "../test/leagues";
 import { mockApi, renderRoute } from "../test/render";
 import {
@@ -78,6 +87,47 @@ describe("tournament pages", () => {
     expect(api.calls.find((call) => call.method === "POST")!.body).toEqual({
       bot_id: BOTS[1]!.id,
     });
+  });
+
+  it("lets a player join a tournament and leave it again", async () => {
+    const user = userEvent.setup();
+    const pat = {
+      kind: "human" as const,
+      bot_id: null,
+      user_id: PLAYER.id,
+      name: "pat",
+      version: null,
+    };
+    let joined = false;
+    const api = mockApi({
+      "/session": { user: PLAYER },
+      [`/tournaments/${TOURNAMENT_ID}`]: () =>
+        tournamentDetail({
+          registrations: joined
+            ? [tournamentRegistration(), tournamentRegistration({ bot: pat })]
+            : [tournamentRegistration()],
+        }),
+      [`/tournaments/${TOURNAMENT_ID}/registrations`]: () => {
+        joined = true;
+        return tournamentRegistration({ bot: pat });
+      },
+      [`/tournaments/${TOURNAMENT_ID}/registrations/${PLAYER.id}`]: new Response(null, {
+        status: 204,
+      }),
+    });
+    renderRoute(`/tournaments/${TOURNAMENT_ID}`);
+
+    await user.click(await screen.findByRole("button", { name: "Join" }));
+    const leave = await screen.findByRole("button", { name: "Deregister" });
+    expect(leave.closest("tr")).toHaveTextContent("pat");
+    expect(screen.queryByRole("button", { name: "Join" })).toBeNull();
+    await user.click(leave);
+
+    await waitFor(() => expect(api.calls.some((call) => call.method === "DELETE")).toBe(true));
+    expect(api.calls.find((call) => call.method === "POST")!.body).toEqual({ user_id: PLAYER.id });
+    expect(api.calls.find((call) => call.method === "DELETE")!.url.pathname).toBe(
+      `/api/v1/tournaments/${TOURNAMENT_ID}/registrations/${PLAYER.id}`,
+    );
   });
 
   it("names the knockout rules and the calendar of a tournament", async () => {
@@ -200,7 +250,7 @@ describe("tournaments of a bot", () => {
     const other = tournament({ id: "665f00000000000000001002", name: "Wintercup" });
     let entries = [
       tournamentRegistration({
-        bot: { bot_id: SHARP_ID, name: "Sharp", version: "1.0.0" },
+        bot: { kind: "bot", bot_id: SHARP_ID, user_id: null, name: "Sharp", version: "1.0.0" },
         playing: true,
       }),
     ];
@@ -295,6 +345,7 @@ describe("admin tournaments", () => {
       tiebreak_pairs: 1,
       min_participants: 2,
       priority: 40,
+      ready_hours: 48,
       recurrence: null,
     });
     expect(changes[2]!.body).toEqual({ archived: true });

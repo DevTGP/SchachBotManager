@@ -52,8 +52,9 @@
     "not_repeatable": "Die Partie lässt sich nicht wiederholen: Ein Bot ist nicht mehr geprüft oder die Disziplin ist archiviert.",
     "bot_state": "Der Bot ist (nicht mehr) in einem Zustand, der das erlaubt. Bitte die Seite neu laden.",
     "league_state": "Die Liga ist (nicht mehr) in einem Zustand, der das erlaubt. Bitte die Seite neu laden.",
-    "already_registered": "Der Bot ist hier schon angemeldet.",
-    "tournament_state": "Das Turnier ist (nicht mehr) in einem Zustand, der das erlaubt. Bitte die Seite neu laden."
+    "already_registered": "Der Bot oder das Konto ist hier schon angemeldet.",
+    "tournament_state": "Das Turnier ist (nicht mehr) in einem Zustand, der das erlaubt. Bitte die Seite neu laden.",
+    "user_state": "Das Konto ist (nicht mehr) in einem Zustand, der das erlaubt. Bitte die Seite neu laden."
   },
   "start": {
     "title": "Schachbots im Wettstreit",
@@ -172,7 +173,9 @@
     "insufficient_material": "Ungenügendes Material",
     "timeout_insufficient_material": "Zeitüberschreitung bei ungenügendem Material",
     "max_moves": "Zuglimit erreicht",
-    "aborted": "Abgebrochen"
+    "aborted": "Abgebrochen",
+    "forfeit_withdrawn": "Kampflos (zurückgezogen)",
+    "forfeit_absent": "Kampflos (nicht bereit)"
   },
   "bots": {
     "title": "Bots",
@@ -659,7 +662,8 @@
       "no_game": "Die Partie wartet nicht mehr auf dich.",
       "other": "Etwas ist schiefgegangen; bitte noch einmal versuchen."
     },
-    "ratedHint": "Angemeldet und mit einer Disziplin zählt die Partie für dein Rating (Kontoseite und Rangliste); als Gast oder mit freien Zeiten ist sie ungewertet."
+    "ratedHint": "Angemeldet und mit einer Disziplin zählt die Partie für dein Rating (Kontoseite und Rangliste); als Gast oder mit freien Zeiten ist sie ungewertet.",
+    "opponentThinks": "Dein Gegner denkt nach …"
   },
   "playError": {
     "bot_id": "Bitte einen geprüften Bot wählen.",
@@ -996,5 +1000,36 @@
   },
   "explore": {
     "label": "Weiter zu"
+  },
+  "registration": {
+    "self": "Selbst mitspielen",
+    "selfHint": "Du spielst mit deinem Konto und dessen Rating. Jede deiner Partien wartet, bis du auf „Bereit“ klickst – höchstens {{hours}} Stunden nach ihrer Freigabe; wer bis dahin nicht bereit ist, verliert kampflos. Deine Partien findest du unter „Spielen“.",
+    "join": "Mitspielen",
+    "account": "Konto anmelden",
+    "accountLabel": "Konto",
+    "noFreeAccounts": "Alle aktiven Konten sind schon angemeldet.",
+    "readyHours": "Frist für „Bereit“ (Stunden)"
+  },
+  "competitionGame": {
+    "title": "Deine Liga- und Turnierpartien",
+    "listHint": "Eine freigegebene Partie beginnt, sobald du und dein Gegner auf der Partieseite bereit seid.",
+    "competition": "Wettbewerb",
+    "opponent": "Gegner",
+    "state": "Stand",
+    "running": "läuft",
+    "waiting": "noch nicht freigegeben",
+    "until": "bereit bis {{at}}",
+    "notOpen": "Diese Partie ist keine offene Liga- oder Turnierpartie deines Kontos.",
+    "notReleased": "Diese Partie ist noch nicht freigegeben. Sie wird freigegeben, wenn sie in der Queue an der Reihe ist.",
+    "deadline": "Bereit bis {{at}}",
+    "notReady": "Du bist noch nicht bereit.",
+    "youReady": "Du bist bereit. Die Partie beginnt, sobald auch dein Gegner bereit ist.",
+    "ready": "Bereit",
+    "hint": "Lass diese Seite offen, solange du wartest: Die Partie beginnt nur, wenn beide Seiten gerade hier sind. Wer bis zur Frist nicht bereit ist, verliert kampflos.",
+    "opponentBot": "Dein Gegner ist ein Bot und immer bereit.",
+    "opponentNotReady": "Dein Gegner ist noch nicht bereit.",
+    "opponentReady": "Dein Gegner ist bereit.",
+    "opponentAway": "Dein Gegner ist bereit, hat die Seite aber gerade nicht offen.",
+    "toMatch": "Zur Partie"
   }
 }

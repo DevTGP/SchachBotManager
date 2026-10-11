@@ -70,7 +70,7 @@ export function GameState({ game }: { game: Omit<ScheduleGame, "board"> }) {
   const { t } = useTranslation();
   if (game.status !== "finished" || game.result === null) return <>{t(`status.${game.status}`)}</>;
   const result = pairingResult(game.result, pairing(game).flipped);
-  if (game.termination === "forfeit_withdrawn") {
+  if (game.termination === "forfeit_withdrawn" || game.termination === "forfeit_absent") {
     return <>{t("seasons.forfeitResult", { result })}</>;
   }
   return <>{result}</>;

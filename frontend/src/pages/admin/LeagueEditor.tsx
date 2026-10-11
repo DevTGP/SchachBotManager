@@ -108,6 +108,7 @@ export function LeagueEditor({
       <div className="form-row">
         {number("minParticipants", "leagues.minParticipants")}
         {number("priority", "admin.priority")}
+        {number("readyHours", "registration.readyHours")}
       </div>
       <RecurrenceField
         value={form.recurrence}

@@ -62,8 +62,22 @@ export function registerTournamentBot(
   return sendJson("POST", `${tournamentPath(tournamentId)}/registrations`, { bot_id: botId });
 }
 
-/** Leaves the tournament; its waiting games in a running edition are lost by forfeit (E179). */
-export function deregisterTournamentBot(tournamentId: string, botId: string): Promise<undefined> {
-  const path = `${tournamentPath(tournamentId)}/registrations/${encodeURIComponent(botId)}`;
+/** An account joins itself, an admin any active account (E182). */
+export function registerTournamentAccount(
+  tournamentId: string,
+  userId: string,
+): Promise<TournamentRegistration> {
+  return sendJson("POST", `${tournamentPath(tournamentId)}/registrations`, { user_id: userId });
+}
+
+/**
+ * A bot or an account leaves the tournament by its participant id; its waiting games in a
+ * running edition are lost by forfeit (E179, E182).
+ */
+export function deregisterTournamentParticipant(
+  tournamentId: string,
+  participantId: string,
+): Promise<undefined> {
+  const path = `${tournamentPath(tournamentId)}/registrations/${encodeURIComponent(participantId)}`;
   return sendJson("DELETE", path);
 }

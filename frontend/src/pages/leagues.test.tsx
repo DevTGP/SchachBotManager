@@ -3,7 +3,17 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import type { Bot } from "../api/types";
-import { ADMIN, BOTS, CODER, SHARP_ID, botDetail, match, storedDiscipline } from "../test/fixtures";
+import {
+  ADMIN,
+  BOTS,
+  CODER,
+  PLAYER,
+  SHARP_ID,
+  botDetail,
+  match,
+  storedDiscipline,
+  user as account,
+} from "../test/fixtures";
 import { LEAGUE_ID, SEASON_ID, league, leagueDetail, registration, season } from "../test/leagues";
 import { mockApi, renderRoute } from "../test/render";
 
@@ -86,7 +96,7 @@ describe("league pages", () => {
 
     await user.click(await screen.findByRole("button", { name: "Register" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "The bot is registered here already.",
+      "The bot or account is registered here already.",
     );
   });
 
@@ -148,7 +158,11 @@ describe("leagues of a bot", () => {
   it("lets the owner leave a league and join another", async () => {
     const user = userEvent.setup();
     const other = league({ id: "665f0000000000000000e002", name: "Kreisliga" });
-    let entries = [registration({ bot: { bot_id: SHARP_ID, name: "Sharp", version: "1.0.0" } })];
+    let entries = [
+      registration({
+        bot: { kind: "bot", bot_id: SHARP_ID, user_id: null, name: "Sharp", version: "1.0.0" },
+      }),
+    ];
     const api = mockApi({
       "/session": { user: CODER },
       [`/bots/${SHARP_ID}`]: botDetail({ status: "verified" }),
@@ -208,6 +222,96 @@ describe("leagues of a reference bot", () => {
   });
 });
 
+describe("accounts in leagues", () => {
+  const PAT = {
+    kind: "human" as const,
+    bot_id: null,
+    user_id: PLAYER.id,
+    name: "pat",
+    version: null,
+  };
+
+  it("lets a player join a league with the account", async () => {
+    const user = userEvent.setup();
+    const api = mockApi({
+      "/session": { user: PLAYER },
+      [`/leagues/${LEAGUE_ID}`]: leagueDetail(),
+      [`/leagues/${LEAGUE_ID}/registrations`]: registration({ bot: PAT }),
+    });
+    renderRoute(`/leagues/${LEAGUE_ID}`);
+
+    expect(await screen.findByRole("heading", { name: "Play yourself" })).toBeVisible();
+    expect(screen.getByText(/at most 48 hours after its release/)).toBeVisible();
+    expect(screen.queryByRole("combobox", { name: "Bot" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Join" }));
+
+    await waitFor(() => expect(api.calls.some((call) => call.method === "POST")).toBe(true));
+    const post = api.calls.find((call) => call.method === "POST");
+    expect(post?.url.pathname).toBe(`/api/v1/leagues/${LEAGUE_ID}/registrations`);
+    expect(post?.body).toEqual({ user_id: PLAYER.id });
+  });
+
+  it("lets an account leave and hides joining while it is registered", async () => {
+    const user = userEvent.setup();
+    const api = mockApi({
+      "/session": { user: PLAYER },
+      [`/leagues/${LEAGUE_ID}`]: leagueDetail({
+        registrations: [registration(), registration({ bot: PAT })],
+      }),
+      [`/leagues/${LEAGUE_ID}/registrations/${PLAYER.id}`]: new Response(null, { status: 204 }),
+    });
+    renderRoute(`/leagues/${LEAGUE_ID}`);
+
+    const button = await screen.findByRole("button", { name: "Deregister" });
+    expect(button.closest("tr")).toHaveTextContent("pat");
+    expect(screen.getAllByRole("button", { name: "Deregister" })).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: "Join" })).toBeNull();
+    await user.click(button);
+
+    await waitFor(() => expect(api.calls.some((call) => call.method === "DELETE")).toBe(true));
+    const deleted = api.calls.find((call) => call.method === "DELETE");
+    expect(deleted?.url.pathname).toBe(`/api/v1/leagues/${LEAGUE_ID}/registrations/${PLAYER.id}`);
+  });
+
+  it("lets an admin register an active account that is not in the league", async () => {
+    const user = userEvent.setup();
+    const api = mockApi({
+      "/session": { user: ADMIN },
+      [`/leagues/${LEAGUE_ID}`]: leagueDetail({
+        registrations: [registration({ bot: { ...PAT, user_id: CODER.id, name: "bob" } })],
+      }),
+      "/bots": { items: BOTS },
+      "/admin/users": {
+        items: [
+          account(ADMIN),
+          account(CODER),
+          account(PLAYER),
+          account(
+            { ...PLAYER, id: "665f0000000000000000a004", username: "gone" },
+            { active: false },
+          ),
+        ],
+      },
+      [`/leagues/${LEAGUE_ID}/registrations`]: registration({ bot: PAT }),
+    });
+    renderRoute(`/leagues/${LEAGUE_ID}`);
+
+    const choice = await screen.findByRole("combobox", { name: "Account" });
+    expect(
+      within(choice)
+        .getAllByRole("option")
+        .map((option) => option.textContent),
+    ).toEqual(["admin", "pat"]);
+    await user.selectOptions(choice, "pat");
+    const form = choice.closest("form")!;
+    await user.click(within(form).getByRole("button", { name: "Register" }));
+
+    await waitFor(() => expect(api.calls.some((call) => call.method === "POST")).toBe(true));
+    const post = api.calls.find((call) => call.method === "POST");
+    expect(post?.body).toEqual({ user_id: PLAYER.id });
+  });
+});
+
 describe("admin leagues", () => {
   it("creates a league with the defaults and starts its first season", async () => {
     const user = userEvent.setup();
@@ -243,6 +347,7 @@ describe("admin leagues", () => {
       tiebreaks: ["wins", "head_to_head", "sonneborn_berger"],
       min_participants: 2,
       priority: 50,
+      ready_hours: 48,
       recurrence: null,
     });
     expect(changes[2]!.body).toEqual({ archived: true });

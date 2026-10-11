@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import {
-  deregisterTournamentBot,
+  deregisterTournamentParticipant,
   fetchBotTournaments,
   fetchTournaments,
   registerTournamentBot,
@@ -28,7 +28,7 @@ export function BotTournaments({ bot, mayManage }: { bot: BotDetail; mayManage: 
 
   function deregister(tournamentId: string) {
     void submit(async () => {
-      await deregisterTournamentBot(tournamentId, bot.id);
+      await deregisterTournamentParticipant(tournamentId, bot.id);
       entries.reload();
     });
   }

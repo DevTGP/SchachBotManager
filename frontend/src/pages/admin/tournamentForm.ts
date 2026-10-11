@@ -44,6 +44,7 @@ export interface TournamentForm {
   tiebreakPairs: string;
   minParticipants: string;
   priority: string;
+  readyHours: string;
   recurrence: RecurrenceForm;
 }
 
@@ -59,6 +60,7 @@ export const DEFAULT_TOURNAMENT_FORM: TournamentForm = {
   tiebreakPairs: "1",
   minParticipants: "2",
   priority: "40",
+  readyHours: "48",
   recurrence: DEFAULT_RECURRENCE_FORM,
 };
 
@@ -79,6 +81,7 @@ export function tournamentForm(tournament: Tournament): TournamentForm {
     tiebreakPairs: String(tournament.tiebreak_pairs),
     minParticipants: String(tournament.min_participants),
     priority: String(tournament.priority),
+    readyHours: String(tournament.ready_hours),
     recurrence: recurrenceForm(tournament.recurrence),
   };
 }
@@ -95,6 +98,7 @@ export function tournamentRequest(form: TournamentForm): TournamentRequest {
     tiebreak_pairs: Number(form.tiebreakPairs),
     min_participants: Number(form.minParticipants),
     priority: Number(form.priority),
+    ready_hours: Number(form.readyHours),
     recurrence: recurrenceRequest(form.recurrence),
   };
 }

@@ -2,7 +2,12 @@ import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
-import { deregisterBot, fetchBotLeagues, fetchLeagues, registerBot } from "../../api/leagues";
+import {
+  deregisterParticipant,
+  fetchBotLeagues,
+  fetchLeagues,
+  registerBot,
+} from "../../api/leagues";
 import type { BotDetail, League, LeagueRegistration } from "../../api/types";
 import { ApiContent } from "../../components/ApiContent";
 import { FormError } from "../../components/FormError";
@@ -20,7 +25,7 @@ export function BotLeagues({ bot, mayManage }: { bot: BotDetail; mayManage: bool
 
   function deregister(leagueId: string) {
     void submit(async () => {
-      await deregisterBot(leagueId, bot.id);
+      await deregisterParticipant(leagueId, bot.id);
       entries.reload();
     });
   }

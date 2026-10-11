@@ -31,6 +31,7 @@ export function LeagueFacts({
     [t("leagues.tiebreaks"), [...tiebreaks, t("tiebreak.lot")].join(", ")],
     [t("leagues.minParticipants"), String(settings.min_participants)],
     [t("admin.priority"), String(settings.priority)],
+    [t("registration.readyHours"), String(settings.ready_hours)],
   ];
   if (recurrence !== undefined) {
     rows.push([t("recurrence.title"), <RecurrenceText recurrence={recurrence} />]);

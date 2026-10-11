@@ -5,6 +5,7 @@ import type {
   DuelGame,
   Edition,
   EditionTableRow,
+  LeagueBot,
   Tournament,
   TournamentDetail,
   TournamentRegistration,
@@ -14,9 +15,27 @@ import type {
 export const TOURNAMENT_ID = "665f00000000000000001001";
 export const EDITION_ID = "665f00000000000000002001";
 
-const RANDOM = { bot_id: "665f0000000000000000000a", name: "Random", version: "1.0.0" };
-const MATERIAL = { bot_id: "665f0000000000000000000b", name: "Material", version: "1.0.0" };
-const SHARP = { bot_id: "665f0000000000000000000c", name: "Sharp", version: "1.0.0" };
+const RANDOM: LeagueBot = {
+  kind: "bot",
+  bot_id: "665f0000000000000000000a",
+  user_id: null,
+  name: "Random",
+  version: "1.0.0",
+};
+const MATERIAL: LeagueBot = {
+  kind: "bot",
+  bot_id: "665f0000000000000000000b",
+  user_id: null,
+  name: "Material",
+  version: "1.0.0",
+};
+const SHARP: LeagueBot = {
+  kind: "bot",
+  bot_id: "665f0000000000000000000c",
+  user_id: null,
+  name: "Sharp",
+  version: "1.0.0",
+};
 
 const BLITZ: Discipline = {
   name: "Blitz",
@@ -42,6 +61,7 @@ export function tournament(overrides: Partial<Tournament> = {}): Tournament {
     tiebreak_pairs: 1,
     min_participants: 2,
     priority: 40,
+    ready_hours: 48,
     tiebreak_discipline_name: null,
     recurrence: null,
     archived: false,
@@ -97,6 +117,7 @@ function settings(overrides: Partial<TournamentSettings>): TournamentSettings {
     tiebreak_pairs: base.tiebreak_pairs,
     min_participants: base.min_participants,
     priority: base.priority,
+    ready_hours: base.ready_hours,
     ...overrides,
   };
 }

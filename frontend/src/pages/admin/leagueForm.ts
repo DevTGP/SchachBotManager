@@ -23,6 +23,7 @@ export interface LeagueForm {
   minParticipants: string;
   recurrence: RecurrenceForm;
   priority: string;
+  readyHours: string;
 }
 
 /** The defaults of the API (E131). */
@@ -40,6 +41,7 @@ export const DEFAULT_LEAGUE_FORM: LeagueForm = {
   minParticipants: "2",
   recurrence: DEFAULT_RECURRENCE_FORM,
   priority: "50",
+  readyHours: "48",
 };
 
 export function leagueForm(league: League): LeagueForm {
@@ -57,6 +59,7 @@ export function leagueForm(league: League): LeagueForm {
     minParticipants: String(league.min_participants),
     recurrence: recurrenceForm(league.recurrence),
     priority: String(league.priority),
+    readyHours: String(league.ready_hours),
   };
 }
 
@@ -73,5 +76,6 @@ export function leagueRequest(form: LeagueForm): LeagueRequest {
     min_participants: Number(form.minParticipants),
     recurrence: recurrenceRequest(form.recurrence),
     priority: Number(form.priority),
+    ready_hours: Number(form.readyHours),
   };
 }

@@ -18,6 +18,7 @@ import { MatchFields } from "../../components/matchFields/MatchFields";
 import { useApi } from "../../hooks/useApi";
 import { useSubmit } from "../../hooks/useSubmit";
 import { saveSeat } from "../../play/seats";
+import { OwnCompetitionGames } from "./OwnCompetitionGames";
 
 // Free times up to 30 min + 30 s (E115).
 const MAX_MINUTES = 30;
@@ -30,7 +31,7 @@ interface SetupForm extends MatchConditions {
 
 /**
  * Choose a verified bot or a random one, a color and the time, then play in the browser (E11,
- * E114, E162).
+ * E114, E162). The own league and tournament games come first (E183).
  */
 export function PlaySetupPage() {
   const { t } = useTranslation();
@@ -39,6 +40,7 @@ export function PlaySetupPage() {
   return (
     <>
       <h1>{t("play.title")}</h1>
+      <OwnCompetitionGames />
       <p>{t("play.intro")}</p>
       <ApiContent state={bots}>
         {(list) => <SetupForm bots={list} disciplines={disciplines.data ?? []} />}

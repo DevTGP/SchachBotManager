@@ -72,6 +72,7 @@ describe("formatTimeControl and formatResult", () => {
   it("writes results with typographic dashes", () => {
     expect(formatResult("1/2-1/2")).toBe("½–½");
     expect(formatResult("1-0")).toBe("1–0");
+    expect(formatResult("0-0")).toBe("0–0");
     expect(formatResult(null)).toBe("");
   });
 });
@@ -97,6 +98,7 @@ describe("pairing", () => {
   it("gives the result in the order of the pairing", () => {
     expect(pairingResult("1-0", false)).toBe("1–0");
     expect(pairingResult("1-0", true)).toBe("0–1");
+    expect(pairingResult("0-0", true)).toBe("0–0");
     expect(pairingResult("1/2-1/2", true)).toBe("½–½");
     expect(pairingResult(null, true)).toBe("");
   });

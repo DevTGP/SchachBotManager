@@ -27,6 +27,8 @@ const RESULTS: Record<string, [string, string]> = {
   "1-0": ["1", "0"],
   "0-1": ["0", "1"],
   "1/2-1/2": ["½", "½"],
+  // Neither account was ready for the game (E184).
+  "0-0": ["0", "0"],
 };
 
 /** The result in the order of the pairing: "0–1" when black won and comes first. */

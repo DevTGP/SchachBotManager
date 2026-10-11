@@ -59,7 +59,16 @@ export function registerBot(leagueId: string, botId: string): Promise<LeagueRegi
   return sendJson("POST", `${leaguePath(leagueId)}/registrations`, { bot_id: botId });
 }
 
-/** Leaves the league; its waiting games in a running season are lost by forfeit (E136). */
-export function deregisterBot(leagueId: string, botId: string): Promise<undefined> {
-  return sendJson("DELETE", `${leaguePath(leagueId)}/registrations/${encodeURIComponent(botId)}`);
+/** An account joins itself, an admin any active account (E182). */
+export function registerAccount(leagueId: string, userId: string): Promise<LeagueRegistration> {
+  return sendJson("POST", `${leaguePath(leagueId)}/registrations`, { user_id: userId });
+}
+
+/**
+ * A bot or an account leaves the league by its participant id; its waiting games in a running
+ * season are lost by forfeit (E136, E182).
+ */
+export function deregisterParticipant(leagueId: string, participantId: string): Promise<undefined> {
+  const path = `${leaguePath(leagueId)}/registrations/${encodeURIComponent(participantId)}`;
+  return sendJson("DELETE", path);
 }
