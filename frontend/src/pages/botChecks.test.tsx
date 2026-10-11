@@ -107,12 +107,16 @@ describe("rechecks of a language", () => {
       "/queue": queue(),
       "/admin/bots/recheck": { queued: 3 },
     });
-    renderRoute("/admin");
+    renderRoute("/admin/rechecks");
 
     const section = (await screen.findByRole("heading", { name: "Check bots again" }))
       .parentElement;
     if (!section) throw new Error("no section");
-    await user.selectOptions(within(section).getByRole("combobox", { name: "Language" }), "cpp");
+    await user.click(
+      within(within(section).getByRole("group", { name: "Language" })).getByRole("button", {
+        name: "C++",
+      }),
+    );
     await user.click(within(section).getByRole("button", { name: "Check again" }));
 
     expect(await screen.findByText("3 rechecks queued.")).toBeVisible();

@@ -105,7 +105,7 @@ describe("a running match in the viewer (E142)", () => {
   it("does not open a stream for a finished match", async () => {
     mockApi({ [`/matches/${ID}`]: match() });
     renderRoute(`/matches/${ID}`);
-    await screen.findByRole("heading", { name: "Random 1.0.0 – Material 1.0.0" });
+    await screen.findByRole("heading", { name: "Material – Random" });
     await act(() => vi.advanceTimersByTimeAsync(100));
     expect(FakeEventSource.instances).toHaveLength(0);
   });

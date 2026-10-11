@@ -30,10 +30,16 @@ describe("admin settings", () => {
     expect(time).toHaveValue(300);
     await user.clear(time);
     await user.type(time, "600");
-    await user.click(within(coders).getByRole("button", { name: "Save" }));
+    expect(within(coders).getByText("changed")).toBeVisible();
+    expect(screen.getByText("1 section with unsaved changes")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Save" }));
 
-    expect(await within(coders).findByText("Saved.")).toBeVisible();
-    const put = api.calls.find((call) => call.method === "PUT");
+    expect(await screen.findByText("Saved.")).toBeVisible();
+    expect(within(coders).queryByText("changed")).toBeNull();
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+    const puts = api.calls.filter((call) => call.method === "PUT");
+    expect(puts).toHaveLength(1);
+    const put = puts[0];
     expect(put?.url.pathname).toBe("/api/v1/admin/settings/coders");
     expect(put?.body).toEqual({
       games_per_day: 20,
@@ -58,7 +64,7 @@ describe("admin settings", () => {
     const start = within(section("Rating")).getByRole("spinbutton", { name: "Start value" });
     await user.clear(start);
     await user.type(start, "1500");
-    await user.click(within(section("Rating")).getByRole("button", { name: "Save" }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
 
     expect(await screen.findByText("The ratings are being counted again.")).toBeVisible();
   });
@@ -81,7 +87,10 @@ describe("admin settings", () => {
 
     await screen.findByRole("heading", { name: "Invitations and accounts" });
     const accounts = section("Invitations and accounts");
-    await user.click(within(accounts).getByRole("button", { name: "Save" }));
+    const days = within(accounts).getByRole("spinbutton", { name: "Default validity" });
+    await user.clear(days);
+    await user.type(days, "40");
+    await user.click(screen.getByRole("button", { name: "Save" }));
 
     expect(await within(accounts).findByRole("alert")).toHaveTextContent(
       "The default validity must not exceed the longest.",

@@ -27,7 +27,7 @@ export function BotVersions({
   const older = versions.slice(versions.findIndex((bot) => bot.id === current) + 1);
   const predecessor = older.map(link).find((target) => target !== null);
   return (
-    <>
+    <section>
       <h2>{t("bot.versions")}</h2>
       {predecessor && (
         <p>
@@ -65,6 +65,6 @@ export function BotVersions({
           </tbody>
         </table>
       </div>
-    </>
+    </section>
   );
 }

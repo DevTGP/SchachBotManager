@@ -1,4 +1,4 @@
-import { type ChangeEvent, type FormEvent, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 
@@ -7,20 +7,10 @@ import { fetchOwnBots, uploadBot } from "../../api/bots";
 import { FormError } from "../../components/FormError";
 import { useApi } from "../../hooks/useApi";
 import { useSubmit } from "../../hooks/useSubmit";
-import {
-  entryCandidates,
-  type Selection,
-  selectFiles,
-  selectionProblem,
-} from "../../upload/selection";
+import { entryCandidates, type Selection, selectionProblem } from "../../upload/selection";
 import { NAME, parseVersion, suggestVersion } from "../../upload/version";
 import { DESCRIPTION_LENGTH } from "../bot/BotDescription";
-import { SelectedFiles } from "./SelectedFiles";
-
-/** Browsers only offer a folder with this attribute, which React does not know. */
-function chooseFolders(input: HTMLInputElement | null) {
-  input?.setAttribute("webkitdirectory", "");
-}
+import { FileDrop } from "./FileDrop";
 
 /** Upload of a Python bot as a folder of sources (E91, E92); the own bots are on "My bots". */
 export function UploadPage() {
@@ -39,10 +29,6 @@ export function UploadPage() {
   const entry = entryChoice && candidates.includes(entryChoice) ? entryChoice : candidates[0];
   const version = versionInput ?? suggestVersion(ownBots.data ?? [], name);
   const ownNames = [...new Set(ownBots.data?.map((bot) => bot.name))];
-
-  function onFiles(event: ChangeEvent<HTMLInputElement>) {
-    setSelection(selectFiles(Array.from(event.target.files ?? [])));
-  }
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -69,15 +55,7 @@ export function UploadPage() {
       <h1>{t("upload.title")}</h1>
       <p>{t("upload.intro")}</p>
       <form className="form" onSubmit={onSubmit}>
-        <label>
-          {t("upload.folder")}
-          <input type="file" multiple ref={chooseFolders} onChange={onFiles} />
-        </label>
-        <label>
-          {t("upload.singleFiles")}
-          <input type="file" multiple accept=".py" onChange={onFiles} />
-        </label>
-        {selection && <SelectedFiles selection={selection} />}
+        <FileDrop selection={selection} onSelect={setSelection} />
         {candidates.length > 0 && (
           <label>
             {t("upload.entry")}

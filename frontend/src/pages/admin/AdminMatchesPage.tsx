@@ -6,8 +6,8 @@ import { ApiContent } from "../../components/ApiContent";
 import { useApi } from "../../hooks/useApi";
 import { EnqueueForm } from "./EnqueueForm";
 import { QueueControl } from "./QueueControl";
-import { RecheckLanguage } from "./RecheckLanguage";
 
+/** The queue with its interventions, and new games for it (U7). */
 export function AdminMatchesPage() {
   const { t } = useTranslation();
   // ?white= and ?black= preset the form, e.g. from a bot page (E160).
@@ -31,7 +31,6 @@ export function AdminMatchesPage() {
           )}
         </ApiContent>
       </section>
-      <RecheckLanguage />
     </>
   );
 }

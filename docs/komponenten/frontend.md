@@ -10,7 +10,7 @@ Deutsch und Englisch. Alle Texte liegen von Beginn an in Übersetzungsdateien; S
 
 | Bereich | Inhalt |
 |---------|--------|
-| Start | Laufende Spiele, zuletzt beendete Partien, aktuelle Saisons |
+| Start | Erklärt die Idee des Projekts ohne Abfragen an die API (E166) |
 | Queue | Wartende Spiele in Reihenfolge mit geschätzter Startzeit, Wettbewerb und Disziplin |
 | Partie-Viewer | siehe unten |
 | Ligen | Stufen, Tabellen, Spielplan, Auf-/Abstiegszonen, frühere Saisons |
@@ -78,7 +78,7 @@ Einmal-Links zeigt die Seite nur direkt nach dem Erstellen; die Liste der Einlad
 | `src/upload/` | Auswahl und Prüfung der Dateien nach den Regeln aus E92 vor dem Senden, Muster für Name und Version |
 | `src/pages/bot/` | Seite `/bots/:id`: Status, Sprache, Version, Link zu den Partien; für Besitzer und Admins Dateien und Report mit Befunden und Testpartien; Admins können sperren und freigeben. Während der Verifikation fragt sie alle 3 s nach |
 | `src/api/bots.ts` | Upload als `FormData`, Bot, eigene Bots, Sperre |
-| `src/format/botLabel.ts` | „Name Version“ als Anzeige eines Bots |
+| `src/format/botLabel.ts` | „Name Version“ als Anzeige eines Bots (seit E165 entfallen: Namen ohne Version, siehe unten) |
 
 Die Bot-Liste zeigt die Version und verlinkt jeden Bot; die Kontonavigation führt zum Upload. Fehler `invalid_upload` nennen die betroffene Datei.
 
@@ -89,7 +89,7 @@ Die Bot-Liste zeigt die Version und verlinkt jeden Bot; die Kontonavigation füh
 | `src/pages/ownBots/` | Seite `/account/bots` „Meine Bots“ (nur angemeldet): eigene Bots nach Name gruppiert mit allen Versionen und Status, Link zum Upload, Formular für Partien eines eigenen geprüften Bots gegen jeden geprüften Bot mit den Grenzen aus E98, seit E154 aus `GET /account/limits` (`ownLimits.ts`) in Feldern und Texten |
 | `src/pages/bot/` | Zusätzlich Beschreibung (Besitzer bearbeitet sie), Zurückziehen und Reaktivieren für den Besitzer, Sperre durch Admins auch für zurückgezogene Bots, Liste der Versionen, Dateien als Text (nur gültiges UTF-8) und Download einzeln oder als ZIP |
 | `src/pages/upload/` | Feld für die Beschreibung; statt der Liste eigener Bots ein Link auf „Meine Bots“ |
-| `src/format/botLabel.ts` | `sideLabel` und `playersLabel`: Seiten einer Partie als „Name Version“ in Listen, Queue und Viewer |
+| `src/format/botLabel.ts` | `sideLabel` und `playersLabel`: Seiten einer Partie als „Name Version“ in Listen, Queue und Viewer (seit E165 ersetzt durch `pairing.ts` und `SideName`) |
 | `src/components/NumberField.tsx` | Zahlenfeld mit Grenzen, gemeinsam für Admin- und Coder-Formular |
 
 Die Kontonavigation führt zu „Meine Bots“, von dort zum Upload. Dateien eines Bots zeigt die Seite nur als Text, den React maskiert; HTML in einer Datei wird nie ausgeführt.
@@ -132,7 +132,7 @@ Ungültige Einstellungen nennt das Formular je Feld (`leagueError.*`).
 
 | Ort | Inhalt |
 |-----|--------|
-| `src/pages/leagues/TierSchedule.tsx` | `/seasons/:id`: Spielplan unter der Tabelle jeder Stufe, je Runde ein aufklappbarer Abschnitt mit Fortschritt; die erste noch nicht beendete Runde ist offen. Je Brett Weiß, Schwarz und Ergebnis, Status oder „kampflos“ mit Link auf die Partie, spielfreier Bot darunter; fragt nach, solange die Saison läuft |
+| `src/pages/leagues/TierSchedule.tsx` | `/seasons/:id`: Spielplan unter der Tabelle jeder Stufe, je Runde ein aufklappbarer Abschnitt mit Fortschritt; die erste noch nicht beendete Runde ist offen. Je Brett die Paarung alphabetisch mit Ergebnis in derselben Reihenfolge, Status oder „kampflos“ und „Öffnen“ (E165), spielfreier Bot ohne Version darunter; fragt nach, solange die Saison läuft |
 | `src/pages/bot/BotSeasons.tsx` | Bot-Seite (hochgeladene Bots): Ligasaisons dieser Version mit Liga, Saison, Stufe, Platz „n von m“, Partien, Punkten und Ausgang bzw. „Läuft“ |
 | `src/pages/bot/BotRatingChart.tsx`, `ratingChart.ts` | Bot-Seite: Rating-Verlauf als SVG-Kurve je Disziplin (Auswahl bei mehreren), Werte als Tooltip, Stand mit Höchst- und Tiefstwert als Text |
 | `src/pages/bot/BotResults.tsx` | Bot-Seite: Siege, Remis und Niederlagen je Disziplin mit Summenzeile |
@@ -169,11 +169,11 @@ Ungültige Einstellungen nennt das Formular je Feld (`leagueError.*`).
 | `src/pages/admin/MatchRepeat.tsx` | Partieseite, nur Admins: beendete oder abgebrochene Einzelspiele erneut einreihen, danach die neue Partie (E152) |
 | `src/pages/bot/BotChecks.tsx` | Bot-Seite, nur Admins: Neuprüfung auslösen, bei abgelehnten Bots Override mit Rückfrage (E153) |
 | `src/pages/bot/BotRechecks.tsx`, `ReportStages.tsx`, `reportFacts.ts` | Bot-Seite für Besitzer und Admins: Neuprüfungen als aufklappbare Liste mit denselben Stufen wie der Report; die Seite fragt nach, solange eine Prüfung wartet (E153) |
-| `src/pages/admin/AdminSettingsPage.tsx`, `SettingsGroupForm.tsx`, `settingsFields.ts` | `/admin/settings`: je Gruppe (Coder, Einladungen und Konten, Rating, Schätzung der Queue) ein Formular mit Feldern und Grenzen aus `settingsFields.ts`, Zeiten in Sekunden; Hinweis, solange eine Neuberechnung der Ratings ansteht (E154) |
+| `src/pages/admin/AdminSettingsPage.tsx`, `SettingsGroupFields.tsx`, `settingsFields.ts` | `/admin/settings`: je Gruppe (Coder, Einladungen und Konten, Rating, Schätzung der Queue) ein Abschnitt mit Feldern und Grenzen aus `settingsFields.ts`, Zeiten in Sekunden; Hinweis, solange eine Neuberechnung der Ratings ansteht (E154) |
 | `src/pages/admin/InviteForm.tsx` | `/admin/invites`: Formular für Einladungen mit Standard und Höchstwert der Gültigkeit aus den Einstellungen (E154) |
 | `src/pages/upload/UploadPage.tsx` | zeigt die Zahl der Uploads je Tag aus `GET /account/limits` (E154) |
 | `src/components/FormError.tsx` | zusätzlich `values` für Texte mit eingesetzten Grenzen (E154) |
-| `src/components/BotOptions.tsx` | Optionen einer Bot-Auswahl, auf Wunsch zuerst „Zufall“ (Wert `random`, E162): im Admin-Formular für beide Seiten (`EnqueueForm.tsx`), unter „Meine Bots“ nur für den Gegner (`OwnMatchForm.tsx`), auf `/play` für den Bot (`PlaySetupPage.tsx`); mit Zufall verlinkt die Rückmeldung keine Serie |
+| `src/components/BotPicker.tsx` (bis E165 `BotOptions.tsx`) | Bot-Auswahl, auf Wunsch zuerst „Zufall“ (Wert `random`, E162): im Admin-Formular für beide Seiten (`EnqueueForm.tsx`), unter „Meine Bots“ nur für den Gegner (`OwnMatchForm.tsx`), auf `/play` für den Bot (`PlaySetupPage.tsx`); mit Zufall verlinkt die Rückmeldung keine Serie |
 | `src/pages/admin/RecheckLanguage.tsx` | `/admin`: alle verifizierten und abgelehnten Bots einer Sprache erneut prüfen, meldet die Zahl der eingereihten Prüfungen (E153) |
 
 ## Einzelspiele (Stand M6, E155–E161)
@@ -189,6 +189,32 @@ Ungültige Einstellungen nennt das Formular je Feld (`leagueError.*`).
 | `src/pages/ownBots/OwnWaitingMatches.tsx` | „Meine Bots“: wartende eigene Partien mit „Zurückziehen“ (E157) |
 | `src/pages/bot/BotOpponents.tsx` | Bot-Seite: Tabelle „Bilanz“ mit Link auf `/matches?bot=…&opponent=…` (E161) |
 | `src/pages/bot/playLink.ts`, `BotVersions.tsx` | Links „Spielen“ und „Gegen Vorgänger spielen“; das Formular auf `/account/bots` (`own`, `opponent`) bzw. `/admin` (`white`, `black`) übernimmt die Bots aus der Adresse (E160) |
+
+## Durchsicht der Website (Stand M6, E165–E169)
+
+Einheitliche Darstellung nach der Durchsicht aller Seiten:
+
+| Datei | Inhalt |
+|-------|--------|
+| `src/format/pairing.ts`, `src/components/Pairing.tsx`, `SideName.tsx` | Paarung alphabetisch nach Name, dann Version; Ergebnis passend gedreht (`pairingResult`); jede Seite in einer eigenen Zelle mit festem Platz, Farbe als Kennzeichen am Namen; Namen ohne Version, Bots verlinkt (E165) |
+| `src/components/OpenCell.tsx` | Letzte Spalte mit dem Button „Öffnen“ und den Aktionen der Rolle statt Links auf der Paarung (E165) |
+| `src/components/BotPicker.tsx`, `src/format/botGroups.ts` | Bot-Auswahl nach Name, bei mehreren Versionen eine zweite Auswahl „Version von …“ mit der neuesten vorgewählt; Wert bleibt die Id (E165) |
+| `src/pages/StartPage.tsx`, `src/styles/landing.css` | Startseite: Brett, vier Schritte, Codebeispiel, Ablauf über den Referee, Überblick; keine Abfragen an die API (E166) |
+| `src/components/QueueTable.tsx` | Eine Queue-Tabelle mit den Ansichten `public` (`/queue`), `admin` (`AdminQueueTable` mit Priorität und Abbrechen) und `own` (`OwnWaitingMatches` mit Zurückziehen) (E167) |
+| `src/components/matchFields/` | Gemeinsame Felder der Formulare zum Ansetzen (`EnqueueForm`, `OwnMatchForm`, `PlaySetupPage`): `MatchFields` (Disziplin oder freie Zeiten, Startstellung, gewertet), `ColorSelect`, `conditions.ts` (Felder je Rolle) (E167) |
+| `src/components/PillSelect.tsx` | Pillen statt Dropdowns für kleine Auswahlen: Status und Art in `/matches`, Anzeige und Disziplin in `/ratings`, Sprache der Neuprüfung (E168) |
+| `src/components/ConfirmButton.tsx` | Zweiter Klick zur Bestätigung für Sperren, Zurückziehen, Partie zurückziehen und Token widerrufen (E168) |
+| `src/components/TableShell.tsx` | Tabelle mit Leertext und waagerechtem Scrollen mit Schatten; Spalten `optional` entfallen auf schmalen Bildschirmen (E168) |
+| `src/components/StatusBadge.tsx`, `BotStatusBadge.tsx` | Status von Partien und Bots als farbige Abzeichen (E168) |
+| `src/format/timeControl.ts`, `duration.ts` | Zeiten als „3 min + 2 s“, Disziplinen als „Blitz (3 min + 2 s)“; Eingaben in Sekunden oder Minuten mit Punkt oder Komma (E168) |
+| `src/components/AccountNav.tsx`, `src/session/useLogout.ts` | Kontonavigation mit Abmelden; auf schmalen Bildschirmen als Auswahl (E168) |
+| `src/components/ExploreLinks.tsx` | Links auf Partien, Rangliste, Spielen und Startseite auf der Seite 404 und bei fehlgeschlagener Anmeldung (E168) |
+| `src/pages/bot/BotHeader.tsx`, `BotActions.tsx`, `BotAdmin.tsx` | Bot-Seite: Kopf mit Version, Ersteller, Sprache, Status und Rating; eine Leiste der Aktionen; Eingriffe der Admins gesammelt am Ende |
+| `src/pages/upload/FileDrop.tsx`, `src/upload/dropped.ts` | Upload: Ordner oder Dateien hineinziehen oder wählen; versteckte Ordner und `__pycache__` entfallen |
+| `src/pages/account/OwnRating.tsx` | Kontoseite: Gesamtrating und Rating je Disziplin aus `GET /account/rating` (E169) |
+| `src/pages/admin/AuditTable.tsx` | `/admin/audit`: Ziel mit Name und Link aus `target_kind` und `target_label` (E169) |
+
+Namen von Bots stehen nirgends mehr mit Version; eine Spalte „Version“ haben nur Botliste, Rangliste, „Meine Bots“, Bilanz und Versionen eines Bots. Ein Test (`src/i18n/keys.test.ts`) prüft, dass `de.json` und `en.json` dieselben Schlüssel haben.
 
 ## Zu beachten
 

@@ -43,6 +43,12 @@ describe("my bots page", () => {
       `/bots/${SHARP_NEW.id}`,
     );
     expect(within(group).getByText("Withdrawn")).toBeVisible();
+    const newest = within(group).getByRole("link", { name: "Sharp 1.1.0" }).closest("tr")!;
+    expect(within(newest).getByText("–")).toBeVisible();
+    expect(within(newest).getByRole("link", { name: "0" })).toHaveAttribute(
+      "href",
+      `/matches?bot=${SHARP_NEW.id}`,
+    );
     expect(screen.getByRole("rowheader", { name: "Blunt" })).toHaveAttribute("rowspan", "1");
     expect(screen.getByRole("link", { name: "Upload bot" })).toHaveAttribute("href", "/bots/new");
     expect(screen.getByRole("link", { name: "My bots" })).toHaveAttribute("aria-current", "page");
@@ -68,9 +74,9 @@ describe("my bots page", () => {
       within(ownBot)
         .getAllByRole("option")
         .map((option) => option.textContent),
-    ).toEqual(["Sharp 1.1.0"]);
-    expect(screen.getByRole("combobox", { name: "Opponent" })).toHaveValue(BOTS[0]!.id);
-    await user.selectOptions(screen.getByRole("combobox", { name: "Opponent" }), "Foreign 2.0.0");
+    ).toEqual(["Sharp"]);
+    expect(screen.getByRole("combobox", { name: "Opponent" })).toHaveValue(BOTS[0]!.name);
+    await user.selectOptions(screen.getByRole("combobox", { name: "Opponent" }), "Foreign");
     await user.selectOptions(screen.getByRole("combobox", { name: "Your bot plays" }), "Black");
     expect(screen.getByRole("spinbutton", { name: "Time (s)" })).toHaveAttribute("max", "300");
     await user.click(screen.getByRole("button", { name: "Add to queue" }));

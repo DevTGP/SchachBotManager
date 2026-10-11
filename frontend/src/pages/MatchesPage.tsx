@@ -4,9 +4,10 @@ import { useSearchParams } from "react-router";
 import { fetchBots, fetchDisciplines, fetchMatches } from "../api/endpoints";
 import type { MatchKind, MatchStatus } from "../api/types";
 import { ApiContent } from "../components/ApiContent";
+import { BotPicker } from "../components/BotPicker";
 import { MatchTable } from "../components/MatchTable";
 import { Pager } from "../components/Pager";
-import { botLabel } from "../format/botLabel";
+import { type Pill, PillSelect } from "../components/PillSelect";
 import { useApi } from "../hooks/useApi";
 import { POLL_LIST_MS } from "../hooks/polling";
 import { useSession } from "../session/sessionContext";
@@ -49,6 +50,17 @@ export function MatchesPage() {
   const bots = useApi(fetchBots, "bots");
   const disciplines = useApi(fetchDisciplines, "disciplines");
 
+  const chosen = bots.data?.find((bot) => bot.id === botId);
+  const opponents = bots.data?.filter((bot) => bot.name !== chosen?.name) ?? [];
+  const statusPills: Pill<MatchStatus | "">[] = [
+    { value: "", label: t("matches.allStatuses") },
+    ...STATUSES.map((value) => ({ value, label: t(`status.${value}`) })),
+  ];
+  const kindPills: Pill<MatchKind | "">[] = [
+    { value: "", label: t("matches.allKinds") },
+    ...KINDS.map((entry) => ({ value: entry.value, label: t(entry.label) })),
+  ];
+
   function update(name: string, value: string | undefined) {
     const next = new URLSearchParams(params);
     if (value) next.set(name, value);
@@ -63,65 +75,33 @@ export function MatchesPage() {
     <>
       <h1>{t("matches.title")}</h1>
       <div className="filters">
-        <label>
-          {t("matches.status")}
-          <select
-            value={status ?? ""}
-            onChange={(event) => update("status", event.target.value || undefined)}
-          >
-            <option value="">{t("matches.allStatuses")}</option>
-            {STATUSES.map((value) => (
-              <option key={value} value={value}>
-                {t(`status.${value}`)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          {t("matches.kind")}
-          <select
-            value={kind ?? ""}
-            onChange={(event) => update("kind", event.target.value || undefined)}
-          >
-            <option value="">{t("matches.allKinds")}</option>
-            {KINDS.map((entry) => (
-              <option key={entry.value} value={entry.value}>
-                {t(entry.label)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          {t("matches.bot")}
-          <select
-            value={botId ?? ""}
-            onChange={(event) => update("bot", event.target.value || undefined)}
-          >
-            <option value="">{t("matches.allBots")}</option>
-            {bots.data?.map((bot) => (
-              <option key={bot.id} value={bot.id}>
-                {botLabel(bot)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <PillSelect
+          label={t("matches.status")}
+          options={statusPills}
+          value={status ?? ""}
+          onChange={(value) => update("status", value || undefined)}
+        />
+        <PillSelect
+          label={t("matches.kind")}
+          options={kindPills}
+          value={kind ?? ""}
+          onChange={(value) => update("kind", value || undefined)}
+        />
+        <BotPicker
+          label={t("matches.bot")}
+          bots={bots.data ?? []}
+          value={botId ?? ""}
+          empty={t("matches.allBots")}
+          onChange={(value) => update("bot", value || undefined)}
+        />
         {botId && (
-          <label>
-            {t("matches.opponent")}
-            <select
-              value={opponentId ?? ""}
-              onChange={(event) => update("opponent", event.target.value || undefined)}
-            >
-              <option value="">{t("matches.allOpponents")}</option>
-              {bots.data
-                ?.filter((bot) => bot.id !== botId)
-                .map((bot) => (
-                  <option key={bot.id} value={bot.id}>
-                    {botLabel(bot)}
-                  </option>
-                ))}
-            </select>
-          </label>
+          <BotPicker
+            label={t("matches.opponent")}
+            bots={opponents}
+            value={opponentId ?? ""}
+            empty={t("matches.allOpponents")}
+            onChange={(value) => update("opponent", value || undefined)}
+          />
         )}
         <label>
           {t("matches.discipline")}
@@ -138,7 +118,7 @@ export function MatchesPage() {
           </select>
         </label>
         {maySetGames && (
-          <label>
+          <label className="checkbox">
             <input
               type="checkbox"
               checked={mine}

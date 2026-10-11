@@ -22,7 +22,8 @@
     "none": "–",
     "previous": "Zurück",
     "next": "Weiter",
-    "page": "{{from}}–{{to}} von {{total}}"
+    "page": "{{from}}–{{to}} von {{total}}",
+    "actions": "Aktionen"
   },
   "error": {
     "invalid_parameter": "Die Anfrage ist ungültig.",
@@ -53,12 +54,66 @@
     "already_registered": "Der Bot ist in dieser Liga schon angemeldet."
   },
   "start": {
-    "intro": "Schachbots treten hier gegeneinander an. Alle Partien sind öffentlich ansehbar.",
-    "running": "Laufende Partien",
-    "noRunning": "Gerade läuft keine Partie.",
-    "recent": "Zuletzt beendet",
-    "noRecent": "Noch keine beendeten Partien.",
-    "allMatches": "Alle Partien"
+    "title": "Schachbots im Wettstreit",
+    "lead": "Schreib ein Programm, das Schach spielt, und lass es gegen die Bots anderer antreten.",
+    "idea": "Der SchachBotManager spielt die Partien selbst: Er setzt sie an, wacht über Regeln und Uhr und speichert jeden Zug. Wer mitmacht, kümmert sich nur um eins – wie sein Bot den nächsten Zug findet. Alle Partien sind öffentlich und lassen sich Zug für Zug nachspielen.",
+    "stepsTitle": "In vier Schritten zur ersten Partie",
+    "steps": {
+      "write": {
+        "title": "Bot schreiben",
+        "text": "Eine Methode entscheidet den Zug. Das SDK bringt Brett, Zuggenerator und Uhr mit; Regeln musst du nicht selbst programmieren."
+      },
+      "test": {
+        "title": "Lokal testen",
+        "text": "Die Arena lässt deinen Bot auf dem eigenen Rechner gegen Referenzbots spielen; der Viewer zeigt die Partien live und zum Zurückspulen."
+      },
+      "upload": {
+        "title": "Hochladen",
+        "text": "Eingeladene Coder laden den Quellcode hoch. Der Server prüft ihn mit einer statischen Analyse und kurzen Testpartien."
+      },
+      "compete": {
+        "title": "Antreten",
+        "text": "Einzelspiele, Ligen mit Auf- und Abstieg und bald Turniere. Jede gewertete Partie bewegt das Rating deines Bots."
+      }
+    },
+    "codeTitle": "So klein kann ein Bot sein",
+    "codeText": "Dieser Bot zieht zufällig – der schwächste denkbare Gegner, aber ein vollständiger Bot. Statt der Zufallswahl gehört hier deine Suche hin: Bewertung, Eröffnungsbuch, Zeiteinteilung.",
+    "languages": "Heute in Python; C++, Java, C# und JavaScript folgen mit denselben Begriffen.",
+    "flowTitle": "Ein Schiedsrichter zwischen den Bots",
+    "flowLabel": "Weiß und Schwarz sprechen nur mit dem Schiedsrichter",
+    "flow": {
+      "white": "Bot Weiß",
+      "referee": "Schiedsrichter",
+      "black": "Bot Schwarz"
+    },
+    "flowText": "Die Bots sprechen nie direkt miteinander. Jeder läuft in seinem eigenen Prozess mit eigenem Brett und schickt seine Züge an den Schiedsrichter. Der allein entscheidet über Legalität, Zeit und Ergebnis.",
+    "featuresTitle": "Was dahintersteckt",
+    "features": {
+      "core": {
+        "title": "Ein Regelkern für alle",
+        "text": "Schiedsrichter, Arena und alle SDKs nutzen denselben Kern in C++. Kein Bot spielt nach anderen Regeln."
+      },
+      "fair": {
+        "title": "Gleiche Bedingungen",
+        "text": "Es zählt die Wanduhr, ohne Ausgleich zwischen Sprachen. Außerhalb seines Zuges ist ein Bot eingefroren und kann nicht vorausdenken."
+      },
+      "sandbox": {
+        "title": "Sicher eingesperrt",
+        "text": "Jeder Bot läuft in einer Sandbox ohne Netz und mit festen Grenzen. Die statische Analyse beim Hochladen ist eine zweite Schicht."
+      },
+      "public": {
+        "title": "Alles öffentlich",
+        "text": "Partien, Tabellen und Ranglisten kann jeder ohne Konto ansehen, laufende Partien live."
+      },
+      "human": {
+        "title": "Mensch gegen Bot",
+        "text": "Im Browser selbst gegen einen Bot spielen – mit Konto auch gewertet."
+      },
+      "remote": {
+        "title": "Vom eigenen Rechner",
+        "text": "Coder lassen ihren Bot auch zu Hause rechnen und gegen die Bots der Website spielen, ohne ihn hochzuladen."
+      }
+    }
   },
   "matches": {
     "title": "Partien",
@@ -67,7 +122,7 @@
     "bot": "Bot",
     "allBots": "Alle Bots",
     "kind": "Art",
-    "allKinds": "Alle Partien",
+    "allKinds": "Alle",
     "kindBots": "Bot gegen Bot",
     "kindPlayers": "Mit Spielern",
     "empty": "Keine Partien gefunden.",
@@ -85,8 +140,12 @@
     "result": "Ergebnis",
     "timeControl": "Bedenkzeit",
     "moves": "Züge",
-    "termination": "Ende",
-    "date": "Datum"
+    "termination": "Grund",
+    "date": "Datum",
+    "open": "Öffnen",
+    "created": "Angesetzt: {{at}}",
+    "started": "Gestartet: {{at}}",
+    "discipline": "Disziplin"
   },
   "status": {
     "queued": "Wartet",
@@ -124,7 +183,6 @@
     "created": "Seit",
     "rating": "Rating",
     "ratedGames": "Gewertete Partien",
-    "matches": "Partien",
     "empty": "Noch keine Bots."
   },
   "ratings": {
@@ -143,7 +201,8 @@
     "player": "Spieler"
   },
   "botChoice": {
-    "random": "Zufall"
+    "random": "Zufall",
+    "version": "Version von {{name}}"
   },
   "botStatus": {
     "uploaded": "Wartet auf Prüfung",
@@ -157,7 +216,6 @@
   "bot": {
     "verifying": "Der Bot wird geprüft. Diese Seite aktualisiert sich selbst.",
     "matches": "Partien dieses Bots",
-    "owner": "Besitzer",
     "entry": "Startdatei",
     "sdk": "SDK",
     "runtime": "Laufzeit",
@@ -240,13 +298,18 @@
     "results": "Ergebnisse nach Disziplin",
     "noResults": "Noch keine beendeten Partien.",
     "freeTimes": "Freie Bedenkzeit",
-    "total": "Gesamt"
+    "total": "Gesamt",
+    "versionValue": "Version {{version}}",
+    "ratingValue_one": "Rating {{value}} ({{count}} Partie)",
+    "ratingValue_other": "Rating {{value}} ({{count}} Partien)",
+    "admin": "Verwaltung",
+    "details": "Details",
+    "disableConfirm": "Wirklich sperren",
+    "retireConfirm": "Wirklich zurückziehen"
   },
   "upload": {
     "title": "Bot hochladen",
     "intro": "Wähle den Ordner deines Bots, zum Beispiel eine Kopie der Python-Vorlage. Hochgeladen werden nur .py-Dateien und Dateien direkt in data/ (für load_data); alles andere bleibt auf deinem Rechner.",
-    "folder": "Ordner",
-    "singleFiles": "Oder einzelne .py-Dateien",
     "fileCount_one": "{{count}} Datei wird hochgeladen:",
     "fileCount_other": "{{count}} Dateien werden hochgeladen:",
     "source": "Quelltext",
@@ -264,7 +327,10 @@
     "tooLarge": "Die .py-Dateien und die Datendateien dürfen je höchstens 1 MB zusammen haben.",
     "noEntry": "Im obersten Ordner fehlt eine .py-Datei, mit der der Bot startet.",
     "ownLink": "Alle deine Bots und Versionen",
-    "review": "Der Bot wird geprüft und getestet, bevor er spielen darf."
+    "review": "Der Bot wird geprüft und getestet, bevor er spielen darf.",
+    "drop": "Ordner deines Bots oder einzelne .py-Dateien hierher ziehen oder auswählen.",
+    "chooseFolder": "Ordner wählen",
+    "chooseFiles": "Dateien wählen"
   },
   "ownBots": {
     "title": "Meine Bots",
@@ -277,7 +343,8 @@
     "limits": "Freie Zeiten höchstens {{initialSeconds}} Sekunden plus {{incrementSeconds}} Sekunden je Zug; Disziplinen ohne diese Grenze. Höchstens {{games}} Partien auf einmal und {{gamesPerDay}} Partien am Tag. Deine Partien starten nach denen, die Admins ansetzen.",
     "waitingTitle": "Wartende Partien",
     "withdraw": "Zurückziehen",
-    "noWaiting": "Keine deiner Partien wartet."
+    "noWaiting": "Keine deiner Partien wartet.",
+    "withdrawConfirm": "Wirklich zurückziehen"
   },
   "ownMatchError": {
     "initial_time_ms": "Die Zeit muss zwischen 1 und {{initialSeconds}} Sekunden liegen.",
@@ -330,7 +397,9 @@
     "estimatedStart": "Start ca.",
     "estimatedEnd": "Ende ca.",
     "more": "{{count}} weitere Partien warten.",
-    "estimateNote": "Die Zeiten sind aus der Dauer früherer Partien mit derselben Bedenkzeit geschätzt."
+    "estimateNote": "Die Zeiten sind aus der Dauer früherer Partien mit derselben Bedenkzeit geschätzt.",
+    "start": "Start",
+    "runningShort": "läuft"
   },
   "viewer": {
     "white": "Weiß",
@@ -372,7 +441,9 @@
     "copyFen": "FEN kopieren",
     "copyLink": "Link auf diesen Zug kopieren",
     "copied": "Kopiert",
-    "keyboard": "Tastatur: ← → blättern, Pos1/Ende springen, Leertaste spielt ab."
+    "keyboard": "Tastatur: ← → blättern, Pos1/Ende springen, Leertaste spielt ab.",
+    "versions": "Versionen",
+    "versionsValue": "Weiß {{white}}, Schwarz {{black}}"
   },
   "fieldError": {
     "username": "Der Name passt nicht zu den Regeln.",
@@ -403,7 +474,9 @@
   "login": {
     "title": "Anmelden",
     "submit": "Anmelden",
-    "inviteOnly": "Konten gibt es nur auf Einladung. Ansehen geht auch ohne Konto."
+    "inviteOnly": "Konten gibt es nur auf Einladung. Partien ansehen, die Rangliste verfolgen und selbst gegen Bots spielen geht auch ohne.",
+    "intro": "Mit einem Konto lädst du Bots hoch, setzt Partien für sie an und meldest sie in Ligen an.",
+    "withoutTitle": "Ohne Konto"
   },
   "account": {
     "title": "Konto",
@@ -423,7 +496,9 @@
     "rating": "Rating",
     "ratingValue_one": "{{value}} nach {{count}} gewerteten Partie",
     "ratingValue_other": "{{value}} nach {{count}} gewerteten Partien",
-    "ratingHint": "Gewertet werden deine Partien gegen Bots unter einer Disziplin aus der Grundstellung. Ab der ersten gewerteten Partie stehen dein Name und dein Rating in der öffentlichen Rangliste. Deine Partien sind wie alle Partien öffentlich ansehbar."
+    "ratingHint": "Gewertet werden deine Partien gegen Bots unter einer Disziplin aus der Grundstellung. Ab der ersten gewerteten Partie stehen dein Name und dein Rating in der öffentlichen Rangliste. Deine Partien sind wie alle Partien öffentlich ansehbar.",
+    "ownMatches": "Meine angesetzten Partien",
+    "ratingByDiscipline": "Rating je Disziplin"
   },
   "role": {
     "coder": "Coder",
@@ -447,7 +522,6 @@
   },
   "admin": {
     "title": "Verwaltung",
-    "matches": "Partien",
     "users": "Nutzer",
     "invites": "Einladungen",
     "disciplines": "Disziplinen",
@@ -503,8 +577,7 @@
     "auditDetails": "Details",
     "auditEmpty": "Keine Einträge.",
     "auditFilterTarget": "Nur Einträge zu diesem Ziel",
-    "auditClearTarget": "Ziel {{target}} entfernen",
-    "queueRunningShort": "läuft",
+    "auditClearTarget": "Filter nach Ziel entfernen",
     "queueEmpty": "Die Queue ist leer.",
     "setPriority": "Setzen",
     "toFront": "Nach vorn",
@@ -518,11 +591,22 @@
     "rechecksQueued_one": "{{count}} Neuprüfung eingereiht.",
     "rechecksQueued_other": "{{count}} Neuprüfungen eingereiht.",
     "settings": "Einstellungen",
-    "leagues": "Ligen"
+    "leagues": "Ligen",
+    "rechecks": "Neuprüfung",
+    "auditFilter": "Filtern",
+    "auditDayHint": "Von und Bis sind Tage in UTC; Bis schließt den Tag ein.",
+    "auditKind": {
+      "bot": "Bot",
+      "match": "Partie",
+      "user": "Nutzer",
+      "discipline": "Disziplin",
+      "league": "Liga",
+      "invite": "Einladung"
+    }
   },
   "notFound": {
     "title": "Seite nicht gefunden",
-    "back": "Zur Startseite"
+    "text": "Unter dieser Adresse gibt es keine Seite. Vielleicht ist der Link veraltet, oder die Partie bzw. der Bot wurde gelöscht."
   },
   "play": {
     "title": "Gegen einen Bot spielen",
@@ -583,7 +667,7 @@
   },
   "tokens": {
     "title": "API-Tokens",
-    "intro": "Mit einem Token spielt dein Bot auf deinem Rechner gegen Bots auf dem Server: python bot.py --remote URL --opponent NAME, mit dem Token in SBM_TOKEN. Solche Partien werden nicht gewertet, sind aber öffentlich ansehbar.",
+    "intro": "Mit einem Token spielt dein Bot auf deinem Rechner gegen einen Bot auf dem Server. Setze dafür das Token in SBM_TOKEN und nenne den Gegner. Solche Partien werden nicht gewertet, sind aber öffentlich ansehbar.",
     "token": "Token",
     "copy": "Token kopieren",
     "created": "Neues Token „{{name}}“",
@@ -594,7 +678,9 @@
     "lastUsed": "Zuletzt benutzt",
     "never": "nie",
     "revoke": "Widerrufen",
-    "create": "Token anlegen"
+    "create": "Token anlegen",
+    "copyCommand": "Befehl kopieren",
+    "revokeConfirm": "Wirklich widerrufen"
   },
   "tokenError": {
     "name": "1 bis 40 Zeichen; ein Konto hat höchstens 10 Tokens."
@@ -627,7 +713,10 @@
     "moves_per_game": "Züge je Partie ohne Erfahrung",
     "save": "Speichern",
     "saved": "Gespeichert.",
-    "recountPending": "Die Ratings werden gerade neu berechnet."
+    "recountPending": "Die Ratings werden gerade neu berechnet.",
+    "changed": "geändert",
+    "unsaved_one": "{{count}} Abschnitt mit ungespeicherten Änderungen",
+    "unsaved_other": "{{count}} Abschnitte mit ungespeicherten Änderungen"
   },
   "settingsError": {
     "invite_days": "Die Standard-Gültigkeit darf die höchste nicht übersteigen.",
@@ -757,5 +846,11 @@
     "tiebreaks": "Jedes Kriterium der Feinwertung höchstens einmal.",
     "min_participants": "Die Mindestzahl liegt zwischen 2 und 320.",
     "pause_minutes": "Die Pause liegt zwischen 0 und 43200 Minuten."
+  },
+  "pairing": {
+    "version": "Version {{version}}"
+  },
+  "explore": {
+    "label": "Weiter zu"
   }
 }

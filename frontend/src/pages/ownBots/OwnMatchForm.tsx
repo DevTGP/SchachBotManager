@@ -3,13 +3,11 @@ import { useTranslation } from "react-i18next";
 
 import { enqueueOwnMatches } from "../../api/bots";
 import type { Bot, CoderLimits, EnqueuedMatches, StoredDiscipline } from "../../api/types";
-import { BotOptions } from "../../components/BotOptions";
-import { DisciplineSelect } from "../../components/DisciplineSelect";
+import { BotPicker } from "../../components/BotPicker";
 import { FormError } from "../../components/FormError";
-import { NumberField } from "../../components/NumberField";
+import { ColorSelect } from "../../components/matchFields/ColorSelect";
+import { MatchFields } from "../../components/matchFields/MatchFields";
 import { QueuedNotice } from "../../components/QueuedNotice";
-import { RatedField } from "../../components/RatedField";
-import { StartPositionField } from "../../components/StartPositionField";
 import { useSubmit } from "../../hooks/useSubmit";
 import { ownLimits } from "./ownLimits";
 import { DEFAULT_OWN_FORM, type OwnMatchForm, ownMatchOrder } from "./ownMatchOrder";
@@ -50,8 +48,8 @@ export function OwnMatchForm({
 
   if (own.length === 0) return <p className="muted">{t("ownBots.noVerified")}</p>;
 
-  function set<K extends keyof OwnMatchForm>(field: K, value: OwnMatchForm[K]) {
-    setForm((current) => ({ ...current, [field]: value }));
+  function set(patch: Partial<OwnMatchForm>) {
+    setForm((current) => ({ ...current, ...patch }));
   }
 
   function onSubmit(event: FormEvent) {
@@ -66,72 +64,36 @@ export function OwnMatchForm({
   return (
     <form className="form" onSubmit={onSubmit}>
       <div className="form-row">
-        <label>
-          {t("ownBots.ownBot")}
-          <select value={form.own} onChange={(event) => set("own", event.target.value)}>
-            <BotOptions bots={own} />
-          </select>
-        </label>
-        <label>
-          {t("ownBots.opponent")}
-          <select value={form.opponent} onChange={(event) => set("opponent", event.target.value)}>
-            <BotOptions bots={opponents} random />
-          </select>
-        </label>
-        <label>
-          {t("ownBots.ownColor")}
-          <select
-            value={form.ownColor}
-            onChange={(event) => set("ownColor", event.target.value as OwnMatchForm["ownColor"])}
-          >
-            <option value="white">{t("viewer.white")}</option>
-            <option value="black">{t("viewer.black")}</option>
-          </select>
-        </label>
-      </div>
-      <div className="form-row">
-        <DisciplineSelect
-          disciplines={disciplines}
-          value={form.discipline}
-          onChange={(value) => set("discipline", value)}
+        <BotPicker
+          label={t("ownBots.ownBot")}
+          bots={own}
+          value={form.own}
+          onChange={(value) => set({ own: value })}
         />
-        {!form.discipline && (
-          <>
-            <NumberField
-              label={t("admin.initialSeconds")}
-              value={form.initialSeconds}
-              step="any"
-              min={1}
-              max={values.initialSeconds}
-              onChange={(value) => set("initialSeconds", value)}
-            />
-            <NumberField
-              label={t("admin.incrementSeconds")}
-              value={form.incrementSeconds}
-              step="any"
-              max={values.incrementSeconds}
-              onChange={(value) => set("incrementSeconds", value)}
-            />
-          </>
-        )}
-        <NumberField
-          label={t("admin.games")}
-          value={form.games}
-          min={1}
-          max={values.games}
-          onChange={(value) => set("games", value)}
+        <BotPicker
+          label={t("ownBots.opponent")}
+          bots={opponents}
+          value={form.opponent}
+          random
+          onChange={(opponent) => set({ opponent })}
+        />
+        <ColorSelect
+          label={t("ownBots.ownColor")}
+          value={form.ownColor}
+          onChange={(ownColor) => set({ ownColor })}
         />
       </div>
-      <label className="checkbox">
-        <input
-          type="checkbox"
-          checked={form.alternate}
-          onChange={(event) => set("alternate", event.target.checked)}
-        />
-        {t("admin.alternate")}
-      </label>
-      <StartPositionField value={form.startFen} onChange={(fen) => set("startFen", fen)} />
-      <RatedField checked={form.rated} onChange={(rated) => set("rated", rated)} />
+      <MatchFields
+        variant="coder"
+        disciplines={disciplines}
+        form={form}
+        limits={{
+          initial: values.initialSeconds,
+          incrementSeconds: values.incrementSeconds,
+          games: values.games,
+        }}
+        onChange={set}
+      />
       <p className="hint">{t("ownBots.limits", values)}</p>
       <FormError error={error} rules="ownMatchError" values={values} />
       {queued && <QueuedNotice queued={queued} />}

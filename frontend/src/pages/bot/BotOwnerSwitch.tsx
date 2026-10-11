@@ -2,10 +2,14 @@ import { useTranslation } from "react-i18next";
 
 import { updateOwnBot } from "../../api/bots";
 import type { BotDetail } from "../../api/types";
+import { ConfirmButton } from "../../components/ConfirmButton";
 import { FormError } from "../../components/FormError";
 import { useSubmit } from "../../hooks/useSubmit";
 
-/** The owner retires a verified bot and brings it back; an admin block stays (E96). */
+/**
+ * The owner retires a verified bot and brings it back; an admin block stays (E96). A button in
+ * the bar of actions (U10).
+ */
 export function BotOwnerSwitch({ bot, onChange }: { bot: BotDetail; onChange: () => void }) {
   const { t } = useTranslation();
   const { pending, error, submit } = useSubmit();
@@ -21,14 +25,19 @@ export function BotOwnerSwitch({ bot, onChange }: { bot: BotDetail; onChange: ()
 
   return (
     <>
-      <p className="inline-actions">
+      {next === "retired" ? (
+        <ConfirmButton
+          label={t("bot.retire")}
+          confirmLabel={t("bot.retireConfirm")}
+          onConfirm={onClick}
+          disabled={pending}
+          title={t("bot.retireHint")}
+        />
+      ) : (
         <button type="button" onClick={onClick} disabled={pending}>
-          {next === "retired" ? t("bot.retire") : t("bot.reactivate")}
+          {t("bot.reactivate")}
         </button>
-        <span className="hint">
-          {next === "retired" ? t("bot.retireHint") : t("bot.retiredHint")}
-        </span>
-      </p>
+      )}
       <FormError error={error} />
     </>
   );

@@ -195,7 +195,7 @@ describe("admin queue interventions", () => {
   it("offers no repeat to coders", async () => {
     mockApi({ "/session": { user: CODER }, [`/matches/${FIRST.id}`]: match() });
     renderRoute(`/matches/${FIRST.id}`);
-    await screen.findByRole("heading", { name: "Random 1.0.0 – Material 1.0.0" });
+    await screen.findByRole("heading", { name: "Material – Random" });
     expect(screen.queryByRole("button", { name: "Repeat game" })).toBeNull();
   });
 });
@@ -319,6 +319,8 @@ describe("admin audit log", () => {
       actor: "admin",
       action: "bot.update",
       target: "665f0000000000000000b001",
+      target_kind: "bot",
+      target_label: "Random",
       details: { status: "disabled", games: 2 },
     };
     const api = mockApi({
@@ -332,14 +334,18 @@ describe("admin audit log", () => {
     });
     renderRoute("/admin/audit");
 
-    expect(await screen.findByText("status=disabled, games=2")).toBeVisible();
+    expect(await screen.findByRole("link", { name: "Random" })).toHaveAttribute(
+      "href",
+      `/bots/${entry.target}`,
+    );
+    expect(screen.getByText("disabled")).toBeVisible();
     await user.selectOptions(screen.getByRole("combobox", { name: "Action" }), "bot.update");
     await expect.poll(() => api.requests.at(-1)?.searchParams.get("action")).toBe("bot.update");
-    await user.click(screen.getByRole("button", { name: entry.target! }));
+    await user.click(screen.getByRole("button", { name: "Filter" }));
     await expect.poll(() => api.requests.at(-1)?.searchParams.get("target")).toBe(entry.target);
     expect(api.requests.at(-1)?.searchParams.get("action")).toBe("bot.update");
 
-    await user.click(screen.getByRole("button", { name: `Remove target ${entry.target}` }));
+    await user.click(screen.getByRole("button", { name: "Remove target filter" }));
     await expect.poll(() => api.requests.at(-1)?.searchParams.get("target")).toBeNull();
   });
 });

@@ -6,29 +6,15 @@ import { BOTS, queue, storedDiscipline, summary } from "../test/fixtures";
 import { mockApi, renderRoute } from "../test/render";
 
 describe("start page", () => {
-  it("lists running and finished matches", async () => {
-    mockApi({
-      "/matches": (url: URL) =>
-        url.searchParams.get("status") === "running"
-          ? { items: [], total: 0 }
-          : { items: [summary()], total: 1 },
-    });
+  it("explains the idea without asking the API", async () => {
+    const api = mockApi({});
     renderRoute("/");
-    expect(await screen.findByText("No game is running right now.")).toBeVisible();
-    const link = await screen.findByRole("link", { name: "Random 1.0.0 – Material 1.0.0" });
-    expect(link).toHaveAttribute("href", "/matches/665f00000000000000000001");
-    expect(screen.getByText("0–1")).toBeVisible();
-    expect(screen.getByText("3+2")).toBeVisible();
-  });
-
-  it("explains an unreachable API", async () => {
-    mockApi({
-      "/matches": () => Response.json({ code: "unavailable", message: "db" }, { status: 503 }),
-    });
-    renderRoute("/");
-    expect((await screen.findAllByRole("alert"))[0]).toHaveTextContent(
-      "The service is unavailable right now.",
-    );
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Chess bots in competition" }),
+    ).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Four steps to the first game" })).toBeVisible();
+    expect(screen.getByText(/class MyBot\(sbm.Bot\)/)).toBeVisible();
+    expect(api.requests.filter((url) => url.pathname.startsWith("/api/v1/matches"))).toEqual([]);
   });
 });
 
@@ -46,7 +32,12 @@ describe("matches page", () => {
     await user.selectOptions(screen.getByRole("combobox", { name: "Bot" }), "Material");
     expect(router.state.location.search).toBe("?bot=665f0000000000000000000b");
 
-    await user.selectOptions(screen.getByRole("combobox", { name: "Status" }), "Finished");
+    const status = screen.getByRole("group", { name: "Status" });
+    await user.click(within(status).getByRole("button", { name: "Finished" }));
+    expect(within(status).getByRole("button", { name: "Finished" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
     await user.click(await screen.findByRole("button", { name: "Next" }));
     expect(router.state.location.search).toBe(
       "?bot=665f0000000000000000000b&status=finished&offset=25",
@@ -77,11 +68,19 @@ describe("matches page", () => {
     });
     const { router } = renderRoute("/matches");
 
-    expect(await screen.findByRole("link", { name: "Guest – Material 1.0.0" })).toBeVisible();
-    expect(screen.getByRole("combobox", { name: "Kind" })).toHaveValue("");
-    await user.selectOptions(screen.getByRole("combobox", { name: "Kind" }), "With players");
+    const row = (await screen.findByText("Guest")).closest("tr")!;
+    expect(row.textContent).toMatch(/^Guest–Material/);
+    expect(within(row).getByRole("link", { name: "Open" })).toHaveAttribute(
+      "href",
+      "/matches/665f00000000000000000001",
+    );
+    const kind = screen.getByRole("group", { name: "Kind" });
+    expect(within(kind).getByRole("button", { name: "All" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await user.click(within(kind).getByRole("button", { name: "With players" }));
     expect(router.state.location.search).toBe("?kind=players");
-    await screen.findByRole("link", { name: "Guest – Material 1.0.0" });
     const last = api.requests.filter((url) => url.pathname === "/api/v1/matches").at(-1);
     expect(last?.searchParams.get("kind")).toBe("players");
   });
@@ -94,9 +93,10 @@ describe("bots page", () => {
     const row = (await screen.findByRole("cell", { name: "Material" })).closest("tr");
     expect(row).not.toBeNull();
     expect(within(row!).getByText("Reference bot")).toBeVisible();
-    expect(within(row!).getByText("2500")).toBeVisible();
+    expect(within(row!).getByText("1.0.0")).toBeVisible();
     expect(screen.getByRole("columnheader", { name: "Creator" })).toBeVisible();
-    expect(within(row!).getByRole("link", { name: "Games" })).toHaveAttribute(
+    expect(screen.getByRole("columnheader", { name: "Version" })).toBeVisible();
+    expect(within(row!).getByRole("link", { name: "0" })).toHaveAttribute(
       "href",
       "/matches?bot=665f0000000000000000000b",
     );
@@ -145,7 +145,11 @@ describe("ratings page", () => {
     expect(paths).toContain("/api/v1/ratings/players");
     expect(paths).not.toContain("/api/v1/ratings");
 
-    await user.selectOptions(screen.getByLabelText("Show"), "Bots only");
+    await user.click(
+      within(screen.getByRole("group", { name: "Show" })).getByRole("button", {
+        name: "Bots only",
+      }),
+    );
     expect(await screen.findByText("Material")).toBeVisible();
     expect(screen.queryByText("anna")).toBeNull();
     expect(router.state.location.search).toBe("?show=bots");
@@ -156,10 +160,13 @@ describe("ratings page", () => {
     const api = mockApi(ranking);
     const { router } = renderRoute("/ratings");
     expect(await screen.findByText(/weighted by the number of games/)).toBeVisible();
-    const discipline = screen.getByRole("combobox", { name: "Discipline" });
-    expect(discipline).toHaveValue("");
+    const discipline = await screen.findByRole("group", { name: "Discipline" });
+    expect(within(discipline).getByRole("button", { name: "Overall" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
 
-    await user.selectOptions(discipline, "Blitz");
+    await user.click(await within(discipline).findByRole("button", { name: "Blitz" }));
     expect(router.state.location.search).toBe(`?discipline=${storedDiscipline().id}`);
     await waitFor(() => {
       const last = api.requests.filter((url) => url.pathname === "/api/v1/ratings").at(-1);
@@ -177,7 +184,9 @@ describe("ratings page", () => {
       "/ratings/players": { items: [] },
     });
     renderRoute("/ratings");
-    expect(await screen.findByText("No rated game yet.")).toBeVisible();
+    expect(await screen.findByText(/No rated game yet\./)).toBeVisible();
+    const empty = screen.getByText(/No rated game yet\./);
+    expect(within(empty).getByRole("link", { name: "Play" })).toHaveAttribute("href", "/play");
   });
 });
 
@@ -195,7 +204,8 @@ describe("queue page", () => {
 
     expect(await screen.findByRole("status")).toHaveTextContent("The queue is paused");
     expect(screen.getByText("No game is running right now.")).toBeVisible();
-    expect(screen.getByRole("link", { name: "Random 1.0.0 – Material 1.0.0" })).toBeVisible();
+    const row = screen.getByRole("link", { name: "Open" }).closest("tr")!;
+    expect(row.textContent).toMatch(/^1Material–Random3\smin\s\+\s2\ss/);
     expect(screen.getByText("2 more games are waiting.")).toBeVisible();
   });
 });
@@ -218,5 +228,10 @@ describe("layout", () => {
     mockApi({});
     renderRoute("/nowhere");
     expect(await screen.findByRole("heading", { name: "Page not found" })).toBeVisible();
+    const explore = screen.getByRole("navigation", { name: "Go on to" });
+    expect(within(explore).getByRole("link", { name: "Ranking" })).toHaveAttribute(
+      "href",
+      "/ratings",
+    );
   });
 });

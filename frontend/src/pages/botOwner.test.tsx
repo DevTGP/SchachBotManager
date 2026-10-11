@@ -60,8 +60,9 @@ describe("bot page for the owner", () => {
     renderRoute(`/bots/${SHARP_ID}`);
 
     await user.click(await screen.findByRole("button", { name: "Withdraw" }));
+    await user.click(screen.getByRole("button", { name: "Really withdraw" }));
     expect(await screen.findByRole("button", { name: "Reactivate" })).toBeVisible();
-    expect(screen.getByText("Withdrawn", { selector: "dd" })).toBeVisible();
+    expect(screen.getByText("Withdrawn", { selector: ".badge" })).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Reactivate" }));
     expect(await screen.findByRole("button", { name: "Withdraw" })).toBeVisible();
     const bodies = api.calls.filter((call) => call.method === "PATCH").map((call) => call.body);

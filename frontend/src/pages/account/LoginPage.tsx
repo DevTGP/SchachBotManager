@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Navigate, useLocation } from "react-router";
 
 import { login } from "../../api/account";
+import { ExploreLinks } from "../../components/ExploreLinks";
 import { FormError } from "../../components/FormError";
 import { useSubmit } from "../../hooks/useSubmit";
 import { nextPath } from "../../session/nextPath";
@@ -26,6 +27,7 @@ export function LoginPage() {
   return (
     <>
       <h1>{t("login.title")}</h1>
+      <p>{t("login.intro")}</p>
       <form className="form" onSubmit={onSubmit}>
         <label>
           {t("account.username")}
@@ -51,7 +53,9 @@ export function LoginPage() {
           {t("login.submit")}
         </button>
       </form>
-      <p className="muted small">{t("login.inviteOnly")}</p>
+      <h2>{t("login.withoutTitle")}</h2>
+      <p>{t("login.inviteOnly")}</p>
+      <ExploreLinks />
     </>
   );
 }

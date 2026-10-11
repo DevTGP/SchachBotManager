@@ -52,7 +52,7 @@ describe("admin disciplines", () => {
       max_moves: 500,
     });
     expect(screen.getByRole("textbox", { name: "Name" })).toHaveValue("");
-    expect(within(row).getByText("3+2")).toBeVisible();
+    expect(within(row).getByText("3 min + 2 s")).toBeVisible();
 
     await user.click(within(row).getByRole("button", { name: "Archive" }));
     expect(await within(row).findByText("Archived")).toBeVisible();
@@ -115,9 +115,9 @@ describe("games under a discipline", () => {
     renderRoute("/admin");
 
     const choice = await screen.findByRole("combobox", { name: "Discipline" });
-    await within(choice).findByRole("option", { name: "Blitz (3+2)" });
+    await within(choice).findByRole("option", { name: /^Blitz \(3\smin \+ 2\ss\)$/ });
     expect(within(choice).queryByRole("option", { name: /Old/ })).toBeNull();
-    await user.selectOptions(choice, "Blitz (3+2)");
+    await user.selectOptions(choice, BLITZ.id);
     expect(screen.queryByRole("spinbutton", { name: "Time (s)" })).toBeNull();
     await user.click(screen.getByRole("button", { name: "Add to queue" }));
 

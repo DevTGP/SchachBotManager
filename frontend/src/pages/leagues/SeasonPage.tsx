@@ -5,7 +5,7 @@ import { fetchSeason } from "../../api/leagues";
 import type { Season } from "../../api/types";
 import { ApiContent } from "../../components/ApiContent";
 import { formatDateTime } from "../../format/dateTime";
-import { formatTimeControl } from "../../format/timeControl";
+import { disciplineLabel } from "../../format/timeControl";
 import { useApi } from "../../hooks/useApi";
 import { POLL_LIST_MS } from "../../hooks/polling";
 import { useLocale } from "../../hooks/useLocale";
@@ -40,7 +40,7 @@ export function SeasonPage() {
           {data.settings && data.discipline ? (
             <LeagueFacts
               settings={data.settings}
-              discipline={`${data.discipline.name} (${formatTimeControl(data.discipline)})`}
+              discipline={disciplineLabel(data.discipline, locale)}
             />
           ) : (
             <p className="muted">{t("seasons.notStarted")}</p>

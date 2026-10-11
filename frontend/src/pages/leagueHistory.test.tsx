@@ -66,18 +66,28 @@ describe("schedule of a season", () => {
     const first = (await screen.findByText("Round 1")).closest("details")!;
     expect(first).not.toHaveAttribute("open");
     expect(within(first).getByText("· 1 of 1 finished")).toBeInTheDocument();
-    expect(within(first).getByRole("link", { name: "0–1 by forfeit" })).toHaveAttribute(
+    expect(within(first).getByText("0–1 by forfeit")).toBeInTheDocument();
+    expect(within(first).getByRole("link", { name: "Open" })).toHaveAttribute(
       "href",
       "/matches/m1",
     );
 
+    // Random had white, yet the pairing reads alphabetically (E165).
     const second = screen.getByText("Round 2").closest("details")!;
     expect(second).toHaveAttribute("open");
-    expect(within(second).getByRole("link", { name: "Waiting" })).toHaveAttribute(
+    const cells = within(second).getAllByRole("cell");
+    expect(cells.map((cell) => cell.textContent)).toEqual([
+      "1",
+      "Material",
+      "Random",
+      "Waiting",
+      "Open",
+    ]);
+    expect(within(second).getByRole("link", { name: "Open" })).toHaveAttribute(
       "href",
       "/matches/m2",
     );
-    expect(within(second).getByText("Bye: Sharp 1.0.0")).toBeVisible();
+    expect(within(second).getByText("Bye: Sharp")).toBeVisible();
   });
 
   it("says when a tier has no games", async () => {

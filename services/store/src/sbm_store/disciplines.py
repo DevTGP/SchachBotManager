@@ -61,6 +61,11 @@ def get(db: Database, discipline_id: ObjectId) -> dict | None:
     return db[DISCIPLINES].find_one({"_id": discipline_id})
 
 
+def by_name(db: Database, name: str) -> dict | None:
+    """The discipline with this name regardless of case, archived or not."""
+    return db[DISCIPLINES].find_one({"name_key": name_key(name)})
+
+
 def all_by_name(db: Database, *, archived: bool = True) -> list[dict]:
     """All disciplines by name; without the archived ones if archived is False."""
     query = {} if archived else {"archived": False}

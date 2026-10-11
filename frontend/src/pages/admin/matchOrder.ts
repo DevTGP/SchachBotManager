@@ -1,56 +1,26 @@
 import type { MatchOrder } from "../../api/admin";
+import {
+  DEFAULT_CONDITIONS,
+  type MatchConditions,
+  seriesConditions,
+  timeConditions,
+} from "../../components/matchFields/conditions";
 
-/** The match form as typed: times in seconds, like the discipline names (E85). */
-export interface MatchForm {
+/** The admin form as typed: two bots or "random" (E162), times in seconds (E85). */
+export interface MatchForm extends MatchConditions {
   white: string;
   black: string;
-  /** The id of a discipline, or "" for free times (E100). */
-  discipline: string;
-  initialSeconds: string;
-  incrementSeconds: string;
-  games: string;
-  alternate: boolean;
-  priority: string;
-  maxMoves: string;
-  startFen: string;
-  /** The wish for a rated game; the API decides (E158). */
-  rated: boolean;
 }
 
-export const DEFAULT_FORM: Omit<MatchForm, "white" | "black"> = {
-  discipline: "",
-  initialSeconds: "180",
-  incrementSeconds: "2",
-  games: "1",
-  alternate: false,
-  priority: "100",
-  maxMoves: "500",
-  startFen: "",
-  rated: true,
-};
+export const DEFAULT_FORM = DEFAULT_CONDITIONS.admin;
 
 /** The request body; the API checks the ranges and the position. */
 export function matchOrder(form: MatchForm): MatchOrder {
-  const fen = form.startFen.trim();
-  const conditions = form.discipline
-    ? { discipline_id: form.discipline }
-    : {
-        initial_time_ms: secondsToMs(form.initialSeconds),
-        increment_ms: secondsToMs(form.incrementSeconds),
-        max_moves: Number(form.maxMoves),
-      };
   return {
     white_bot_id: form.white,
     black_bot_id: form.black,
-    ...conditions,
-    games: Number(form.games),
-    alternate: form.alternate,
+    ...timeConditions(form, "admin"),
+    ...seriesConditions(form),
     priority: Number(form.priority),
-    rated: form.rated,
-    ...(fen ? { start_fen: fen } : {}),
   };
-}
-
-export function secondsToMs(seconds: string): number {
-  return Math.round(Number(seconds.replace(",", ".")) * 1000);
 }

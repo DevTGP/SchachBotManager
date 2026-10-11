@@ -66,7 +66,7 @@ Jedes Ende bekommt einen maschinenlesbaren `termination`-Code (Liste in [bot-pro
 - Infrastrukturfehler (z. B. Datenbank weg): Partie zurücksetzen, nach 30 s neuer Versuch, nach drei Versuchen `aborted`.
 - SIGTERM/SIGINT: Bots beenden, Partie und Job zurück in die Queue, Versuch zählt nicht.
 - Konfiguration über Umgebungsvariablen: `SBM_MONGO_URI`, `SBM_MONGO_DB` (Standard `sbm`), `SBM_WORKER_ID` (Standard Rechnername und PID), `SBM_LOG_LEVEL`, `SBM_SANDBOX` (`nsjail` oder `none`).
-- `sbm-enqueue WEISS SCHWARZ [--time 60+1] [--games N] [--alternate] [--fen …] [--max-moves N] [--startup-ms N] [--priority N] [--discipline NAME]` reiht Partien zwischen Bots nach Namen ein (Entwicklungswerkzeug bis M3, E71).
+- `sbm-enqueue WEISS SCHWARZ [--time 60+1] [--games N] [--alternate] [--fen …] [--max-moves N] [--startup-ms N] [--priority N] [--discipline NAME]` reiht Partien zwischen Bots nach Namen ein (Entwicklungswerkzeug bis M3, E71). `--discipline NAME` nimmt eine gespeicherte Disziplin (Groß- und Kleinschreibung egal, archivierte eingeschlossen) und schließt `--time`, `--max-moves` und `--startup-ms` aus (E169).
 
 ### Stand M3 Schritt 3 (E89, E92–E94)
 

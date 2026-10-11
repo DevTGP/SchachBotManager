@@ -1,14 +1,16 @@
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
 
 import { withdrawOwnMatch } from "../../api/bots";
 import type { MatchSummary } from "../../api/types";
+import { ConfirmButton } from "../../components/ConfirmButton";
 import { FormError } from "../../components/FormError";
-import { playersLabel } from "../../format/botLabel";
-import { formatTimeControl } from "../../format/timeControl";
+import { QueueTable } from "../../components/QueueTable";
 import { useSubmit } from "../../hooks/useSubmit";
 
-/** The account's games that still wait; each can be taken back until it starts (E157). */
+/**
+ * The account's games that still wait, in the coder view of the queue table (E167); each can be
+ * taken back until it starts, after a second click (E157).
+ */
 export function OwnWaitingMatches({
   matches,
   onChange,
@@ -18,7 +20,6 @@ export function OwnWaitingMatches({
 }) {
   const { t } = useTranslation();
   const { pending, error, submit } = useSubmit();
-  if (matches.length === 0) return <p className="muted">{t("ownBots.noWaiting")}</p>;
 
   function withdraw(matchId: string) {
     void submit(async () => {
@@ -29,32 +30,20 @@ export function OwnWaitingMatches({
 
   return (
     <>
-      <div className="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>{t("matchTable.players")}</th>
-              <th>{t("matchTable.timeControl")}</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {matches.map((match) => (
-              <tr key={match.id}>
-                <td>
-                  <Link to={`/matches/${match.id}`}>{playersLabel(match)}</Link>
-                </td>
-                <td>{formatTimeControl(match.discipline)}</td>
-                <td>
-                  <button type="button" disabled={pending} onClick={() => withdraw(match.id)}>
-                    {t("ownBots.withdraw")}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <QueueTable
+        rows={matches.map((match) => ({ match }))}
+        view="own"
+        empty={t("ownBots.noWaiting")}
+        actions={({ match }) => (
+          <ConfirmButton
+            small
+            label={t("ownBots.withdraw")}
+            confirmLabel={t("ownBots.withdrawConfirm")}
+            onConfirm={() => withdraw(match.id)}
+            disabled={pending}
+          />
+        )}
+      />
       <FormError error={error} />
     </>
   );

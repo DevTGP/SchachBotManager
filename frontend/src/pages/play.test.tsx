@@ -72,7 +72,7 @@ describe("play setup", () => {
     });
     const { router } = renderRoute("/play");
 
-    await user.selectOptions(await screen.findByRole("combobox", { name: "Bot" }), BOTS[1]!.id);
+    await user.selectOptions(await screen.findByRole("combobox", { name: "Bot" }), BOTS[1]!.name);
     await user.selectOptions(screen.getByRole("combobox", { name: "Your color" }), "white");
     await user.click(screen.getByRole("button", { name: "Start game" }));
 
@@ -288,6 +288,7 @@ describe("api tokens", () => {
     expect(await screen.findByRole("textbox", { name: "Token" })).toHaveValue(created.token);
     expect(await screen.findByRole("cell", { name: "laptop" })).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Revoke" }));
+    await user.click(screen.getByRole("button", { name: "Really revoke" }));
     expect(await screen.findByText("No tokens yet.")).toBeVisible();
     expect(api.calls.some((call) => call.method === "DELETE")).toBe(true);
   });

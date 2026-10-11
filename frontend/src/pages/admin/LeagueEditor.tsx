@@ -4,7 +4,8 @@ import { useTranslation } from "react-i18next";
 import type { LeagueRequest, StoredDiscipline } from "../../api/types";
 import { FormError } from "../../components/FormError";
 import { NumberField } from "../../components/NumberField";
-import { formatTimeControl } from "../../format/timeControl";
+import { disciplineLabel } from "../../format/timeControl";
+import { useLocale } from "../../hooks/useLocale";
 import { useSubmit } from "../../hooks/useSubmit";
 import { type LeagueForm, leagueRequest } from "./leagueForm";
 import { TiebreakField } from "./TiebreakField";
@@ -30,6 +31,7 @@ export function LeagueEditor({
   onCancel?: () => void;
 }) {
   const { t } = useTranslation();
+  const locale = useLocale();
   const { pending, error, submit } = useSubmit();
   const usable = disciplines.filter(
     (discipline) => !discipline.archived || discipline.id === initial.disciplineId,
@@ -81,7 +83,7 @@ export function LeagueEditor({
         >
           {usable.map((discipline) => (
             <option key={discipline.id} value={discipline.id}>
-              {`${discipline.name} (${formatTimeControl(discipline)})`}
+              {disciplineLabel(discipline, locale)}
             </option>
           ))}
         </select>

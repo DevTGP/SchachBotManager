@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
@@ -45,6 +45,8 @@ describe("login", () => {
     await user.type(screen.getByLabelText("Password"), "wrong password");
     await user.click(screen.getByRole("button", { name: "Log in" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Wrong name or password.");
+    const explore = screen.getByRole("navigation", { name: "Go on to" });
+    expect(within(explore).getByRole("link", { name: "Play" })).toHaveAttribute("href", "/play");
   });
 
   it("links guests to the login and admins to the admin pages", async () => {
@@ -163,11 +165,19 @@ describe("account page", () => {
   it("shows the own rating", async () => {
     mockApi({
       "/session": { user: { ...CODER, role: "player" } },
-      "/account/rating": { value: 2547, games: 1 },
+      "/account/rating": {
+        value: 2547,
+        games: 1,
+        disciplines: [
+          { discipline_id: "665f00000000000000000d01", name: "Blitz", value: 2547, games: 1 },
+        ],
+      },
     });
     renderRoute("/account");
 
     expect(await screen.findByText("2547 after 1 rated game")).toBeVisible();
+    const table = screen.getByRole("table", { name: "Rating per discipline" });
+    expect(within(table).getByRole("row", { name: "Blitz 2547 1" })).toBeVisible();
     expect(screen.queryByRole("heading", { name: "API tokens" })).toBeNull();
   });
 

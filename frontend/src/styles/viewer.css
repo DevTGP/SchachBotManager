@@ -39,22 +39,6 @@
   white-space: nowrap;
 }
 
-.piece-dot {
-  width: 0.9rem;
-  height: 0.9rem;
-  border-radius: 50%;
-  border: 1px solid var(--muted);
-  flex: none;
-}
-
-.piece-dot.w {
-  background: #ffffff;
-}
-
-.piece-dot.b {
-  background: #1d1d1b;
-}
-
 .material {
   color: var(--muted);
   font-size: 0.9rem;
@@ -146,32 +130,6 @@ button.move[aria-current="step"] {
   color: var(--muted);
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
-}
-
-.details {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.2rem 1rem;
-  margin: 0;
-}
-
-.details div {
-  display: contents;
-}
-
-.details dt {
-  color: var(--muted);
-}
-
-.details dd {
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-
-.info-text {
-  font-family: var(--mono);
-  font-size: 0.85rem;
-  overflow-wrap: anywhere;
 }
 
 .export {

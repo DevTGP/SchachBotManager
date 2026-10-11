@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { playersLabel, sideLabel } from "./botLabel";
 import { formatClock, formatSpent } from "./clock";
+import { minutesToMs, msToSeconds, secondsToMs } from "./duration";
+import { pairing, pairingLabel, pairingResult } from "./pairing";
 import { formatPoints } from "./points";
-import { formatRatingChange } from "./rating";
+import { formatRatingChange, ratingText } from "./rating";
 import { formatResult } from "./result";
 import { formatScore } from "./score";
-import { formatTimeControl } from "./timeControl";
+import { disciplineLabel, formatTimeControl } from "./timeControl";
 
 describe("formatClock", () => {
   it("shows minutes and seconds, hours when needed", () => {
@@ -49,22 +50,16 @@ describe("formatScore", () => {
 });
 
 describe("formatTimeControl and formatResult", () => {
-  it("writes the time control as players do", () => {
-    const discipline = {
-      name: "x",
-      initial_time_ms: 180_000,
-      increment_ms: 2_000,
-      startup_ms: 0,
-      tolerance_ms: 0,
-      max_moves: 1,
-    };
-    expect(formatTimeControl(discipline)).toBe("3+2");
-    expect(formatTimeControl({ ...discipline, initial_time_ms: 90_000, increment_ms: 500 })).toBe(
-      "1.5+0.5",
+  it("writes the time control with units and the locale's numbers", () => {
+    const discipline = { name: "Blitz", initial_time_ms: 180_000, increment_ms: 2_000 };
+    expect(formatTimeControl(discipline, "de")).toBe("3\u00a0min + 2\u00a0s");
+    expect(formatTimeControl({ initial_time_ms: 90_000, increment_ms: 500 }, "de")).toBe(
+      "1,5\u00a0min + 0,5\u00a0s",
     );
-    expect(formatTimeControl({ ...discipline, initial_time_ms: 20_000, increment_ms: 500 })).toBe(
-      "20s+0.5",
+    expect(formatTimeControl({ initial_time_ms: 20_000, increment_ms: 500 }, "en")).toBe(
+      "20\u00a0s + 0.5\u00a0s",
     );
+    expect(disciplineLabel(discipline, "en")).toBe("Blitz (3\u00a0min + 2\u00a0s)");
   });
 
   it("writes results with typographic dashes", () => {
@@ -74,32 +69,38 @@ describe("formatTimeControl and formatResult", () => {
   });
 });
 
-describe("sideLabel and playersLabel", () => {
-  it("names a side with its version, games before versions by name only", () => {
-    expect(sideLabel({ name: "Sharp", version: "1.2.0" })).toBe("Sharp 1.2.0");
-    expect(sideLabel({ name: "Sharp", version: null })).toBe("Sharp");
-    expect(
-      playersLabel({
-        white: {
-          kind: "bot",
-          bot_id: "a",
-          name: "Sharp",
-          version: "1.2.0",
-          sdk: null,
-          lang: null,
-          rating: null,
-        },
-        black: {
-          kind: "bot",
-          bot_id: "b",
-          name: "Random",
-          version: null,
-          sdk: null,
-          lang: null,
-          rating: null,
-        },
-      }),
-    ).toBe("Sharp 1.2.0 – Random");
+function bot(name: string, version: string | null = null) {
+  return { kind: "bot" as const, bot_id: name, name, version, sdk: null, lang: null, rating: null };
+}
+
+describe("pairing", () => {
+  it("puts the sides in alphabetical order, whatever the colours", () => {
+    const match = { white: bot("Random"), black: bot("material") };
+    expect(pairing(match).first.name).toBe("material");
+    expect(pairing(match).flipped).toBe(true);
+    expect(pairingLabel(match)).toBe("material – Random");
+    expect(pairing({ white: bot("Alpha"), black: bot("Beta") }).flipped).toBe(false);
+  });
+
+  it("orders two versions of one name by version", () => {
+    const match = { white: bot("Sharp", "1.10.0"), black: bot("Sharp", "1.9.0") };
+    expect(pairing(match).first.version).toBe("1.9.0");
+  });
+
+  it("gives the result in the order of the pairing", () => {
+    expect(pairingResult("1-0", false)).toBe("1–0");
+    expect(pairingResult("1-0", true)).toBe("0–1");
+    expect(pairingResult("1/2-1/2", true)).toBe("½–½");
+    expect(pairingResult(null, true)).toBe("");
+  });
+});
+
+describe("durations", () => {
+  it("reads seconds and minutes with a point or a comma", () => {
+    expect(secondsToMs("2,5")).toBe(2_500);
+    expect(secondsToMs(" 3 ")).toBe(3_000);
+    expect(minutesToMs("0.5")).toBe(30_000);
+    expect(msToSeconds(1_500)).toBe("1.5");
   });
 });
 
@@ -108,6 +109,11 @@ describe("formatRatingChange", () => {
     expect(formatRatingChange({ before: 2800, after: 2830 })).toBe("2800 → 2830 (+30)");
     expect(formatRatingChange({ before: 2400, after: 2370 })).toBe("2400 → 2370 (−30)");
     expect(formatRatingChange({ before: 2500, after: 2500 })).toBe("2500 → 2500 (±0)");
+  });
+
+  it("shows a rating without counted games as a dash", () => {
+    expect(ratingText({ value: 1500, games: 0 })).toBe("–");
+    expect(ratingText({ value: 1512, games: 3 })).toBe("1512");
   });
 });
 

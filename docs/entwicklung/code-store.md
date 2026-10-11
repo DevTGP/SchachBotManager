@@ -58,7 +58,7 @@ Alle Pfade relativ zu `services/store/src/sbm_store/`.
 | `enqueue.py` | `enqueue_match`: erst Partie, dann Job; genutzt von `sbm-enqueue` und der Web-API |
 | `play.py` | Interaktive Partien (`human`, `remote`) mit Sitz-Hash, `origin` für die Grenzen und Job der Art `play` (E113–E116) |
 | `discipline.py` | Dataclass `Discipline` als `discipline_snapshot` der Partie; `is_rated` (gespeicherte Disziplin und Grundstellung, E100) |
-| `disciplines.py` | Collection `disciplines`: anlegen, ändern, archivieren, `snapshot` für Partien; `NameTaken` bei doppeltem Namen (E100) |
+| `disciplines.py` | Collection `disciplines`: anlegen, ändern, archivieren, `snapshot` für Partien; `NameTaken` bei doppeltem Namen (E100); `by_name` findet eine Disziplin über `name_key` unabhängig von Groß- und Kleinschreibung, auch archiviert (E169) |
 | `opponents.py` | Bilanz eines Bots gegen jeden Gegner per Aggregation (E161) |
 | `bot_record.py` | Siege, Remis, Niederlagen eines Bots je Disziplin per Aggregation; `Counts` (E141) |
 | `rating_history.py` | Rating vorher und nachher je verbuchter Partie eines Bots, nach Disziplin (E140) |

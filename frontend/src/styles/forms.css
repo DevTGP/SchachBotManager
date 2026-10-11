@@ -5,7 +5,7 @@ textarea {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 0.3rem 0.5rem;
+  padding: 0.3rem 0.7rem;
   width: 100%;
 }
 
@@ -36,6 +36,14 @@ button.link {
   max-width: 32rem;
 }
 
+.form p {
+  margin: 0;
+}
+
+.form select {
+  width: 100%;
+}
+
 .form label {
   display: flex;
   flex-direction: column;
@@ -59,10 +67,16 @@ button.link {
   margin: 0;
 }
 
+/* Fields side by side; their boxes line up at the bottom when a label wraps. */
 .form-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  align-items: end;
   gap: 0.75rem;
+}
+
+.form-row > .wide {
+  grid-column: 1 / -1;
 }
 
 .hint {
@@ -106,6 +120,28 @@ button.link {
   font-size: 0.85rem;
 }
 
+/* A command to copy, e.g. how a remote bot starts (G7). */
+.command-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  max-width: 48rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.command-box pre {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0.4rem 0.75rem;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
 .tabs {
   display: flex;
   flex-wrap: wrap;
@@ -132,4 +168,48 @@ button.link {
 
 .from-pgn > :not(summary) {
   margin-top: 0.5rem;
+}
+
+/* The area for the sources of an upload (G16). */
+.file-drop {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.file-drop.over {
+  border-color: var(--accent);
+  background: var(--highlight);
+}
+
+/* /admin/settings: one form, the button stays in sight at the bottom (U14). */
+.settings-form {
+  max-width: 48rem;
+}
+
+.settings-group h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.badge.changed {
+  color: var(--accent);
+  border-color: var(--accent);
+  font-weight: normal;
+}
+
+.save-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
 }

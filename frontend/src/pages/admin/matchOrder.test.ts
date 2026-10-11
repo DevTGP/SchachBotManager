@@ -22,7 +22,7 @@ describe("matchOrder", () => {
       ...DEFAULT_FORM,
       white: "w",
       black: "b",
-      initialSeconds: "20",
+      initial: "20",
       incrementSeconds: "0,5",
       startFen: "  8/8/8/8/8/8/8/K6k w - - 0 1 ",
     });
