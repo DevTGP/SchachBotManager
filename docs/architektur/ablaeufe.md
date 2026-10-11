@@ -33,7 +33,8 @@ sequenceDiagram
     Runner->>BotX: unfreeze + turn (Uhr läuft)
     BotX->>Runner: move
     Runner->>Runner: Uhr stoppen, BotX einfrieren, Zug prüfen
-    Runner->>DB: Zug anhängen (Live-Stream)
+    Runner->>DB: Zug anhängen
+    Runner-->>Gateway: Zug (live-v1)
   end
   Runner->>BotW: game_over
   Runner->>BotB: game_over
@@ -53,8 +54,9 @@ Details: [match-runner.md](../komponenten/match-runner.md), [bot-protokoll.md](.
 
 ## 4. Live-Verfolgung
 
-- Runner schreibt jeden Zug sofort in das Match-Dokument.
-- Web-API verteilt Änderungen über den Live-Kanal an abonnierte Clients (Quelle: MongoDB Change Streams oder Pub/Sub, siehe [backend-api.md](../komponenten/backend-api.md)).
+- Runner schreibt jeden Zug sofort in das Match-Dokument und sendet ihn über das Netz `live` an den Gateway (live-v1, E142).
+- Die Partieseite lädt die Partie über die API und öffnet, solange sie läuft, `GET /api/v1/matches/{id}/live?after=n` beim Gateway; dieser liefert die fehlenden und dann jeden neuen Zug als Server-Sent Event, am Ende `end` ([gateway.md](../komponenten/gateway.md)).
+- Bei `end` lädt die Seite die Partie neu (Ergebnis); bricht der Strom ab oder fehlen Züge, fragt sie wie vorher alle 2 s die API.
 - Der Viewer nutzt für Live und Replay dieselbe Zugliste.
 
 ## 5. Mensch gegen Bot

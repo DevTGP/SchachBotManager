@@ -16,7 +16,7 @@ Reine API (E5). Liefert kein HTML, führt keinen Bot-Code aus und kann keine San
 | `remote` | Lokaler Bot gegen Server: Spiel anlegen; die WebSocket-Verbindung endet am Gateway, nicht an der API (E112) |
 | `queue` | Öffentliche Sicht auf wartende Spiele mit geschätzten Startzeiten |
 | `admin` | Nutzer, Invites, Disziplinen, Ligen, Turniere, Bots, Queue (pausieren, umsortieren, Parallelität), Systemeinstellungen, Audit-Log |
-| `live` | WebSocket/SSE für Live-Updates |
+| `live` | Server-Sent Events einer laufenden Partie; beantwortet der Gateway, nicht die API (E142) |
 
 Schichtung: Routen → Services (Geschäftslogik) → Repositories (MongoDB). Validierung aller Eingaben über Schemas; OpenAPI-Beschreibung als Vertrag für die SPA.
 
@@ -260,18 +260,7 @@ Jede Route prüft Rolle **und** Besitz (eigene Ressource vs. fremde).
 
 ## Live-Kanal
 
-| Option | Eigenschaft |
-|--------|-------------|
-| WebSocket | Bidirektional; für Mensch-gegen-Bot und Remote-Bots im eigenen Dienst `gateway` umgesetzt (E112, [gateway.md](gateway.md)), die API bleibt synchron |
-| Server-Sent Events | Einfach, nur Server → Client; reicht für Zuschauen und Tabellen |
-
-Quelle der Ereignisse (Runner → API):
-
-| Option | Eigenschaft |
-|--------|-------------|
-| MongoDB Change Streams | Keine Zusatzkomponente; erfordert Replica Set |
-| Pub/Sub-Broker (z. B. Redis) | Zusätzlicher Dienst; entkoppelt, geringe Latenz |
-| Polling der DB | Einfachste Variante, höhere Latenz und Last |
+Umgesetzt mit E142 ohne die API: Die Runner senden die Züge laufender Partien direkt an den Gateway, der sie unter `GET /api/v1/matches/{id}/live` als Server-Sent Events ausliefert ([gateway.md](gateway.md)). Der `frontend`-Nginx leitet nur diesen Pfad an den Gateway, alles andere unter `/api` bleibt bei der API. So braucht es weder ein Replica Set für Change Streams noch einen zusätzlichen Broker, und die API bleibt synchron. Der Endpunkt steht nicht in `spec/web/openapi.json`; `GET /matches/{id}` bleibt die maßgebliche Quelle und der Rückfall der Partieseite.
 
 Züge von Menschen und Remote-Bots laufen nicht über die API: Der Gateway reicht sie über das Relay an den Play-Runner, der sie wie jeden anderen Zug prüft (E112). Die API legt interaktive Partien nur an und gibt den Sitz-Token aus (E113).
 

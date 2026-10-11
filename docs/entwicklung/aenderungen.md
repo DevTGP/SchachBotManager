@@ -75,7 +75,7 @@ Parallel laufende Meilensteine haben getrennte Nummernkreise, damit sich gleichz
 | Meilenstein | Entscheidungen | Migrationen | Stand |
 |-------------|----------------|-------------|-------|
 | M0–M3 | E1–E98 und E105 | `0001`–`0004` | abgeschlossen |
-| M4 | E99–E108 (E106–E108 Viewer), danach E130–E149 (E130) | unterhalb `0110`, zuletzt `0008` | läuft (Schritt 4 umgesetzt, E138–E141) |
+| M4 | E99–E108 (E106–E108 Viewer), danach E130–E149 (E130) | unterhalb `0110`, zuletzt `0008` | läuft (alle fünf Schritte umgesetzt, zuletzt der Live-Kanal mit E142; Abnahme auf dem Server steht aus) |
 | M7 | E110–E129 | `0110`–`0149` | abgeschlossen |
 | M6 | E150–E169 | ab `0150`, zuletzt `0153` | läuft |
 

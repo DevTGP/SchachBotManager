@@ -31,7 +31,7 @@ Deutsch und Englisch. Alle Texte liegen von Beginn an in Übersetzungsdateien; S
 | Zugliste | SAN-Notation, verbrauchte Zeit pro Zug |
 | Metadaten | Bots, Versionen, Disziplin, Ergebnis, Endgrund, Wettbewerb |
 | Zusatz | Bot-`info` (Bewertung/Tiefe) als Verlauf, öffentlich sichtbar (E33), geschlagene Figuren/Materialbilanz |
-| Live | Laufende Partien aktualisieren sich über den Live-Kanal (bis M4 durch Abfragen, E77); Wechsel zwischen „live folgen“ und freiem Blättern |
+| Live | Laufende Partien aktualisieren sich über den Live-Kanal (E142, vorher durch Abfragen, E77); Wechsel zwischen „live folgen“ und freiem Blättern |
 | Export | PGN, FEN der aktuellen Stellung, teilbarer Link auf Partie + Zugnummer |
 
 Der Viewer rendert nur gespeicherte Stellungen (FEN pro Zug) und braucht keine eigene Regelimplementierung.

@@ -29,13 +29,15 @@ Lesereihenfolge:
 |-------|---------|
 | [`__init__.py`](../../services/runner/src/sbm_runner/__init__.py) | Paketbeschreibung |
 | [`cli.py`](../../services/runner/src/sbm_runner/cli.py) | `sbm-runner`: Logging, Signal-Handler, Rolle `queue`/`play`, Start der Sandbox |
-| [`config.py`](../../services/runner/src/sbm_runner/config.py) | `RunnerConfig`: Abfrage-Intervall, Lease, Heartbeat, `max_attempts`, `retry_delay`, `verification_wait` (E89); `default_worker_id` |
+| [`config.py`](../../services/runner/src/sbm_runner/config.py) | `RunnerConfig`: Abfrage-Intervall, Lease, Heartbeat, `max_attempts`, `retry_delay`, `verification_wait` (E89), `live_address` (E142); `default_worker_id` |
 | [`enqueue_cli.py`](../../services/runner/src/sbm_runner/enqueue_cli.py) | `sbm-enqueue`: baut eine `Discipline`, prüft sie mit `MatchSettings` des Referees und ruft `sbm_store.enqueue.enqueue_match` |
 | [`worker.py`](../../services/runner/src/sbm_runner/worker.py) | `Worker`: ein Job nach dem anderen; je Runde zuerst `advance_leagues`; Abrufreihenfolge alte Verifikation → Partie (über `sbm_store.queue_order.claim_match`: höchste Priorität, Wettbewerbe abwechselnd, E134) → Verifikation (E89); Ratings nach jeder Partie (E103), Neuberechnung vor dem Abruf (E105); `utc_now` |
 | [`league_tick.py`](../../services/runner/src/sbm_runner/league_tick.py) | `advance_leagues`: je Runde Spielplan nach Absturz neu anlegen, Partien zurückgezogener Bots kampflos werten, fertige Saisons beenden, fällige starten (E132–E136); ein Fehler wird geloggt und hält den Runner nicht an |
-| [`game.py`](../../services/runner/src/sbm_runner/game.py) | `run_job`: spielt die Partie eines Jobs mit dem Referee und speichert das Ergebnis; `bot_player` lässt nur Bots in `verified` spielen |
+| [`game.py`](../../services/runner/src/sbm_runner/game.py) | `run_job`: spielt die Partie eines Jobs mit dem Referee und speichert das Ergebnis; `bot_player` lässt nur Bots in `verified` spielen; sendet jeden Zug zusätzlich über `LiveFeed` an den Gateway (E142) |
 | [`match_settings.py`](../../services/runner/src/sbm_runner/match_settings.py) | `MatchSettings` des Referees aus `discipline_snapshot` und `start_fen` einer gespeicherten Partie |
 | [`players.py`](../../services/runner/src/sbm_runner/players.py) | `PlayerFactory`, `UnsupportedBot`, erlaubte Referenzbots (`BUILTIN_MODULES`), `plain_player`/`PlainPlayer` ohne Sandbox (E72) |
+| [`live_feed.py`](../../services/runner/src/sbm_runner/live_feed.py) | `LiveFeed`: Züge einer Partie an den Live-Port des Gateways (live-v1) aus einem eigenen Thread über eine Warteschlange; Neuverbindung alle 5 s mit allen Zügen; ohne Adresse wirkungslos (E142) |
+| [`address.py`](../../services/runner/src/sbm_runner/address.py) | `parse_address` (`host:port` mit dem Namen der Variablen im Fehler) und `live_address` aus `SBM_LIVE_ADDRESS` |
 | [`recorder.py`](../../services/runner/src/sbm_runner/recorder.py) | `Recorder.on_move`: schreibt jeden Zug sofort in die Partie (`matches.append_move`) |
 | [`checkout.py`](../../services/runner/src/sbm_runner/checkout.py) | Frische Kopie der Dateien eines Uploads aus GridFS unter `/tmp/sbm-bots`, mit erneuter Prüfung von Pfad, Art, Größe und SHA-256 (E94); `BotDir` |
 | [`heartbeat.py`](../../services/runner/src/sbm_runner/heartbeat.py) | `Heartbeat`: verlängert die Lease im eigenen Thread; ruft `on_lost`, wenn der Job nicht mehr gehalten wird (E152) |
@@ -75,9 +77,9 @@ Zur Sandbox gehören außerhalb des Pakets [`sandbox/python.cfg`](../../sandbox/
 | Modul | Aufgabe |
 |-------|---------|
 | [`__init__.py`](../../services/runner/src/sbm_runner/play/__init__.py) | Paketbeschreibung |
-| [`config.py`](../../services/runner/src/sbm_runner/play/config.py) | `PlayConfig` aus `SBM_RELAY_ADDRESS`, `SBM_PLAY_SLOTS`, `SBM_WORKER_ID`; Wartezeiten für Sitze, Abwesenheit, Relay und Stopp |
+| [`config.py`](../../services/runner/src/sbm_runner/play/config.py) | `PlayConfig` aus `SBM_RELAY_ADDRESS`, `SBM_LIVE_ADDRESS`, `SBM_PLAY_SLOTS`, `SBM_WORKER_ID`; Wartezeiten für Sitze, Abwesenheit, Relay und Stopp |
 | [`worker.py`](../../services/runner/src/sbm_runner/play/worker.py) | `PlayWorker`: bis `min(slots, max_games)` Partien in eigenen Threads mit eigenem Heartbeat; `recover_expired_play`, `count_ratings` |
-| [`game.py`](../../services/runner/src/sbm_runner/play/game.py) | `InteractiveGame`: Seiten aufbauen, auf Sitze warten, spielen, speichern; jeder Fehler bricht ab statt zu wiederholen (E113) |
+| [`game.py`](../../services/runner/src/sbm_runner/play/game.py) | `InteractiveGame`: Seiten aufbauen, auf Sitze warten, spielen, speichern; jeder Fehler bricht ab statt zu wiederholen (E113); Züge auch an den Live-Kanal (E142) |
 | [`relay_connection.py`](../../services/runner/src/sbm_runner/play/relay_connection.py) | `RelayConnection`: TCP-Verbindung eines Sitzes zum Gateway (relay-v1), Lesethread, `present`/`absent`; `RelayClosed`, `SeatAbandoned` |
 | [`relay_player.py`](../../services/runner/src/sbm_runner/play/relay_player.py) | `RelayPlayer`: Remote-Bot, Zeilen des Bot-Protokolls v1 unverändert (E116) |
 | [`human_player.py`](../../services/runner/src/sbm_runner/play/human_player.py) | `HumanPlayer`: übersetzt zwischen Referee und Browser (play-v1), legale Züge aus dem Kern, Stand erneut nach Neuladen (E114) |
@@ -190,7 +192,8 @@ Fixtures und Hilfsmodule:
 | `sbm_store.testing` (Plugin über `pytest11`) | `db`: frische Datenbank je Test; ohne MongoDB übersprungen, mit `SBM_REQUIRE_MONGO=1` Fehler; Adresse aus `SBM_TEST_MONGO_URI` |
 | `tests/conftest.py` | `config` (`RunnerConfig`), `reference_bots` (migriert, gibt Random und Material), `worker` (ohne Warten), `enqueue` (Partie in der Vergangenheit), `foreign_bot`; Disziplin `QUICK` mit drei Zügen |
 | `tests/uploads.py` | `upload` legt einen Bot mit Dateien und Verifikationsjob an; Dateisätze `GOOD`, `CRASHING`; Berichte `CLEAN`, `DIRTY`; `FakeVerifier` (echter Checkout, Analyse nach Vorgabe, Bots als Prozesse ohne nsjail); `CheckedPlayer` |
-| `tests/play/conftest.py` | `RunningGateway` im eigenen Thread, `RemoteBot` (Bot-Protokoll v1 über WebSocket), `Person` (Browser mit play-v1); Fixtures `gateway`, `play_config`, `play_worker`, `create_remote` |
+| `tests/play/conftest.py` | `RunningGateway` im eigenen Thread, `RemoteBot` (Bot-Protokoll v1 über WebSocket), `Person` (Browser mit play-v1), `Watcher` (Zuschauer des Live-Kanals über HTTP); Fixtures `gateway`, `play_config` (mit Live-Port), `play_worker`, `create_remote` |
+| `tests/live_listener.py` | `LiveListener`: echter TCP-Server auf `127.0.0.1` als Gegenstelle des `LiveFeed`, sammelt die Zeilen je Verbindung (`connections`, `wait_closed`) |
 | `tests/sandbox/conftest.py` | `sandbox` (überspringt ohne `SBM_SANDBOX=nsjail`, scheitert mit `SBM_REQUIRE_SANDBOX=1`), `no_leftovers` (nach jedem Test keine cgroup unter `bots/`), `jailed`, `play`; Fehler als GitHub-Annotation |
 | `tests/sandbox/sandbox_suite.py` | `BOTS`, `RANDOM`, `QUICK`, `REGULAR` (reguläre Endgründe) |
 | `tests/sandbox/bots/` | Testbots: Endlosschleife, Dateien, verbotene Aufrufe, fork, lange Zeile, Speicher, Netz, Spinner, stderr-Flut, Threads, ein Upload mit Datendatei |

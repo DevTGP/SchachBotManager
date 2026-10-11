@@ -4,12 +4,12 @@
 
 | Dienst | Netz | Besonderheit |
 |--------|------|--------------|
-| `frontend` | `local-web` + intern | Liefert den statischen SPA-Build aus, reicht `/api` an `api` und `/api/v1/play/socket` als WebSocket an `gateway` weiter; einziger Dienst, auf den der Proxy zeigt |
-| `gateway` | intern + `relay` | WebSockets interaktiver Partien, ohne Rechte und ohne Datenbankzugang; Relay-Port nur im Netz `relay` (E112) |
+| `frontend` | `local-web` + intern | Liefert den statischen SPA-Build aus, reicht `/api` an `api`, `/api/v1/play/socket` als WebSocket und `/api/v1/matches/{id}/live` als Event-Stream an `gateway` weiter; einziger Dienst, auf den der Proxy zeigt |
+| `gateway` | intern + `relay` + `live` | WebSockets interaktiver Partien und Live-Kanal laufender Partien, ohne Rechte und ohne Datenbankzugang; Relay-Port nur im Netz `relay` (E112), Live-Port nur im Netz `live` (E142) |
 | `api` | intern | Flask hinter WSGI-Server; kann keine Prozesse starten |
 | `scheduler` | – | Nicht vorhanden: Saisonstart und -ende sowie Rückzüge prüft der Runner in jeder Runde (E132, E136) |
-| `runner` | intern | Container mit erweiterten Rechten (A13), startet Bots über nsjail und führt auch die Verifikation aus (E81); Parallelität aus den Einstellungen in der DB |
-| `runner-play` | intern + `relay` | Dasselbe Image und dieselben Rechte wie `runner`, Rolle `play`: spielt nur interaktive Partien, bis `PLAY_SLOTS` gleichzeitig (E111) |
+| `runner` | intern + `live` | Container mit erweiterten Rechten (A13), sendet die Züge laufender Partien an den Gateway (E142), startet Bots über nsjail und führt auch die Verifikation aus (E81); Parallelität aus den Einstellungen in der DB |
+| `runner-play` | intern + `relay` + `live` | Dasselbe Image und dieselben Rechte wie `runner`, Rolle `play`: spielt nur interaktive Partien, bis `PLAY_SLOTS` gleichzeitig (E111) |
 | `mongo` | intern | Als Replica Set (Einzelknoten, ab M4, E75), Authentifizierung aktiv, Daten auf einem Volume |
 
 Bot-Prozesse haben kein Netzwerk. Laufzeiten der fünf Sprachen, SDK und C++-Kern sind Teil des `runner`-Images und werden von dort read-only in die Sandbox eingehängt.
@@ -22,7 +22,8 @@ Bot-Prozesse haben kein Netzwerk. Laufzeiten der fünf Sprachen, SDK und C++-Ker
 | Proxy-Host | Im Nginx Proxy Manager: Subdomain → `frontend`, Port des Containers; einmalig von Hand anzulegen |
 | TLS | Zertifikat über den Nginx Proxy Manager |
 | WebSocket | Im Proxy-Host „Websockets Support“ aktivieren; nötig für Mensch gegen Bot und Remote-Bots (E112) |
-| Zeitlimits | Lange Verbindungen: Lese-Timeout des Proxys für WebSockets hochsetzen |
+| Zeitlimits | Lange Verbindungen: Lese-Timeout des Proxys für WebSockets hochsetzen; der Live-Kanal sendet alle 15 s einen Kommentar und kommt mit dem Standard aus (E142) |
+| Pufferung | Für den Live-Kanal nichts einzustellen: Der Gateway sendet `X-Accel-Buffering: no`, der `frontend`-Nginx reicht es weiter, und der Nginx Proxy Manager puffert die Antwort dann nicht |
 | Upload-Größe | Maximale Request-Größe im Proxy passend zum Upload-Limit |
 | Echte Client-IP | Weitergereichte IP-Header nur vom Proxy akzeptieren (für Rate-Limits pro IP) |
 | Ports | Der Stack veröffentlicht keine Ports auf dem Host |
@@ -59,10 +60,10 @@ Umgesetzt unter `deploy/` und `.github/workflows/deploy.yml` (E78). Es laufen `m
 
 | Datei | Inhalt |
 |-------|--------|
-| `deploy/compose.yaml` | Stack `sbm`: Dienste, internes Netz ohne Ausgang (API dort mit Alias `sbm-api`, Gateway mit `sbm-gateway`), Netz `relay` nur für `gateway` (Alias `sbm-relay`) und `runner-play`, `local-web` nur für `frontend` (Alias `sbm-frontend`), Volume `mongo-data`, Härtung, Log-Rotation; Profil `setup` für die Einmal-Dienste `mongo-users` und `migrate` |
+| `deploy/compose.yaml` | Stack `sbm`: Dienste, internes Netz ohne Ausgang (API dort mit Alias `sbm-api`, Gateway mit `sbm-gateway`), Netz `relay` nur für `gateway` (Alias `sbm-relay`) und `runner-play`, Netz `live` nur für `gateway` (Alias `sbm-live`), `runner` und `runner-play` (E142), `local-web` nur für `frontend` (Alias `sbm-frontend`), Volume `mongo-data`, Härtung, Log-Rotation; Profil `setup` für die Einmal-Dienste `mongo-users` und `migrate` |
 | `deploy/python.Dockerfile` | Ziel `services`, Image `sbm-python` für `migrate`, `api` und `gateway`: baut die Wheels von SDK (mit Kern), Store, Runner, Gateway und API, Laufzeit ohne Compiler als Nutzer `sbm`. Ziel `runner`, Image `sbm-runner`: zusätzlich nsjail, das Laufzeitverzeichnis der Python-Bots (Python 3.14.8 mit SDK) und `sandbox/`, läuft als root mit den Rechten aus `compose.yaml` (E87) |
 | `deploy/frontend.Dockerfile` | Image `sbm-frontend`: Vite-Build, ausgeliefert von nginx ohne Root auf Port 8080 |
-| `deploy/nginx.conf` | SPA mit Rückfall auf `index.html`, `/api/v1/play/socket` als WebSocket an `sbm-gateway:8001` (Lese-Timeout 1 h), `/api/` an `sbm-api:8000` (Alias der API nur im internen Netz, weil `api` an `local-web` einen fremden Container treffen kann), lange Cache-Zeit nur für `/assets/`, Sicherheits-Header, Anfragen an `/api/` bis 4 MB für Uploads (E92) |
+| `deploy/nginx.conf` | SPA mit Rückfall auf `index.html`, `/api/v1/play/socket` als WebSocket an `sbm-gateway:8001` (Lese-Timeout 1 h), `/api/v1/matches/{id}/live` ohne Pufferung an `sbm-gateway:8002` (E142), `/api/` an `sbm-api:8000` (Alias der API nur im internen Netz, weil `api` an `local-web` einen fremden Container treffen kann), lange Cache-Zeit nur für `/assets/`, Sicherheits-Header, Anfragen an `/api/` bis 4 MB für Uploads (E92) |
 | `deploy/mongo/users.js` | Legt die Rolle `sbm_api_writes` (E85; seit E94 auch `bots` und der Bucket `bot_files`, seit E100 Anlegen und Ändern in `disciplines`, seit E105 Löschen in `bots`, `matches`, `jobs` und `verification_reports`, seit E116 Einfügen und Ändern in `api_tokens`, seit E152 Ändern in `matches` und `jobs`) und die Nutzer der Dienste an oder setzt Rechte und Passwörter neu |
 | `deploy/deploy.sh` | Ablauf auf dem Server, aus dem Repo-Wurzelverzeichnis; hält am Ende den ausgerollten Commit in `deploy/.deployed-commit` fest |
 | `deploy/needs-deploy.sh` | Sagt, ob sich seit dem ausgerollten Commit etwas geändert hat, woraus der Stack gebaut wird (E79) |

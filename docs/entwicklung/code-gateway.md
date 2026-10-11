@@ -1,6 +1,6 @@
 # Code-Karte: sbm_gateway
 
-Das Gateway unter `services/gateway` (Paket `sbm-gateway`, Modul `sbm_gateway`) verbindet WebSocket-Clients (Browser, Remote-Bots) mit dem Play-Runner. Es hat keinen Datenbankzugang und liest keine Spielinhalte (E112). Befehl: `sbm-gateway`. Konzepte: [gateway.md](../komponenten/gateway.md), Protokolle [gateway-v1](../../spec/protocol/gateway-v1/) und [relay-v1](../../spec/protocol/relay-v1/).
+Das Gateway unter `services/gateway` (Paket `sbm-gateway`, Modul `sbm_gateway`) verbindet WebSocket-Clients (Browser, Remote-Bots) mit dem Play-Runner. Es hat keinen Datenbankzugang und liest keine Spielinhalte (E112). Außerdem nimmt es die Züge laufender Partien von den Runnern an und liefert sie als Server-Sent Events (Live-Kanal, E142). Befehl: `sbm-gateway`. Konzepte: [gateway.md](../komponenten/gateway.md), Protokolle [gateway-v1](../../spec/protocol/gateway-v1/), [relay-v1](../../spec/protocol/relay-v1/) und [live-v1](../../spec/protocol/live-v1/).
 
 ## Einstieg
 
@@ -19,7 +19,8 @@ Lesereihenfolge:
 3. `sessions.py` – `Session` und `Registry`, der Kern.
 4. `links.py` – die beiden Enden einer Sitzung.
 5. `client.py` und `relay.py` – je ein Handler für eine Verbindung.
-6. `server.py` und `cli.py` – Start und Stopp.
+6. `feeds.py`, dann `live.py` und `watch.py` mit `live_messages.py`, `watch_request.py` und `events.py` – der Live-Kanal.
+7. `server.py` und `cli.py` – Start und Stopp.
 
 ## Module
 
@@ -27,12 +28,18 @@ Lesereihenfolge:
 |-------|---------|
 | [`__init__.py`](../../services/gateway/src/sbm_gateway/__init__.py) | Paketbeschreibung |
 | [`cli.py`](../../services/gateway/src/sbm_gateway/cli.py) | `main` und `run`: Konfiguration, Start, Warten auf ein Signal, Stopp |
-| [`config.py`](../../services/gateway/src/sbm_gateway/config.py) | `SOCKET_PATH` (`/api/v1/play/socket`) und die eingefrorene `GatewayConfig` mit `from_env`; `_positive` und `_port` prüfen Zahlen |
-| [`server.py`](../../services/gateway/src/sbm_gateway/server.py) | `Gateway`: bindet Relay-Server (`asyncio.start_server`) und WebSocket-Server (`websockets` `serve`), hält die gebundenen Ports, stoppt beide |
+| [`config.py`](../../services/gateway/src/sbm_gateway/config.py) | `SOCKET_PATH` (`/api/v1/play/socket`), `WATCH_PATH` (Regex für `/api/v1/matches/{id}/live`) und die eingefrorene `GatewayConfig` mit `from_env`; `_positive` und `_port` prüfen Zahlen |
+| [`server.py`](../../services/gateway/src/sbm_gateway/server.py) | `Gateway`: bindet Relay-, Live- und Watch-Server (`asyncio.start_server`) und WebSocket-Server (`websockets` `serve`), hält die gebundenen Ports (`live_port`, `watch_port`), hält `feeds`, stoppt alle und schließt offene Verbindungen des Live-Kanals |
 | [`client.py`](../../services/gateway/src/sbm_gateway/client.py) | `check_path` (404 für andere Pfade), `handle_client` je WebSocket-Verbindung: Grenze `max_clients`, `_join`, `_carry` |
 | [`relay.py`](../../services/gateway/src/sbm_gateway/relay.py) | `handle_relay` je TCP-Verbindung des Play-Runners: `attach`, dann Zeilen zum Client bis zum Ende; `LINE_LIMIT` |
 | [`sessions.py`](../../services/gateway/src/sbm_gateway/sessions.py) | `Session` (ein Sitz: Relay, Client, wartende Zeilen) und `Registry` (alle Sitzungen und wartenden Clients); Protokolle `Client` und `Relay`; `Refused`, `PendingOverflow`, `REPLACED`, `SHUTDOWN` |
 | [`links.py`](../../services/gateway/src/sbm_gateway/links.py) | `SocketClient` und `RelayLink` als Enden einer Sitzung, Close-Codes, `ClientGone`, Schließen im Hintergrund |
+| [`feeds.py`](../../services/gateway/src/sbm_gateway/feeds.py) | `Feed` (Züge einer laufenden Partie als fertige Ereignisse, Zuschauer als `asyncio.Queue`) und `Feeds` (alle Feeds, `open` ersetzt einen älteren, `find` wartet auf ein `open`, `shutdown`, Zähler `watchers`); `FeedError`, `Busy`, `CLOSE` |
+| [`live.py`](../../services/gateway/src/sbm_gateway/live.py) | `handle_live` je TCP-Verbindung eines Runners: `open`, dann Züge in den Feed bis `end` oder Ende der Eingabe; `LINE_LIMIT` |
+| [`live_messages.py`](../../services/gateway/src/sbm_gateway/live_messages.py) | Strenges Lesen von live-v1: `parse_open`, `parse_line` (`move` mit genau `MOVE_FIELDS` oder `end`) |
+| [`watch.py`](../../services/gateway/src/sbm_gateway/watch.py) | `handle_watch` je HTTP-Verbindung eines Zuschauers: Anfrage lesen, Grenze `max_watchers`, Feed suchen, Ereignisse schreiben, `: ping` nach `watch_ping_seconds`; Fehler als JSON mit `code` und `message` |
+| [`watch_request.py`](../../services/gateway/src/sbm_gateway/watch_request.py) | `parse_head`: Anfragezeile und `Last-Event-ID` zu `WatchRequest(match_id, after)`; `BadRequest` mit Status und Code; `HEAD_LIMIT` |
+| [`events.py`](../../services/gateway/src/sbm_gateway/events.py) | Server-Sent Events als Text: `move(data)`, `END`, `PING`, `RETRY` |
 | [`messages.py`](../../services/gateway/src/sbm_gateway/messages.py) | Strenges Lesen (`parse_join`, `parse_attach`, `parse_line`), Bauen (`joined`, `refused_client`, `refused_relay`, `relay_line`, `PRESENT`, `ABSENT`), `seat_hash`, `InvalidMessage`, `MAX_LINE_CHARS` |
 
 Eine Sitzung gehört zum Schlüssel `Key = (match_id, seat_hash)`. `seat_hash` ist der SHA-256 des Sitz-Tokens als Hex. Der Client schickt das Token, der Runner nur den Hash (E113).
@@ -61,15 +68,24 @@ Eine Sitzung gehört zum Schlüssel `Key = (match_id, seat_hash)`. `seat_hash` i
 5. Ende der Eingabe ergibt den Grund `game over`. Ein Protokollbruch oder `ConnectionError` ergibt `relay error`, `PendingOverflow` ergibt `the client was away too long`.
 6. Im `finally` ruft es `Registry.detach` und `RelayLink.close`. `Session.close` beendet den Client mit 1000 nach den schon gesendeten Zeilen.
 
+### Live-Kanal (live-v1 und Server-Sent Events, E142)
+
+1. Ein Runner öffnet eine TCP-Verbindung zum Live-Port. `live.handle_live` liest `open` innerhalb von `hello_seconds` (`parse_open`).
+2. `Feeds.open` legt den Feed an; ein älterer Feed derselben Partie endet mit `end` für seine Zuschauer. Bei `max_feeds` wirft es `Busy`, die Verbindung schließt.
+3. Jede `move`-Zeile geht über `Feed.add` als fertiges Ereignis an alle Zuschauer. Ein Halbzug außer der Reihe oder über `max_feed_moves` wirft `FeedError` und beendet die Verbindung.
+4. `end` oder das Ende der Eingabe ruft im `finally` `Feeds.close`: Der Feed endet, Zuschauer bekommen `end`.
+5. Ein Zuschauer verbindet sich über den `frontend`-Nginx mit dem Watch-Port. `watch.handle_watch` liest den Kopf bis zur Leerzeile (`parse_head`), prüft `max_watchers` und sucht mit `Feeds.find` bis `feed_wait_seconds` den Feed, sonst 404 `not_live`.
+6. `_stream` schreibt den Antwortkopf mit `X-Accel-Buffering: no` und `RETRY`, dann die Ereignisse aus `Feed.watch(after)`: erst die Züge nach `after`, dann jeden neuen, zum Schluss `END`. `CLOSE` (beim Stopp) beendet den Strom ohne `end`.
+
 ### Stopp
 
-`Gateway.stop` schließt den Relay-Server und ruft `Registry.shutdown`. Wartende Clients bekommen `shutdown` (Close-Code 1001). Jede Sitzung schließt ihr Relay und wird gelöst. Danach schließt der WebSocket-Server.
+`Gateway.stop` schließt den Relay-Server und ruft `Registry.shutdown`. Für den Live-Kanal schließt es Live- und Watch-Server und ruft `Feeds.shutdown`; Zuschauer bekommen `CLOSE` und verbinden sich im Browser neu. Wartende Clients bekommen `shutdown` (Close-Code 1001). Jede Sitzung schließt ihr Relay und wird gelöst. Danach schließt der WebSocket-Server.
 
 ## Konventionen
 
 - **Streng lesen:** `messages._exact` verlangt genau die Felder der Spezifikation und prüft sie per Regex. Fehler sind `InvalidMessage` (eine Unterklasse von `ValueError`). Neue Nachrichten folgen diesem Muster.
 - **Bauen an einer Stelle:** Nachrichten entstehen nur in `messages.py`. Für den Client sind sie `str`, für das Relay `bytes` mit Zeilenende.
-- **Inhalt bleibt unberührt:** `line.data` geht unverändert durch. Das Gateway kennt weder Züge noch Partien. Es gibt keinen Zugriff auf `sbm_store`.
+- **Inhalt bleibt unberührt:** `line.data` geht unverändert durch. Das Gateway kennt im Relay weder Züge noch Partien. Es gibt keinen Zugriff auf `sbm_store`. Im Live-Kanal prüft es nur die Form der Züge (live-v1) und gibt sie unverändert als `data` weiter.
 - **Eine Sperre je Sitzung:** Alle Methoden von `Session` laufen unter `self._lock`. Damit bleibt die Reihenfolge `joined`, wartende Zeilen, `present` erhalten.
 - **Ergebnis statt Ausnahme:** `Registry.join` gibt `Session`, `None`, `REPLACED` oder `SHUTDOWN` zurück. Erst `client._join` macht daraus `refused`.
 - **Enden über Protokolle:** `Session` kennt nur `Client` und `Relay` (`typing.Protocol`), nicht `websockets` oder `asyncio.StreamWriter`. Das hält die Sitzungslogik frei von Transportdetails.
@@ -120,14 +136,21 @@ Die Tests liegen unter `services/gateway/tests/`. Sie brauchen keine MongoDB und
 | `MATCH_ID`, `SEAT`, `TIMEOUT` | `conftest.py` | Gültige Kennung, gültiges Token, Zeitgrenze für Empfang (5 s) |
 | `RunningGateway` | `conftest.py` | Startet ein echtes `Gateway` in einem eigenen Thread mit eigener Schleife; `client()` öffnet eine synchrone WebSocket-Verbindung, `relay()` eine TCP-Verbindung |
 | `RelayEnd` | `conftest.py` | Spielt den Runner: `send`, `attach`, `line`, `receive`, `close` |
+| `LiveEnd` | `conftest.py` | Spielt den Runner im Live-Kanal über eine TCP-Verbindung zum Live-Port |
+| `WatchEnd` | `conftest.py` | Spielt einen Zuschauer: HTTP-Anfrage an den Watch-Port, liest Status und Ereignisse |
+| `move(ply)` | `conftest.py` | Gültiger Zug für live-v1 |
 | `join`, `receive` | `conftest.py` | `join` senden, nächste Client-Nachricht als JSON lesen |
-| Fixture `config` | `conftest.py` | `127.0.0.1`, Ports 0 (frei gewählt), `join_wait_seconds=2` |
+| Fixture `config` | `conftest.py` | `127.0.0.1`, alle Ports 0 (frei gewählt), `join_wait_seconds=2` |
 | Fixture `gateway` | `conftest.py` | Laufendes `RunningGateway`, am Ende gestoppt |
 
 | Datei | Inhalt |
 |-------|--------|
 | `test_gateway.py` | Ende-zu-Ende-Abläufe: Warten auf den Runner, Zeilen in beide Richtungen, Ende nach der letzten Zeile, wartende Zeilen, Ersetzen, falscher Sitz, schlechte erste Nachricht, zweites und schlechtes `attach`, Protokollbruch des Relays, Binärnachricht, andere Pfade, Stopp |
 | `test_messages.py` | Strenges Lesen und gebaute Nachrichten; vergleicht mit festen Literalen, nicht mit den Schema-Dateien |
+| `test_live.py` | Live-Kanal über echte Verbindungen: Folgen ab einem Halbzug bis `end`, `Last-Event-ID`, kurzes Warten auf den Runner, `not_live`, Abbruch und Ersetzen des Runners, Züge außer der Reihe, schlechtes `open`, schlechte Anfragen, zu viele Zuschauer, Stopp, Pings |
+| `test_live_messages.py` | live-v1 gegen die gültigen und ungültigen Beispiele unter `spec/protocol/live-v1/examples/` |
+| `test_feeds.py` | `Feed` und `Feeds` ohne Netz: späte Zuschauer, Reihenfolge und Grenze, Ersetzen, Warten auf `open`, Grenze der Feeds, Stopp |
+| `test_watch_request.py` | `parse_head`: `after`, `Last-Event-ID`, abgewiesene Anfragen |
 
 Befehle aus dem Repo-Wurzelverzeichnis:
 

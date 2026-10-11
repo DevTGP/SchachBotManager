@@ -43,7 +43,8 @@ Pfade relativ zu `frontend/src/`.
 | `api/play.ts` | `startGame`: `POST /play`, Antwort mit Sitz-Token (E114) |
 | `api/positions.ts` | `positionFromPgn`: FEN aus `POST /positions/from-pgn` (E159) |
 | `hooks/useApi.ts` | Laden je `key`, Abbruch per `AbortSignal`, optionales Abfrageintervall (fest oder abhängig von den Daten), `reload`; Daten bleiben bei Fehlern stehen |
-| `hooks/polling.ts` | Intervalle: laufende Partie 2 s, Listen und Queue 10 s, Verifikation 3 s (E76, E77) |
+| `hooks/polling.ts` | Intervalle: wartende Partie und laufende ohne Event-Stream 2 s, Listen und Queue 10 s, Verifikation 3 s (E76, E77, E142) |
+| `hooks/useLiveMatch.ts` | Partie für die Partieseite: lädt über `useApi`, folgt einer laufenden Partie über `EventSource` (`matchLiveUrl`) und hängt die Züge an; fragt bei offenem Strom nicht nach, sonst alle 2 s; Lücke schließt den Strom, `end` lädt neu (E142) |
 | `hooks/useSubmit.ts` | Eine Änderung zur Zeit: `pending`, `error` (`ApiError` oder Übersetzungsschlüssel), `submit`, `fail` |
 | `hooks/useLocale.ts` | Aktive Sprache `de`/`en` für `Intl`-Formate |
 
@@ -111,7 +112,7 @@ Pfade relativ zu `frontend/src/`.
 
 | Bereich | Module |
 |---------|--------|
-| Öffentlich | `StartPage` (laufende und letzte Partien), `MatchesPage` (Filter in der URL, E156, E119), `MatchPage` (Viewer, fragt nur laufende Partien nach), `MatchSeries` (Platz in der Serie), `QueuePage` mit `QueueTable`, `BotsPage`, `RatingsPage` mit `ranking.ts` (Bots und Spieler gemeinsam sortiert, E118, E163), `series/SeriesPage` (E155), `MatchLeague` (Liga, Saison und Runde einer Ligapartie), `NotFoundPage` |
+| Öffentlich | `StartPage` (laufende und letzte Partien), `MatchesPage` (Filter in der URL, E156, E119), `MatchPage` (Viewer mit `useLiveMatch`, folgt laufenden Partien über den Live-Kanal), `MatchSeries` (Platz in der Serie), `QueuePage` mit `QueueTable`, `BotsPage`, `RatingsPage` mit `ranking.ts` (Bots und Spieler gemeinsam sortiert, E118, E163), `series/SeriesPage` (E155), `MatchLeague` (Liga, Saison und Runde einer Ligapartie), `NotFoundPage` |
 | Ligen (`leagues/`) | `LeaguesPage`, `LeaguePage` mit `LeagueFacts`, `LeagueSeasons`, `NextSeason`, `LeagueRegistrations` und `LeagueRegisterForm` (E136, E137), `SeasonPage` mit `TierTable` je Staffel (E134) und darin `TierSchedule` (E138) |
 | Konto (`account/`) | `LoginPage`, `InvitePage` und `ResetPasswordPage` (Token aus `#`), `AccountPage` mit `OwnRating` (E117) und `ApiTokens` (E116) |
 | Upload (`upload/`) | `UploadPage` (Ordner oder Dateien, Name, Version, Beschreibung, E91), `SelectedFiles` (Hochgeladenes und Weggelassenes) |
@@ -124,7 +125,7 @@ Pfade relativ zu `frontend/src/`.
 
 **Laufende Partie ansehen** (`/matches/:id`):
 
-1. `MatchPage` ruft `useApi(fetchMatch, id, poll)`; `poll` gibt `POLL_MATCH_MS` zurück, solange der Status `queued` oder `running` ist, sonst `undefined`.
+1. `MatchPage` ruft `useLiveMatch(id)`, das `useApi(fetchMatch, id, poll)` nutzt; `poll` gibt `POLL_MATCH_MS` zurück, solange der Status `queued` ist oder die Partie läuft und kein Event-Stream offen ist, sonst `undefined`. Läuft die Partie, öffnet der Hook `EventSource` auf `/api/v1/matches/{id}/live?after=n` (Gateway, E142) und hängt jeden `move` an; bei `end` ruft er `reload()`.
 2. `fetchMatch` → `getJson` → `fetch("/api/v1/matches/…")`. Ein Fehler wird zu `ApiError`; `useApi` behält die alten Daten.
 3. `ApiContent` rendert `Viewer` mit `live`. `useViewerPly` liest `?ply`; ohne Wert zeigt der Viewer den letzten Zug und folgt damit neuen Zügen.
 4. `game.ts` liefert FEN und Uhren zum Halbzug; `Board` zeigt die FEN, die Leisten zeigen Uhren und Material aus `chess/fen.ts`.
@@ -188,6 +189,7 @@ Vitest mit jsdom und Testing Library; Einrichtung in [`vite.config.ts`](../../fr
 | `test/render.tsx` | `mockApi(responses)` ersetzt `fetch`: Antwort je Pfad ohne `/api/v1` und Query, als Wert, `Response` oder Funktion `(url, call)`; unbekannte Pfade geben 404 `not_found`. Liefert `requests` und `calls` (`ApiCall` mit `url`, `method`, `headers`, JSON-`body`, `form`). `renderRoute(path)` rendert die echten `routes` in einem Memory-Router und gibt `router` zurück |
 | `test/fixtures.ts` | Testdaten: `START_FEN`, `OPENING`, `match()`, `summary()`, `side()`, `BOTS`, `botDetail()`, `queue()`, `storedDiscipline()`, `adminSettings()`, `CODER_LIMITS`, Konten `ADMIN`, `CODER`, `PLAYER`, `user()`, `ownMatches()` |
 | `test/leagues.ts` | Testdaten für Ligen: `LEAGUE_ID`, `SEASON_ID`, `league()`, `registration()`, `leagueDetail()`, `season()`, `schedule()`, `botSeason()` |
+| `test/fakeEventSource.ts` | `FakeEventSource` als Ersatz für `EventSource` (`vi.stubGlobal`): `open()`, `emit(type, data)`, `fail()`, `closed`, `url`, `FakeEventSource.latest()` |
 | `test/fakeSocket.ts` | `FakeSocket` als Ersatz für `WebSocket` (`vi.stubGlobal`): `open()`, `receive(msg)`, `drop(code)`, `sentMessages()`, `FakeSocket.latest()` |
 | `test/files.ts` | `folderFile`: Datei wie aus einer Ordnerauswahl (`webkitRelativePath`) |
 

@@ -92,6 +92,12 @@ Jedes Ende bekommt einen maschinenlesbaren `termination`-Code (Liste in [bot-pro
 - Partie-Jobs holt `queue_order.claim_match`: höchste Priorität zuerst, bei gleicher Priorität der Wettbewerb (`competition`, `league:<id>` oder `single`), dessen letzter Abruf (`claimed_at`) am längsten zurückliegt, darin der älteste Job. Verifikationsjobs behalten ihren Vorrang nach Wartezeit (E89).
 - Eine Ligapartie spielt der Runner wie ein Einzelspiel mit dem Schnappschuss der Disziplin aus der Saison; die Tabelle entsteht beim Lesen aus den beendeten Partien (E135).
 
+### Stand M4 Schritt 5 (E142)
+
+- Mit `SBM_LIVE_ADDRESS` (`host:port`, im Stack `sbm-live:9001`) sendet jeder Runner, Queue wie Play, die Züge seiner laufenden Partien an den Gateway (live-v1, `live_feed.LiveFeed`). Der Feed öffnet vor `matches.start`, bekommt jeden Zug über denselben `on_move` wie die Datenbank und endet im `finally` nach dem Speichern des Ergebnisses; so endet er auch bei Abbruch und Fehlern.
+- Gesendet wird aus einem eigenen Thread über eine Warteschlange; die Partie wartet nie auf das Netz. Bricht die Verbindung ab oder ist der Gateway nicht da, versucht der Feed es alle 5 s neu (Verbindungsaufbau höchstens 2 s) und sendet `open` und alle bisherigen Züge noch einmal. Am Ende wartet er höchstens 3 s auf den Versand von `end`.
+- Ohne `SBM_LIVE_ADDRESS` tut der Feed nichts; ein fehlender Gateway hält keine Partie an. Maßgeblich bleiben die Züge in der Datenbank, der Live-Kanal ist nur eine Abkürzung für den Viewer ([gateway.md](gateway.md)).
+
 ## Aufgezeichnete Daten pro Zug
 
 `uci`, `san`, FEN nach dem Zug, verbrauchte Zeit, Restzeit, optionale `info` des Bots. Siehe [datenmodell.md](datenmodell.md).
