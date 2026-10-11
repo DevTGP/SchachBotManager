@@ -25,7 +25,7 @@ export function league(overrides: Partial<League> = {}): League {
     points: { win: 1, draw: 0.5, loss: 0 },
     tiebreaks: ["wins", "head_to_head"],
     min_participants: 4,
-    pause_minutes: 60,
+    recurrence: null,
     priority: 50,
     archived: false,
     registered: 1,

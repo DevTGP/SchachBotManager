@@ -7,7 +7,8 @@ import { NumberField } from "../../components/NumberField";
 import { disciplineLabel } from "../../format/timeControl";
 import { useLocale } from "../../hooks/useLocale";
 import { useSubmit } from "../../hooks/useSubmit";
-import { type LeagueForm, leagueRequest } from "./leagueForm";
+import { type LeagueForm, leagueRequest, TIEBREAKS } from "./leagueForm";
+import { RecurrenceField } from "./RecurrenceField";
 import { TiebreakField } from "./TiebreakField";
 
 const MAX_NAME = 40;
@@ -100,14 +101,18 @@ export function LeagueEditor({
         {number("loss", "leagues.loss", "0.5")}
       </div>
       <TiebreakField
+        options={TIEBREAKS}
         value={form.tiebreaks}
         onChange={(tiebreaks) => setForm((current) => ({ ...current, tiebreaks }))}
       />
       <div className="form-row">
         {number("minParticipants", "leagues.minParticipants")}
-        {number("pauseMinutes", "leagues.pauseMinutes")}
         {number("priority", "admin.priority")}
       </div>
+      <RecurrenceField
+        value={form.recurrence}
+        onChange={(recurrence) => setForm((current) => ({ ...current, recurrence }))}
+      />
       <FormError error={shown} rules="leagueError" />
       <div className="inline-actions">
         <button type="submit" className="primary" disabled={pending || usable.length === 0}>

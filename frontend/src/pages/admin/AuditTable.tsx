@@ -11,6 +11,7 @@ const PAGES: Partial<Record<NonNullable<AuditEntry["target_kind"]>, string>> = {
   bot: "/bots",
   match: "/matches",
   league: "/leagues",
+  tournament: "/tournaments",
 };
 
 /** The entries of the audit log: targets by name, details as a list (U13, E169). */

@@ -15,7 +15,8 @@
     "admin": "Verwaltung",
     "ownBots": "Meine Bots",
     "play": "Spielen",
-    "leagues": "Ligen"
+    "leagues": "Ligen",
+    "tournaments": "Turniere"
   },
   "common": {
     "loading": "Lädt …",
@@ -51,7 +52,8 @@
     "not_repeatable": "Die Partie lässt sich nicht wiederholen: Ein Bot ist nicht mehr geprüft oder die Disziplin ist archiviert.",
     "bot_state": "Der Bot ist (nicht mehr) in einem Zustand, der das erlaubt. Bitte die Seite neu laden.",
     "league_state": "Die Liga ist (nicht mehr) in einem Zustand, der das erlaubt. Bitte die Seite neu laden.",
-    "already_registered": "Der Bot ist in dieser Liga schon angemeldet."
+    "already_registered": "Der Bot ist hier schon angemeldet.",
+    "tournament_state": "Das Turnier ist (nicht mehr) in einem Zustand, der das erlaubt. Bitte die Seite neu laden."
   },
   "start": {
     "title": "Schachbots im Wettstreit",
@@ -133,7 +135,9 @@
     "mine": "Von mir angesetzt",
     "seasonFilter": "Nur Partien einer Saison.",
     "seasonTierFilter": "Nur Partien der Stufe {{tier}} einer Saison.",
-    "clearSeason": "Alle Partien zeigen"
+    "clearSeason": "Alle Partien zeigen",
+    "editionFilter": "Nur Partien einer Turnierausgabe.",
+    "clearEdition": "Alle Partien zeigen"
   },
   "matchTable": {
     "players": "Partie",
@@ -305,7 +309,11 @@
     "admin": "Verwaltung",
     "details": "Details",
     "disableConfirm": "Wirklich sperren",
-    "retireConfirm": "Wirklich zurückziehen"
+    "retireConfirm": "Wirklich zurückziehen",
+    "noTournaments": "Der Bot ist in keinem Turnier angemeldet.",
+    "editions": "Turnierausgaben",
+    "edition": "Ausgabe",
+    "noEditions": "Diese Version hat noch in keinem Turnier gespielt."
   },
   "upload": {
     "title": "Bot hochladen",
@@ -601,8 +609,10 @@
       "user": "Nutzer",
       "discipline": "Disziplin",
       "league": "Liga",
-      "invite": "Einladung"
-    }
+      "invite": "Einladung",
+      "tournament": "Turnier"
+    },
+    "tournaments": "Turniere"
   },
   "notFound": {
     "title": "Seite nicht gefunden",
@@ -751,7 +761,8 @@
     "head_to_head": "Direkter Vergleich",
     "sonneborn_berger": "Sonneborn-Berger",
     "fewer_moves": "Weniger Halbzüge",
-    "lot": "Los"
+    "lot": "Los",
+    "buchholz": "Buchholz"
   },
   "outcome": {
     "promoted": "Aufstieg",
@@ -780,9 +791,8 @@
     "loss": "Punkte für Niederlage",
     "tiebreaks": "Feinwertung",
     "tiebreakSlot": "{{slot}}. Kriterium",
-    "lotHint": "Am Ende entscheidet das Los, das beim Saisonstart gezogen wird.",
+    "lotHint": "Am Ende entscheidet das Los, das beim Start gezogen wird.",
     "minParticipants": "Mindestzahl Bots",
-    "pauseMinutes": "Pause zwischen Saisons (min)",
     "registered": "Angemeldet",
     "season": "Saison",
     "seasonNumber": "Saison {{number}}",
@@ -791,7 +801,7 @@
     "participants": "Bots",
     "archived": "archiviert",
     "archivedHint": "Die Liga ist archiviert: Eine laufende Saison wird zu Ende gespielt, eine neue beginnt nicht.",
-    "awaitingRelease": "Die erste Saison wartet auf die Freigabe durch einen Admin.",
+    "awaitingStart": "Die nächste Saison wartet auf den Start durch einen Admin.",
     "startsAfter_one": "Die nächste Saison beginnt frühestens {{at}}, sobald {{count}} Bot angemeldet ist.",
     "startsAfter_other": "Die nächste Saison beginnt frühestens {{at}}, sobald {{count}} Bots angemeldet sind.",
     "registrations": "Angemeldete Bots",
@@ -811,7 +821,29 @@
     "edit": "Liga {{name}} bearbeiten",
     "editHint": "Änderungen gelten ab dem nächsten Saisonstart; eine laufende Saison behält ihre Einstellungen.",
     "nameTaken": "Eine andere Liga hat schon diesen Namen.",
-    "release": "Erste Saison freigeben"
+    "startNow": "Jetzt starten"
+  },
+  "recurrence": {
+    "title": "Kalender",
+    "enabled": "Nach Kalender starten",
+    "firstStart": "Erster Start",
+    "every": "Alle",
+    "unit": "Einheit",
+    "units": {
+      "hours": "Stunden",
+      "days": "Tage",
+      "weeks": "Wochen"
+    },
+    "manualHint": "Ohne Kalender startet ein Admin jede Saison bzw. Ausgabe.",
+    "manual": "keiner, ein Admin startet jede",
+    "interval": {
+      "hours_one": "stündlich ab {{at}}",
+      "hours_other": "alle {{count}} Stunden ab {{at}}",
+      "days_one": "täglich ab {{at}}",
+      "days_other": "alle {{count}} Tage ab {{at}}",
+      "weeks_one": "wöchentlich ab {{at}}",
+      "weeks_other": "alle {{count}} Wochen ab {{at}}"
+    }
   },
   "seasons": {
     "title": "{{league}} – Saison {{number}}",
@@ -845,7 +877,119 @@
     "points": "Punkte von 0 bis 10 in halben Schritten; Sieg mehr als Niederlage und Sieg ≥ Remis ≥ Niederlage.",
     "tiebreaks": "Jedes Kriterium der Feinwertung höchstens einmal.",
     "min_participants": "Die Mindestzahl liegt zwischen 2 und 320.",
-    "pause_minutes": "Die Pause liegt zwischen 0 und 43200 Minuten."
+    "recurrence": "Der Kalender braucht einen ersten Start und ein Intervall von 1 Stunde bis 365 Tagen."
+  },
+  "tournamentFormat": {
+    "round_robin": "Rundenturnier",
+    "swiss": "Schweizer System",
+    "knockout": "K.-o."
+  },
+  "editionStatus": {
+    "planned": "Geplant",
+    "running": "Läuft",
+    "finished": "Beendet"
+  },
+  "duelPhase": {
+    "regular": "Partie {{game}}",
+    "tiebreak": "Stichkampf {{game}}",
+    "armageddon": "Armageddon"
+  },
+  "decidedBy": {
+    "games": "durch die Partien",
+    "tiebreak": "im Stichkampf",
+    "armageddon": "durch Armageddon",
+    "bye": "Freilos",
+    "withdrawal": "durch Rückzug"
+  },
+  "tournaments": {
+    "title": "Turniere",
+    "intro": "Angemeldete Bots spielen je Ausgabe ein Rundenturnier, nach Schweizer System oder im K.-o.-System. Gesetzt wird nach dem Rating in der Disziplin.",
+    "empty": "Noch keine Turniere.",
+    "name": "Name",
+    "tournament": "Turnier",
+    "format": "Modus",
+    "formatFixed": "Der Modus lässt sich nach dem Anlegen nicht mehr ändern.",
+    "discipline": "Disziplin",
+    "gamesPerPairing": "Partien je Paarung",
+    "gamesPerDuel": "Partien je Duell",
+    "rounds": "Runden",
+    "tiebreaks": "Feinwertung",
+    "tiebreakDiscipline": "Disziplin des Stichkampfs",
+    "sameDiscipline": "wie das Turnier",
+    "tiebreakPairs": "Stichkampf-Paare",
+    "knockoutHint": "Ein unentschiedenes Duell geht mit Partiepaaren in der Disziplin des Stichkampfs weiter; steht es dann noch gleich, entscheidet eine Armageddon-Partie.",
+    "armageddon": "Armageddon",
+    "armageddonRule": "Farbe per Los, Schwarz reicht ein Remis",
+    "seeding": "Setzliste",
+    "seedingRule": "Nach Rating in der Disziplin, bei Gleichstand per Los",
+    "minParticipants": "Mindestzahl Bots",
+    "registered": "Angemeldet",
+    "edition": "Ausgabe",
+    "editions": "Ausgaben",
+    "editionNumber": "Ausgabe {{number}}",
+    "editionState": "Ausgabe {{number}}: {{status}}",
+    "participants": "Bots",
+    "archived": "archiviert",
+    "archivedHint": "Das Turnier ist archiviert: Eine laufende Ausgabe wird zu Ende gespielt, eine neue beginnt nicht.",
+    "awaitingStart": "Die nächste Ausgabe wartet auf den Start durch einen Admin.",
+    "startsAfter_one": "Die nächste Ausgabe beginnt frühestens {{at}}, sobald {{count}} Bot angemeldet ist.",
+    "startsAfter_other": "Die nächste Ausgabe beginnt frühestens {{at}}, sobald {{count}} Bots angemeldet sind.",
+    "registrations": "Angemeldete Bots",
+    "noRegistrations": "Noch kein Bot angemeldet.",
+    "playing": "Spielt",
+    "inEdition": "in der laufenden Ausgabe",
+    "nextEdition": "ab der nächsten Ausgabe",
+    "registerHint": "Der Bot spielt ab dem nächsten Start einer Ausgabe. Beim Abmelden während einer Ausgabe gehen seine offenen Partien kampflos verloren.",
+    "noFreeBots": "Kein geprüfter eigener Bot, der hier noch nicht angemeldet ist.",
+    "place": "Runde {{round}}, Brett {{board}}",
+    "duelPlace": "Runde {{round}}, Duell {{duel}}, {{phase}}",
+    "new": "Neues Turnier",
+    "create": "Turnier anlegen",
+    "edit": "Turnier {{name}} bearbeiten",
+    "editHint": "Änderungen gelten ab dem nächsten Start einer Ausgabe; eine laufende Ausgabe behält ihre Einstellungen.",
+    "nameTaken": "Ein anderes Turnier hat schon diesen Namen."
+  },
+  "editions": {
+    "title": "{{tournament}} – Ausgabe {{number}}",
+    "toTournament": "Zum Turnier",
+    "notStarted": "Die Ausgabe hat noch nicht begonnen.",
+    "games": "Partien der Ausgabe",
+    "participants": "Teilnehmer",
+    "seed": "Setzplatz",
+    "rating": "Rating",
+    "table": "Tabelle",
+    "byes": "Freilose",
+    "rounds": "Runden",
+    "noRounds": "Noch keine Partien.",
+    "bracket": "Turnierbaum",
+    "final": "Finale",
+    "semiFinal": "Halbfinale",
+    "quarterFinal": "Viertelfinale",
+    "duelProgress": "{{decided}} von {{duels}} entschieden",
+    "duel": "Duell",
+    "sideA": "Besser gesetzt",
+    "sideB": "Gegner",
+    "score": "Stand",
+    "decision": "Entschieden",
+    "open": "offen",
+    "phase": "Partie",
+    "winnerMark": "Sieger des Duells",
+    "placements": "Platzierungen",
+    "place": "Platz",
+    "stillIn": "noch dabei",
+    "winner": "Sieger"
+  },
+  "tournamentError": {
+    "name": "Der Name muss 1 bis 40 Zeichen lang sein.",
+    "discipline_id": "Bitte eine Disziplin wählen, die nicht archiviert ist.",
+    "tiebreak_discipline_id": "Bitte eine Disziplin für den Stichkampf wählen, die nicht archiviert ist.",
+    "games_per_pairing": "Je Paarung bzw. Duell sind 1 bis 10 Partien möglich.",
+    "rounds": "Das Schweizer System hat 1 bis 20 Runden.",
+    "tiebreak_pairs": "0 bis 5 Stichkampf-Paare.",
+    "tiebreaks": "Jedes Kriterium der Feinwertung höchstens einmal, höchstens fünf.",
+    "min_participants": "Die Mindestzahl liegt zwischen 2 und 1024.",
+    "priority": "Die Priorität liegt zwischen 0 und 1000.",
+    "recurrence": "Der Kalender braucht einen ersten Start und ein Intervall von 1 Stunde bis 365 Tagen."
   },
   "pairing": {
     "version": "Version {{version}}"

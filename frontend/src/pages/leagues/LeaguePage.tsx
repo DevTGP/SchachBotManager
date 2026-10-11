@@ -22,7 +22,11 @@ export function LeaguePage() {
         <>
           <h1>{data.name}</h1>
           <NextSeason league={data} />
-          <LeagueFacts settings={data} discipline={data.discipline_name} />
+          <LeagueFacts
+            settings={data}
+            discipline={data.discipline_name}
+            recurrence={data.recurrence}
+          />
           {data.seasons.length > 0 && <LeagueSeasons seasons={data.seasons} />}
           <LeagueRegistrations
             leagueId={data.id}

@@ -5,8 +5,8 @@ import { formatDateTime } from "../../format/dateTime";
 import { useLocale } from "../../hooks/useLocale";
 
 /**
- * When the next season starts: an admin releases the first one, every later one starts by
- * itself after the pause once enough bots are registered (E132).
+ * When the next season starts: by the calendar once enough bots are registered, or without one
+ * when an admin starts it (E132, E171).
  */
 export function NextSeason({ league }: { league: League }) {
   const { t } = useTranslation();
@@ -16,7 +16,7 @@ export function NextSeason({ league }: { league: League }) {
   if (season === null || season.status !== "planned") return null;
   const text =
     season.starts_after === null
-      ? t("leagues.awaitingRelease")
+      ? t("leagues.awaitingStart")
       : t("leagues.startsAfter", {
           at: formatDateTime(season.starts_after, locale),
           count: league.min_participants,

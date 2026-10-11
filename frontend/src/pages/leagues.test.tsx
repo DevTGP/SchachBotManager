@@ -30,7 +30,8 @@ describe("league pages", () => {
     renderRoute(`/leagues/${LEAGUE_ID}`);
 
     expect(await screen.findByRole("heading", { name: "Bundesliga" })).toBeVisible();
-    expect(screen.getByText("The first season waits for an admin to release it.")).toBeVisible();
+    expect(screen.getByText("The next season waits for an admin to start it.")).toBeVisible();
+    expect(screen.getByText("none, an admin starts each one")).toBeVisible();
     expect(screen.getByText("Wins, Head-to-head, Lot")).toBeVisible();
     expect(screen.getByText("1 / ½ / 0")).toBeVisible();
     const registered = screen.getByRole("link", { name: "Random" }).closest("tr")!;
@@ -61,7 +62,7 @@ describe("league pages", () => {
 
     await user.click(await screen.findByRole("button", { name: "Register" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "The bot is registered in this league already.",
+      "The bot is registered here already.",
     );
   });
 
@@ -160,7 +161,7 @@ describe("leagues of a bot", () => {
 });
 
 describe("admin leagues", () => {
-  it("creates a league with the defaults and releases its first season", async () => {
+  it("creates a league with the defaults and starts its first season", async () => {
     const user = userEvent.setup();
     const api = mockApi({
       "/session": { user: ADMIN },
@@ -174,7 +175,7 @@ describe("admin leagues", () => {
 
     await user.type(await screen.findByRole("textbox", { name: "Name" }), "Kreisliga");
     await user.click(screen.getByRole("button", { name: "Create league" }));
-    await user.click(screen.getByRole("button", { name: "Release first season" }));
+    await user.click(screen.getByRole("button", { name: "Start now" }));
     await user.click(screen.getByRole("button", { name: "Archive" }));
 
     const changes = api.calls.filter((call) => call.method !== "GET");
@@ -193,8 +194,8 @@ describe("admin leagues", () => {
       points: { win: 1, draw: 0.5, loss: 0 },
       tiebreaks: ["wins", "head_to_head", "sonneborn_berger"],
       min_participants: 2,
-      pause_minutes: 60,
       priority: 50,
+      recurrence: null,
     });
     expect(changes[2]!.body).toEqual({ archived: true });
   });
@@ -213,11 +214,18 @@ describe("admin leagues", () => {
     renderRoute("/admin/leagues");
 
     await user.click(await screen.findByRole("button", { name: "Edit" }));
-    expect(screen.queryByRole("button", { name: "Release first season" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Start now" })).toBeNull();
     const size = screen.getByRole("spinbutton", { name: "Bots per tier" });
     await user.clear(size);
     await user.type(size, "6");
     await user.selectOptions(screen.getByRole("combobox", { name: "Criterion 3" }), "fewer_moves");
+    await user.click(screen.getByRole("checkbox", { name: "Start by calendar" }));
+    const start = screen.getByLabelText("First start");
+    await user.clear(start);
+    await user.type(start, "2026-11-01T18:00");
+    const every = screen.getByRole("spinbutton", { name: "Every" });
+    await user.clear(every);
+    await user.type(every, "2");
     await user.click(screen.getByRole("button", { name: "Save" }));
 
     expect(await screen.findByRole("heading", { name: "New league" })).toBeVisible();
@@ -229,6 +237,7 @@ describe("admin leagues", () => {
     expect(patch).toMatchObject({
       tier_size: 6,
       tiebreaks: ["wins", "head_to_head", "fewer_moves"],
+      recurrence: { first_start: new Date("2026-11-01T18:00").toISOString(), interval_hours: 48 },
     });
   });
 

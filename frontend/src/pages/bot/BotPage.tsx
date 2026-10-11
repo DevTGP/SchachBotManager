@@ -19,6 +19,8 @@ import { BotRatingChart } from "./BotRatingChart";
 import { BotRechecks } from "./BotRechecks";
 import { BotResults } from "./BotResults";
 import { BotSeasons } from "./BotSeasons";
+import { BotEditions } from "./BotEditions";
+import { BotTournaments } from "./BotTournaments";
 import { BotSummary } from "./BotSummary";
 import { BotVersions } from "./BotVersions";
 import { playLink } from "./playLink";
@@ -94,6 +96,8 @@ function BotView({ bot, onChange }: { bot: BotDetail; onChange: () => void }) {
       <BotVersions versions={bot.versions} current={bot.id} play={play} />
       {!bot.builtin && <BotLeagues bot={bot} mayManage={isOwner || viewer.isAdmin} />}
       {!bot.builtin && <BotSeasons botId={bot.id} />}
+      {!bot.builtin && <BotTournaments bot={bot} mayManage={isOwner || viewer.isAdmin} />}
+      {!bot.builtin && <BotEditions botId={bot.id} />}
       <BotRatingChart botId={bot.id} />
       <BotResults botId={bot.id} />
       <BotOpponents botId={bot.id} />

@@ -12,14 +12,10 @@ import { TableShell } from "../../components/TableShell";
 import { useApi } from "../../hooks/useApi";
 import { useSubmit } from "../../hooks/useSubmit";
 import { DEFAULT_LEAGUE_FORM, leagueForm } from "./leagueForm";
+import { startable } from "./startable";
 import { LeagueEditor } from "./LeagueEditor";
 
-/** The first season waits for an admin; later ones start by themselves (E132). */
-function awaitsRelease(league: League): boolean {
-  return !league.archived && league.season?.status === "planned" && !league.season.starts_after;
-}
-
-/** Leagues: create, change, release the first season, archive; never deleted (E131, E132). */
+/** Leagues: create, change, start the planned season, archive; never deleted (E131, E171). */
 export function AdminLeaguesPage() {
   const { t } = useTranslation();
   const leagues = useApi(fetchLeagues, "leagues");
@@ -118,14 +114,14 @@ export function AdminLeaguesPage() {
                     <button type="button" disabled={pending} onClick={() => setEditing(league)}>
                       {t("disciplines.editButton")}
                     </button>
-                    {awaitsRelease(league) && (
+                    {startable(league) && (
                       <button
                         type="button"
                         className="primary"
                         disabled={pending}
                         onClick={() => act(() => startLeague(league.id))}
                       >
-                        {t("leagues.release")}
+                        {t("leagues.startNow")}
                       </button>
                     )}
                     <button

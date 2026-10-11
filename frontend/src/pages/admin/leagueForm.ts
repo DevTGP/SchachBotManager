@@ -1,4 +1,10 @@
 import type { League, LeagueRequest, Tiebreak } from "../../api/types";
+import {
+  DEFAULT_RECURRENCE_FORM,
+  type RecurrenceForm,
+  recurrenceForm,
+  recurrenceRequest,
+} from "./recurrenceForm";
 
 export const TIEBREAKS: Tiebreak[] = ["wins", "head_to_head", "sonneborn_berger", "fewer_moves"];
 
@@ -15,7 +21,7 @@ export interface LeagueForm {
   loss: string;
   tiebreaks: Tiebreak[];
   minParticipants: string;
-  pauseMinutes: string;
+  recurrence: RecurrenceForm;
   priority: string;
 }
 
@@ -32,7 +38,7 @@ export const DEFAULT_LEAGUE_FORM: LeagueForm = {
   loss: "0",
   tiebreaks: ["wins", "head_to_head", "sonneborn_berger"],
   minParticipants: "2",
-  pauseMinutes: "60",
+  recurrence: DEFAULT_RECURRENCE_FORM,
   priority: "50",
 };
 
@@ -49,7 +55,7 @@ export function leagueForm(league: League): LeagueForm {
     loss: String(league.points.loss),
     tiebreaks: league.tiebreaks,
     minParticipants: String(league.min_participants),
-    pauseMinutes: String(league.pause_minutes),
+    recurrence: recurrenceForm(league.recurrence),
     priority: String(league.priority),
   };
 }
@@ -65,7 +71,7 @@ export function leagueRequest(form: LeagueForm): LeagueRequest {
     points: { win: Number(form.win), draw: Number(form.draw), loss: Number(form.loss) },
     tiebreaks: form.tiebreaks,
     min_participants: Number(form.minParticipants),
-    pause_minutes: Number(form.pauseMinutes),
+    recurrence: recurrenceRequest(form.recurrence),
     priority: Number(form.priority),
   };
 }

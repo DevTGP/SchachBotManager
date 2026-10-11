@@ -6,6 +6,7 @@ import { useLiveMatch } from "../hooks/useLiveMatch";
 import { Viewer } from "../viewer/Viewer";
 import { MatchRepeat } from "./admin/MatchRepeat";
 import { MatchLeague } from "./MatchLeague";
+import { MatchTournament } from "./MatchTournament";
 import { MatchSeries } from "./MatchSeries";
 
 /** Moves can still come; the viewer follows them (E76, E142). */
@@ -23,6 +24,7 @@ export function MatchPage() {
           <Viewer match={data} live={isLive(data)} />
           <MatchSeries place={data.series} />
           <MatchLeague place={data.league} />
+          <MatchTournament place={data.tournament} />
           <MatchRepeat match={data} />
         </>
       )}

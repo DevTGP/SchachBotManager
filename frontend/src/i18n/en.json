@@ -15,7 +15,8 @@
     "admin": "Admin",
     "ownBots": "My bots",
     "play": "Play",
-    "leagues": "Leagues"
+    "leagues": "Leagues",
+    "tournaments": "Tournaments"
   },
   "common": {
     "loading": "Loading …",
@@ -51,7 +52,8 @@
     "not_repeatable": "The game cannot be repeated: a bot is no longer verified or the discipline is archived.",
     "bot_state": "The bot is not (or no longer) in a state that allows this. Please reload the page.",
     "league_state": "The league is not (or no longer) in a state that allows this. Please reload the page.",
-    "already_registered": "The bot is registered in this league already."
+    "already_registered": "The bot is registered here already.",
+    "tournament_state": "The tournament is (no longer) in a state that allows this. Please reload the page."
   },
   "start": {
     "title": "Chess bots in competition",
@@ -133,7 +135,9 @@
     "mine": "Set by me",
     "seasonFilter": "Only the games of one season.",
     "seasonTierFilter": "Only the games of tier {{tier}} of one season.",
-    "clearSeason": "Show all games"
+    "clearSeason": "Show all games",
+    "editionFilter": "Only the games of one tournament edition.",
+    "clearEdition": "Show all games"
   },
   "matchTable": {
     "players": "Game",
@@ -305,7 +309,11 @@
     "admin": "Administration",
     "details": "Details",
     "disableConfirm": "Really disable",
-    "retireConfirm": "Really withdraw"
+    "retireConfirm": "Really withdraw",
+    "noTournaments": "The bot is not registered in any tournament.",
+    "editions": "Tournament editions",
+    "edition": "Edition",
+    "noEditions": "This version has not played in a tournament yet."
   },
   "upload": {
     "title": "Upload a bot",
@@ -601,8 +609,10 @@
       "user": "User",
       "discipline": "Discipline",
       "league": "League",
-      "invite": "Invite"
-    }
+      "invite": "Invite",
+      "tournament": "Tournament"
+    },
+    "tournaments": "Tournaments"
   },
   "notFound": {
     "title": "Page not found",
@@ -751,7 +761,8 @@
     "head_to_head": "Head-to-head",
     "sonneborn_berger": "Sonneborn-Berger",
     "fewer_moves": "Fewer half-moves",
-    "lot": "Lot"
+    "lot": "Lot",
+    "buchholz": "Buchholz"
   },
   "outcome": {
     "promoted": "Promoted",
@@ -780,9 +791,8 @@
     "loss": "Points for a loss",
     "tiebreaks": "Tiebreaks",
     "tiebreakSlot": "Criterion {{slot}}",
-    "lotHint": "The lot drawn at the season start decides last.",
+    "lotHint": "The lot drawn at the start decides last.",
     "minParticipants": "Minimum bots",
-    "pauseMinutes": "Pause between seasons (min)",
     "registered": "Registered",
     "season": "Season",
     "seasonNumber": "Season {{number}}",
@@ -791,7 +801,7 @@
     "participants": "Bots",
     "archived": "archived",
     "archivedHint": "The league is archived: a running season is played to the end, no new one starts.",
-    "awaitingRelease": "The first season waits for an admin to release it.",
+    "awaitingStart": "The next season waits for an admin to start it.",
     "startsAfter_one": "The next season starts {{at}} at the earliest, once {{count}} bot is registered.",
     "startsAfter_other": "The next season starts {{at}} at the earliest, once {{count}} bots are registered.",
     "registrations": "Registered bots",
@@ -811,7 +821,29 @@
     "edit": "Edit league {{name}}",
     "editHint": "Changes apply from the next season start; a running season keeps its settings.",
     "nameTaken": "Another league already has this name.",
-    "release": "Release first season"
+    "startNow": "Start now"
+  },
+  "recurrence": {
+    "title": "Calendar",
+    "enabled": "Start by calendar",
+    "firstStart": "First start",
+    "every": "Every",
+    "unit": "Unit",
+    "units": {
+      "hours": "hours",
+      "days": "days",
+      "weeks": "weeks"
+    },
+    "manualHint": "Without a calendar an admin starts each season or edition.",
+    "manual": "none, an admin starts each one",
+    "interval": {
+      "hours_one": "every hour from {{at}}",
+      "hours_other": "every {{count}} hours from {{at}}",
+      "days_one": "every day from {{at}}",
+      "days_other": "every {{count}} days from {{at}}",
+      "weeks_one": "every week from {{at}}",
+      "weeks_other": "every {{count}} weeks from {{at}}"
+    }
   },
   "seasons": {
     "title": "{{league}} – season {{number}}",
@@ -845,7 +877,119 @@
     "points": "Points from 0 to 10 in halves; a win above a loss and win ≥ draw ≥ loss.",
     "tiebreaks": "Each tiebreak at most once.",
     "min_participants": "The minimum lies between 2 and 320.",
-    "pause_minutes": "The pause lies between 0 and 43200 minutes."
+    "recurrence": "The calendar needs a first start and an interval of 1 hour to 365 days."
+  },
+  "tournamentFormat": {
+    "round_robin": "Round robin",
+    "swiss": "Swiss system",
+    "knockout": "Knockout"
+  },
+  "editionStatus": {
+    "planned": "Planned",
+    "running": "Running",
+    "finished": "Finished"
+  },
+  "duelPhase": {
+    "regular": "Game {{game}}",
+    "tiebreak": "Tiebreak {{game}}",
+    "armageddon": "Armageddon"
+  },
+  "decidedBy": {
+    "games": "by the games",
+    "tiebreak": "by tiebreak",
+    "armageddon": "by Armageddon",
+    "bye": "bye",
+    "withdrawal": "by withdrawal"
+  },
+  "tournaments": {
+    "title": "Tournaments",
+    "intro": "Registered bots play each edition as a round robin, in the Swiss system or by knockout. Bots are seeded by their rating in the discipline.",
+    "empty": "No tournaments yet.",
+    "name": "Name",
+    "tournament": "Tournament",
+    "format": "Format",
+    "formatFixed": "The format cannot be changed once the tournament exists.",
+    "discipline": "Discipline",
+    "gamesPerPairing": "Games per pairing",
+    "gamesPerDuel": "Games per duel",
+    "rounds": "Rounds",
+    "tiebreaks": "Tiebreaks",
+    "tiebreakDiscipline": "Tiebreak discipline",
+    "sameDiscipline": "Same as the tournament",
+    "tiebreakPairs": "Tiebreak pairs",
+    "knockoutHint": "A drawn duel continues with pairs of games in the tiebreak discipline; if still level, one Armageddon game decides.",
+    "armageddon": "Armageddon",
+    "armageddonRule": "Colour by lot, a draw is enough for black",
+    "seeding": "Seeding",
+    "seedingRule": "By rating in the discipline, ties by lot",
+    "minParticipants": "Minimum bots",
+    "registered": "Registered",
+    "edition": "Edition",
+    "editions": "Editions",
+    "editionNumber": "Edition {{number}}",
+    "editionState": "Edition {{number}}: {{status}}",
+    "participants": "Bots",
+    "archived": "archived",
+    "archivedHint": "The tournament is archived: a running edition is played to the end, no new one starts.",
+    "awaitingStart": "The next edition waits for an admin to start it.",
+    "startsAfter_one": "The next edition starts {{at}} at the earliest, once {{count}} bot is registered.",
+    "startsAfter_other": "The next edition starts {{at}} at the earliest, once {{count}} bots are registered.",
+    "registrations": "Registered bots",
+    "noRegistrations": "No bot registered yet.",
+    "playing": "Plays",
+    "inEdition": "in the running edition",
+    "nextEdition": "from the next edition",
+    "registerHint": "The bot plays from the next edition start. Leaving during an edition loses its open games by forfeit.",
+    "noFreeBots": "No verified bot of yours that is not registered here yet.",
+    "place": "round {{round}}, board {{board}}",
+    "duelPlace": "round {{round}}, duel {{duel}}, {{phase}}",
+    "new": "New tournament",
+    "create": "Create tournament",
+    "edit": "Edit tournament {{name}}",
+    "editHint": "Changes apply from the next edition start; a running edition keeps its settings.",
+    "nameTaken": "Another tournament already has this name."
+  },
+  "editions": {
+    "title": "{{tournament}} – edition {{number}}",
+    "toTournament": "To the tournament",
+    "notStarted": "The edition has not started yet.",
+    "games": "Games of the edition",
+    "participants": "Participants",
+    "seed": "Seed",
+    "rating": "Rating",
+    "table": "Table",
+    "byes": "Byes",
+    "rounds": "Rounds",
+    "noRounds": "No games yet.",
+    "bracket": "Bracket",
+    "final": "Final",
+    "semiFinal": "Semi-finals",
+    "quarterFinal": "Quarter-finals",
+    "duelProgress": "{{decided}} of {{duels}} decided",
+    "duel": "Duel",
+    "sideA": "Better seed",
+    "sideB": "Opponent",
+    "score": "Score",
+    "decision": "Decided",
+    "open": "open",
+    "phase": "Game",
+    "winnerMark": "Winner of the duel",
+    "placements": "Places",
+    "place": "Place",
+    "stillIn": "still in",
+    "winner": "Winner"
+  },
+  "tournamentError": {
+    "name": "The name needs 1 to 40 characters.",
+    "discipline_id": "Please choose a discipline that is not archived.",
+    "tiebreak_discipline_id": "Please choose a tiebreak discipline that is not archived.",
+    "games_per_pairing": "A pairing or duel has 1 to 10 games.",
+    "rounds": "The Swiss system has 1 to 20 rounds.",
+    "tiebreak_pairs": "0 to 5 tiebreak pairs.",
+    "tiebreaks": "Each tiebreak at most once, at most five.",
+    "min_participants": "The minimum lies between 2 and 1024.",
+    "priority": "The priority lies between 0 and 1000.",
+    "recurrence": "The calendar needs a first start and an interval of 1 hour to 365 days."
   },
   "pairing": {
     "version": "Version {{version}}"

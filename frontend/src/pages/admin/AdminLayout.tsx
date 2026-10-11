@@ -9,6 +9,7 @@ const SECTIONS = [
   { to: "/admin/invites", key: "admin.invites", end: false },
   { to: "/admin/disciplines", key: "admin.disciplines", end: false },
   { to: "/admin/leagues", key: "admin.leagues", end: false },
+  { to: "/admin/tournaments", key: "admin.tournaments", end: false },
   { to: "/admin/play", key: "admin.play", end: false },
   { to: "/admin/rechecks", key: "admin.rechecks", end: false },
   { to: "/admin/audit", key: "admin.audit", end: false },

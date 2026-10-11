@@ -23,7 +23,8 @@ const KINDS: { value: MatchKind; label: string }[] = [
  * Filters and page live in the URL (status, kind, bot, opponent, discipline, mine, offset), so
  * every view can be linked. Games with people and remote bots are listed like those of bots and
  * can be filtered (E119). The opponent narrows the games of the chosen bot; coders and admins
- * may list the games they set (E156). A season page links here with season and tier (E137).
+ * may list the games they set (E156). A season page links here with season and tier (E137),
+ * an edition page with the edition (E180).
  */
 export function MatchesPage() {
   const { t } = useTranslation();
@@ -39,9 +40,10 @@ export function MatchesPage() {
   const seasonId = params.get("season") ?? undefined;
   const tierText = seasonId ? params.get("tier") : null;
   const tier = tierText ? Number.parseInt(tierText, 10) || undefined : undefined;
+  const editionId = params.get("edition") ?? undefined;
   const offset = Math.max(0, Number.parseInt(params.get("offset") ?? "0", 10) || 0);
 
-  const query = { status, kind, botId, opponentId, disciplineId, mine, seasonId, tier };
+  const query = { status, kind, botId, opponentId, disciplineId, mine, seasonId, tier, editionId };
   const matches = useApi(
     (signal) => fetchMatches({ ...query, limit: PAGE_SIZE, offset }, signal),
     `${JSON.stringify(query)}/${offset}`,
@@ -133,6 +135,14 @@ export function MatchesPage() {
           {tier ? t("matches.seasonTierFilter", { tier }) : t("matches.seasonFilter")}{" "}
           <button type="button" onClick={() => update("season", undefined)}>
             {t("matches.clearSeason")}
+          </button>
+        </p>
+      )}
+      {editionId && (
+        <p className="hint">
+          {t("matches.editionFilter")}{" "}
+          <button type="button" onClick={() => update("edition", undefined)}>
+            {t("matches.clearEdition")}
           </button>
         </p>
       )}

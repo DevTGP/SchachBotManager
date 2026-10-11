@@ -5,6 +5,13 @@ import { minutesToMs, msToSeconds, secondsToMs } from "./duration";
 import { pairing, pairingLabel, pairingResult } from "./pairing";
 import { formatPoints } from "./points";
 import { formatRatingChange, ratingText } from "./rating";
+import {
+  fromLocalInput,
+  intervalHours,
+  nextFullHour,
+  splitInterval,
+  toLocalInput,
+} from "./recurrence";
 import { formatResult } from "./result";
 import { formatScore } from "./score";
 import { disciplineLabel, formatTimeControl } from "./timeControl";
@@ -123,5 +130,20 @@ describe("formatPoints", () => {
     expect(formatPoints(0.5)).toBe("½");
     expect(formatPoints(3)).toBe("3");
     expect(formatPoints(6.5)).toBe("6½");
+  });
+});
+
+describe("recurrence", () => {
+  it("splits an interval into the largest even unit", () => {
+    expect(splitInterval(336)).toEqual({ amount: 2, unit: "weeks" });
+    expect(splitInterval(48)).toEqual({ amount: 2, unit: "days" });
+    expect(splitInterval(30)).toEqual({ amount: 30, unit: "hours" });
+    expect(intervalHours(3, "days")).toBe(72);
+  });
+
+  it("converts between local input and UTC", () => {
+    const local = "2026-10-12T18:30";
+    expect(toLocalInput(fromLocalInput(local))).toBe(local);
+    expect(nextFullHour(new Date(2026, 9, 12, 18, 30))).toBe("2026-10-12T19:00");
   });
 });

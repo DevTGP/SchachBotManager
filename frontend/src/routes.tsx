@@ -20,6 +20,10 @@ import { BotsPage } from "./pages/BotsPage";
 import { LeaguePage } from "./pages/leagues/LeaguePage";
 import { LeaguesPage } from "./pages/leagues/LeaguesPage";
 import { SeasonPage } from "./pages/leagues/SeasonPage";
+import { EditionPage } from "./pages/tournaments/EditionPage";
+import { TournamentPage } from "./pages/tournaments/TournamentPage";
+import { TournamentsPage } from "./pages/tournaments/TournamentsPage";
+import { AdminTournamentsPage } from "./pages/admin/AdminTournamentsPage";
 import { MatchesPage } from "./pages/MatchesPage";
 import { MatchPage } from "./pages/MatchPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -63,6 +67,9 @@ export const routes: RouteObject[] = [
       { path: "leagues", element: <LeaguesPage /> },
       { path: "leagues/:id", element: <LeaguePage /> },
       { path: "seasons/:id", element: <SeasonPage /> },
+      { path: "tournaments", element: <TournamentsPage /> },
+      { path: "tournaments/:id", element: <TournamentPage /> },
+      { path: "editions/:id", element: <EditionPage /> },
       { path: "login", element: <LoginPage /> },
       { path: "invite", element: <InvitePage /> },
       { path: "reset-password", element: <ResetPasswordPage /> },
@@ -91,6 +98,7 @@ export const routes: RouteObject[] = [
           { path: "invites", element: <AdminInvitesPage /> },
           { path: "disciplines", element: <AdminDisciplinesPage /> },
           { path: "leagues", element: <AdminLeaguesPage /> },
+          { path: "tournaments", element: <AdminTournamentsPage /> },
           { path: "play", element: <AdminPlayPage /> },
           { path: "rechecks", element: <RecheckLanguage /> },
           { path: "audit", element: <AdminAuditPage /> },

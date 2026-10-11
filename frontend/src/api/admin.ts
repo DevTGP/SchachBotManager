@@ -130,7 +130,7 @@ export function updateDiscipline(id: string, change: DisciplineUpdate): Promise<
   return sendJson("PATCH", `/admin/disciplines/${encodeURIComponent(id)}`, change);
 }
 
-/** A new league with its first season planned; an admin releases that season (E131, E132). */
+/** A new league with its first season planned; it starts by its calendar or by an admin (E171). */
 export function createLeague(request: LeagueRequest): Promise<League> {
   return sendJson("POST", "/admin/leagues", request);
 }
@@ -140,7 +140,7 @@ export function updateLeague(id: string, change: LeagueUpdate): Promise<League> 
   return sendJson("PATCH", `/admin/leagues/${encodeURIComponent(id)}`, change);
 }
 
-/** Releases the first season; later ones start by themselves (E132). */
+/** Starts the planned season now instead of at its calendar date (E171). */
 export function startLeague(id: string): Promise<League> {
   return sendJson("POST", `/admin/leagues/${encodeURIComponent(id)}/start`);
 }
