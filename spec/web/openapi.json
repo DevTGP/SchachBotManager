@@ -394,6 +394,78 @@
         }
       }
     },
+    "/bots/{bot_id}/seasons": {
+      "parameters": [
+        {
+          "name": "bot_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "get": {
+        "operationId": "get_bot_seasons",
+        "summary": "The started seasons this bot version played in, newest first, with its place; for a running season the current one (E139). Visible like the bot.",
+        "responses": {
+          "200": {
+            "description": "The seasons.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BotSeasonList" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/bots/{bot_id}/rating-history": {
+      "parameters": [
+        {
+          "name": "bot_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "get": {
+        "operationId": "get_bot_rating_history",
+        "summary": "The rating of a bot before and after each counted game, per discipline in the order they were counted (E140). Visible like the bot.",
+        "responses": {
+          "200": {
+            "description": "The rating history.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/RatingHistory" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/bots/{bot_id}/record": {
+      "parameters": [
+        {
+          "name": "bot_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        }
+      ],
+      "get": {
+        "operationId": "get_bot_record",
+        "summary": "Wins, draws and losses of a bot over all its finished games and per discipline (E141). Visible like the bot.",
+        "responses": {
+          "200": {
+            "description": "The record.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/BotRecord" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
     "/bots/{bot_id}/source": {
       "parameters": [
         {
@@ -604,6 +676,36 @@
             "description": "The season.",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/Season" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/seasons/{season_id}/schedule": {
+      "parameters": [
+        {
+          "name": "season_id",
+          "in": "path",
+          "required": true,
+          "schema": { "$ref": "#/components/schemas/Id" }
+        },
+        {
+          "name": "tier",
+          "in": "query",
+          "required": true,
+          "schema": { "type": "integer", "minimum": 1, "maximum": 10 }
+        }
+      ],
+      "get": {
+        "operationId": "get_season_schedule",
+        "summary": "The schedule of one tier of a started season by rounds and boards, with the state of each game (E138). 404 if the season does not have the tier (yet).",
+        "responses": {
+          "200": {
+            "description": "The schedule.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SeasonSchedule" } }
             }
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
@@ -3540,6 +3642,190 @@
           "discipline",
           "tiers"
         ],
+        "additionalProperties": false
+      },
+      "ScheduleGame": {
+        "description": "A game of the schedule as it stands.",
+        "type": "object",
+        "properties": {
+          "match_id": { "$ref": "#/components/schemas/Id" },
+          "board": { "type": "integer", "minimum": 1 },
+          "white": { "$ref": "#/components/schemas/LeagueBot" },
+          "black": { "$ref": "#/components/schemas/LeagueBot" },
+          "status": { "$ref": "#/components/schemas/MatchStatus" },
+          "result": {
+            "description": "null until the game ends.",
+            "oneOf": [{ "$ref": "#/components/schemas/Result" }, { "type": "null" }]
+          },
+          "termination": {
+            "description": "forfeit_withdrawn for a game lost by forfeit (E136); null until the game ends.",
+            "oneOf": [{ "$ref": "#/components/schemas/Termination" }, { "type": "null" }]
+          }
+        },
+        "required": ["match_id", "board", "white", "black", "status", "result", "termination"],
+        "additionalProperties": false
+      },
+      "ScheduleRound": {
+        "type": "object",
+        "properties": {
+          "round": { "type": "integer", "minimum": 1 },
+          "bye": {
+            "description": "The bot without a game in this round when the tier has an odd number of bots (E134); null otherwise.",
+            "oneOf": [{ "$ref": "#/components/schemas/LeagueBot" }, { "type": "null" }]
+          },
+          "games": { "type": "array", "items": { "$ref": "#/components/schemas/ScheduleGame" } }
+        },
+        "required": ["round", "bye", "games"],
+        "additionalProperties": false
+      },
+      "SeasonSchedule": {
+        "description": "The schedule of one tier of a season (E138).",
+        "type": "object",
+        "properties": {
+          "tier": { "type": "integer", "minimum": 1 },
+          "rounds": {
+            "description": "In the order of the rounds, the games of each by board.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ScheduleRound" }
+          }
+        },
+        "required": ["tier", "rounds"],
+        "additionalProperties": false
+      },
+      "BotSeason": {
+        "description": "A season one bot version played in, with its place there (E139).",
+        "type": "object",
+        "properties": {
+          "season_id": { "$ref": "#/components/schemas/Id" },
+          "league_id": { "$ref": "#/components/schemas/Id" },
+          "league_name": { "type": "string" },
+          "number": { "type": "integer", "minimum": 1 },
+          "status": { "enum": ["running", "finished"] },
+          "started_at": { "$ref": "#/components/schemas/Timestamp" },
+          "finished_at": {
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          },
+          "tier": { "type": "integer", "minimum": 1 },
+          "rank": {
+            "description": "The place in the tier, current while the season runs; null once the bot has withdrawn.",
+            "type": ["integer", "null"],
+            "minimum": 1
+          },
+          "tier_size": { "description": "Bots in the tier.", "type": "integer", "minimum": 1 },
+          "games": { "type": "integer", "minimum": 0 },
+          "points": { "type": "number", "multipleOf": 0.5 },
+          "withdrawn": { "type": "boolean" },
+          "outcome": {
+            "description": "Set once the season has finished.",
+            "enum": ["promoted", "relegated", "stayed", "withdrawn", null]
+          }
+        },
+        "required": [
+          "season_id",
+          "league_id",
+          "league_name",
+          "number",
+          "status",
+          "started_at",
+          "finished_at",
+          "tier",
+          "rank",
+          "tier_size",
+          "games",
+          "points",
+          "withdrawn",
+          "outcome"
+        ],
+        "additionalProperties": false
+      },
+      "BotSeasonList": {
+        "type": "object",
+        "properties": {
+          "items": { "type": "array", "items": { "$ref": "#/components/schemas/BotSeason" } }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "RatingPoint": {
+        "description": "The rating of the bot before and after one counted game.",
+        "type": "object",
+        "properties": {
+          "match_id": { "$ref": "#/components/schemas/Id" },
+          "finished_at": { "$ref": "#/components/schemas/Timestamp" },
+          "before": { "type": "integer" },
+          "after": { "type": "integer" }
+        },
+        "required": ["match_id", "finished_at", "before", "after"],
+        "additionalProperties": false
+      },
+      "DisciplineRatingHistory": {
+        "type": "object",
+        "properties": {
+          "discipline_id": { "$ref": "#/components/schemas/Id" },
+          "name": { "type": "string" },
+          "games": {
+            "description": "In the order the games were counted (E104).",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RatingPoint" },
+            "minItems": 1
+          }
+        },
+        "required": ["discipline_id", "name", "games"],
+        "additionalProperties": false
+      },
+      "RatingHistory": {
+        "description": "The rating history of a bot (E140).",
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "One entry per discipline with counted games, most games first.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DisciplineRatingHistory" }
+          }
+        },
+        "required": ["items"],
+        "additionalProperties": false
+      },
+      "RecordCounts": {
+        "description": "Wins include those by forfeit (E136).",
+        "type": "object",
+        "properties": {
+          "games": { "type": "integer", "minimum": 0 },
+          "wins": { "type": "integer", "minimum": 0 },
+          "draws": { "type": "integer", "minimum": 0 },
+          "losses": { "type": "integer", "minimum": 0 }
+        },
+        "required": ["games", "wins", "draws", "losses"],
+        "additionalProperties": false
+      },
+      "DisciplineRecord": {
+        "type": "object",
+        "properties": {
+          "discipline_id": {
+            "description": "null for games with free times and no stored discipline.",
+            "oneOf": [{ "$ref": "#/components/schemas/Id" }, { "type": "null" }]
+          },
+          "name": { "type": ["string", "null"] },
+          "games": { "type": "integer", "minimum": 1 },
+          "wins": { "type": "integer", "minimum": 0 },
+          "draws": { "type": "integer", "minimum": 0 },
+          "losses": { "type": "integer", "minimum": 0 }
+        },
+        "required": ["discipline_id", "name", "games", "wins", "draws", "losses"],
+        "additionalProperties": false
+      },
+      "BotRecord": {
+        "description": "The results of a bot in all its finished games except those against itself, rated or not, against bots and people (E141).",
+        "type": "object",
+        "properties": {
+          "total": { "$ref": "#/components/schemas/RecordCounts" },
+          "disciplines": {
+            "description": "Most games first; free times last.",
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DisciplineRecord" }
+          }
+        },
+        "required": ["total", "disciplines"],
         "additionalProperties": false
       },
       "LeagueRequest": {
