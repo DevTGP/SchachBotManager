@@ -2,8 +2,12 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 
 import type { LeaguePlace } from "../api/types";
+import { seasonPlaceLink } from "../format/anchors";
 
-/** Where a league game stands: league, season, tier, round and board (E137). */
+/**
+ * Where a league game stands: league, season, tier, round and board (E137); the place leads to
+ * its round on the season page (E188).
+ */
 export function MatchLeague({ place }: { place: LeaguePlace | null }) {
   const { t } = useTranslation();
   if (place === null) return null;
@@ -15,7 +19,9 @@ export function MatchLeague({ place }: { place: LeaguePlace | null }) {
         {t("leagues.seasonNumber", { number: place.season_number })}
       </Link>
       {", "}
-      {t("seasons.place", { tier: place.tier, round: place.round, board: place.board })}
+      <Link to={seasonPlaceLink(place)}>
+        {t("seasons.place", { tier: place.tier, round: place.round, board: place.board })}
+      </Link>
     </p>
   );
 }

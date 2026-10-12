@@ -5,6 +5,7 @@ import type { MatchSummary } from "../api/types";
 import { formatDateTime, formatTime } from "../format/dateTime";
 import { formatTimeControl } from "../format/timeControl";
 import { useLocale } from "../hooks/useLocale";
+import { CompetitionCell, CompetitionHeader } from "./CompetitionCell";
 import { ActionsHeader, OpenCell } from "./OpenCell";
 import { PairingCells, PairingHeader } from "./Pairing";
 import { TableShell } from "./TableShell";
@@ -26,7 +27,8 @@ export type QueueView = "public" | "admin" | "own";
 
 /**
  * The one queue table for every role (E167). Running games have no place; their start is the
- * real one. actions adds the buttons of the role after "Open".
+ * real one. actions adds the buttons of the role after "Open". The competition column leads to
+ * the season, edition or series of a game (E188).
  */
 export function QueueTable({
   rows,
@@ -57,6 +59,7 @@ export function QueueTable({
           {placed && <th className="number">{t("queue.position")}</th>}
           <PairingHeader />
           <th>{t("matchTable.timeControl")}</th>
+          <CompetitionHeader />
           {estimated && <th>{t(startHeader)}</th>}
           {view === "public" && <th className="optional">{t("queue.estimatedEnd")}</th>}
           {view === "own" && <th className="optional">{t("matchTable.discipline")}</th>}
@@ -70,6 +73,7 @@ export function QueueTable({
             {placed && <td className="number">{row.position || t("queue.runningShort")}</td>}
             <PairingCells match={row.match} />
             <td>{formatTimeControl(row.match.discipline, locale)}</td>
+            <CompetitionCell match={row.match} />
             {estimated && <td>{row.estimated_start && formatTime(row.estimated_start, locale)}</td>}
             {view === "public" && (
               <td className="optional">

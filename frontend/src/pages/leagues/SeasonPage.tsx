@@ -10,9 +10,14 @@ import { useApi } from "../../hooks/useApi";
 import { POLL_LIST_MS } from "../../hooks/polling";
 import { useLocale } from "../../hooks/useLocale";
 import { LeagueFacts } from "./LeagueFacts";
+import { SeasonNeighbours } from "./SeasonNeighbours";
+import { TierJumps } from "./TierJumps";
 import { TierTable } from "./TierTable";
 
-/** A season with the settings of its start and the table of every tier (E135, E137). */
+/**
+ * A season with the settings of its start and the table of every tier (E135, E137), with jumps
+ * to its tiers and the seasons before and after it (E188).
+ */
 export function SeasonPage() {
   const { t } = useTranslation();
   const locale = useLocale();
@@ -30,6 +35,7 @@ export function SeasonPage() {
           <p>
             <Link to={`/leagues/${data.league_id}`}>{t("seasons.toLeague")}</Link>
           </p>
+          <SeasonNeighbours leagueId={data.league_id} number={data.number} />
           <p className="muted">
             {t(`seasonStatus.${data.status}`)}
             {data.started_at &&
@@ -45,6 +51,7 @@ export function SeasonPage() {
           ) : (
             <p className="muted">{t("seasons.notStarted")}</p>
           )}
+          <TierJumps tiers={data.tiers} />
           {data.tiers.map((tier) => (
             <TierTable
               key={tier.tier}

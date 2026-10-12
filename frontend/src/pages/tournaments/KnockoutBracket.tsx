@@ -6,12 +6,14 @@ import { ActionsHeader, OpenCell } from "../../components/OpenCell";
 import { PairingCells, PairingHeader } from "../../components/Pairing";
 import { GameState } from "../../components/ScheduleRounds";
 import { SideName } from "../../components/SideName";
+import { editionRoundAnchor } from "../../format/anchors";
 import { formatPoints } from "../../format/points";
+import { useHashTarget } from "../../hooks/useHashTarget";
 
 /**
  * The bracket of a knockout edition round by round: the duels with their score and how each was
  * decided, then their games; the first round with an open duel starts open, the last one once all are decided (E176,
- * E180).
+ * E180), as does the round a link names by its anchor (E188).
  */
 export function KnockoutBracket({ duels }: { duels: Duel[] }) {
   const { t } = useTranslation();
@@ -36,10 +38,12 @@ export function KnockoutBracket({ duels }: { duels: Duel[] }) {
 
 function BracketRound({ round, duels, open }: { round: number; duels: Duel[]; open: boolean }) {
   const { t } = useTranslation();
+  const id = editionRoundAnchor(round);
+  const { ref, targeted } = useHashTarget<HTMLDetailsElement>(id);
   const decided = duels.filter((duel) => duel.decided).length;
   const games = duels.flatMap((duel) => duel.games.map((game) => ({ ...game, slot: duel.slot })));
   return (
-    <details className="schedule-round" open={open}>
+    <details ref={ref} id={id} className="schedule-round" open={open || targeted}>
       <summary>
         {roundName(round, duels.length, t)}
         <span className="muted">

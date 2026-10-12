@@ -182,3 +182,18 @@ main {
   cursor: pointer;
   padding: 0.25rem 0;
 }
+
+/* Anchors of tiers and rounds keep a little room above them when jumped to (E188). */
+.schedule-round,
+section[id^="tier-"] {
+  scroll-margin-top: 1rem;
+}
+
+/* Jumps to the tiers of a season and to the neighbouring seasons or editions (E188). */
+.jump-links,
+.neighbour-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0.5rem 0 1rem;
+}

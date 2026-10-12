@@ -5,6 +5,7 @@ import { fetchLeagues } from "../../api/leagues";
 import { ApiContent } from "../../components/ApiContent";
 import { TableShell } from "../../components/TableShell";
 import { useApi } from "../../hooks/useApi";
+import { SeasonState } from "./SeasonState";
 
 /** Every league by name with its latest season (E137). */
 export function LeaguesPage() {
@@ -37,11 +38,7 @@ export function LeaguesPage() {
                   <td className="number">{league.tiers}</td>
                   <td className="number">{league.registered}</td>
                   <td>
-                    {league.season &&
-                      t("leagues.seasonState", {
-                        number: league.season.number,
-                        status: t(`seasonStatus.${league.season.status}`),
-                      })}
+                    <SeasonState season={league.season} />
                   </td>
                 </tr>
               ))}

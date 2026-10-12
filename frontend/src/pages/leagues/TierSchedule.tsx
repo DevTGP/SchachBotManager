@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { fetchSeasonSchedule } from "../../api/leagues";
 import { ApiContent } from "../../components/ApiContent";
 import { ScheduleRounds } from "../../components/ScheduleRounds";
+import { seasonRoundAnchor } from "../../format/anchors";
 import { POLL_LIST_MS } from "../../hooks/polling";
 import { useApi } from "../../hooks/useApi";
 
@@ -26,7 +27,13 @@ export function TierSchedule({
     <>
       <h3>{t("seasons.schedule")}</h3>
       <ApiContent state={schedule}>
-        {(data) => <ScheduleRounds rounds={data.rounds} empty={t("seasons.noSchedule")} />}
+        {(data) => (
+          <ScheduleRounds
+            rounds={data.rounds}
+            empty={t("seasons.noSchedule")}
+            anchor={(round) => seasonRoundAnchor(tier, round)}
+          />
+        )}
       </ApiContent>
     </>
   );

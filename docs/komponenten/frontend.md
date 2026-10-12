@@ -251,6 +251,19 @@ Namen von Bots stehen nirgends mehr mit Version; eine Spalte „Version“ haben
 
 Ungültige Einstellungen nennt das Formular je Feld (`tournamentError.*` bzw. `leagueError.*`).
 
+## Verknüpfungen (E188)
+
+| Datei | Inhalt |
+|-------|--------|
+| `src/pages/leagues/SeasonState.tsx`, `src/pages/tournaments/EditionState.tsx` | Stand der letzten Saison bzw. Ausgabe als Link; in den Listen, auf den Admin-Seiten und unter dem Titel von Liga und Turnier („Aktuelle Saison“, „Aktuelle Ausgabe“) |
+| `src/pages/leagues/TierJumps.tsx` | Saisonseite: Sprungmarken auf die Stufen (`#tier-N`), ab zwei Stufen |
+| `src/components/NeighbourLinks.tsx`, `src/pages/leagues/SeasonNeighbours.tsx`, `src/pages/tournaments/EditionNeighbours.tsx` | Vorige und nächste Saison bzw. Ausgabe aus der Liga bzw. dem Turnier; still, solange sie laden oder fehlen |
+| `src/format/anchors.ts`, `src/hooks/useHashTarget.ts` | Anker der Stufen und Runden und Links auf den Platz einer Partie; das Ziel des Ankers öffnet sich und scrollt beim Laden ins Bild |
+| `src/components/CompetitionCell.tsx` | Spalte „Wettbewerb“ in `MatchTable` und `QueueTable`: Saison oder Ausgabe mit Link auf die Runde, sonst die Serie |
+| `src/pages/MatchPage.tsx`, `MatchLeague.tsx`, `MatchTournament.tsx` | Serie, Liga bzw. Turnier über dem Brett; der Platz verlinkt die Runde |
+| `src/pages/MatchesPage.tsx` | Filter nach Saison bzw. Ausgabe mit Link zurück („Zur Saison“, bei Stufe auf deren Anker; „Zur Ausgabe“) |
+| `src/pages/play/CompetitionGame.tsx` | `/play/:id`: Liga, Saison und Platz bzw. Turnier, Ausgabe und Platz als Links (`MatchLeague`, `MatchTournament`) |
+
 ## Zu beachten
 
 - **Zustand über URLs:** Jede Ansicht (Partie, Zugnummer, Saison, Filter) ist verlinkbar.

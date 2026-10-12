@@ -135,7 +135,18 @@ describe("ready for a competition game", () => {
     renderRoute(`/play/${MATCH_ID}`);
 
     expect(await screen.findByRole("heading", { name: "pat – Material" })).toBeVisible();
-    expect(screen.getByText("Bundesliga, Season 2")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Bundesliga" })).toHaveAttribute(
+      "href",
+      "/leagues/665f0000000000000000e001",
+    );
+    expect(screen.getByRole("link", { name: "Season 2" })).toHaveAttribute(
+      "href",
+      "/seasons/665f0000000000000000f001",
+    );
+    expect(screen.getByRole("link", { name: "tier 1, round 1, board 1" })).toHaveAttribute(
+      "href",
+      "/seasons/665f0000000000000000f001#tier-1-round-1",
+    );
     expect(screen.getByRole("status")).toHaveTextContent("You are not ready yet.");
     expect(screen.getByText("Your opponent is a bot and always ready.")).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Ready" }));

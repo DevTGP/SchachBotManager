@@ -138,7 +138,9 @@
     "seasonTierFilter": "Only the games of tier {{tier}} of one season.",
     "clearSeason": "Show all games",
     "editionFilter": "Only the games of one tournament edition.",
-    "clearEdition": "Show all games"
+    "clearEdition": "Show all games",
+    "toSeason": "To the season",
+    "toEdition": "To the edition"
   },
   "matchTable": {
     "players": "Game",
@@ -150,7 +152,8 @@
     "open": "Open",
     "created": "Queued: {{at}}",
     "started": "Started: {{at}}",
-    "discipline": "Discipline"
+    "discipline": "Discipline",
+    "competition": "Competition"
   },
   "status": {
     "queued": "Waiting",
@@ -825,7 +828,8 @@
     "edit": "Edit league {{name}}",
     "editHint": "Changes apply from the next season start; a running season keeps its settings.",
     "nameTaken": "Another league already has this name.",
-    "startNow": "Start now"
+    "startNow": "Start now",
+    "currentSeason": "Current season:"
   },
   "recurrence": {
     "title": "Calendar",
@@ -869,7 +873,10 @@
     "roundProgress": "{{finished}} of {{games}} finished",
     "board": "Board",
     "bye": "Bye: {{bot}}",
-    "forfeitResult": "{{result}} by forfeit"
+    "forfeitResult": "{{result}} by forfeit",
+    "tiers": "Tiers",
+    "previous": "← Season {{number}}",
+    "next": "Season {{number}} →"
   },
   "leagueError": {
     "name": "The name needs 1 to 40 characters.",
@@ -951,7 +958,8 @@
     "create": "Create tournament",
     "edit": "Edit tournament {{name}}",
     "editHint": "Changes apply from the next edition start; a running edition keeps its settings.",
-    "nameTaken": "Another tournament already has this name."
+    "nameTaken": "Another tournament already has this name.",
+    "currentEdition": "Current edition:"
   },
   "editions": {
     "title": "{{tournament}} – edition {{number}}",
@@ -981,7 +989,9 @@
     "placements": "Places",
     "place": "Place",
     "stillIn": "still in",
-    "winner": "Winner"
+    "winner": "Winner",
+    "previous": "← Edition {{number}}",
+    "next": "Edition {{number}} →"
   },
   "tournamentError": {
     "name": "The name needs 1 to 40 characters.",

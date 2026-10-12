@@ -6,6 +6,7 @@ import { formatDateTime } from "../format/dateTime";
 import { pairing, pairingResult } from "../format/pairing";
 import { formatTimeControl } from "../format/timeControl";
 import { useLocale } from "../hooks/useLocale";
+import { CompetitionCell, CompetitionHeader } from "./CompetitionCell";
 import { ActionsHeader, OpenCell } from "./OpenCell";
 import { PairingCells, PairingHeader } from "./Pairing";
 import { StatusBadge } from "./StatusBadge";
@@ -13,7 +14,8 @@ import { TableShell } from "./TableShell";
 
 /**
  * Games with the sides in alphabetical order and the result in that order (E165). A game
- * without a result shows its state; the date tells when it started or was set.
+ * without a result shows its state; the date tells when it started or was set. The competition
+ * column leads to the season, edition or series of a game (E188).
  */
 export function MatchTable({ matches, empty }: { matches: MatchSummary[]; empty: string }) {
   const { t } = useTranslation();
@@ -27,6 +29,7 @@ export function MatchTable({ matches, empty }: { matches: MatchSummary[]; empty:
           <th className="optional">{t("matchTable.termination")}</th>
           <th>{t("matchTable.timeControl")}</th>
           <th className="number optional">{t("matchTable.moves")}</th>
+          <CompetitionHeader />
           <th className="optional">{t("matchTable.date")}</th>
           <ActionsHeader />
         </tr>
@@ -49,6 +52,7 @@ export function MatchTable({ matches, empty }: { matches: MatchSummary[]; empty:
             <td className="number optional">
               {match.status === "queued" ? t("common.none") : Math.ceil(match.ply_count / 2)}
             </td>
+            <CompetitionCell match={match} />
             <td className="optional" title={dateTitle(match, locale, t)}>
               {formatDateTime(match.started_at ?? match.created_at, locale)}
             </td>

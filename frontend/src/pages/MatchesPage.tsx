@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router";
+import { Link, useSearchParams } from "react-router";
 
 import { fetchBots, fetchDisciplines, fetchMatches } from "../api/endpoints";
 import type { MatchKind, MatchStatus } from "../api/types";
@@ -8,6 +8,7 @@ import { BotPicker } from "../components/BotPicker";
 import { MatchTable } from "../components/MatchTable";
 import { Pager } from "../components/Pager";
 import { type Pill, PillSelect } from "../components/PillSelect";
+import { tierAnchor } from "../format/anchors";
 import { useApi } from "../hooks/useApi";
 import { POLL_LIST_MS } from "../hooks/polling";
 import { useSession } from "../session/sessionContext";
@@ -24,7 +25,7 @@ const KINDS: { value: MatchKind; label: string }[] = [
  * every view can be linked. Games with people and remote bots are listed like those of bots and
  * can be filtered (E119). The opponent narrows the games of the chosen bot; coders and admins
  * may list the games they set (E156). A season page links here with season and tier (E137),
- * an edition page with the edition (E180).
+ * an edition page with the edition (E180); both filters link back to their page (E188).
  */
 export function MatchesPage() {
   const { t } = useTranslation();
@@ -133,6 +134,9 @@ export function MatchesPage() {
       {seasonId && (
         <p className="hint">
           {tier ? t("matches.seasonTierFilter", { tier }) : t("matches.seasonFilter")}{" "}
+          <Link to={`/seasons/${seasonId}${tier ? `#${tierAnchor(tier)}` : ""}`}>
+            {t("matches.toSeason")}
+          </Link>{" "}
           <button type="button" onClick={() => update("season", undefined)}>
             {t("matches.clearSeason")}
           </button>
@@ -141,6 +145,7 @@ export function MatchesPage() {
       {editionId && (
         <p className="hint">
           {t("matches.editionFilter")}{" "}
+          <Link to={`/editions/${editionId}`}>{t("matches.toEdition")}</Link>{" "}
           <button type="button" onClick={() => update("edition", undefined)}>
             {t("matches.clearEdition")}
           </button>

@@ -3,12 +3,14 @@ import { Link } from "react-router";
 
 import type { SeasonTier } from "../../api/types";
 import { SideName } from "../../components/SideName";
+import { tierAnchor } from "../../format/anchors";
 import { formatPoints } from "../../format/points";
+import { useHashTarget } from "../../hooks/useHashTarget";
 import { TierSchedule } from "./TierSchedule";
 
 /**
  * The table of one tier, withdrawn bots at the end without a rank (E135), and below it the
- * schedule of the tier (E138).
+ * schedule of the tier (E138); the season page jumps here by its anchor (E188).
  */
 export function TierTable({
   tier,
@@ -20,8 +22,10 @@ export function TierTable({
   running: boolean;
 }) {
   const { t } = useTranslation();
+  const id = tierAnchor(tier.tier);
+  const { ref } = useHashTarget<HTMLElement>(id);
   return (
-    <section>
+    <section ref={ref} id={id}>
       <h2>{t("seasons.tier", { tier: tier.tier })}</h2>
       <p className="muted">
         {t("seasons.progress", { finished: tier.finished, games: tier.games })}{" "}

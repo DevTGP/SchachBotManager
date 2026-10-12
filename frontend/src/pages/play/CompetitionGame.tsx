@@ -6,12 +6,13 @@ import { declareReady, fetchCompetitionGames } from "../../api/competitionGames"
 import type { CompetitionGame as Item, SideReadiness } from "../../api/types";
 import { ApiContent } from "../../components/ApiContent";
 import { FormError } from "../../components/FormError";
-import { competitionName } from "../../format/competition";
 import { formatDateTime } from "../../format/dateTime";
 import { useApi } from "../../hooks/useApi";
 import { useSubmit } from "../../hooks/useSubmit";
 import { loadSeat, saveSeat } from "../../play/seats";
 import type { SocketFactory } from "../../play/usePlayGame";
+import { MatchLeague } from "../MatchLeague";
+import { MatchTournament } from "../MatchTournament";
 import { DeadlineCountdown } from "./DeadlineCountdown";
 import { Game } from "./Game";
 import { StartCountdown } from "./StartCountdown";
@@ -90,7 +91,8 @@ function Waiting({ item, onReady }: { item: Item; onReady: () => void }) {
       <h1>
         {match.white.name} – {match.black.name}
       </h1>
-      <p>{competitionName(t, item)}</p>
+      <MatchLeague place={match.league} />
+      <MatchTournament place={match.tournament} />
       {readiness == null ? (
         <p role="status">{t("competitionGame.notReleased")}</p>
       ) : (

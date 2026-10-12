@@ -187,6 +187,13 @@ Alle Felder werden unabhängig vom Format gespeichert; was das Format nicht nutz
 - **Anmeldung (E179, E181, E182):** wie bei Ligen über die Bot- und die Turnierseite, Admins für jeden geprüften Bot samt Referenzbots, Konten selbst auf der Turnierseite; sie gilt für alle folgenden Ausgaben. Abmelden, Zurückziehen, Sperren und Löschen beenden sie; in einer laufenden Ausgabe enden die wartenden Partien des Bots kampflos. Partien eines gelöschten Bots werden nicht neu angelegt, der Gegner bekommt dafür keinen kampflosen Sieg.
 - **Seiten (E180):** Navigationspunkt „Turniere“ mit `/tournaments` und `/tournaments/:id`, Ausgabe `/editions/:id` mit Tabelle und Runden bzw. Turnierbaum und Platzierung, Admin-Seite `/admin/tournaments`, auf der Bot-Seite Anmeldungen und Turnierverlauf, unter `/matches` Filter nach Ausgabe.
 
+### Verknüpfungen (E188)
+
+- Listen und Admin-Seiten verlinken den Stand der letzten Saison bzw. Ausgabe, Liga- und Turnierseite nennen sie unter dem Titel.
+- Die Saisonseite springt zu den Stufen (`#tier-N`); Saison- und Ausgabeseite verlinken die vorige und die nächste.
+- Runden tragen Anker (`#tier-N-round-R`, `#round-R`). Partieseite, Partielisten, Queue und `/play/:id` verlinken den Platz einer Partie auf ihre Runde; die Runde öffnet sich dort.
+- `/matches` mit Filter nach Saison oder Ausgabe verlinkt zurück.
+
 ## Spieler in Wettbewerben (E182–E186, Migration `0155`)
 
 Konten jeder Rolle (`player`, `coder`, `admin`) nehmen wie Bots an Ligen und Turnieren teil, in gemischten Feldern.

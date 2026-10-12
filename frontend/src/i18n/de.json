@@ -138,7 +138,9 @@
     "seasonTierFilter": "Nur Partien der Stufe {{tier}} einer Saison.",
     "clearSeason": "Alle Partien zeigen",
     "editionFilter": "Nur Partien einer Turnierausgabe.",
-    "clearEdition": "Alle Partien zeigen"
+    "clearEdition": "Alle Partien zeigen",
+    "toSeason": "Zur Saison",
+    "toEdition": "Zur Ausgabe"
   },
   "matchTable": {
     "players": "Partie",
@@ -150,7 +152,8 @@
     "open": "Öffnen",
     "created": "Angesetzt: {{at}}",
     "started": "Gestartet: {{at}}",
-    "discipline": "Disziplin"
+    "discipline": "Disziplin",
+    "competition": "Wettbewerb"
   },
   "status": {
     "queued": "Wartet",
@@ -825,7 +828,8 @@
     "edit": "Liga {{name}} bearbeiten",
     "editHint": "Änderungen gelten ab dem nächsten Saisonstart; eine laufende Saison behält ihre Einstellungen.",
     "nameTaken": "Eine andere Liga hat schon diesen Namen.",
-    "startNow": "Jetzt starten"
+    "startNow": "Jetzt starten",
+    "currentSeason": "Aktuelle Saison:"
   },
   "recurrence": {
     "title": "Kalender",
@@ -869,7 +873,10 @@
     "roundProgress": "{{finished}} von {{games}} beendet",
     "board": "Brett",
     "bye": "Spielfrei: {{bot}}",
-    "forfeitResult": "{{result}} kampflos"
+    "forfeitResult": "{{result}} kampflos",
+    "tiers": "Stufen",
+    "previous": "← Saison {{number}}",
+    "next": "Saison {{number}} →"
   },
   "leagueError": {
     "name": "Der Name muss 1 bis 40 Zeichen lang sein.",
@@ -951,7 +958,8 @@
     "create": "Turnier anlegen",
     "edit": "Turnier {{name}} bearbeiten",
     "editHint": "Änderungen gelten ab dem nächsten Start einer Ausgabe; eine laufende Ausgabe behält ihre Einstellungen.",
-    "nameTaken": "Ein anderes Turnier hat schon diesen Namen."
+    "nameTaken": "Ein anderes Turnier hat schon diesen Namen.",
+    "currentEdition": "Aktuelle Ausgabe:"
   },
   "editions": {
     "title": "{{tournament}} – Ausgabe {{number}}",
@@ -981,7 +989,9 @@
     "placements": "Platzierungen",
     "place": "Platz",
     "stillIn": "noch dabei",
-    "winner": "Sieger"
+    "winner": "Sieger",
+    "previous": "← Ausgabe {{number}}",
+    "next": "Ausgabe {{number}} →"
   },
   "tournamentError": {
     "name": "Der Name muss 1 bis 40 Zeichen lang sein.",

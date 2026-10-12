@@ -9,6 +9,7 @@ import { disciplineLabel } from "../../format/timeControl";
 import { POLL_LIST_MS } from "../../hooks/polling";
 import { useApi } from "../../hooks/useApi";
 import { useLocale } from "../../hooks/useLocale";
+import { EditionNeighbours } from "./EditionNeighbours";
 import { EditionParticipants } from "./EditionParticipants";
 import { EditionRoundsSection } from "./EditionRoundsSection";
 import { EditionTable } from "./EditionTable";
@@ -16,7 +17,10 @@ import { KnockoutBracket } from "./KnockoutBracket";
 import { KnockoutPlacements } from "./KnockoutPlacements";
 import { TournamentFacts } from "./TournamentFacts";
 
-/** An edition with the settings of its start and its table and rounds or its bracket (E180). */
+/**
+ * An edition with the settings of its start and its table and rounds or its bracket (E180), with
+ * the editions before and after it (E188).
+ */
 export function EditionPage() {
   const { t } = useTranslation();
   const locale = useLocale();
@@ -39,6 +43,7 @@ export function EditionPage() {
             <p>
               <Link to={`/tournaments/${data.tournament_id}`}>{t("editions.toTournament")}</Link>
             </p>
+            <EditionNeighbours tournamentId={data.tournament_id} number={data.number} />
             <p className="muted">
               {t(`editionStatus.${data.status}`)}
               {data.started_at &&
