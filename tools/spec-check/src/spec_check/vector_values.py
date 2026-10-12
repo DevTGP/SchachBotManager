@@ -1,8 +1,9 @@
 """Whether a JSON value of a test vector encodes a value of an API type (calls.schema.json).
 
 Integers stay within the range of their primitive, u64 values are written as 0x plus 16 lower-case
-hex digits, a Board as its FEN and list<T> as an array. A Move never carries the unused flags 6
-and 7 (E34), so no API call can take or return such a value.
+hex digits, a Board as its FEN, list<T> as an array and a record as an object with its fields
+(E188). A Move never carries the unused flags 6 and 7 (E34), so no API call can take or return
+such a value.
 """
 
 import re
@@ -12,7 +13,21 @@ from spec_check.api import LIST_TYPE, RANGES, primitive_of
 HEX64 = re.compile(r"0x[0-9a-f]{16}")
 BOARD = "Board"
 MOVE = "Move"
+RECORD = "record"
 UNUSED_MOVE_FLAGS = (6, 7)
+
+
+def fits_record(value: object, fields: list[dict], types: dict[str, dict]) -> bool:
+    """An object with every field that is not optional and no other key."""
+    if not isinstance(value, dict):
+        return False
+    names = {field["name"] for field in fields}
+    required = {field["name"] for field in fields if not field.get("optional")}
+    return required <= value.keys() <= names and all(
+        fits(value[field["name"]], field["type"], types)
+        for field in fields
+        if field["name"] in value
+    )
 
 
 def fits(value: object, type_name: str, types: dict[str, dict]) -> bool:
@@ -22,6 +37,8 @@ def fits(value: object, type_name: str, types: dict[str, dict]) -> bool:
         return isinstance(value, list) and all(fits(item, element, types) for item in value)
     if type_name == BOARD:
         return isinstance(value, str)
+    if types.get(type_name, {}).get("kind") == RECORD:
+        return fits_record(value, types[type_name]["fields"], types)
     primitive = primitive_of(type_name, types)
     if primitive == "bool":
         return isinstance(value, bool)

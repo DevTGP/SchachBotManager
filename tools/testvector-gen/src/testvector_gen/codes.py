@@ -4,6 +4,10 @@ import chess
 
 WHITE = 0
 BLACK = 1
+NO_COLOR = 2
+PAWN = 0
+BISHOP = 2
+KING = 5
 PIECE_TYPES = 6
 NO_PIECE_TYPE = 6
 NO_PIECE = 12

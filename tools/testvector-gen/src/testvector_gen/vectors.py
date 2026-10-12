@@ -6,7 +6,7 @@ from testvector_gen.oracle import HANDLERS
 from testvector_gen.oracle.call import Call
 from testvector_gen.position import build
 
-UNORDERED = {"Board.legal_moves", "Board.legal_captures"}
+UNORDERED = {"Board.legal_moves", "Board.legal_captures", "Board.all_moves_from"}
 CONTAINS = {"Board.to_text"}
 MUTATING = {"Board.make_move", "Board.undo_move", "Board.make_null_move", "Board.undo_null_move"}
 

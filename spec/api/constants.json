@@ -5,6 +5,7 @@
   "constants": [
     { "name": "WHITE", "type": "Color", "value": 0 },
     { "name": "BLACK", "type": "Color", "value": 1 },
+    { "name": "NO_COLOR", "type": "Color", "value": 2, "description": "No color, e.g. both colors in Board.pieces." },
     { "name": "PAWN", "type": "PieceType", "value": 0 },
     { "name": "KNIGHT", "type": "PieceType", "value": 1 },
     { "name": "BISHOP", "type": "PieceType", "value": 2 },

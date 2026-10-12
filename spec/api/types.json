@@ -3,7 +3,7 @@
   "module": "types",
   "description": "Named types of the bot API. Encodings follow E34 and E35.",
   "types": [
-    { "name": "Color", "kind": "alias", "base": "u8", "description": "WHITE = 0, BLACK = 1." },
+    { "name": "Color", "kind": "alias", "base": "u8", "description": "WHITE = 0, BLACK = 1; NO_COLOR = 2." },
     { "name": "PieceType", "kind": "alias", "base": "u8", "description": "PAWN = 0 to KING = 5; NO_PIECE_TYPE = 6." },
     { "name": "Piece", "kind": "alias", "base": "u8", "description": "color * 6 + piece type (0 to 11); NO_PIECE = 12." },
     { "name": "Square", "kind": "alias", "base": "u8", "description": "rank * 8 + file, a1 = 0 to h8 = 63; NO_SQUARE = 64." },
@@ -86,6 +86,15 @@
         { "name": "nodes", "type": "i64", "optional": true, "description": "Searched nodes." },
         { "name": "pv", "type": "list<Move>", "optional": true, "description": "Principal variation starting with the move played; at most 32 moves are sent." },
         { "name": "text", "type": "string", "optional": true, "description": "Free text; at most 256 characters are sent." }
+      ]
+    },
+    {
+      "name": "PlacedPiece",
+      "kind": "record",
+      "description": "A piece with its square, as listed by Board.pieces.",
+      "fields": [
+        { "name": "square", "type": "Square", "description": "Square of the piece." },
+        { "name": "piece", "type": "Piece", "description": "The piece." }
       ]
     }
   ]

@@ -13,6 +13,18 @@
       "description": "Piece on a square."
     },
     {
+      "name": "pieces",
+      "kind": "method",
+      "owner": "Board",
+      "params": [
+        { "name": "color", "type": "Color", "description": "NO_COLOR for both colors." },
+        { "name": "piece_type", "type": "PieceType", "description": "NO_PIECE_TYPE for every type." }
+      ],
+      "returns": { "type": "list<PlacedPiece>", "description": "Ordered by square, a1 to h8." },
+      "errors": ["InvalidArgument"],
+      "description": "The pieces on the board with their squares, of one color or both and of one type or all. Bindings make both parameters optional where the language allows it, e.g. None in Python (E188)."
+    },
+    {
       "name": "side_to_move",
       "kind": "method",
       "owner": "Board",

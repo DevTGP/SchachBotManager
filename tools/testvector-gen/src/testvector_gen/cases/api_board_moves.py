@@ -1,8 +1,8 @@
 """Board functions for generating, checking, making and taking back moves (board_moves.json)."""
 
-from testvector_gen.case import Case, Raises, full, parsed
-from testvector_gen.codes import NULL_MOVE, RESIGN
-from testvector_gen.errors import ILLEGAL_MOVE, INVALID_STATE, INVALID_UCI
+from testvector_gen.case import UNSET, Case, Raises, full, parsed, square
+from testvector_gen.codes import NO_SQUARE, NULL_MOVE, RESIGN
+from testvector_gen.errors import ILLEGAL_MOVE, INVALID_ARGUMENT, INVALID_STATE, INVALID_UCI
 from testvector_gen.position import setup
 
 FILE = "api/board_moves"
@@ -30,6 +30,63 @@ LEGAL_MOVES = [
     Case("legal_captures.start", "Board.legal_captures", board=setup(), expect=[]),
     Case("legal_captures.kiwipete", "Board.legal_captures", board=KIWIPETE),
     Case("legal_captures.en_passant", "Board.legal_captures", board=EN_PASSANT),
+]
+
+PINNED = setup("4k3/4r3/8/8/8/8/4B3/4K3 w - - 0 1")
+PROMOTION = setup("1n2k3/P7/8/8/8/8/8/4K3 w - - 0 1")
+EN_PASSANT_PINNED = setup("8/8/8/KPp4r/8/8/8/7k w - c6 0 1")
+
+
+def _all_moves_from(id: str, board, name: str, note: str, expect: object = UNSET) -> Case:
+    return Case(
+        f"all_moves_from.{id}",
+        "Board.all_moves_from",
+        (square(name),),
+        board=board,
+        note=note,
+        expect=expect,
+    )
+
+
+ALL_MOVES_FROM = [
+    _all_moves_from("knight", setup(), "g1", "Knight on g1 at the start"),
+    _all_moves_from("pinned", PINNED, "e2", "Bishop pinned on e2: all its moves, none legal"),
+    _all_moves_from(
+        "into_check",
+        setup("4k3/8/8/8/8/8/3r4/4K3 w - - 0 1"),
+        "e1",
+        "King on e1 may step into the rook's line",
+    ),
+    _all_moves_from("ignores_check", CHECK, "a7", "Black in check: pawn moves on a7 regardless"),
+    _all_moves_from("opponent", setup(), "b8", "Black knight while White is to move"),
+    _all_moves_from("castling", KIWIPETE, "e1", "King on e1 with both castlings"),
+    _all_moves_from(
+        "castling_opponent", KIWIPETE, "e8", "Black king on e8, castling as far as legal for Black"
+    ),
+    _all_moves_from(
+        "promotion", PROMOTION, "a7", "Pawn on a7: four promotions and four capturing ones"
+    ),
+    _all_moves_from("en_passant", EN_PASSANT, "e5", "Pawn on e5 may take en passant on f6"),
+    _all_moves_from(
+        "en_passant_pinned",
+        EN_PASSANT_PINNED,
+        "b5",
+        "En passant on c6 would expose the king; pseudo-legal it is there",
+    ),
+    _all_moves_from(
+        "king_capture",
+        setup("4k3/8/8/8/8/8/4r3/4K3 w - - 0 1"),
+        "e2",
+        "Black rook on e2 gives check, White to move: it may take the king",
+    ),
+    _all_moves_from("empty", setup(), "e4", "Empty square", expect=[]),
+    Case(
+        "all_moves_from.square_64",
+        "Board.all_moves_from",
+        (NO_SQUARE,),
+        board=setup(),
+        expect=Raises(INVALID_ARGUMENT),
+    ),
 ]
 
 IS_LEGAL = [
@@ -184,4 +241,4 @@ UNDO = [
     ),
 ]
 
-CASES = LEGAL_MOVES + IS_LEGAL + PARSE_MOVE + SAN + MAKE_MOVE + UNDO
+CASES = LEGAL_MOVES + ALL_MOVES_FROM + IS_LEGAL + PARSE_MOVE + SAN + MAKE_MOVE + UNDO

@@ -1,7 +1,17 @@
 """Board functions reading single properties (spec/api/board_query.json)."""
 
 from testvector_gen.case import UNSET, Case, Raises, square
-from testvector_gen.codes import BLACK, NO_PIECE, NO_SQUARE, WHITE
+from testvector_gen.codes import (
+    BISHOP,
+    BLACK,
+    KING,
+    NO_COLOR,
+    NO_PIECE,
+    NO_PIECE_TYPE,
+    NO_SQUARE,
+    PAWN,
+    WHITE,
+)
 from testvector_gen.errors import INVALID_ARGUMENT
 from testvector_gen.position import setup
 
@@ -18,7 +28,28 @@ def _piece_at(name: str, expect: object = UNSET) -> Case:
     )
 
 
-CASES = [
+def _pieces(id: str, color: int, piece_type: int, board=KIWIPETE, expect: object = UNSET) -> Case:
+    return Case(f"pieces.{id}", "Board.pieces", (color, piece_type), board=board, expect=expect)
+
+
+PIECES = [
+    _pieces("all", NO_COLOR, NO_PIECE_TYPE),
+    _pieces("white", WHITE, NO_PIECE_TYPE),
+    _pieces("black_pawns", BLACK, PAWN),
+    _pieces("bishops", NO_COLOR, BISHOP),
+    _pieces(
+        "kings",
+        NO_COLOR,
+        KING,
+        board=setup("8/8/8/8/8/8/8/K6k w - - 0 1"),
+        expect=[{"square": 0, "piece": 5}, {"square": 7, "piece": 11}],
+    ),
+    _pieces("none", WHITE, BISHOP, board=setup("8/8/8/8/8/8/8/K6k w - - 0 1"), expect=[]),
+    _pieces("color_3", 3, NO_PIECE_TYPE, expect=Raises(INVALID_ARGUMENT)),
+    _pieces("piece_type_7", NO_COLOR, 7, expect=Raises(INVALID_ARGUMENT)),
+]
+
+CASES = PIECES + [
     _piece_at("a1"),
     _piece_at("e2"),
     _piece_at("e8"),

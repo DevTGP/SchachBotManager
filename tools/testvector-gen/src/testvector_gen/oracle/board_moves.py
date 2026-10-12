@@ -7,6 +7,7 @@ import chess
 
 from testvector_gen.codes import encode_move
 from testvector_gen.errors import ILLEGAL_MOVE, INVALID_STATE, ApiError
+from testvector_gen.oracle import checks
 from testvector_gen.oracle.call import Call, Handler
 from testvector_gen.oracle.move import parse_uci
 from testvector_gen.position import find_move
@@ -27,6 +28,22 @@ def _legal_moves(call: Call) -> list[int]:
 def _legal_captures(call: Call) -> list[int]:
     board = call.require_board()
     return sorted(encode_move(board, move) for move in board.generate_legal_captures())
+
+
+def _all_moves_from(call: Call) -> list[int]:
+    """Pseudo-legal moves of the piece as if its color were to move; en passant only for the side
+    to move. python-chess generates castling only where it is legal (E188)."""
+    board = call.require_board()
+    square = checks.square(call.args[0])
+    piece = board.piece_at(square)
+    if piece is None:
+        return []
+    view = board.copy(stack=False)
+    if view.turn != piece.color:
+        view.turn = piece.color
+        view.ep_square = None
+    moves = view.generate_pseudo_legal_moves(from_mask=chess.BB_SQUARES[square])
+    return sorted(encode_move(view, move) for move in moves)
 
 
 def _parse_move(call: Call) -> int:
@@ -73,6 +90,7 @@ def _undo_null_move(call: Call) -> None:
 HANDLERS: dict[str, Handler] = {
     "Board.legal_moves": _legal_moves,
     "Board.legal_captures": _legal_captures,
+    "Board.all_moves_from": _all_moves_from,
     "Board.is_legal": lambda call: find_move(call.require_board(), call.args[0]) is not None,
     "Board.parse_move": _parse_move,
     "Board.san": _san,
