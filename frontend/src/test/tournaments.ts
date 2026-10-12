@@ -168,6 +168,20 @@ function edition(overrides: Partial<Edition>): Edition {
   };
 }
 
+/** The planned first edition, before its start. */
+export function plannedEdition(): Edition {
+  return edition({
+    status: "planned",
+    starts_after: null,
+    started_at: null,
+    settings: null,
+    discipline: null,
+    round: 0,
+    games: 0,
+    finished: 0,
+  });
+}
+
 /** A running Swiss edition after two rounds: Material leads, Sharp had a bye, Random left. */
 export function swissEdition(): Edition {
   return edition({

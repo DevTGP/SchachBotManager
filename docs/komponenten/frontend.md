@@ -243,7 +243,7 @@ Namen von Bots stehen nirgends mehr mit Version; eine Spalte „Version“ haben
 | `src/pages/tournaments/EditionTable.tsx`, `EditionRoundsSection.tsx` | Rundenturnier und Schweizer System: Tabelle mit Platz (bei Rückzug „–“), Siegen samt kampflosen, Freilosen, Punkten und Buchholz; Runden über `GET /editions/{id}/rounds` |
 | `src/pages/tournaments/KnockoutBracket.tsx`, `KnockoutPlacements.tsx` | K.-o.: Baum je Runde mit Duellen, Punkten, Tiebreak und Armageddon, die Partien je Duell aufklappbar; Platzierungen nach dem Ende |
 | `src/components/ScheduleRounds.tsx` | Runden als aufklappbare Abschnitte mit Fortschritt; gemeinsam mit dem Spielplan der Ligen (`TierSchedule.tsx`) |
-| `src/pages/admin/AdminTournamentsPage.tsx`, `TournamentEditor.tsx`, `tournamentForm.ts`, `startable.ts` | `/admin/tournaments`: Turniere anlegen (Format nur beim Anlegen) und ändern, Felder je Format, nächste Ausgabe starten, archivieren und wiederherstellen |
+| `src/pages/admin/AdminTournamentsPage.tsx`, `TournamentEditor.tsx`, `tournamentForm.ts` | `/admin/tournaments`: Turniere anlegen (Format nur beim Anlegen) und ändern, Felder je Format, nächste Ausgabe starten, archivieren und wiederherstellen |
 | `src/pages/admin/RecurrenceField.tsx`, `recurrenceForm.ts`, `src/format/recurrence.ts`, `src/components/RecurrenceText.tsx` | Kalender für Ligen und Turniere: erster Termin in Ortszeit und Intervall in Stunden, Tagen oder Wochen; Anzeige als Text (E171). Der Liga-Editor nimmt ihn statt der Pause; „Jetzt starten“ startet jede wartende Saison, nicht nur die erste |
 | `src/pages/bot/BotTournaments.tsx`, `BotEditions.tsx` | Bot-Seite: Turniere des Bots mit An- und Abmelden; Ausgaben dieser Version mit Setzplatz, Platz oder Punkten und Ausgang |
 | `src/pages/MatchTournament.tsx` | Partieseite: Turnier, Ausgabe, Runde und bei K.-o. Duell und Phase |
@@ -263,6 +263,14 @@ Ungültige Einstellungen nennt das Formular je Feld (`tournamentError.*` bzw. `l
 | `src/pages/MatchPage.tsx`, `MatchLeague.tsx`, `MatchTournament.tsx` | Serie, Liga bzw. Turnier über dem Brett; der Platz verlinkt die Runde |
 | `src/pages/MatchesPage.tsx` | Filter nach Saison bzw. Ausgabe mit Link zurück („Zur Saison“, bei Stufe auf deren Anker; „Zur Ausgabe“) |
 | `src/pages/play/CompetitionGame.tsx` | `/play/:id`: Liga, Saison und Platz bzw. Turnier, Ausgabe und Platz als Links (`MatchLeague`, `MatchTournament`) |
+
+## Start auf den Seiten der Wettbewerbe (E191)
+
+| Datei | Inhalt |
+|-------|--------|
+| `src/components/start/StartNow.tsx`, `startable.ts` | „Jetzt starten“ nur für Admins, solange die geplante Saison bzw. Ausgabe startbar ist (`startable`); `due` erkennt eine fällige |
+| `src/pages/leagues/LeaguePage.tsx`, `src/pages/tournaments/TournamentPage.tsx` | Knopf unter dem Hinweis zur nächsten Saison bzw. Ausgabe |
+| `src/pages/leagues/PlannedSeason.tsx`, `src/pages/tournaments/PlannedEdition.tsx` | Seite der geplanten Saison bzw. Ausgabe: Hinweis und Knopf aus Liga bzw. Turnier; die Seite fragt nach, solange sie fällig ist |
 
 ## Zu beachten
 

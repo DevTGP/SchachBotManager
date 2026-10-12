@@ -12,7 +12,7 @@ import { TableShell } from "../../components/TableShell";
 import { EditionState } from "../tournaments/EditionState";
 import { useApi } from "../../hooks/useApi";
 import { useSubmit } from "../../hooks/useSubmit";
-import { startable } from "./startable";
+import { startable } from "../../components/start/startable";
 import { TournamentEditor } from "./TournamentEditor";
 import { DEFAULT_TOURNAMENT_FORM, tournamentForm } from "./tournamentForm";
 
