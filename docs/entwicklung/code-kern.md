@@ -65,7 +65,7 @@ Lesereihenfolge:
 | `attacks.hpp`/`.cpp` | Angriffsmengen mit klassischen Strahlen (E57), `between`, `line_through` |
 | `threats.hpp`/`.cpp` | `attackers_of`, `is_attacked`, `attacks_from`, `checkers`, `pinned` |
 | `en_passant.hpp`/`.cpp` | `is_legal_en_passant`, `legal_en_passant_square` |
-| `movegen.hpp`/`.cpp` | `generate_legal_moves`, `generate_legal_captures`, `find_legal_move` |
+| `movegen.hpp`/`.cpp` | `generate_legal_moves`, `generate_legal_captures`, `find_legal_move`, `generate_moves_from` (pseudo-legal für eine Figur, E188); ein `Generator` mit Modus legal/pseudo-legal und Maske der Ausgangsfelder |
 | `play.hpp`/`.cpp` | `play_move`, `play_null_move`; Rochademasken, Zähler bleiben bei `INT32_MAX` stehen |
 | `game.hpp`/`.cpp` | `Game` mit Verlauf als Kopien (`HistoryEntry{before, move}`, E57); `make`, `make_null`, `undo` |
 | `repetition.hpp`/`.cpp` | `repetition_count` über den Verlauf |
