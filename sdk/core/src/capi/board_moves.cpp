@@ -1,6 +1,9 @@
 // Board.legal_moves to Board.undo_null_move.
 #include "sbm/board_moves.h"
 
+#include <functional>
+
+#include "arguments.hpp"
 #include "board_handle.hpp"
 #include "guard.hpp"
 #include "movegen.hpp"
@@ -15,10 +18,11 @@ using sbm::capi::guarded;
 
 namespace {
 
-using Generate = void (*)(const sbm::Position&, sbm::MoveList&);
+using Generate = std::function<void(const sbm::Position&, sbm::MoveList&)>;
 
 sbm_status generated_moves(
-    const sbm_board* board, Generate generate, sbm_move* out, uint32_t capacity, uint32_t* count) {
+    const sbm_board* board, const Generate& generate, sbm_move* out, uint32_t capacity,
+    uint32_t* count) {
     if (board == nullptr || !sbm::capi::valid_move_output(out, capacity, count)) {
         return SBM_INVALID_ARGUMENT;
     }
@@ -40,6 +44,19 @@ sbm_board_legal_moves(const sbm_board* board, sbm_move* out, uint32_t capacity, 
 sbm_status sbm_board_legal_captures(
     const sbm_board* board, sbm_move* out, uint32_t capacity, uint32_t* count) {
     return generated_moves(board, sbm::generate_legal_captures, out, capacity, count);
+}
+
+sbm_status sbm_board_all_moves_from(
+    const sbm_board* board, sbm_square square, sbm_move* out, uint32_t capacity, uint32_t* count) {
+    if (!sbm::capi::valid_square(square)) {
+        return SBM_INVALID_ARGUMENT;
+    }
+    return generated_moves(
+        board,
+        [&](const sbm::Position& position, sbm::MoveList& list) {
+            sbm::generate_moves_from(position, square, list);
+        },
+        out, capacity, count);
 }
 
 sbm_status sbm_board_is_legal(const sbm_board* board, sbm_move move, sbm_bool* out) {

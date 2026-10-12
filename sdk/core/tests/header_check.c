@@ -6,7 +6,7 @@ _Static_assert(sizeof(sbm_bitboard) == 8, "bitboard is 64 bits");
 _Static_assert(sizeof(sbm_bool) == 4, "bool is a 32-bit integer");
 _Static_assert(sizeof(sbm_status) == 4, "status is a 32-bit integer");
 
-_Static_assert(SBM_BLACK == 1, "colors");
+_Static_assert(SBM_BLACK == 1 && SBM_NO_COLOR == 2, "colors");
 _Static_assert(SBM_KING == 5 && SBM_NO_PIECE_TYPE == 6, "piece types");
 _Static_assert(SBM_NO_PIECE == 12 && SBM_PIECE_COUNT == 12, "pieces");
 _Static_assert(SBM_NO_SQUARE == 64 && SBM_SQUARE_COUNT == 64, "squares");

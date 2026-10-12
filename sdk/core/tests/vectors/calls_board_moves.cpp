@@ -17,6 +17,13 @@ void add_board_moves_calls(Registry& registry) {
                 return sbm_board_legal_captures(call.board, out, capacity, count);
             });
     };
+    registry["Board.all_moves_from"] = [](Call& call) {
+        const auto square = call.integer_arg<sbm_square>(0);
+        return move_list_output(
+            call, [&](sbm_move* out, std::uint32_t capacity, std::uint32_t* count) {
+                return sbm_board_all_moves_from(call.board, square, out, capacity, count);
+            });
+    };
     registry["Board.is_legal"] = [](Call& call) {
         const auto move = call.integer_arg<sbm_move>(0);
         return bool_output(

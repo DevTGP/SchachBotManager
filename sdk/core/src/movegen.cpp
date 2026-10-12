@@ -8,24 +8,30 @@ namespace sbm {
 
 namespace {
 
+// Pseudo-legal moves ignore pins, checks and attacks on the king's destination (E188).
+enum class Mode { kLegal, kPseudoLegal };
+
 class Generator {
 public:
-    Generator(const Position& position, MoveList& list)
-        : position_(position), list_(list), us_(position.side_to_move), them_(opposite(us_)),
-          own_(position.colors[us_]), enemy_(position.colors[them_]),
-          occupied_(position.occupied()), king_(position.king_square(us_)),
-          pinned_(pinned(position, us_)), targets_(~own_) {}
+    Generator(
+        const Position& position, MoveList& list, Mode mode = Mode::kLegal,
+        Bitboard sources = ~Bitboard{0})
+        : position_(position), list_(list), pseudo_(mode == Mode::kPseudoLegal),
+          us_(position.side_to_move), them_(opposite(us_)), own_(position.colors[us_]),
+          enemy_(position.colors[them_]), occupied_(position.occupied()),
+          king_(position.king_square(us_)), sources_(sources),
+          pinned_(pseudo_ ? 0 : pinned(position, us_)), targets_(~own_) {}
 
     void generate() {
         king_moves();
         const Bitboard checking = checkers(position_);
-        if (popcount(checking) > 1) {
-            return;
-        }
-        if (checking != 0) {
-            targets_ = checking | between(king_, lsb(checking));
-        } else {
+        if (checking == 0) {
             castling_moves();
+        } else if (!pseudo_) {
+            if (popcount(checking) > 1) {
+                return;
+            }
+            targets_ = checking | between(king_, lsb(checking));
         }
         pawn_moves();
         for (const PieceType type : {kKnight, kBishop, kRook, kQueen}) {
@@ -36,12 +42,15 @@ public:
 private:
     const Position& position_;
     MoveList& list_;
+    bool pseudo_;
     Color us_;
     Color them_;
     Bitboard own_;
     Bitboard enemy_;
     Bitboard occupied_;
     int king_;
+    // Squares whose pieces are generated.
+    Bitboard sources_;
     Bitboard pinned_;
     // Squares a piece other than the king may move to: all but own pieces, or while in check
     // the checker and the squares between it and the king.
@@ -69,12 +78,19 @@ private:
         }
     }
 
+    bool generates(int from) const {
+        return (sources_ & square_bb(from)) != 0;
+    }
+
     void king_moves() {
+        if (!generates(king_)) {
+            return;
+        }
         const Bitboard without_king = occupied_ ^ square_bb(king_);
         Bitboard destinations = king_attacks(king_) & ~own_;
         while (destinations != 0) {
             const int to = pop_lsb(destinations);
-            if (attackers_of(position_, to, them_, without_king) == 0) {
+            if (pseudo_ || attackers_of(position_, to, them_, without_king) == 0) {
                 add(king_, to);
             }
         }
@@ -82,7 +98,7 @@ private:
 
     // Castling rights imply king and rook on their start squares (Board.from_fen, make_move).
     void castling_side(int right, int rook_file, int king_file, int flags) {
-        if ((position_.castling & right) == 0) {
+        if ((position_.castling & right) == 0 || !generates(king_)) {
             return;
         }
         const int rook = make_square(rook_file, rank_of(king_));
@@ -108,7 +124,7 @@ private:
     void pawn_moves() {
         const int forward = us_ == kWhite ? 8 : -8;
         const int start_rank = us_ == kWhite ? 1 : 6;
-        Bitboard pawns = position_.pieces_of(us_, kPawn);
+        Bitboard pawns = position_.pieces_of(us_, kPawn) & sources_;
         while (pawns != 0) {
             const int from = pop_lsb(pawns);
             const Bitboard destinations = allowed(from);
@@ -135,13 +151,13 @@ private:
     void en_passant(int from) {
         const int target = position_.en_passant;
         if (target != kNoSquare && (pawn_attacks(us_, from) & square_bb(target)) != 0 &&
-            is_legal_en_passant(position_, from)) {
+            (pseudo_ || is_legal_en_passant(position_, from))) {
             list_.add(encode_move(from, target, kEnPassant));
         }
     }
 
     void piece_moves(PieceType type) {
-        Bitboard pieces = position_.pieces_of(us_, type);
+        Bitboard pieces = position_.pieces_of(us_, type) & sources_;
         while (pieces != 0) {
             const int from = pop_lsb(pieces);
             Bitboard destinations = piece_attacks(type, us_, from, occupied_) & allowed(from);
@@ -166,6 +182,19 @@ void generate_legal_captures(const Position& position, MoveList& list) {
             list.add(move);
         }
     }
+}
+
+void generate_moves_from(const Position& position, int from, MoveList& list) {
+    const int piece = position.piece_at(from);
+    if (piece == kNoPiece) {
+        return;
+    }
+    Position view = position;
+    if (view.side_to_move != color_of(piece)) {
+        view.side_to_move = color_of(piece);
+        view.en_passant = kNoSquare;
+    }
+    Generator(view, list, Mode::kPseudoLegal, square_bb(from)).generate();
 }
 
 std::optional<Move> find_legal_move(const Position& position, Move move) {

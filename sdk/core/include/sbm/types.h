@@ -17,7 +17,8 @@ typedef uint8_t sbm_castling;
  * differently (e.g. .NET treats bool as a 4-byte value by default). */
 typedef int32_t sbm_bool;
 
-enum { SBM_WHITE = 0, SBM_BLACK = 1 };
+/* SBM_NO_COLOR stands for both colors, e.g. in sbm_board_pieces. */
+enum { SBM_WHITE = 0, SBM_BLACK = 1, SBM_NO_COLOR = 2 };
 
 enum {
     SBM_PAWN = 0,

@@ -19,4 +19,13 @@ constexpr bool valid_piece_type(sbm_piece_type piece_type) {
     return piece_type < kPieceTypeCount;
 }
 
+// Filters additionally accept SBM_NO_COLOR and SBM_NO_PIECE_TYPE for "any" (E188).
+constexpr bool valid_color_filter(sbm_color color) {
+    return color <= kColorCount;
+}
+
+constexpr bool valid_piece_type_filter(sbm_piece_type piece_type) {
+    return piece_type <= kPieceTypeCount;
+}
+
 } // namespace sbm::capi

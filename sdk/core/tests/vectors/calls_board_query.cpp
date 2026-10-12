@@ -10,6 +10,16 @@ void add_board_query_calls(Registry& registry) {
         return integer_output<sbm_piece>(
             call, [&](sbm_piece* out) { return sbm_board_piece_at(call.board, square, out); });
     };
+    registry["Board.pieces"] = [](Call& call) {
+        const auto color = call.integer_arg<sbm_color>(0);
+        const auto piece_type = call.integer_arg<sbm_piece_type>(1);
+        return placed_piece_output(
+            call, [&](sbm_square* squares, sbm_piece* pieces, std::uint32_t capacity,
+                      std::uint32_t* count) {
+                return sbm_board_pieces(
+                    call.board, color, piece_type, squares, pieces, capacity, count);
+            });
+    };
     registry["Board.side_to_move"] = [](Call& call) {
         return integer_output<sbm_color>(
             call, [&](sbm_color* out) { return sbm_board_side_to_move(call.board, out); });

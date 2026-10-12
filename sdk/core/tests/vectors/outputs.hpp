@@ -37,6 +37,28 @@ template <typename Function> sbm_status move_list_output(Call& call, Function&& 
     return status;
 }
 
+// function(sbm_square* squares, sbm_piece* pieces, uint32_t capacity, uint32_t* count); asks for
+// the count first like move_list_output. The result is an array of PlacedPiece objects (E188).
+template <typename Function> sbm_status placed_piece_output(Call& call, Function&& function) {
+    std::uint32_t count = 0;
+    sbm_status status = function(nullptr, nullptr, 0, &count);
+    std::vector<sbm_square> squares;
+    std::vector<sbm_piece> pieces;
+    if (status == SBM_BUFFER_TOO_SMALL) {
+        squares.resize(count);
+        pieces.resize(count);
+        status = function(squares.data(), pieces.data(), count, &count);
+    }
+    if (status == SBM_OK) {
+        json placed = json::array();
+        for (std::uint32_t i = 0; i < count; ++i) {
+            placed.push_back({{"square", squares[i]}, {"piece", pieces[i]}});
+        }
+        call.result = placed;
+    }
+    return status;
+}
+
 // function(T* out) for integer outputs.
 template <typename T, typename Function>
 sbm_status integer_output(Call& call, Function&& function) {

@@ -68,9 +68,52 @@ void test_move_lists() {
     sbm_board_free(board);
 }
 
+void test_pieces() {
+    sbm_board* board = nullptr;
+    CHECK(sbm_board_new(&board) == SBM_OK);
+    std::array<sbm_square, SBM_SQUARE_COUNT> squares{};
+    std::array<sbm_piece, SBM_SQUARE_COUNT> pieces{};
+    std::uint32_t count = 0;
+
+    CHECK(
+        sbm_board_pieces(board, SBM_NO_COLOR, SBM_NO_PIECE_TYPE, nullptr, nullptr, 0, &count) ==
+        SBM_BUFFER_TOO_SMALL);
+    CHECK(count == 32);
+    squares.fill(0xAB);
+    CHECK(
+        sbm_board_pieces(
+            board, SBM_BLACK, SBM_NO_PIECE_TYPE, squares.data(), pieces.data(), 15, &count) ==
+        SBM_BUFFER_TOO_SMALL);
+    CHECK(count == 16);
+    CHECK(squares[0] == 0xAB);
+    CHECK(
+        sbm_board_pieces(board, SBM_WHITE, SBM_KNIGHT, squares.data(), pieces.data(), 2, &count) ==
+        SBM_OK);
+    CHECK(count == 2 && squares[0] == 1 && squares[1] == 6 && pieces[0] == SBM_KNIGHT);
+    count = 99;
+    CHECK(
+        sbm_board_pieces(board, SBM_WHITE, SBM_KNIGHT, nullptr, nullptr, 0, &count) ==
+        SBM_BUFFER_TOO_SMALL);
+    CHECK(
+        sbm_board_pieces(board, SBM_WHITE, SBM_KNIGHT, squares.data(), nullptr, 2, &count) ==
+        SBM_INVALID_ARGUMENT);
+    CHECK(
+        sbm_board_pieces(board, 3, SBM_KNIGHT, squares.data(), pieces.data(), 2, &count) ==
+        SBM_INVALID_ARGUMENT);
+
+    std::array<sbm_move, SBM_MAX_MOVES> moves{};
+    CHECK(sbm_board_all_moves_from(board, 1, nullptr, 0, &count) == SBM_BUFFER_TOO_SMALL);
+    CHECK(count == 2);
+    CHECK(sbm_board_all_moves_from(board, 28, moves.data(), 0, &count) == SBM_OK);
+    CHECK(count == 0);
+    CHECK(sbm_board_all_moves_from(board, 64, moves.data(), 1, &count) == SBM_INVALID_ARGUMENT);
+    sbm_board_free(board);
+}
+
 } // namespace
 
 void test_buffers() {
     test_text();
     test_move_lists();
+    test_pieces();
 }
