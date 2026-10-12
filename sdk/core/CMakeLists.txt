@@ -1,7 +1,7 @@
 # Chess core: rules engine with the flat C interface of include/sbm/ (E50).
 cmake_minimum_required(VERSION 3.21)
 
-project(sbm_core VERSION 0.3.0 LANGUAGES C CXX)
+project(sbm_core VERSION 0.4.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
