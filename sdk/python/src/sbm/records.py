@@ -45,7 +45,7 @@ class Info:
 
 @dataclass(frozen=True)
 class PlacedPiece:
-    """A piece with its square, as listed by Board.pieces (E188); unpacks as (square, piece)."""
+    """A piece with its square, as listed by Board.pieces (E190); unpacks as (square, piece)."""
 
     square: int
     piece: int

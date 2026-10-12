@@ -56,7 +56,7 @@ def test_a_round_robin_with_two_games_per_pairing(db):
     assert {game["context"]["board"] for game in games} == {1}
     competition = jobs.league_competition(league["_id"])
     queued = list(db[JOBS].find({"payload.match_id": {"$in": [game["_id"] for game in games]}}))
-    # Only the first round is queued (E187).
+    # Only the first round is queued (E189).
     (job,) = queued
     assert job["payload"]["match_id"] == games[0]["_id"]
     assert job["competition"] == competition

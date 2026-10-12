@@ -3,7 +3,7 @@
 The start fixes the lineup in one write; the schedule follows and is confirmed with scheduled.
 Laying it out again after a crash adds only the games and jobs still missing, so it can repeat.
 Only the games of each tier's current round get jobs; hand_out gives the next round its jobs
-once the previous one has ended (E187).
+once the previous one has ended (E189).
 """
 
 import random
@@ -65,7 +65,7 @@ def lay_out_pending(db: Database, now: datetime) -> int:
 
 
 def hand_out(db: Database, now: datetime) -> int:
-    """Gives the bot games of the current rounds of running seasons their jobs (E187);
+    """Gives the bot games of the current rounds of running seasons their jobs (E189);
     returns how many jobs were added."""
     return sum(
         _add_jobs(db, season, season["settings"]["priority"], now)
@@ -141,7 +141,7 @@ def _place(context: dict) -> tuple:
 
 
 def _add_jobs(db: Database, season: dict, priority: int, now: datetime) -> int:
-    """Jobs for the waiting bot games of each tier's current round (E187); a game with an
+    """Jobs for the waiting bot games of each tier's current round (E189); a game with an
     account waits for its readiness instead (E183)."""
     competition = jobs.league_competition(season["league_id"])
     return sum(

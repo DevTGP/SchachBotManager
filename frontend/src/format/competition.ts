@@ -1,11 +1,11 @@
-import type { CompetitionGame } from "../api/types";
+import type { MatchSummary } from "../api/types";
 
-/** "Bundesliga, Season 2" or "Cup, Edition 1". */
+/** "Bundesliga, Season 2" or "Cup, Edition 1"; empty for a game of neither. */
 export function competitionName(
   t: (key: string, options: { number: number }) => string,
-  item: CompetitionGame,
+  match: Pick<MatchSummary, "league" | "tournament">,
 ): string {
-  const { league, tournament } = item.match;
+  const { league, tournament } = match;
   if (league) {
     return `${league.league_name}, ${t("leagues.seasonNumber", { number: league.season_number })}`;
   }

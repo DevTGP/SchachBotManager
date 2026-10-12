@@ -5,7 +5,7 @@ out a plan again after a crash adds only what is missing and then confirms it wi
 A missing game of a withdrawn or deleted bot stays missing: deleting a bot takes its matches
 with it (E105), and they must not come back as waiting games. Participants are bots or accounts
 (E182); a game with an account gets no job but waits for readiness (E183). In a round robin only
-the games of the current round get jobs, add_jobs gives the next round its jobs (E187).
+the games of the current round get jobs, add_jobs gives the next round its jobs (E189).
 """
 
 from collections.abc import Iterator
@@ -114,7 +114,7 @@ def _side(entry: dict) -> dict:
 
 
 def add_jobs(db: Database, edition: dict, now: datetime) -> int:
-    """Jobs for the waiting bot games, in a round robin only those of the current round (E187);
+    """Jobs for the waiting bot games, in a round robin only those of the current round (E189);
     returns how many were added."""
     group = {"context.edition_id": edition["_id"]}
     competition = jobs.tournament_competition(edition["tournament_id"])

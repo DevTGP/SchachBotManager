@@ -45,7 +45,7 @@ function GameList() {
         <tbody>
           {items.map((item) => (
             <tr key={item.match.id}>
-              <td>{competitionName(t, item)}</td>
+              <td>{competitionName(t, item.match)}</td>
               <td>{item.match[item.color === "white" ? "black" : "white"].name}</td>
               <td>{t(`viewer.${item.color}`)}</td>
               <td>

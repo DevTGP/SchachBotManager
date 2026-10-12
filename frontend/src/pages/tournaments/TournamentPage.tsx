@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 
 import { fetchTournament, registerTournamentAccount } from "../../api/tournaments";
@@ -6,14 +7,19 @@ import { AccountRegistration } from "../../components/registration/AccountRegist
 import { SelfRegistration } from "../../components/registration/SelfRegistration";
 import { useApi } from "../../hooks/useApi";
 import { useSession } from "../../session/sessionContext";
+import { EditionState } from "./EditionState";
 import { NextEdition } from "./NextEdition";
 import { TournamentEditions } from "./TournamentEditions";
 import { TournamentFacts } from "./TournamentFacts";
 import { TournamentRegisterForm } from "./TournamentRegisterForm";
 import { TournamentRegistrations } from "./TournamentRegistrations";
 
-/** A tournament with its settings, editions and registered bots and accounts (E180, E182). */
+/**
+ * A tournament with its settings, editions and registered bots and accounts (E180, E182); the
+ * latest edition is a link under the name (E188).
+ */
 export function TournamentPage() {
+  const { t } = useTranslation();
   const { id = "" } = useParams();
   const { user } = useSession();
   const tournament = useApi((signal) => fetchTournament(id, signal), `tournament:${id}`);
@@ -26,6 +32,11 @@ export function TournamentPage() {
         return (
           <>
             <h1>{data.name}</h1>
+            {data.edition && (
+              <p>
+                {t("tournaments.currentEdition")} <EditionState edition={data.edition} />
+              </p>
+            )}
             <NextEdition tournament={data} />
             <TournamentFacts
               settings={data}

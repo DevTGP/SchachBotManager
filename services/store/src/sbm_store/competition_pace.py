@@ -1,4 +1,4 @@
-"""Pacing league and round robin games (E187): nobody gets more than one game ahead.
+"""Pacing league and round robin games (E189): nobody gets more than one game ahead.
 
 A group is a tier of a season or a round robin edition. Its current round is the earliest round
 with a waiting or running game. Only the games of that round get jobs (between bots) or are

@@ -87,7 +87,7 @@ def test_a_round_robin_edition_lays_out_all_games_and_finishes(db):
     assert games[0]["context"]["tournament_id"] == tournament["_id"]
     assert games[0]["context"]["edition_number"] == 1
     competition = jobs.tournament_competition(tournament["_id"])
-    # One game per round, only the first round is queued (E187).
+    # One game per round, only the first round is queued (E189).
     assert db[JOBS].count_documents({"competition": competition}) == 1
 
     finished = play_to_the_end(db, edition["_id"], stronger(entrants))

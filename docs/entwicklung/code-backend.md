@@ -80,6 +80,7 @@ Alle Pfade relativ zu `backend/src/sbm_api/`.
 | `series_view.py` | Serie mit Punkten und Partien (Schema `Series`, E155) |
 | `queue_view.py` | Queue aus Jobs und Partien, dazu laufende interaktive Partien (E119) |
 | `queue_estimate.py` | `schedule`: geschätzte Start- und Endzeiten; `RecentDurations` je Anfrage zwischengespeichert (E20, E154) |
+| `start_estimate.py` | `StartEstimate`: geschätzter Start einer Wettbewerbspartie, deren Konten bereit sind – Ende der laufenden Partie des Runners plus 2 s, einmal je Anfrage berechnet (E187) |
 | `discipline_view.py` | Disziplin (Schema `StoredDiscipline`) |
 | `league_view.py` | Liga, Saisons und Anmeldungen (Schemas `League`, `LeagueDetail`, `SeasonSummary`, `LeagueRegistration`, E137) |
 | `season_view.py` | Saison mit Tabellen: laufend aus den Partien berechnet, beendet aus `final` (Schema `Season`, E135, E137) |
@@ -151,7 +152,7 @@ Alle unter `routes/`; je Modul ein Blueprint mit dem Modulnamen.
 | `routes/own_match_actions.py` | `POST /matches/{id}/withdraw` (E157) |
 | `routes/league_registrations.py` | `POST /leagues/{id}/registrations` mit `bot_id` oder `user_id`, `DELETE …/registrations/{participant_id}` nach `participant_access.py`; Abmelden in laufender Saison ist ein Rückzug (E136, E182) |
 | `routes/tournament_registrations.py` | `POST /tournaments/{id}/registrations` mit `bot_id` oder `user_id`, `DELETE …/registrations/{participant_id}` nach `participant_access.py`; Abmelden in laufender Ausgabe ist ein Rückzug; Admins an fremden Bots und Konten ins Audit (`tournament.register`, `tournament.deregister`, `…_account`) (E179, E182) |
-| `routes/account_competition_games.py` | `GET /account/competition-games`: offene Liga- und Turnierpartien des eigenen Kontos, freigegebene zuerst nach Frist (E183) |
+| `routes/account_competition_games.py` | `GET /account/competition-games`: offene Liga- und Turnierpartien des eigenen Kontos, freigegebene zuerst nach Frist, mit `estimated_start` (E183, E187) |
 | `routes/match_ready.py` | `POST /matches/{id}/ready`: Konto einer Seite ist bereit und anwesend, Antwort mit Sitz nach gateway-v1; die Seite wiederholt das, solange sie wartet (E183) |
 | `routes/play.py` | `POST /play`: Gast oder Konto gegen einen geprüften Bot (E114) |
 | `routes/remote.py` | `POST /remote/matches` mit API-Token (E116) |

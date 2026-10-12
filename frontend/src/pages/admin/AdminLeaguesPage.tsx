@@ -11,6 +11,7 @@ import { FormError } from "../../components/FormError";
 import { TableShell } from "../../components/TableShell";
 import { useApi } from "../../hooks/useApi";
 import { useSubmit } from "../../hooks/useSubmit";
+import { SeasonState } from "../leagues/SeasonState";
 import { DEFAULT_LEAGUE_FORM, leagueForm } from "./leagueForm";
 import { startable } from "./startable";
 import { LeagueEditor } from "./LeagueEditor";
@@ -104,11 +105,7 @@ export function AdminLeaguesPage() {
                   <td>{league.discipline_name}</td>
                   <td className="number">{league.registered}</td>
                   <td>
-                    {league.season &&
-                      t("leagues.seasonState", {
-                        number: league.season.number,
-                        status: t(`seasonStatus.${league.season.status}`),
-                      })}
+                    <SeasonState season={league.season} />
                   </td>
                   <td className="inline-actions">
                     <button type="button" disabled={pending} onClick={() => setEditing(league)}>

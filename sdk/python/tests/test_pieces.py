@@ -1,4 +1,4 @@
-"""Python behaviour of Board.pieces and PlacedPiece beyond the vectors (E188)."""
+"""Python behaviour of Board.pieces and PlacedPiece beyond the vectors (E190)."""
 
 import pytest
 

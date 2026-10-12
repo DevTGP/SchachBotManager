@@ -213,3 +213,10 @@ button.link {
   background: var(--bg);
   border-top: 1px solid var(--border);
 }
+
+.start-countdown progress {
+  width: 100%;
+  max-width: 28rem;
+  height: 0.75rem;
+  accent-color: var(--accent);
+}

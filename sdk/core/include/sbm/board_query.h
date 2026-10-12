@@ -14,7 +14,7 @@ SBM_BEGIN_DECLS
 SBM_API sbm_status sbm_board_piece_at(const sbm_board* board, sbm_square square, sbm_piece* out);
 
 /* Board.pieces: square and piece of each match in squares[i] and pieces[i], ordered by square,
- * never more than SBM_SQUARE_COUNT. SBM_NO_COLOR and SBM_NO_PIECE_TYPE match everything (E188).
+ * never more than SBM_SQUARE_COUNT. SBM_NO_COLOR and SBM_NO_PIECE_TYPE match everything (E190).
  * Buffer rule as for move lists (E51): squares and pieces may be NULL only with capacity 0. */
 SBM_API sbm_status sbm_board_pieces(
     const sbm_board* board, sbm_color color, sbm_piece_type piece_type, sbm_square* squares,

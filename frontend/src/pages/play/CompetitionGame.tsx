@@ -6,13 +6,16 @@ import { declareReady, fetchCompetitionGames } from "../../api/competitionGames"
 import type { CompetitionGame as Item, SideReadiness } from "../../api/types";
 import { ApiContent } from "../../components/ApiContent";
 import { FormError } from "../../components/FormError";
-import { competitionName } from "../../format/competition";
 import { formatDateTime } from "../../format/dateTime";
 import { useApi } from "../../hooks/useApi";
 import { useSubmit } from "../../hooks/useSubmit";
 import { loadSeat, saveSeat } from "../../play/seats";
 import type { SocketFactory } from "../../play/usePlayGame";
+import { MatchLeague } from "../MatchLeague";
+import { MatchTournament } from "../MatchTournament";
+import { DeadlineCountdown } from "./DeadlineCountdown";
 import { Game } from "./Game";
+import { StartCountdown } from "./StartCountdown";
 
 // The runner starts a game once both sides are ready and present; presence lasts 45 s (E183).
 const POLL_MS = 5_000;
@@ -88,17 +91,23 @@ function Waiting({ item, onReady }: { item: Item; onReady: () => void }) {
       <h1>
         {match.white.name} – {match.black.name}
       </h1>
-      <p>{competitionName(t, item)}</p>
+      <MatchLeague place={match.league} />
+      <MatchTournament place={match.tournament} />
       {readiness == null ? (
         <p role="status">{t("competitionGame.notReleased")}</p>
       ) : (
         <>
-          <p>
-            {t("competitionGame.deadline", {
-              at: formatDateTime(readiness.deadline, i18n.language),
-            })}
-          </p>
+          {item.estimated_start == null ? (
+            <DeadlineCountdown at={readiness.deadline} />
+          ) : (
+            <p>
+              {t("competitionGame.deadline", {
+                at: formatDateTime(readiness.deadline, i18n.language),
+              })}
+            </p>
+          )}
           <p role="status">{t(ready ? "competitionGame.youReady" : "competitionGame.notReady")}</p>
+          {item.estimated_start != null && <StartCountdown at={item.estimated_start} />}
           <p>{opponentText(t, readiness[other])}</p>
           <p className="hint">{t("competitionGame.hint")}</p>
           <FormError error={error} />

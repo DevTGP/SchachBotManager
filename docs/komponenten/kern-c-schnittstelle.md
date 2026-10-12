@@ -67,7 +67,7 @@ Der Aufrufer stellt allen Speicher für Ergebnisse bereit; der Kern hält keinen
 |---------|------|------------------|
 | Text | `char* buffer, uint32_t size` | `SBM_FEN_BUFFER_SIZE` (128; eine FEN hat höchstens 103 Zeichen), `SBM_UCI_BUFFER_SIZE` (6), `SBM_SAN_BUFFER_SIZE` (16), `SBM_TEXT_BUFFER_SIZE` (512); jeweils mit abschließendem NUL |
 | Zugliste | `sbm_move* out, uint32_t capacity, uint32_t* count` | `SBM_MAX_MOVES` (256) für `legal_moves`, `legal_captures` und `all_moves_from`; `move_history` hat keine |
-| Figurenliste | `sbm_square* squares, sbm_piece* pieces, uint32_t capacity, uint32_t* count` | `SBM_SQUARE_COUNT` (64) für `pieces` (E188) |
+| Figurenliste | `sbm_square* squares, sbm_piece* pieces, uint32_t capacity, uint32_t* count` | `SBM_SQUARE_COUNT` (64) für `pieces` (E190) |
 | Feste Felder | `sbm_bitboard* out` bzw. `sbm_piece* out` | Genau `SBM_PIECE_COUNT` (12) bzw. `SBM_SQUARE_COUNT` (64) Einträge |
 | Einzelwert | `T* out` | – |
 

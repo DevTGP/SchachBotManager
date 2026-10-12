@@ -1,17 +1,21 @@
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 
 import type { EditionSummary } from "../../api/types";
 
-/** "Edition 3 (running)" for the latest edition of a tournament; nothing without one. */
+/**
+ * "Edition 3: running" for the latest edition of a tournament, linked to it (E188); nothing
+ * without one.
+ */
 export function EditionState({ edition }: { edition: EditionSummary | null }) {
   const { t } = useTranslation();
   if (edition === null) return null;
   return (
-    <>
+    <Link to={`/editions/${edition.id}`}>
       {t("tournaments.editionState", {
         number: edition.number,
         status: t(`editionStatus.${edition.status}`),
       })}
-    </>
+    </Link>
   );
 }

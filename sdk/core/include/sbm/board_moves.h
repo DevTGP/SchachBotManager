@@ -17,7 +17,7 @@ sbm_board_legal_moves(const sbm_board* board, sbm_move* out, uint32_t capacity, 
 SBM_API sbm_status
 sbm_board_legal_captures(const sbm_board* board, sbm_move* out, uint32_t capacity, uint32_t* count);
 
-/* Board.all_moves_from: pseudo-legal moves of the piece on the square (E188), never more than
+/* Board.all_moves_from: pseudo-legal moves of the piece on the square (E190), never more than
  * SBM_MAX_MOVES; none for an empty square. */
 SBM_API sbm_status sbm_board_all_moves_from(
     const sbm_board* board, sbm_square square, sbm_move* out, uint32_t capacity, uint32_t* count);

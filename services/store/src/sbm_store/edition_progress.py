@@ -1,7 +1,7 @@
 """Moving running editions on (E174–E177); the runner calls this each round.
 
 Per edition: lay out games a crash left missing, forfeit the waiting games of withdrawn bots,
-give a round robin's next round its jobs (E187), take the format's next step and finish the
+give a round robin's next round its jobs (E189), take the format's next step and finish the
 edition once it is done. A round robin edition is done when all its games have ended; the Swiss
 system and knockout pair their next round first.
 """

@@ -84,7 +84,7 @@ def test_a_season_lays_out_account_games_without_a_job(db):
         assert "readiness" not in game
         assert db[JOBS].count_documents({"payload.match_id": game["_id"]}) == 0
     (between_bots,) = [game for game in games if game not in mine]
-    # The game between the bots comes last and gets its job in its round (E187).
+    # The game between the bots comes last and gets its job in its round (E189).
     assert db[JOBS].count_documents({"payload.match_id": between_bots["_id"]}) == 0
     ended = {"$set": {"status": matches.FINISHED}}
     db[MATCHES].update_many({"_id": {"$in": [game["_id"] for game in mine]}}, ended)
@@ -287,7 +287,7 @@ def test_an_edition_seeds_accounts_by_rating_and_lays_out_their_games(db):
     assert len(games) == 3
     assert len(mine) == 2
     assert all(db[JOBS].count_documents({"payload.match_id": game["_id"]}) == 0 for game in mine)
-    # The account's first game comes once the games of the rounds before it have ended (E187).
+    # The account's first game comes once the games of the rounds before it have ended (E189).
     own_first = min(mine, key=lambda game: game["context"]["round"])
     before = [
         game["_id"] for game in games if game["context"]["round"] < own_first["context"]["round"]

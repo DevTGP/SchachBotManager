@@ -34,7 +34,7 @@ Lesereihenfolge: `__init__.py` → `bot.py`, `clock.py` → `runtime.py` → `ga
 | `module.cpp` | `sbm._core`: prüft `SBM_ABI_VERSION` gegen `sbm_abi_version()` (sonst `ImportError`), `core_version`, bindet `Move` und `Board` |
 | `board.hpp`/`.cpp` | `Board` besitzt ein Handle (Deleter `BoardFree`, E22); `create`, `from_fen`, `fen`, `copy`, `hash`, `move_history`, `to_text` |
 | `board_moves.cpp` | Züge erzeugen, prüfen, ausführen, zurücknehmen |
-| `board_query.cpp` | Einzelne Eigenschaften der Stellung; `pieces` mit optionalen Filtern (`None`) baut `PlacedPiece` aus `sbm.records` (E188) |
+| `board_query.cpp` | Einzelne Eigenschaften der Stellung; `pieces` mit optionalen Filtern (`None`) baut `PlacedPiece` aus `sbm.records` (E190) |
 | `board_raw.cpp` | Bitboards und Felder |
 | `board_state.cpp` | Endbedingungen |
 | `move.hpp`/`.cpp` | `Move` als unveränderlicher 16-Bit-Wert (E34); Bitoperationen hier, `parse`/`uci` im Kern |
@@ -60,7 +60,7 @@ Lesereihenfolge: `__init__.py` → `bot.py`, `clock.py` → `runtime.py` → `ga
 | `channel.py` | NDJSON über stdio und TCP: `Channel`, `open_stdio`, `open_tcp`, `ProtocolError` |
 | `protocol.py` | Nachrichten von Protokoll v1 bauen und lesen |
 | `game.py` | Zustandsautomat des Bots: `Game`, `guarded`, `describe`, `BotError` |
-| `records.py` | `GameInfo`, `GameResult`, `Info`, `PlacedPiece` (entpackbar als `(square, piece)`, E188), `PlayedGame` |
+| `records.py` | `GameInfo`, `GameResult`, `Info`, `PlacedPiece` (entpackbar als `(square, piece)`, E190), `PlayedGame` |
 | `runtime.py` | `run` |
 | `starter.py` | `play` (E120); importiert Arena und Remote erst bei Bedarf |
 

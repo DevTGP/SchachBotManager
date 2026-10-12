@@ -1,4 +1,4 @@
-"""League and round robin games come round by round: nobody gets more than one game ahead (E187)."""
+"""League and round robin games come round by round: nobody gets more than one game ahead (E189)."""
 
 import random
 from datetime import timedelta

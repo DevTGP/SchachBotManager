@@ -24,9 +24,13 @@ function readiness(overrides: Partial<Readiness> = {}): Readiness {
 }
 
 /** A league game of pat with White against Material. */
-function game(overrides: Partial<MatchSummary> = {}): CompetitionGame {
+function game(
+  overrides: Partial<MatchSummary> = {},
+  estimatedStart: string | null = null,
+): CompetitionGame {
   return {
     color: "white",
+    estimated_start: estimatedStart,
     match: summary({
       id: MATCH_ID,
       type: "league",
@@ -131,7 +135,18 @@ describe("ready for a competition game", () => {
     renderRoute(`/play/${MATCH_ID}`);
 
     expect(await screen.findByRole("heading", { name: "pat – Material" })).toBeVisible();
-    expect(screen.getByText("Bundesliga, Season 2")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Bundesliga" })).toHaveAttribute(
+      "href",
+      "/leagues/665f0000000000000000e001",
+    );
+    expect(screen.getByRole("link", { name: "Season 2" })).toHaveAttribute(
+      "href",
+      "/seasons/665f0000000000000000f001",
+    );
+    expect(screen.getByRole("link", { name: "tier 1, round 1, board 1" })).toHaveAttribute(
+      "href",
+      "/seasons/665f0000000000000000f001#tier-1-round-1",
+    );
     expect(screen.getByRole("status")).toHaveTextContent("You are not ready yet.");
     expect(screen.getByText("Your opponent is a bot and always ready.")).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Ready" }));
@@ -198,6 +213,49 @@ describe("ready for a competition game", () => {
     ).toBeVisible();
     expect(screen.queryByRole("button", { name: "Ready" })).toBeNull();
     expect(api.calls.some((call) => call.method === "POST")).toBe(false);
+  });
+
+  it("counts down to the estimated start of a ready game", async () => {
+    saveSeat(MATCH_ID, SEAT, "ready");
+    const soon = new Date(Date.now() + 65_000).toISOString();
+    mockApi({
+      "/session": { user: PLAYER },
+      "/account/competition-games": {
+        items: [game({ readiness: readiness({ white: { ready: true, present: true } }) }, soon)],
+      },
+    });
+    renderRoute(`/play/${MATCH_ID}`);
+
+    expect(await screen.findByText(/The game probably starts in 1:0[45]\./)).toBeVisible();
+    const bar = screen.getByRole("progressbar", { name: "Waiting time until the start" });
+    expect(Number(bar.getAttribute("max"))).toBeGreaterThan(60_000);
+    expect(screen.getByText(/^Ready by /)).not.toHaveTextContent("left");
+  });
+
+  it("says the game starts any moment once the estimate has passed", async () => {
+    saveSeat(MATCH_ID, SEAT, "ready");
+    const past = new Date(Date.now() - 5_000).toISOString();
+    mockApi({
+      "/session": { user: PLAYER },
+      "/account/competition-games": {
+        items: [game({ readiness: readiness({ white: { ready: true, present: true } }) }, past)],
+      },
+    });
+    renderRoute(`/play/${MATCH_ID}`);
+
+    expect(await screen.findByText("The game starts any moment now.")).toBeVisible();
+  });
+
+  it("counts down to the deadline without an estimate", async () => {
+    const deadline = new Date(Date.now() + 3_600_000 + 125_000).toISOString();
+    mockApi({
+      "/session": { user: PLAYER },
+      "/account/competition-games": { items: [game({ readiness: readiness({ deadline }) })] },
+    });
+    renderRoute(`/play/${MATCH_ID}`);
+
+    expect(await screen.findByText(/^Ready by .* – 1:02:0[45] left$/)).toBeVisible();
+    expect(screen.queryByRole("progressbar")).toBeNull();
   });
 
   it("names a game that is not open for the account", async () => {

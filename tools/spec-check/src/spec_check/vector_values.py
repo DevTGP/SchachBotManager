@@ -2,7 +2,7 @@
 
 Integers stay within the range of their primitive, u64 values are written as 0x plus 16 lower-case
 hex digits, a Board as its FEN, list<T> as an array and a record as an object with its fields
-(E188). A Move never carries the unused flags 6 and 7 (E34), so no API call can take or return
+(E190). A Move never carries the unused flags 6 and 7 (E34), so no API call can take or return
 such a value.
 """
 

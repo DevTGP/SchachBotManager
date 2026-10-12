@@ -2602,9 +2602,13 @@
         "type": "object",
         "properties": {
           "match": { "$ref": "#/components/schemas/MatchSummary" },
-          "color": { "enum": ["white", "black"] }
+          "color": { "enum": ["white", "black"] },
+          "estimated_start": {
+            "description": "Once every account of the released game is ready and present (or ready at the deadline): when the match runner will probably start it, after the match it plays now (E187); null otherwise.",
+            "oneOf": [{ "$ref": "#/components/schemas/Timestamp" }, { "type": "null" }]
+          }
         },
-        "required": ["match", "color"],
+        "required": ["match", "color", "estimated_start"],
         "additionalProperties": false
       },
       "CompetitionGameList": {

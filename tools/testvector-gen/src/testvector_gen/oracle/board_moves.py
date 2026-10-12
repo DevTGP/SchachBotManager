@@ -32,7 +32,7 @@ def _legal_captures(call: Call) -> list[int]:
 
 def _all_moves_from(call: Call) -> list[int]:
     """Pseudo-legal moves of the piece as if its color were to move; en passant only for the side
-    to move. python-chess generates castling only where it is legal (E188)."""
+    to move. python-chess generates castling only where it is legal (E190)."""
     board = call.require_board()
     square = checks.square(call.args[0])
     piece = board.piece_at(square)

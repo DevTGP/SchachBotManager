@@ -83,7 +83,7 @@ Alle Pfade relativ zu `services/store/src/sbm_store/`.
 | `registrations.py` | Collection `registrations`: höchstens eine aktive Anmeldung je Bot oder Konto und Liga bzw. Turnier (`target_type`, eindeutiger Teilindex über `bot_id` und `user_id`), Abmelden behält das Dokument als `left`, Deaktivieren eines Kontos mit Grund `deactivated` (E136, E179, E182) |
 | `participants.py` | Teilnehmer als Bot (`bot_id`) oder Konto (`user_id`): `key`, `is_human`, `side_query` (E182) |
 | `competition_entrants.py` | Wer von den Angemeldeten starten darf: Bots geprüft, Konten aktiv; Einträge mit `bot_id` oder `user_id`, Name und Version (E136, E179, E182) |
-| `competition_readiness.py` | Partien mit Konten: `release` nach Runde und Brett (ein Konto hat höchstens eine freigegebene Partie, nur aus der aktuellen Runde nach `competition_pace`), `mark_ready`, `start_ready` legt den Play-Job an, `expire` wertet zur Frist (`forfeit_absent`, beide abwesend 0-0), `reset` nach Infrastrukturfehlern (E183–E185) |
+| `competition_readiness.py` | Partien mit Konten: `release` nach Runde und Brett (ein Konto hat höchstens eine freigegebene Partie, nur aus der aktuellen Runde nach `competition_pace`, E189), `mark_ready`, `startable` (startet die nächste Runde die Partie, E187), `start_ready` legt den Play-Job an, `expire` wertet zur Frist (`forfeit_absent`, beide abwesend 0-0), `reset` nach Infrastrukturfehlern (E183–E185) |
 | `league_setup.py` | Liga mit erster Saison anlegen, eine wartende Saison von Hand starten, nach einem geänderten Kalender den Start neu berechnen (`follow_calendar`) (E131, E132, E171) |
 | `league_lineup.py` | Reine Funktionen: Aufstellung in Stufen beim Start, Auf- und Abstieg am Ende (E133) |
 | `league_pairing.py` | Reine Funktionen: Rundenturnier nach Berger je Stufe, wiederholt nach `games_per_pairing` (E134) |
@@ -91,8 +91,8 @@ Alle Pfade relativ zu `services/store/src/sbm_store/`.
 | `season_tables.py` | Tabellen einer gestarteten Saison aus ihren Partien, auf Wunsch nur einer Stufe (E135) |
 | `season_schedule.py` | Runden einer Stufe mit Partien nach Brett und spielfreiem Bot (E138) |
 | `bot_seasons.py` | Gestartete Saisons eines Bots mit seiner Tabellenzeile, Endtabelle oder aktuell (E139) |
-| `season_start.py` | Fällige Saisons starten und Spielplan anlegen; wiederholbar nach einem Absturz (E132–E134); `hand_out` gibt den Partien der aktuellen Runde jeder Stufe Jobs (E187) |
-| `competition_pace.py` | Takt in Ligen und Rundenturnieren: Gruppe einer Partie (Stufe einer Saison oder Ausgabe), aktuelle Runde, `due` für die Freigabe, `add_round_jobs` und `add_jobs` für Partie-Jobs (E187) |
+| `season_start.py` | Fällige Saisons starten und Spielplan anlegen; wiederholbar nach einem Absturz (E132–E134); `hand_out` gibt den Partien der aktuellen Runde jeder Stufe Jobs (E189) |
+| `competition_pace.py` | Takt in Ligen und Rundenturnieren: Gruppe einer Partie (Stufe einer Saison oder Ausgabe), aktuelle Runde, `due` für die Freigabe, `add_round_jobs` und `add_jobs` für Partie-Jobs (E189) |
 | `season_end.py` | Saisons mit lauter beendeten Partien abschließen und die nächste nach dem Kalender anlegen (E132, E133, E135, E171) |
 | `league_withdrawal.py` | Rückzug eines Bots: Anmeldungen beenden, wartende Partien kampflos werten, `sweep` je Runde (E136) |
 | `recurrence.py` | Kalender `{first_start, interval_hours}` oder `None`: nächster Termin ab einem Zeitpunkt; ohne Kalender wartet die nächste Saison bzw. Ausgabe auf einen Admin (E171) |
@@ -107,12 +107,12 @@ Alle Pfade relativ zu `services/store/src/sbm_store/`.
 | `editions.py` | Collection `editions`: `planned → running → finished`, fällige Ausgaben, Teilnehmer mit Setzplatz, Plan in `rounds` bzw. `duels`, `revision` für Änderungen ohne Transaktion, Endstand in `final` (E173) |
 | `tournament_setup.py` | Turnier mit erster Ausgabe anlegen, eine wartende Ausgabe von Hand starten, Kalender folgen (`create`, `start`, `follow_calendar`; E171, E172) |
 | `edition_start.py` | Fällige Ausgaben starten: Teilnehmer aus den Anmeldungen, gesetzt nach Rating der Disziplin, Gleichstand per Los; zu wenige Teilnehmer lassen sie warten (E173–E176) |
-| `edition_round_robin.py` | Plan des Rundenturniers mit allen Partien beim Start, Runden wie bei den Ligen (`league_pairing`) (E174); Jobs je Runde nach E187 |
+| `edition_round_robin.py` | Plan des Rundenturniers mit allen Partien beim Start, Runden wie bei den Ligen (`league_pairing`) (E174); Jobs je Runde nach E189 |
 | `swiss_pairing.py` | Reine Funktionen: Paarung einer Schweizer Runde nach Punkten und Setzplatz, ohne Wiederholung soweit möglich, Freilos an den Schwächsten ohne Freilos (E175) |
 | `swiss_rounds.py` | Nächste Schweizer Runde, sobald die laufende beendet ist; Freilos zählt einen Punkt (E175) |
 | `knockout_bracket.py` | Reine Funktionen: Baumgröße als nächste Zweierpotenz, erste Runde nach Setzplätzen mit Freilosen für die Besten, Platzierungen (E176) |
 | `knockout_duels.py` | Partien eines Duells, Entscheidung nach regulären Partien, Tiebreak-Paaren und Armageddon (Farbe per Los, Remis reicht Schwarz), nächste Runde (E176) |
-| `edition_games.py` | Fehlende Partien des Plans samt Jobs anlegen; jede geplante Partie nennt ihre Id, damit das wiederholbar ist (E174–E178); `add_jobs` gibt im Rundenturnier nur der aktuellen Runde Jobs (E187) |
+| `edition_games.py` | Fehlende Partien des Plans samt Jobs anlegen; jede geplante Partie nennt ihre Id, damit das wiederholbar ist (E174–E178); `add_jobs` gibt im Rundenturnier nur der aktuellen Runde Jobs (E189) |
 | `edition_progress.py` | `advance_running`: je laufender Ausgabe fehlende Partien anlegen, Partien zurückgezogener Bots kampflos werten, Schweizer Runden und K.-o.-Duelle weiterführen, fertige Ausgaben beenden (E174–E177) |
 | `edition_tables.py` | Tabelle eines Rundenturniers oder Schweizer Systems (Feinwertung wie bei Ligen plus Buchholz), Platzierungen im K.-o., Endstand mit Sieger (E177) |
 | `edition_end.py` | Ausgabe abschließen und die nächste nach dem Kalender anlegen (E171, E177) |

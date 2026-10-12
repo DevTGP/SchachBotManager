@@ -1,5 +1,5 @@
 """The league work of each runner round (E132–E136): schedules, withdrawals, the jobs of the next
-rounds (E187), season ends and starts, in this order, so a season that ends can hand over to the
+rounds (E189), season ends and starts, in this order, so a season that ends can hand over to the
 next one in the same round."""
 
 import logging

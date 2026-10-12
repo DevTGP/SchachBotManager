@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 
 import type { ScheduleGame, ScheduleRound } from "../api/types";
 import { pairing, pairingResult } from "../format/pairing";
+import { useHashTarget } from "../hooks/useHashTarget";
 import { ActionsHeader, OpenCell } from "./OpenCell";
 import { PairingCells, PairingHeader } from "./Pairing";
 
@@ -10,13 +11,27 @@ const OVER = new Set(["finished", "aborted"]);
 /**
  * Rounds of a league tier or a tournament edition, each a collapsible table of its boards with
  * the result or the state of the game; the first round still being played starts open (E138,
- * E180). Pairings read alphabetically like every game list (E165).
+ * E180), as does the round a link names by its anchor (E188). Pairings read alphabetically like
+ * every game list (E165).
  */
-export function ScheduleRounds({ rounds, empty }: { rounds: ScheduleRound[]; empty: string }) {
+export function ScheduleRounds({
+  rounds,
+  empty,
+  anchor,
+}: {
+  rounds: ScheduleRound[];
+  empty: string;
+  anchor: (round: number) => string;
+}) {
   if (rounds.length === 0) return <p className="muted">{empty}</p>;
   const current = rounds.find((round) => !isOver(round))?.round;
   return rounds.map((round) => (
-    <RoundGames key={round.round} round={round} open={round.round === current} />
+    <RoundGames
+      key={round.round}
+      round={round}
+      id={anchor(round.round)}
+      open={round.round === current}
+    />
   ));
 }
 
@@ -24,11 +39,12 @@ function isOver(round: ScheduleRound): boolean {
   return round.games.every((game) => OVER.has(game.status));
 }
 
-function RoundGames({ round, open }: { round: ScheduleRound; open: boolean }) {
+function RoundGames({ round, id, open }: { round: ScheduleRound; id: string; open: boolean }) {
   const { t } = useTranslation();
+  const { ref, targeted } = useHashTarget<HTMLDetailsElement>(id);
   const finished = round.games.filter((game) => game.status === "finished").length;
   return (
-    <details className="schedule-round" open={open}>
+    <details ref={ref} id={id} className="schedule-round" open={open || targeted}>
       <summary>
         {t("seasons.round", { round: round.round })}
         <span className="muted">

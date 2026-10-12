@@ -67,14 +67,14 @@ Namen sind wortgleich, Schreibweise idiomatisch (`legal_moves` / `legalMoves` / 
 
 | Gruppe | Funktionen |
 |--------|-----------|
-| Abfrage | `piece_at(square)`, `pieces(color, piece_type)` (Figuren mit Feld als `PlacedPiece`, E188), `side_to_move()`, `castling_rights()`, `en_passant_square()`, `halfmove_clock()`, `fullmove_number()`, `king_square(color)` |
-| Züge | `legal_moves()`, `legal_captures()`, `all_moves_from(square)` (pseudo-legale Züge einer Figur, E188), `is_legal(move)`, `make_move(move)`, `undo_move()`, `make_null_move()` / `undo_null_move()` |
+| Abfrage | `piece_at(square)`, `pieces(color, piece_type)` (Figuren mit Feld als `PlacedPiece`, E190), `side_to_move()`, `castling_rights()`, `en_passant_square()`, `halfmove_clock()`, `fullmove_number()`, `king_square(color)` |
+| Züge | `legal_moves()`, `legal_captures()`, `all_moves_from(square)` (pseudo-legale Züge einer Figur, E190), `is_legal(move)`, `make_move(move)`, `undo_move()`, `make_null_move()` / `undo_null_move()` |
 | Zustand | `is_check()`, `is_checkmate()`, `is_stalemate()`, `is_draw()`, `is_repetition(count)`, `is_fifty_move_rule()`, `is_insufficient_material()`, `has_insufficient_material(color)`, `is_game_over()` |
 | Hilfen | `Board()` (Grundstellung), `from_fen(fen)`, `fen()`, `copy()`, `hash()` (Polyglot-Zobrist, E46), `move_history()`, `to_text()` (lesbares Brett fürs Debugging), `parse_move(uci)` (vollständiger Zug mit Flags), `san(move)` (Kurznotation wie in PGN, E53) |
 
 - `fen()` und `en_passant_square()` nennen das En-passant-Feld nur, wenn das Schlagen legal ist; gleiche Stellungen ergeben so gleiche FEN (E48).
-- `all_moves_from(square)` liefert die Züge der Figur nach ihren Gangregeln, gleich welche Farbe am Zug ist, auch gefesselt, ins Schach oder trotz Schach; Rochade nur, wo sie legal ist, en passant nur für die Seite am Zug. Legale Züge einer Figur filtert der Bot aus `legal_moves()` (E188).
-- `pieces(color, piece_type)` gibt `PlacedPiece`-Records (`square`, `piece`) von a1 bis h8; `NO_COLOR` bzw. `NO_PIECE_TYPE` heißt „alle“, in Sprachen mit optionalen Parametern sind beide optional (E188).
+- `all_moves_from(square)` liefert die Züge der Figur nach ihren Gangregeln, gleich welche Farbe am Zug ist, auch gefesselt, ins Schach oder trotz Schach; Rochade nur, wo sie legal ist, en passant nur für die Seite am Zug. Legale Züge einer Figur filtert der Bot aus `legal_moves()` (E190).
+- `pieces(color, piece_type)` gibt `PlacedPiece`-Records (`square`, `piece`) von a1 bis h8; `NO_COLOR` bzw. `NO_PIECE_TYPE` heißt „alle“, in Sprachen mit optionalen Parametern sind beide optional (E190).
 - `has_insufficient_material(color)` sagt, ob eine Farbe nicht mehr mattsetzen kann; der Referee wertet damit Zeitablauf (E44, E53). `is_insufficient_material()` gilt, wenn das für beide Farben zutrifft.
 - `is_draw()` umfasst Patt, dreifache Wiederholung, 50-Züge-Regel und ungenügendes Material, genau wie der Referee; `is_game_over()` zusätzlich Matt.
 - `Move`: `from_square`, `to_square`, `flags`, `promotion`, `is_promotion`, `is_capture`, `is_castling`, `is_en_passant`, `uci()`, `value()`, `Move(from, to, flags)`, `Move.parse(uci)`, `Move.from_value(value)`; intern eine 16-Bit-Ganzzahl (E34). `from_square` statt `from`, weil `from` in Python reserviert ist (E47). `Move.parse(uci)` kennt ohne Brett keine Flags; `is_legal` und `make_move` vergleichen deshalb nur Start, Ziel und Umwandlung. Sonderwerte `NULL_MOVE` und `RESIGN` haben keine UCI-Form.
@@ -103,7 +103,7 @@ Festlegungen, die dadurch Teil der öffentlichen API werden (E34, E35):
 |---------|-----------|
 | Feld | `rank * 8 + file`, a1 = 0 … h8 = 63 |
 | Bitboard | Bit *i* = Feld *i* (a1 = niedrigstes Bit) |
-| `Color` | `WHITE = 0`, `BLACK = 1`, `NO_COLOR = 2` (beide Farben, E188) |
+| `Color` | `WHITE = 0`, `BLACK = 1`, `NO_COLOR = 2` (beide Farben, E190) |
 | `PieceType` | `PAWN = 0`, `KNIGHT = 1`, `BISHOP = 2`, `ROOK = 3`, `QUEEN = 4`, `KING = 5`, `NO_PIECE_TYPE = 6` |
 | `Piece` | `color * 6 + type` (0–11), `NO_PIECE = 12`; Index in `bitboards()`, Wert in `squares()` |
 | `Square` | Konstanten `A1` … `H8`, `NO_SQUARE = 64` |

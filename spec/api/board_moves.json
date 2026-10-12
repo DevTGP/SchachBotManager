@@ -26,7 +26,7 @@
       "params": [{ "name": "square", "type": "Square" }],
       "returns": { "type": "list<Move>", "description": "Complete moves with all flags; empty on an empty square; the order is not part of the API." },
       "errors": ["InvalidArgument"],
-      "description": "All moves of the piece on the square by its movement rules, also illegal ones (pseudo-legal), whichever color is to move: moves of pinned pieces, moves into check, moves that ignore a check and captures of the king are included. Castling only where it is legal for that color, en passant only for the side to move. The legal moves of a piece come from legal_moves (E188)."
+      "description": "All moves of the piece on the square by its movement rules, also illegal ones (pseudo-legal), whichever color is to move: moves of pinned pieces, moves into check, moves that ignore a check and captures of the king are included. Castling only where it is legal for that color, en passant only for the side to move. The legal moves of a piece come from legal_moves (E190)."
     },
     {
       "name": "is_legal",

@@ -38,7 +38,7 @@ template <typename Function> sbm_status move_list_output(Call& call, Function&& 
 }
 
 // function(sbm_square* squares, sbm_piece* pieces, uint32_t capacity, uint32_t* count); asks for
-// the count first like move_list_output. The result is an array of PlacedPiece objects (E188).
+// the count first like move_list_output. The result is an array of PlacedPiece objects (E190).
 template <typename Function> sbm_status placed_piece_output(Call& call, Function&& function) {
     std::uint32_t count = 0;
     sbm_status status = function(nullptr, nullptr, 0, &count);

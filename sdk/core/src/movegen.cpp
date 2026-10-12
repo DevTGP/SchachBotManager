@@ -8,7 +8,7 @@ namespace sbm {
 
 namespace {
 
-// Pseudo-legal moves ignore pins, checks and attacks on the king's destination (E188).
+// Pseudo-legal moves ignore pins, checks and attacks on the king's destination (E190).
 enum class Mode { kLegal, kPseudoLegal };
 
 class Generator {
