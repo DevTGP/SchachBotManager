@@ -12,7 +12,9 @@ import { useApi } from "../../hooks/useApi";
 import { useSubmit } from "../../hooks/useSubmit";
 import { loadSeat, saveSeat } from "../../play/seats";
 import type { SocketFactory } from "../../play/usePlayGame";
+import { DeadlineCountdown } from "./DeadlineCountdown";
 import { Game } from "./Game";
+import { StartCountdown } from "./StartCountdown";
 
 // The runner starts a game once both sides are ready and present; presence lasts 45 s (E183).
 const POLL_MS = 5_000;
@@ -93,12 +95,17 @@ function Waiting({ item, onReady }: { item: Item; onReady: () => void }) {
         <p role="status">{t("competitionGame.notReleased")}</p>
       ) : (
         <>
-          <p>
-            {t("competitionGame.deadline", {
-              at: formatDateTime(readiness.deadline, i18n.language),
-            })}
-          </p>
+          {item.estimated_start == null ? (
+            <DeadlineCountdown at={readiness.deadline} />
+          ) : (
+            <p>
+              {t("competitionGame.deadline", {
+                at: formatDateTime(readiness.deadline, i18n.language),
+              })}
+            </p>
+          )}
           <p role="status">{t(ready ? "competitionGame.youReady" : "competitionGame.notReady")}</p>
+          {item.estimated_start != null && <StartCountdown at={item.estimated_start} />}
           <p>{opponentText(t, readiness[other])}</p>
           <p className="hint">{t("competitionGame.hint")}</p>
           <FormError error={error} />

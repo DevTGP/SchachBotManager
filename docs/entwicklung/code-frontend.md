@@ -49,6 +49,7 @@ Pfade relativ zu `frontend/src/`.
 | `hooks/useApi.ts` | Laden je `key`, Abbruch per `AbortSignal`, optionales Abfrageintervall (fest oder abhängig von den Daten), `reload`; Daten bleiben bei Fehlern stehen |
 | `hooks/polling.ts` | Intervalle: wartende Partie und laufende ohne Event-Stream 2 s, Listen und Queue 10 s, Verifikation 3 s (E76, E77, E142) |
 | `hooks/useLiveMatch.ts` | Partie für die Partieseite: lädt über `useApi`, folgt einer laufenden Partie über `EventSource` (`matchLiveUrl`) und hängt die Züge an; fragt bei offenem Strom nicht nach, sonst alle 2 s; Lücke schließt den Strom, `end` lädt neu (E142) |
+| `hooks/useNow.ts` | Aktuelle Zeit, jede Sekunde erneuert, für Countdowns (E187) |
 | `hooks/useRegistrableBots.ts` | Bots für die Anmeldung in Ligen und Turnieren: Admins alle geprüften (`GET /bots`), Coder ihre eigenen (E181) |
 | `hooks/useSubmit.ts` | Eine Änderung zur Zeit: `pending`, `error` (`ApiError` oder Übersetzungsschlüssel), `submit`, `fail` |
 | `hooks/useLocale.ts` | Aktive Sprache `de`/`en` für `Intl`-Formate |
@@ -98,7 +99,7 @@ Pfade relativ zu `frontend/src/`.
 | `components/RecurrenceText.tsx` | Kalender als Text in Ortszeit: Intervall mit erstem Start oder Start durch Admins (E171) |
 | `components/QueuedNotice.tsx` | Bestätigung nach dem Ansetzen, Link auf die Serie (E155) |
 | `components/CopyButton.tsx`, `OneTimeLinkBox.tsx` | In die Zwischenablage kopieren; einmal sichtbarer Link (E83) |
-| `format/*.ts` | Reine Formatierer: `pairing` (Seiten alphabetisch, Ergebnis gedreht, `compareSides`, E165), `botGroups` (Versionen je Name), `clock`, `dateTime`, `duration` (Sekunden/Minuten mit Komma ↔ ms, E168), `points` (½), `recurrence` (Intervall als größte passende Einheit, E171, E180), `rating` (2500 → 2550, ohne Partien „–“), `result`, `score` (Sicht von Weiß), `timeControl` („3 min + 2 s“, E168), `competition` („Bundesliga, Saison 2“, E183); `botLabel` ist seit E165 entfallen |
+| `format/*.ts` | Reine Formatierer: `pairing` (Seiten alphabetisch, Ergebnis gedreht, `compareSides`, E165), `botGroups` (Versionen je Name), `clock`, `dateTime`, `duration` (Sekunden/Minuten mit Komma ↔ ms, E168), `points` (½), `recurrence` (Intervall als größte passende Einheit, E171, E180), `rating` (2500 → 2550, ohne Partien „–“), `result`, `score` (Sicht von Weiß), `timeControl` („3 min + 2 s“, E168), `competition` („Bundesliga, Saison 2“, E183), `countdown` (h:mm:ss aufgerundet, E187); `botLabel` ist seit E165 entfallen |
 | `chess/fen.ts` | Felder der FEN lesen: Seite am Zug, Zugnummer, Materialbilanz, Felder eines UCI-Zugs; keine Regeln |
 | `upload/selection.ts` | Welche Dateien eines Ordners hochgeladen werden, Grenzen 100 Dateien und 1 MB (E92) |
 | `upload/version.ts` | Muster für Name und Version, Vorschlag der nächsten Patch-Version |
@@ -137,7 +138,7 @@ Pfade relativ zu `frontend/src/`.
 | Upload (`upload/`) | `UploadPage` mit `FileDrop` (Ordner oder Dateien, auch per Ziehen, Name, Version, Beschreibung, E91), `SelectedFiles` (Hochgeladenes und Weggelassenes) |
 | Bot (`bot/`) | `BotPage` (fragt während Verifikation und Neuprüfung alle 3 s) mit `BotHeader` (Name, Version, Status), `BotActions` (Schnellstart, Besitzer) und `BotAdmin` (Eingriffe der Admins), `BotSummary`, `BotDescription`, `BotVersions` mit `playLink.ts` (E160), `BotOpponents` (E161), `BotFiles` mit `FileView` (nur UTF-8-Text, E97), `ReportView`, `ReportStages`, `FindingsTable`, `TestGamesTable`, `reportFacts.ts`, `BotRechecks` (E153), `BotLeagues` (Ligen des Bots), `BotSeasons` (E139), `BotRatingChart` mit `ratingChart.ts` (SVG, E140), `BotResults` (E141), `BotTournaments` und `BotEditions` (E179, E180); Eingriffe `BotOwnerSwitch` (E96), `BotStatusSwitch` (E93), `BotChecks` (E153), `BotDelete` (E105) |
 | Meine Bots (`ownBots/`) | `OwnBotsPage`, `OwnBotGroups` (nach Name gruppiert), `OwnMatchForm` mit `ownMatchOrder.ts` und `ownLimits.ts` (E98, E154), `OwnWaitingMatches` (E157) |
-| Spielen (`play/`) | `PlaySetupPage` (`POST /play`, Sitz speichern, weiter zu `/play/:id`) mit `OwnCompetitionGames` (eigene Wettbewerbspartien, E183), `GamePage` (nimmt `createSocket` für Tests; mit Sitz `Game`, sonst für angemeldete Konten `CompetitionGame` mit „Bereit“ und Anwesenheit alle 15 s, E183), `Game` (Brett einer Partie), `PlayBoard` (nur Züge aus `legal_moves`), `PromotionChoice`, `GameClock` |
+| Spielen (`play/`) | `PlaySetupPage` (`POST /play`, Sitz speichern, weiter zu `/play/:id`) mit `OwnCompetitionGames` (eigene Wettbewerbspartien, E183), `GamePage` (nimmt `createSocket` für Tests; mit Sitz `Game`, sonst für angemeldete Konten `CompetitionGame` mit „Bereit“ und Anwesenheit alle 15 s, E183, und `StartCountdown` bzw. `DeadlineCountdown`, E187), `Game` (Brett einer Partie), `PlayBoard` (nur Züge aus `legal_moves`), `PromotionChoice`, `GameClock` |
 | Admin (`admin/`) | `AdminLayout` (Reiter, `RequireRole role="admin"`); Reiter „Queue“: `AdminMatchesPage` mit `QueueControl`, `AdminQueueTable` (`QueueTable` in der Sicht `admin`), `QueueEntryActions` (E152, E167), `EnqueueForm` mit `MatchFields` und `matchOrder.ts`; Reiter „Neuprüfung“: `RecheckLanguage` unter `/admin/rechecks` (E153); `MatchRepeat` (Partieseite, E152); `AdminUsersPage`; `AdminInvitesPage` mit `InviteForm`; `AdminDisciplinesPage` mit `DisciplineEditor` und `disciplineForm.ts` (E100); `AdminLeaguesPage` mit `LeagueEditor`, `TiebreakField` und `leagueForm.ts` (E131, E132, Kalender seit E171); `AdminTournamentsPage` mit `TournamentEditor`, `tournamentForm.ts` und `startable.ts` (E170, E172); `RecurrenceField` mit `recurrenceForm.ts` für Ligen und Turniere (E171); `AdminPlayPage` (E115); `AdminAuditPage` mit `AuditTable` (Ziel mit Namen, E151, E169); `AdminSettingsPage` mit `SettingsGroupFields` und `settingsFields.ts`, ein Speichern für alle Gruppen (E154, E168) |
 
 ## Ablauf
@@ -162,7 +163,8 @@ Pfade relativ zu `frontend/src/`.
 
 1. `GamePage` findet keinen Sitz der Art `play` und zeigt für ein angemeldetes Konto `CompetitionGame`; es fragt `fetchCompetitionGames` alle 5 s.
 2. Ist die Partie freigegeben, sendet „Bereit“ `declareReady` und speichert den Sitz mit `saveSeat(id, seat, "ready")`. Solange die Seite offen ist, wiederholt `usePresence` das alle 15 s; das Konto gilt so als anwesend.
-3. Hat der Runner die Partie gestartet (`readiness.started_at` oder Status nicht mehr `queued`), zeigt `CompetitionGame` das Brett mit `Game` und dem Sitz der Art `ready`; weiter wie oben ab Schritt 3.
+3. Liefert die Liste `estimated_start` (alle Konten bereit und anwesend), zeigt `StartCountdown` Countdown und Balken bis dahin; sonst zählt `DeadlineCountdown` die Frist herunter (E187).
+4. Hat der Runner die Partie gestartet (`readiness.started_at` oder Status nicht mehr `queued`), zeigt `CompetitionGame` das Brett mit `Game` und dem Sitz der Art `ready`; weiter wie oben ab Schritt 3.
 
 ## Konventionen
 

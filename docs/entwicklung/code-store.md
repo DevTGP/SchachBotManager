@@ -83,7 +83,7 @@ Alle Pfade relativ zu `services/store/src/sbm_store/`.
 | `registrations.py` | Collection `registrations`: höchstens eine aktive Anmeldung je Bot oder Konto und Liga bzw. Turnier (`target_type`, eindeutiger Teilindex über `bot_id` und `user_id`), Abmelden behält das Dokument als `left`, Deaktivieren eines Kontos mit Grund `deactivated` (E136, E179, E182) |
 | `participants.py` | Teilnehmer als Bot (`bot_id`) oder Konto (`user_id`): `key`, `is_human`, `side_query` (E182) |
 | `competition_entrants.py` | Wer von den Angemeldeten starten darf: Bots geprüft, Konten aktiv; Einträge mit `bot_id` oder `user_id`, Name und Version (E136, E179, E182) |
-| `competition_readiness.py` | Partien mit Konten: `release` nach Runde und Brett (ein Konto hat höchstens eine freigegebene Partie), `mark_ready`, `start_ready` legt den Play-Job an, `expire` wertet zur Frist (`forfeit_absent`, beide abwesend 0-0), `reset` nach Infrastrukturfehlern (E183–E185) |
+| `competition_readiness.py` | Partien mit Konten: `release` nach Runde und Brett (ein Konto hat höchstens eine freigegebene Partie), `mark_ready`, `startable` (startet die nächste Runde die Partie, E187), `start_ready` legt den Play-Job an, `expire` wertet zur Frist (`forfeit_absent`, beide abwesend 0-0), `reset` nach Infrastrukturfehlern (E183–E185) |
 | `league_setup.py` | Liga mit erster Saison anlegen, eine wartende Saison von Hand starten, nach einem geänderten Kalender den Start neu berechnen (`follow_calendar`) (E131, E132, E171) |
 | `league_lineup.py` | Reine Funktionen: Aufstellung in Stufen beim Start, Auf- und Abstieg am Ende (E133) |
 | `league_pairing.py` | Reine Funktionen: Rundenturnier nach Berger je Stufe, wiederholt nach `games_per_pairing` (E134) |

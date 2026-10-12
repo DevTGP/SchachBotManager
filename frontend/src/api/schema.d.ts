@@ -1594,6 +1594,8 @@ export interface components {
             match: components["schemas"]["MatchSummary"];
             /** @enum {unknown} */
             color: "white" | "black";
+            /** @description Once every account of the released game is ready and present (or ready at the deadline): when the match runner will probably start it, after the match it plays now (E187); null otherwise. */
+            estimated_start: components["schemas"]["Timestamp"] | null;
         };
         /** @description Released games first, by deadline; then waiting games in the order they will be released. */
         CompetitionGameList: {

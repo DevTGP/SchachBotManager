@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { formatClock, formatSpent } from "./clock";
+import { formatCountdown } from "./countdown";
 import { minutesToMs, msToSeconds, secondsToMs } from "./duration";
 import { pairing, pairingLabel, pairingResult } from "./pairing";
 import { formatPoints } from "./points";
@@ -26,6 +27,14 @@ describe("formatClock", () => {
   it("shows tenths below ten seconds and never goes negative", () => {
     expect(formatClock(9_870)).toBe("0:09.8");
     expect(formatClock(-50)).toBe("0:00.0");
+  });
+});
+
+describe("formatCountdown", () => {
+  it("rounds up to whole seconds, shows hours when needed and stops at zero", () => {
+    expect(formatCountdown(64_200)).toBe("1:05");
+    expect(formatCountdown(3_725_000)).toBe("1:02:05");
+    expect(formatCountdown(-1_000)).toBe("0:00");
   });
 });
 

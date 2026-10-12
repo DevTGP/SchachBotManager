@@ -225,6 +225,7 @@ Namen von Bots stehen nirgends mehr mit Version; eine Spalte „Version“ haben
 | `src/components/registration/SelfRegistration.tsx`, `AccountRegistration.tsx` | Liga- und Turnierseite: Knopf zum An- und Abmelden des eigenen Kontos; für Admins Auswahl eines Kontos aus `GET /admin/users` |
 | `src/pages/play/OwnCompetitionGames.tsx` | `/play`: Liste der eigenen Liga- und Turnierpartien mit Gegner, Farbe und Frist bzw. Zustand, Link auf `/play/:id`; nur mit Konto |
 | `src/pages/play/CompetitionGame.tsx` | `/play/:id` einer Wettbewerbspartie: Frist, eigener Stand und der des Gegners, Knopf „Bereit“, Anwesenheit alle 15 s, nach dem Start das Brett |
+| `src/pages/play/StartCountdown.tsx`, `DeadlineCountdown.tsx` | Mit `estimated_start` Countdown und Balken bis zum geschätzten Start, sonst Countdown bis zur Frist (E187); `src/hooks/useNow.ts` tickt jede Sekunde, `src/format/countdown.ts` formatiert |
 | `src/pages/play/Game.tsx` | Das Brett einer interaktiven Partie, gemeinsam für `/play` und Wettbewerbe; bei Wettbewerben „Dein Gegner denkt nach …“ auch gegen Menschen |
 | `src/format/competition.ts` | Name des Wettbewerbs einer Partie (Liga mit Saison bzw. Turnier mit Ausgabe) |
 

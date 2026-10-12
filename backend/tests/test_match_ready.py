@@ -3,7 +3,10 @@
 from datetime import timedelta
 
 from bson import ObjectId
-from sbm_store import competition_readiness, matches, tokens
+from sbm_store import competition_readiness, jobs, matches, tokens
+
+from sbm_api.queue_estimate import fallback_duration
+from sbm_api.timestamps import timestamp
 
 from accounts import CSRF
 from stored_games import NOW
@@ -80,3 +83,30 @@ def test_ready_only_for_the_own_released_waiting_game(login, client, db, referen
     assert (refused.status_code, refused.json["code"]) == (409, "match_state")
     competition_readiness.expire(db, NOW + timedelta(days=30))
     assert ready(player, match_id).json["code"] == "match_state"
+
+
+def estimated_start(client, match_id):
+    items = client.get("/api/v1/account/competition-games").json["items"]
+    return next(item for item in items if item["match"]["id"] == str(match_id))["estimated_start"]
+
+
+def test_a_ready_game_starts_after_the_running_match(login, db, reference_bots, enqueue, clock):
+    client, user = login("pat", "player")
+    _, match_id = season_with(db, user, reference_bots[0])
+    assert estimated_start(client, match_id) is None
+
+    ready(client, match_id)
+    idle = estimated_start(client, match_id)
+    playing = enqueue()
+    jobs.claim(db, jobs.MATCH, "worker", now=NOW, lease=timedelta(minutes=1))
+    matches.start(db, playing, NOW)
+    busy = estimated_start(client, match_id)
+    clock.advance(timedelta(seconds=46))
+    away = estimated_start(client, match_id)
+
+    assert idle == timestamp(NOW + timedelta(seconds=2))
+    snapshot = matches.get(db, playing)["discipline_snapshot"]
+    after_match = NOW + fallback_duration(snapshot, 80) + timedelta(seconds=2)
+    assert busy == timestamp(after_match)
+    # Not present any more: the game does not start in the next round.
+    assert away is None

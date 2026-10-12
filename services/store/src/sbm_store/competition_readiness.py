@@ -134,6 +134,15 @@ def side_state(side: dict | None, now: datetime) -> dict | None:
     return {"ready": side["ready_at"] is not None, "present": present(side, now)}
 
 
+def startable(readiness: dict, now: datetime) -> bool:
+    """Whether the next round of the runner starts the game: every account is ready and
+    present, or ready at the deadline."""
+    sides = _human_sides(readiness)
+    if not all(side["ready_at"] is not None for side in sides):
+        return False
+    return readiness["deadline"] <= now or all(present(side, now) for side in sides)
+
+
 def start_ready(db: Database, now: datetime) -> list[ObjectId]:
     """Starts each released game whose accounts are all ready and present, or all ready at the
     deadline, and gives each started game without an open play job one; returns the ids of the
@@ -145,11 +154,7 @@ def start_ready(db: Database, now: datetime) -> list[ObjectId]:
         "readiness.deadline": {"$exists": True},
     }
     for match in db[MATCHES].find(query, {"readiness": 1}):
-        sides = _human_sides(match["readiness"])
-        if not all(side["ready_at"] is not None for side in sides):
-            continue
-        due = match["readiness"]["deadline"] <= now
-        if not due and not all(present(side, now) for side in sides):
+        if not startable(match["readiness"], now):
             continue
         updated = db[MATCHES].update_one(
             {"_id": match["_id"], "status": matches.QUEUED, "readiness.started_at": None},
