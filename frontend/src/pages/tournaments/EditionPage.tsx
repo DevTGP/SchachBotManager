@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router";
 import { fetchEdition } from "../../api/tournaments";
 import type { Edition } from "../../api/types";
 import { ApiContent } from "../../components/ApiContent";
+import { due } from "../../components/start/startable";
 import { formatDateTime } from "../../format/dateTime";
 import { disciplineLabel } from "../../format/timeControl";
 import { POLL_LIST_MS } from "../../hooks/polling";
@@ -15,11 +16,13 @@ import { EditionRoundsSection } from "./EditionRoundsSection";
 import { EditionTable } from "./EditionTable";
 import { KnockoutBracket } from "./KnockoutBracket";
 import { KnockoutPlacements } from "./KnockoutPlacements";
+import { PlannedEdition } from "./PlannedEdition";
 import { TournamentFacts } from "./TournamentFacts";
 
 /**
  * An edition with the settings of its start and its table and rounds or its bracket (E180), with
- * the editions before and after it (E188).
+ * the editions before and after it (E188). A planned edition says when it starts and offers an
+ * admin "Start now"; once due, the page follows until it runs (E191).
  */
 export function EditionPage() {
   const { t } = useTranslation();
@@ -28,7 +31,8 @@ export function EditionPage() {
   const edition = useApi(
     (signal) => fetchEdition(id, signal),
     `edition:${id}`,
-    (data: Edition | undefined) => (data?.status === "running" ? POLL_LIST_MS : undefined),
+    (data: Edition | undefined) =>
+      data?.status === "running" || due(data) ? POLL_LIST_MS : undefined,
   );
   return (
     <ApiContent state={edition}>
@@ -51,6 +55,9 @@ export function EditionPage() {
               {data.finished_at &&
                 ` · ${t("seasons.finished", { at: formatDateTime(data.finished_at, locale) })}`}
             </p>
+            {data.status === "planned" && (
+              <PlannedEdition edition={data} onStarted={edition.reload} />
+            )}
             {data.settings && data.discipline ? (
               <TournamentFacts
                 settings={data.settings}

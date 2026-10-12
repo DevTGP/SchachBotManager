@@ -1,10 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 
+import { startLeague } from "../../api/admin";
 import { fetchLeague, registerAccount } from "../../api/leagues";
 import { ApiContent } from "../../components/ApiContent";
 import { AccountRegistration } from "../../components/registration/AccountRegistration";
 import { SelfRegistration } from "../../components/registration/SelfRegistration";
+import { StartNow } from "../../components/start/StartNow";
 import { useApi } from "../../hooks/useApi";
 import { useSession } from "../../session/sessionContext";
 import { LeagueFacts } from "./LeagueFacts";
@@ -16,7 +18,7 @@ import { SeasonState } from "./SeasonState";
 
 /**
  * A league with its settings, seasons and registered bots and accounts (E137, E182); the latest
- * season is a link under the name (E188).
+ * season is a link under the name (E188), with "Start now" for an admin while it is planned (E191).
  */
 export function LeaguePage() {
   const { t } = useTranslation();
@@ -38,6 +40,11 @@ export function LeaguePage() {
               </p>
             )}
             <NextSeason league={data} />
+            <StartNow
+              competition={data}
+              start={() => startLeague(data.id)}
+              onStarted={league.reload}
+            />
             <LeagueFacts
               settings={data}
               discipline={data.discipline_name}

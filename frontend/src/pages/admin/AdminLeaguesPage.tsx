@@ -13,7 +13,7 @@ import { useApi } from "../../hooks/useApi";
 import { useSubmit } from "../../hooks/useSubmit";
 import { SeasonState } from "../leagues/SeasonState";
 import { DEFAULT_LEAGUE_FORM, leagueForm } from "./leagueForm";
-import { startable } from "./startable";
+import { startable } from "../../components/start/startable";
 import { LeagueEditor } from "./LeagueEditor";
 
 /** Leagues: create, change, start the planned season, archive; never deleted (E131, E171). */

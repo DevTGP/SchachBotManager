@@ -1,10 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router";
 
+import { startTournament } from "../../api/adminTournaments";
 import { fetchTournament, registerTournamentAccount } from "../../api/tournaments";
 import { ApiContent } from "../../components/ApiContent";
 import { AccountRegistration } from "../../components/registration/AccountRegistration";
 import { SelfRegistration } from "../../components/registration/SelfRegistration";
+import { StartNow } from "../../components/start/StartNow";
 import { useApi } from "../../hooks/useApi";
 import { useSession } from "../../session/sessionContext";
 import { EditionState } from "./EditionState";
@@ -16,7 +18,8 @@ import { TournamentRegistrations } from "./TournamentRegistrations";
 
 /**
  * A tournament with its settings, editions and registered bots and accounts (E180, E182); the
- * latest edition is a link under the name (E188).
+ * latest edition is a link under the name (E188), with "Start now" for an admin while it is planned
+ * (E191).
  */
 export function TournamentPage() {
   const { t } = useTranslation();
@@ -38,6 +41,11 @@ export function TournamentPage() {
               </p>
             )}
             <NextEdition tournament={data} />
+            <StartNow
+              competition={data}
+              start={() => startTournament(data.id)}
+              onStarted={tournament.reload}
+            />
             <TournamentFacts
               settings={data}
               discipline={data.discipline_name}

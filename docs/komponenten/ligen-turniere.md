@@ -111,7 +111,7 @@ Die Abschnitte oben beschreiben das Ziel; umgesetzt ist es so:
 | `archived` | ja/nein | nein |
 
 - **Struktur:** Alle Stufen sind gleich groß, Auf- und Abstieg gelten an jeder Grenze gleich (E131). Statt paralleler Gruppen gibt es die Warteliste; eine neue unterste Stufe entsteht durch eine höhere Stufenzahl. Änderungen der Einstellungen wirken ab dem nächsten Saisonstart.
-- **Saison:** `planned → running → finished` (E132). Die erste Saison gibt ein Admin auf `/admin/leagues` frei; jede weitere plant der Runner beim Abschluss nach dem Kalender (E171, bis dahin mit `pause_minutes` Abstand). Eine fällige Saison startet, sobald genug Bots da sind. `registration_closed` entfällt, weil der Start Aufstellung und Spielplan in einem Schritt festschreibt.
+- **Saison:** `planned → running → finished` (E132). Die erste Saison gibt ein Admin auf `/admin/leagues`, der Liga- oder der Saisonseite frei (E191); jede weitere plant der Runner beim Abschluss nach dem Kalender (E171, bis dahin mit `pause_minutes` Abstand). Eine fällige Saison startet, sobald genug Bots da sind. `registration_closed` entfällt, weil der Start Aufstellung und Spielplan in einem Schritt festschreibt.
 - **Aufstellung (E133):** Setzliste aus der vorigen Saison, danach die Warteliste nach Anmeldezeit; von oben in Stufen geschnitten. Am Ende steigen je Grenze `promotions` Bots ab, weniger um die Zahl der Rückzüge in der Stufe; aufgefüllt wird von unten mit den Besten.
 - **Spielplan (E134):** Rundenturnier nach dem Kreisverfahren je Stufe, bei `games_per_pairing` > 1 wiederholt mit getauschten Farben. Alle Partien entstehen beim Start.
 - **Takt (E189):** Je Stufe läuft nur die aktuelle Runde, die früheste mit einer wartenden oder laufenden Partie. Nur ihre Partien zwischen Bots bekommen Jobs, nur ihre Partien mit Konten werden freigegeben; die nächste Runde folgt, wenn alle Partien der Runde beendet sind (gespielt, kampflos oder abgebrochen). So ist kein Teilnehmer mehr als eine Partie voraus, auch in Ligen nur mit Bots.
@@ -194,6 +194,11 @@ Alle Felder werden unabhängig vom Format gespeichert; was das Format nicht nutz
 - Die Saisonseite springt zu den Stufen (`#tier-N`); Saison- und Ausgabeseite verlinken die vorige und die nächste.
 - Runden tragen Anker (`#tier-N-round-R`, `#round-R`). Partieseite, Partielisten, Queue und `/play/:id` verlinken den Platz einer Partie auf ihre Runde; die Runde öffnet sich dort.
 - `/matches` mit Filter nach Saison oder Ausgabe verlinkt zurück.
+
+### Start auf den Seiten (E191)
+
+- Admins starten die geplante Saison bzw. Ausgabe auch auf der Liga- bzw. Turnierseite und auf der Seite der Saison bzw. Ausgabe selbst („Jetzt starten“, dieselben Endpunkte wie auf den Admin-Seiten, E171).
+- Die Seite einer geplanten Saison bzw. Ausgabe nennt den Start wie die Liga- bzw. Turnierseite und wechselt nach dem Start durch den Runner von selbst auf „läuft“.
 
 ## Spieler in Wettbewerben (E182–E186, Migration `0155`)
 
