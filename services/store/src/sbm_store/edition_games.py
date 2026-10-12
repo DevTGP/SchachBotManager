@@ -4,7 +4,8 @@ Each planned game names its match id in the plan (rounds, or the games of the du
 out a plan again after a crash adds only what is missing and then confirms it with scheduled.
 A missing game of a withdrawn or deleted bot stays missing: deleting a bot takes its matches
 with it (E105), and they must not come back as waiting games. Participants are bots or accounts
-(E182); a game with an account gets no job but waits for readiness (E183).
+(E182); a game with an account gets no job but waits for readiness (E183). In a round robin only
+the games of the current round get jobs, add_jobs gives the next round its jobs (E187).
 """
 
 from collections.abc import Iterator
@@ -13,9 +14,9 @@ from datetime import datetime
 from bson import ObjectId
 from pymongo.database import Database
 
-from sbm_store import editions, jobs, matches, participants
+from sbm_store import competition_pace, editions, jobs, matches, participants, tournaments
 from sbm_store.discipline import Discipline
-from sbm_store.names import BOTS, JOBS, MATCHES, USERS
+from sbm_store.names import BOTS, MATCHES, USERS
 
 REGULAR = "regular"
 TIEBREAK = "tiebreak"
@@ -70,7 +71,7 @@ def lay_out(db: Database, edition: dict, now: datetime) -> None:
         )
     if new:
         db[MATCHES].insert_many(new)
-    _add_jobs(db, edition, now)
+    add_jobs(db, edition, now)
     editions.mark_scheduled(db, edition)
 
 
@@ -112,29 +113,14 @@ def _side(entry: dict) -> dict:
     }
 
 
-def _add_jobs(db: Database, edition: dict, now: datetime) -> None:
-    waiting = [
-        match["_id"]
-        for match in db[MATCHES]
-        .find(
-            {"context.edition_id": edition["_id"], "status": matches.QUEUED} | matches.BOTS_ONLY,
-            {"_id": 1},
-        )
-        .sort("_id", 1)
-    ]
-    if not waiting:
-        return
-    with_job = set(
-        db[JOBS].distinct(
-            "payload.match_id", {"type": jobs.MATCH, "payload.match_id": {"$in": waiting}}
-        )
-    )
+def add_jobs(db: Database, edition: dict, now: datetime) -> int:
+    """Jobs for the waiting bot games, in a round robin only those of the current round (E187);
+    returns how many were added."""
+    group = {"context.edition_id": edition["_id"]}
     competition = jobs.tournament_competition(edition["tournament_id"])
     priority = edition["settings"]["priority"]
-    new = [
-        jobs.new_match_job(match_id, priority=priority, now=now, competition=competition)
-        for match_id in waiting
-        if match_id not in with_job
-    ]
-    if new:
-        db[JOBS].insert_many(new)
+    if edition["settings"]["format"] == tournaments.ROUND_ROBIN:
+        return competition_pace.add_round_jobs(
+            db, group, competition=competition, priority=priority, now=now
+        )
+    return competition_pace.add_jobs(db, group, competition=competition, priority=priority, now=now)

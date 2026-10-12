@@ -64,7 +64,8 @@ def test_waiting_games_end_as_forfeits_and_a_running_one_goes_on(db):
         assert ended["termination"] == matches.FORFEIT
         assert ended["result"] == ("0-1" if lost_with_white else "1-0")
         assert not ended["rated"]
-        assert db[JOBS].find_one({"payload.match_id": game["_id"]})["status"] == jobs.CANCELLED
+        open_jobs = {"payload.match_id": game["_id"], "status": {"$ne": jobs.CANCELLED}}
+        assert db[JOBS].count_documents(open_jobs) == 0
     own_ids = {game["_id"] for game in own}
     others = [game for game in season_games(db, season["_id"]) if game["_id"] not in own_ids]
     assert others

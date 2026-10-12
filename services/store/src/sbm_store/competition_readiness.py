@@ -3,7 +3,8 @@
 
 A game with an account gets no job when its season or edition lays it out. release hands out
 the waiting ones in the order (tier,) round, board, game, as long as no account in them holds
-another released game that has not ended. The released game carries readiness: released_at,
+another released game that has not ended and, in a league or round robin, the game's round has
+come (E187). The released game carries readiness: released_at,
 deadline, started_at and per side {ready_at, seen_at}, None for a bot. The account says it is
 ready with mark_ready, which its page repeats; once every account is ready and present, or at
 the deadline every account is ready, the game gets a play job. An account not ready at the
@@ -17,7 +18,7 @@ from bson import ObjectId
 from pymongo import ReturnDocument
 from pymongo.database import Database
 
-from sbm_store import jobs, matches, participants, play
+from sbm_store import competition_pace, jobs, matches, participants, play
 from sbm_store.names import EDITIONS, JOBS, MATCHES, SEASONS
 
 DEFAULT_READY_HOURS = 48
@@ -40,6 +41,7 @@ def release(db: Database, now: datetime) -> list[ObjectId]:
     """Releases the next waiting games with an account; returns their ids."""
     busy = _busy_accounts(db)
     hours: dict[ObjectId, int] = {}
+    rounds: dict[tuple, int | None] = {}
     released = []
     query = {
         "type": {"$in": list(COMPETITIONS)},
@@ -47,6 +49,8 @@ def release(db: Database, now: datetime) -> list[ObjectId]:
         "readiness": None,
     } | WITH_ACCOUNT
     for match in db[MATCHES].find(query, {"white": 1, "black": 1, "context": 1}).sort(ORDER):
+        if not competition_pace.due(db, match["context"], rounds):
+            continue
         accounts = _accounts(match)
         blocked = bool(accounts & busy)
         # The games of an account come in order: a later one waits for this one as well.

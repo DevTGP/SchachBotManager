@@ -2,6 +2,8 @@
 
 The start fixes the lineup in one write; the schedule follows and is confirmed with scheduled.
 Laying it out again after a crash adds only the games and jobs still missing, so it can repeat.
+Only the games of each tier's current round get jobs; hand_out gives the next round its jobs
+once the previous one has ended (E187).
 """
 
 import random
@@ -12,6 +14,7 @@ from pymongo.database import Database
 
 from sbm_store import (
     competition_entrants,
+    competition_pace,
     disciplines,
     jobs,
     leagues,
@@ -23,7 +26,7 @@ from sbm_store import (
 from sbm_store.discipline import Discipline
 from sbm_store.league_lineup import candidates, lineup
 from sbm_store.league_pairing import schedule as round_robin
-from sbm_store.names import JOBS, MATCHES
+from sbm_store.names import MATCHES
 
 LOT_RANGE = 2**31
 
@@ -59,6 +62,16 @@ def lay_out_pending(db: Database, now: datetime) -> int:
     for season in pending:
         lay_out(db, season, now)
     return len(pending)
+
+
+def hand_out(db: Database, now: datetime) -> int:
+    """Gives the bot games of the current rounds of running seasons their jobs (E187);
+    returns how many jobs were added."""
+    return sum(
+        _add_jobs(db, season, season["settings"]["priority"], now)
+        for season in seasons.running(db)
+        if season["scheduled"]
+    )
 
 
 def lay_out(db: Database, season: dict, now: datetime) -> None:
@@ -127,23 +140,17 @@ def _place(context: dict) -> tuple:
     return context["tier"], context["round"], context["board"]
 
 
-def _add_jobs(db: Database, season: dict, priority: int, now: datetime) -> None:
-    """Queue jobs for the waiting games between two bots; a game with an account waits for
-    its readiness instead (E183)."""
-    query = {"context.season_id": season["_id"], "status": matches.QUEUED} | matches.BOTS_ONLY
-    waiting = [match["_id"] for match in db[MATCHES].find(query, {"_id": 1}).sort("_id", 1)]
-    if not waiting:
-        return
-    with_job = set(
-        db[JOBS].distinct(
-            "payload.match_id", {"type": jobs.MATCH, "payload.match_id": {"$in": waiting}}
-        )
-    )
+def _add_jobs(db: Database, season: dict, priority: int, now: datetime) -> int:
+    """Jobs for the waiting bot games of each tier's current round (E187); a game with an
+    account waits for its readiness instead (E183)."""
     competition = jobs.league_competition(season["league_id"])
-    new = [
-        jobs.new_match_job(match_id, priority=priority, now=now, competition=competition)
-        for match_id in waiting
-        if match_id not in with_job
-    ]
-    if new:
-        db[JOBS].insert_many(new)
+    return sum(
+        competition_pace.add_round_jobs(
+            db,
+            {"context.season_id": season["_id"], "context.tier": tier["tier"]},
+            competition=competition,
+            priority=priority,
+            now=now,
+        )
+        for tier in season["tiers"]
+    )

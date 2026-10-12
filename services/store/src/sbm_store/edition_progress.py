@@ -1,8 +1,9 @@
 """Moving running editions on (E174–E177); the runner calls this each round.
 
 Per edition: lay out games a crash left missing, forfeit the waiting games of withdrawn bots,
-take the format's next step and finish the edition once it is done. A round robin edition is
-done when all its games have ended; the Swiss system and knockout pair their next round first.
+give a round robin's next round its jobs (E187), take the format's next step and finish the
+edition once it is done. A round robin edition is done when all its games have ended; the Swiss
+system and knockout pair their next round first.
 """
 
 import random
@@ -35,6 +36,8 @@ def advance_running(
         current = editions.get(db, edition["_id"])
         if current is None or current["status"] != editions.RUNNING:
             continue
+        if current["scheduled"] and current["settings"]["format"] == tournaments.ROUND_ROBIN:
+            edition_games.add_jobs(db, current, now)
         if _done(db, current, now, rng):
             edition_end.finish(db, current, now)
             finished.append(current["_id"])

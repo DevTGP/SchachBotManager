@@ -56,8 +56,10 @@ def test_a_round_robin_with_two_games_per_pairing(db):
     assert {game["context"]["board"] for game in games} == {1}
     competition = jobs.league_competition(league["_id"])
     queued = list(db[JOBS].find({"payload.match_id": {"$in": [game["_id"] for game in games]}}))
-    assert len(queued) == 6
-    assert {job["competition"] for job in queued} == {competition}
+    # Only the first round is queued (E187).
+    (job,) = queued
+    assert job["payload"]["match_id"] == games[0]["_id"]
+    assert job["competition"] == competition
 
 
 def test_too_few_bots_keep_the_season_planned(db):
@@ -121,4 +123,4 @@ def test_laying_out_again_adds_only_what_is_missing(db):
 
     assert len(season_games(db, season["_id"])) == 6
     ids = [game["_id"] for game in games]
-    assert db[JOBS].count_documents({"payload.match_id": {"$in": ids}}) == 6
+    assert db[JOBS].count_documents({"payload.match_id": {"$in": ids}}) == 1
