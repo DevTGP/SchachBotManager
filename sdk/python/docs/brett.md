@@ -39,6 +39,7 @@ Felder, Farben und Figuren sind einfache `int`-Werte; die Konstanten stehen in [
 | Methode | Rückgabe |
 |---------|----------|
 | `piece_at(square)` | Figur auf dem Feld, `NO_PIECE` wenn leer |
+| `pieces(color=None, piece_type=None)` | Figuren mit ihrem Feld als `list[PlacedPiece]` von a1 bis h8, gefiltert nach Farbe und Typ; `None` heißt alle |
 | `side_to_move()` | `WHITE` oder `BLACK` |
 | `castling_rights()` | Bitmaske der verbleibenden Rechte, unabhängig davon, ob gerade rochiert werden kann |
 | `en_passant_square()` | Zielfeld eines legalen En-passant-Schlagens, sonst `NO_SQUARE` |
@@ -54,6 +55,7 @@ Eine Figur ist `farbe * 6 + figurentyp`; Typ und Farbe ergeben sich als `piece %
 |---------|---------|
 | `legal_moves()` | Alle legalen Züge als `list[Move]`, vollständig mit Flags; leer bei Matt oder Patt. Reihenfolge nicht festgelegt |
 | `legal_captures()` | Nur Schlagzüge, einschließlich en passant und Umwandlung mit Schlagen |
+| `all_moves_from(square)` | Alle Züge der Figur auf dem Feld nach ihren Gangregeln, auch illegale: gefesselt, ins Schach, trotz Schach, König schlagen. Gilt für jede Farbe, nicht nur die am Zug; Rochade nur, wo sie legal ist, en passant nur für die Seite am Zug. Leeres Feld: leere Liste |
 | `is_legal(move)` | Ob ein legaler Zug mit gleichem Start, Ziel und Umwandlung existiert |
 | `parse_move(uci)` | Zug aus UCI-Text, nachgeschlagen in dieser Stellung, mit allen Flags; `InvalidUciError` bzw. `IllegalMoveError` |
 | `san(move)` | Kurznotation wie in PGN, z. B. `Nbd7`, `exd6`, `O-O`, `e8=Q+`, `Qxf7#` |

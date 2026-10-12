@@ -22,6 +22,8 @@ def encode(value, type_name: str):
         return value.value()
     if type_name == "Board":
         return value.fen()
+    if type_name == "PlacedPiece":
+        return {"square": value.square, "piece": value.piece}
     if type_name in HEX_TYPES:
         return f"0x{value:016x}"
     return value

@@ -1,5 +1,9 @@
 // Single properties of the position (spec/api/board_query.json).
+#include <array>
 #include <cstdint>
+#include <optional>
+
+#include <nanobind/stl/optional.h>
 
 #include "arguments.hpp"
 #include "board.hpp"
@@ -11,6 +15,34 @@ using namespace nb::literals;
 
 namespace sbm_py {
 
+namespace {
+
+// PlacedPiece is a dataclass of sbm.records, looked up on demand like the errors.
+nb::list pieces(
+    const Board& board, const std::optional<nb::int_>& color,
+    const std::optional<nb::int_>& piece_type) {
+    const char* what = "Board.pieces";
+    const auto color_code = color ? to_c<sbm_color>(*color, what) : sbm_color{SBM_NO_COLOR};
+    const auto type_code =
+        piece_type ? to_c<sbm_piece_type>(*piece_type, what) : sbm_piece_type{SBM_NO_PIECE_TYPE};
+    std::array<sbm_square, SBM_SQUARE_COUNT> squares{};
+    std::array<sbm_piece, SBM_SQUARE_COUNT> found{};
+    std::uint32_t count = 0;
+    check(
+        sbm_board_pieces(
+            board.get(), color_code, type_code, squares.data(), found.data(), SBM_SQUARE_COUNT,
+            &count),
+        what);
+    const nb::object placed_piece = nb::module_::import_("sbm.records").attr("PlacedPiece");
+    nb::list result;
+    for (std::uint32_t i = 0; i < count; ++i) {
+        result.append(placed_piece(squares[i], found[i]));
+    }
+    return result;
+}
+
+} // namespace
+
 void bind_board_query(BoardClass& cls) {
     cls.def(
            "piece_at",
@@ -20,6 +52,12 @@ void bind_board_query(BoardClass& cls) {
                    to_c<sbm_square>(square, "Board.piece_at"));
            },
            "square"_a, "The piece on a square, or NO_PIECE.")
+        .def(
+            "pieces", &pieces, "color"_a = nb::none(), "piece_type"_a = nb::none(),
+            nb::sig("def pieces(self, color: int | None = None, piece_type: int | None = None) "
+                    "-> list[sbm.records.PlacedPiece]"),
+            "The pieces with their squares from a1 to h8, of one color or both (None) and of one "
+            "type or all (None).")
         .def(
             "side_to_move",
             [](const Board& board) {

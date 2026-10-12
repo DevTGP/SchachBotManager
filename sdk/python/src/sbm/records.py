@@ -1,5 +1,7 @@
-"""Records of the bot API (spec/api/types.json): GameInfo, GameResult, Info and PlayedGame."""
+"""Records of the bot API (spec/api/types.json): GameInfo, GameResult, Info, PlacedPiece
+and PlayedGame."""
 
+from collections.abc import Iterator
 from dataclasses import dataclass
 
 from sbm._core import Move
@@ -39,6 +41,17 @@ class Info:
     nodes: int | None = None
     pv: list[Move] | None = None
     text: str | None = None
+
+
+@dataclass(frozen=True)
+class PlacedPiece:
+    """A piece with its square, as listed by Board.pieces (E188); unpacks as (square, piece)."""
+
+    square: int
+    piece: int
+
+    def __iter__(self) -> Iterator[int]:
+        return iter((self.square, self.piece))
 
 
 @dataclass(frozen=True)

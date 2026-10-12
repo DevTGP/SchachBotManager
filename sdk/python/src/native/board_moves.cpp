@@ -5,6 +5,7 @@
 
 #include <nanobind/stl/string.h>
 
+#include "arguments.hpp"
 #include "board.hpp"
 #include "move.hpp"
 #include "move_list.hpp"
@@ -26,6 +27,17 @@ MoveList generate(const Board& board, MoveGenerator generator, const char* what)
     std::array<sbm_move, SBM_MAX_MOVES> moves{};
     std::uint32_t count = 0;
     check(generator(board.get(), moves.data(), SBM_MAX_MOVES, &count), what);
+    return move_list(moves.data(), count);
+}
+
+MoveList all_moves_from(const Board& board, const nb::int_& square) {
+    const char* what = "Board.all_moves_from";
+    std::array<sbm_move, SBM_MAX_MOVES> moves{};
+    std::uint32_t count = 0;
+    check(
+        sbm_board_all_moves_from(
+            board.get(), to_c<sbm_square>(square, what), moves.data(), SBM_MAX_MOVES, &count),
+        what);
     return move_list(moves.data(), count);
 }
 
@@ -73,6 +85,11 @@ void bind_board_moves(BoardClass& cls) {
                 return generate(board, sbm_board_legal_captures, "Board.legal_captures");
             },
             "The legal moves that capture, including en passant and capturing promotions.")
+        .def(
+            "all_moves_from", &all_moves_from, "square"_a,
+            "All moves of the piece on the square by its movement rules, also illegal ones "
+            "(pins, check), whichever color is to move; castling only where legal, en passant "
+            "only for the side to move. Empty for an empty square.")
         .def(
             "is_legal",
             [](const Board& board, const Move& move) {

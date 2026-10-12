@@ -8,6 +8,7 @@ Alle Konstanten sind einfache `int`-Werte direkt unter `sbm` (`sbm.WHITE`, `sbm.
 |------|------|
 | `WHITE` | 0 |
 | `BLACK` | 1 |
+| `NO_COLOR` | 2 |
 
 Gegenfarbe: `1 - color` bzw. `color ^ 1`.
 

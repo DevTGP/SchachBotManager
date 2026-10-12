@@ -16,7 +16,7 @@ from sbm.errors import (
     InvalidUciError,
 )
 from sbm.log import Log
-from sbm.records import GameInfo, GameResult, Info, PlayedGame
+from sbm.records import GameInfo, GameResult, Info, PlacedPiece, PlayedGame
 from sbm.runtime import run
 from sbm.starter import play
 
@@ -38,6 +38,7 @@ __all__ = [
     "InvalidUciError",
     "Log",
     "Move",
+    "PlacedPiece",
     "PlayedGame",
     "__version__",
     "load_data",

@@ -2,8 +2,8 @@
 
 from sbm._core import Move
 
-# Color
-WHITE, BLACK = 0, 1
+# Color; NO_COLOR stands for both colors
+WHITE, BLACK, NO_COLOR = 0, 1, 2
 
 # PieceType
 PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING, NO_PIECE_TYPE = range(7)
