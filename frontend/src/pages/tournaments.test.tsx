@@ -209,7 +209,12 @@ describe("tournament pages", () => {
     renderRoute(`/matches?edition=${EDITION_ID}`);
 
     expect(await screen.findByText("Only the games of one tournament edition.")).toBeVisible();
-    const first = api.requests.find((url) => url.pathname === "/api/v1/matches")!;
+    // The hint comes from the address, so the list may not be requested yet.
+    const first = await waitFor(() => {
+      const found = api.requests.find((url) => url.pathname === "/api/v1/matches");
+      expect(found).toBeDefined();
+      return found!;
+    });
     expect(first.searchParams.get("edition_id")).toBe(EDITION_ID);
 
     await user.click(screen.getByRole("button", { name: "Show all games" }));

@@ -128,7 +128,12 @@ describe("league pages", () => {
     renderRoute(`/matches?season=${SEASON_ID}&tier=2`);
 
     expect(await screen.findByText("Only the games of tier 2 of one season.")).toBeVisible();
-    const list = api.requests.find((url) => url.pathname === "/api/v1/matches")!;
+    // The hint comes from the address, so the list may not be requested yet.
+    const list = await waitFor(() => {
+      const found = api.requests.find((url) => url.pathname === "/api/v1/matches");
+      expect(found).toBeDefined();
+      return found!;
+    });
     expect(list.searchParams.get("season_id")).toBe(SEASON_ID);
     expect(list.searchParams.get("tier")).toBe("2");
   });

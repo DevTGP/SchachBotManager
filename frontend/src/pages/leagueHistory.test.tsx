@@ -60,10 +60,11 @@ describe("schedule of a season", () => {
     renderRoute(`/seasons/${SEASON_ID}`);
 
     expect(await screen.findByRole("heading", { name: "Schedule" })).toBeVisible();
+    // The rounds come with the answer, so the request has been made by then.
+    const first = (await screen.findByText("Round 1")).closest("details")!;
     const request = api.requests.find((url) => url.pathname.endsWith("/schedule"))!;
     expect(request.searchParams.get("tier")).toBe("1");
 
-    const first = (await screen.findByText("Round 1")).closest("details")!;
     expect(first).not.toHaveAttribute("open");
     expect(within(first).getByText("· 1 of 1 finished")).toBeInTheDocument();
     expect(within(first).getByText("0–1 by forfeit")).toBeInTheDocument();
