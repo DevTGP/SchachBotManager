@@ -1778,21 +1778,15 @@ export interface components {
             finished_at: components["schemas"]["Timestamp"];
             stages: components["schemas"]["VerificationStage"][];
         };
-        /** @description Paths are relative with /; .py files and data files directly in data/, at most 100 of each and 1 MiB each in all (verifikation.md). At most 20 uploads a day per account. */
+        /** @description Paths are relative with /; source files of the language (.py for Python, .js and .mjs for JavaScript, no folder node_modules) and data files directly in data/, at most 100 of each and 1 MiB each in all (verifikation.md, E207). At most 20 uploads a day per account. */
         BotUpload: {
             name: components["schemas"]["BotName"];
             /** @description Higher than every earlier version of the name. */
             version: components["schemas"]["BotVersion"];
-            /**
-             * @description Only Python so far.
-             * @constant
-             */
-            language: "python";
-            /**
-             * @description The file the bot starts with, in the top folder.
-             * @default bot.py
-             */
-            entry: string;
+            /** @enum {unknown} */
+            language: "python" | "javascript";
+            /** @description The file the bot starts with, in the top folder; bot.py for Python and bot.js for JavaScript if left out. */
+            entry?: string;
             /**
              * @description Plain text by the owner, at most 500 characters; line breaks but no other control characters (E95).
              * @default

@@ -2963,7 +2963,7 @@
         "additionalProperties": false
       },
       "BotUpload": {
-        "description": "Paths are relative with /; .py files and data files directly in data/, at most 100 of each and 1 MiB each in all (verifikation.md). At most 20 uploads a day per account.",
+        "description": "Paths are relative with /; source files of the language (.py for Python, .js and .mjs for JavaScript, no folder node_modules) and data files directly in data/, at most 100 of each and 1 MiB each in all (verifikation.md, E207). At most 20 uploads a day per account.",
         "type": "object",
         "properties": {
           "name": { "$ref": "#/components/schemas/BotName" },
@@ -2971,12 +2971,11 @@
             "description": "Higher than every earlier version of the name.",
             "$ref": "#/components/schemas/BotVersion"
           },
-          "language": { "description": "Only Python so far.", "const": "python" },
+          "language": { "enum": ["python", "javascript"] },
           "entry": {
-            "description": "The file the bot starts with, in the top folder.",
+            "description": "The file the bot starts with, in the top folder; bot.py for Python and bot.js for JavaScript if left out.",
             "type": "string",
-            "maxLength": 200,
-            "default": "bot.py"
+            "maxLength": 200
           },
           "description": {
             "description": "Plain text by the owner, at most 500 characters; line breaks but no other control characters (E95).",

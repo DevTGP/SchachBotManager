@@ -5,6 +5,7 @@ import type { Bot, BotDetail, EnqueuedMatches, OwnBotUpdate, OwnMatchRequest } f
 export interface BotUpload {
   name: string;
   version: string;
+  language: "python" | "javascript";
   entry: string;
   description: string;
   files: { path: string; content: Blob }[];
@@ -29,7 +30,7 @@ export function uploadBot(upload: BotUpload): Promise<BotDetail> {
   const form = new FormData();
   form.append("name", upload.name);
   form.append("version", upload.version);
-  form.append("language", "python");
+  form.append("language", upload.language);
   form.append("entry", upload.entry);
   if (upload.description) form.append("description", upload.description);
   for (const file of upload.files) {

@@ -1,10 +1,11 @@
 // The files of a drop on the upload area (G16). A dropped folder is read through the entries API;
-// hidden folders and __pycache__ are skipped on the way, since nothing in them is uploaded.
+// hidden folders, __pycache__ and node_modules are skipped on the way, since nothing in them is
+// uploaded.
 
 import { type FoundFile, insideFolder } from "./selection";
 
 function skipped(name: string): boolean {
-  return name.startsWith(".") || name === "__pycache__";
+  return name.startsWith(".") || name === "__pycache__" || name === "node_modules";
 }
 
 function fileOf(entry: FileSystemFileEntry): Promise<File> {

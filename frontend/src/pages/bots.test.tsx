@@ -66,14 +66,55 @@ describe("upload page", () => {
     const post = api.calls.find((call) => call.method === "POST");
     expect(post?.headers.get("X-SBM-CSRF")).toBe("1");
     const form = post?.form;
-    expect([form?.get("name"), form?.get("version"), form?.get("entry")]).toEqual([
-      "sharp",
-      "1.0.5",
-      "bot.py",
-    ]);
+    expect([
+      form?.get("name"),
+      form?.get("version"),
+      form?.get("language"),
+      form?.get("entry"),
+    ]).toEqual(["sharp", "1.0.5", "python", "bot.py"]);
     expect(form?.get("description")).toBe("Plays e4.\nNever resigns.");
     expect(form?.getAll("paths")).toEqual(["bot.py", "data/book.txt", "lib/eval.py"]);
     expect(form?.getAll("files")).toHaveLength(3);
+  });
+
+  it("switches to JavaScript for a folder of .js files", async () => {
+    const user = userEvent.setup();
+    const api = mockApi({
+      "/session": { user: CODER },
+      "/account/bots": { items: [] },
+      "/bots": (_url: URL, call: ApiCall) =>
+        call.method === "POST" ? botDetail({ status: "uploaded" }) : { items: BOTS },
+      [`/bots/${SHARP_ID}`]: botDetail({ status: "uploaded" }),
+    });
+    renderRoute("/bots/new");
+
+    const python = await screen.findByRole("button", { name: "Python" });
+    expect(python).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByLabelText("Choose files")).toHaveAttribute("accept", ".py");
+    const files = ["package.json", "bot.js", "lib/eval.mjs", "node_modules/sbm/index.js"];
+    await user.upload(
+      screen.getByLabelText("Choose folder"),
+      files.map((path) => folderFile(path)),
+    );
+    expect(screen.getByRole("button", { name: "JavaScript" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByLabelText("Choose files")).toHaveAttribute("accept", ".js,.mjs");
+    expect(screen.getByText("2 files will be uploaded:")).toBeVisible();
+    expect(screen.getByText("Not uploaded: package.json")).toBeVisible();
+    expect(screen.getByRole("combobox", { name: "Entry file" })).toHaveValue("bot.js");
+
+    await user.click(python);
+    expect(screen.getByText("Not uploaded: package.json, bot.js, lib/eval.mjs")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "JavaScript" }));
+    await user.type(screen.getByLabelText(/^Name/), "Sharp");
+    await user.click(screen.getByRole("button", { name: "Upload" }));
+
+    await screen.findByRole("heading", { level: 1, name: "Sharp" });
+    const form = api.calls.find((call) => call.method === "POST")?.form;
+    expect([form?.get("language"), form?.get("entry")]).toEqual(["javascript", "bot.js"]);
+    expect(form?.getAll("paths")).toEqual(["bot.js", "lib/eval.mjs"]);
   });
 
   it("checks the selection before sending", async () => {
@@ -86,12 +127,12 @@ describe("upload page", () => {
     expect(screen.getByLabelText(/^Version/)).toHaveValue("1.0.0");
     await user.click(screen.getByRole("button", { name: "Upload" }));
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "Choose a folder or files with at least one .py file.",
+      "Choose a folder or files with at least one source file (.py).",
     );
 
     await user.upload(screen.getByLabelText("Choose folder"), [folderFile("lib/eval.py")]);
     await user.click(screen.getByRole("button", { name: "Upload" }));
-    expect(screen.getByRole("alert")).toHaveTextContent("The top folder needs a .py file");
+    expect(screen.getByRole("alert")).toHaveTextContent("The top folder needs a source file (.py)");
     expect(api.calls.some((call) => call.method === "POST")).toBe(false);
   });
 

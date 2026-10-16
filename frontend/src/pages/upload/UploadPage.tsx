@@ -1,34 +1,53 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 
 import { fetchLimits } from "../../api/account";
 import { fetchOwnBots, uploadBot } from "../../api/bots";
 import { FormError } from "../../components/FormError";
+import { PillSelect } from "../../components/PillSelect";
 import { useApi } from "../../hooks/useApi";
 import { useSubmit } from "../../hooks/useSubmit";
-import { entryCandidates, type Selection, selectionProblem } from "../../upload/selection";
+import {
+  detectLanguage,
+  entryCandidates,
+  type FoundFile,
+  selectionProblem,
+  selectPaths,
+  sourceSuffixes,
+  UPLOAD_LANGUAGES,
+  type UploadLanguage,
+} from "../../upload/selection";
 import { NAME, parseVersion, suggestVersion } from "../../upload/version";
 import { DESCRIPTION_LENGTH } from "../bot/BotDescription";
 import { FileDrop } from "./FileDrop";
 
-/** Upload of a Python bot as a folder of sources (E91, E92); the own bots are on "My bots". */
+/** Upload of a bot as a folder of sources (E91, E92, E207); the own bots are on "My bots". */
 export function UploadPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const ownBots = useApi(fetchOwnBots, "own-bots");
   const limits = useApi(fetchLimits, "own-limits");
   const { pending, error, submit, fail } = useSubmit();
-  const [selection, setSelection] = useState<Selection>();
+  const [language, setLanguage] = useState<UploadLanguage>("python");
+  const [found, setFound] = useState<FoundFile[]>();
   const [entryChoice, setEntryChoice] = useState<string>();
   const [name, setName] = useState("");
   const [versionInput, setVersionInput] = useState<string>();
   const [description, setDescription] = useState("");
 
-  const candidates = selection ? entryCandidates(selection.files) : [];
+  const selection = useMemo(() => found && selectPaths(found, language), [found, language]);
+  const candidates = selection ? entryCandidates(selection.files, language) : [];
+  const sources = sourceSuffixes(language);
   const entry = entryChoice && candidates.includes(entryChoice) ? entryChoice : candidates[0];
   const version = versionInput ?? suggestVersion(ownBots.data ?? [], name);
   const ownNames = [...new Set(ownBots.data?.map((bot) => bot.name))];
+
+  // Files of only one language switch to it; the choice stays free.
+  function onFound(files: FoundFile[]) {
+    setFound(files);
+    setLanguage((current) => detectLanguage(files) ?? current);
+  }
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -42,6 +61,7 @@ export function UploadPage() {
       const bot = await uploadBot({
         name,
         version,
+        language,
         entry,
         description,
         files: files.map((file) => ({ path: file.path, content: file.file })),
@@ -53,9 +73,15 @@ export function UploadPage() {
   return (
     <>
       <h1>{t("upload.title")}</h1>
-      <p>{t("upload.intro")}</p>
+      <p>{t("upload.intro", { sources })}</p>
       <form className="form" onSubmit={onSubmit}>
-        <FileDrop selection={selection} onSelect={setSelection} />
+        <PillSelect
+          label={t("upload.language")}
+          options={UPLOAD_LANGUAGES.map((code) => ({ value: code, label: t(`language.${code}`) }))}
+          value={language}
+          onChange={setLanguage}
+        />
+        <FileDrop language={language} selection={selection} onFound={onFound} />
         {candidates.length > 0 && (
           <label>
             {t("upload.entry")}
@@ -108,7 +134,7 @@ export function UploadPage() {
           {t("upload.review")}
           {limits.data && ` ${t("upload.limit", { uploads: limits.data.uploads_per_day })}`}
         </p>
-        <FormError error={error} />
+        <FormError error={error} values={{ sources }} />
         <button type="submit" className="primary" disabled={pending}>
           {t("upload.submit")}
         </button>
