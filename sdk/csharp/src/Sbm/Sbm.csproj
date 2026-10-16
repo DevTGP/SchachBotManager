@@ -23,7 +23,8 @@
 
   <!-- The shared core next to the assembly, where the default native library search finds it.
        Wildcards, so that only the library of the current platform is copied. Without
-       SbmRuntimesDir the package carries this library, for local tests. -->
+       SbmRuntimesDir the package carries this library, for local tests; the full package path
+       drops the folder bin/Release of multi-config builds. -->
   <ItemGroup>
     <None
       Include="$(SbmNativeDir)/lib/libsbm*.so;$(SbmNativeDir)/lib/libsbm*.dylib;$(SbmNativeDir)/bin/**/sbm.dll"
@@ -32,7 +33,7 @@
       Visible="false"
     >
       <Pack Condition="'$(SbmRuntimesDir)' == ''">true</Pack>
-      <PackagePath>runtimes/$(NETCoreSdkPortableRuntimeIdentifier)/native/</PackagePath>
+      <PackagePath>runtimes/$(NETCoreSdkPortableRuntimeIdentifier)/native/%(Filename)%(Extension)</PackagePath>
     </None>
   </ItemGroup>
 
