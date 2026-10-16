@@ -216,6 +216,8 @@ jobs:
         image: mongo:8.0
         ports:
           - 27017:27017
+        # The container log is printed when the job ends; kept short so the test output stays readable.
+        options: --log-opt max-size=100k --log-opt max-file=1
     env:
       SBM_TEST_MONGO_URI: mongodb://localhost:27017
       # Without this the database tests would be skipped instead of failing.
@@ -240,16 +242,16 @@ jobs:
           ruff format --check services/store services/runner services/gateway backend
 
       - name: Test store
-        run: pytest services/store
+        run: pytest -rfE services/store
 
       - name: Test gateway
-        run: pytest services/gateway
+        run: pytest -rfE services/gateway
 
       - name: Test runner (real games between the reference bots, interactive games via the gateway)
-        run: pytest services/runner
+        run: pytest -rfE services/runner
 
       - name: Test web API (responses checked against spec/web/openapi.json)
-        run: pytest backend
+        run: pytest -rfE backend
 
   sandbox:
     name: Sandbox (negative suite)
