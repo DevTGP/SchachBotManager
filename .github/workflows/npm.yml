@@ -111,7 +111,7 @@ jobs:
           node --input-type=module -e '
             import { Board, version } from "schachbotmanager";
             if (new Board().legalMoves().length !== 20) throw new Error("wrong move count");
-            console.log(`schachbotmanager ${version}`);
+            console.log("schachbotmanager " + version);
           '
           tar -tzf schachbotmanager-*.tgz
 
