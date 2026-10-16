@@ -66,4 +66,13 @@ public class BoardTests
 
     [Fact]
     public void Version() => Assert.Matches(@"^\d+\.\d+\.\d+", Sdk.Version);
+
+    // Windows ignores case in file names: an assembly Sbm.dll would shadow the core's sbm.dll.
+    [Fact]
+    public void AssemblyIsNotNamedLikeTheCore() =>
+        Assert.NotEqual(
+            "sbm",
+            typeof(Board).Assembly.GetName().Name,
+            StringComparer.OrdinalIgnoreCase
+        );
 }

@@ -8,7 +8,7 @@ Das C#-SDK unter `sdk/csharp` ist die erste Sprache von M5 (E192). Schritt 1 ist
 |----------|-----|-------|
 | `Sbm.slnx` | [`sdk/csharp/Sbm.slnx`](../../sdk/csharp/Sbm.slnx) | Lösung mit Bibliothek und Tests |
 | `Directory.Build.props` | [`sdk/csharp/Directory.Build.props`](../../sdk/csharp/Directory.Build.props) | Gemeinsame Einstellungen: `net10.0`, Nullable, Warnungen als Fehler, Analyse `latest-recommended`, `SbmNativeDir` |
-| `Sbm.csproj` | [`src/Sbm/`](../../sdk/csharp/src/Sbm/) | Bibliothek `Sbm` (Paket-ID `SchachBotManager`), kopiert die geteilte Bibliothek des Kerns neben die Assembly (E193) |
+| `Sbm.csproj` | [`src/Sbm/`](../../sdk/csharp/src/Sbm/) | Bibliothek mit Assembly und Paket-ID `SchachBotManager`, Namensraum `Sbm` (nicht `Sbm.dll`, das wäre unter Windows dieselbe Datei wie `sbm.dll`), kopiert die geteilte Bibliothek des Kerns neben die Assembly (E193) |
 | `Board` | [`src/Sbm/Board.cs`](../../sdk/csharp/src/Sbm/Board.cs) | Brett; Einstieg für Bot-Autoren |
 | `Sbm.Tests` | [`tests/Sbm.Tests/`](../../sdk/csharp/tests/Sbm.Tests/) | xUnit v3: Vektoren, Oberfläche, Konstanten, Fehler, Objekte |
 

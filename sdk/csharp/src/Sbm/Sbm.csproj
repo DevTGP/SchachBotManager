@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <AssemblyName>Sbm</AssemblyName>
+    <!-- Not "Sbm": on Windows Sbm.dll and the core's sbm.dll would be the same file. -->
+    <AssemblyName>SchachBotManager</AssemblyName>
     <RootNamespace>Sbm</RootNamespace>
     <PackageId>SchachBotManager</PackageId>
     <Description>SDK for chess bots on SchachBotManager.</Description>
