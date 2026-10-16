@@ -41,7 +41,7 @@ Lesereihenfolge:
 | [`live_feed.py`](../../services/runner/src/sbm_runner/live_feed.py) | `LiveFeed`: Züge einer Partie an den Live-Port des Gateways (live-v1) aus einem eigenen Thread über eine Warteschlange; Neuverbindung alle 5 s mit allen Zügen; ohne Adresse wirkungslos (E142) |
 | [`address.py`](../../services/runner/src/sbm_runner/address.py) | `parse_address` (`host:port` mit dem Namen der Variablen im Fehler) und `live_address` aus `SBM_LIVE_ADDRESS` |
 | [`recorder.py`](../../services/runner/src/sbm_runner/recorder.py) | `Recorder.on_move`: schreibt jeden Zug sofort in die Partie (`matches.append_move`) |
-| [`checkout.py`](../../services/runner/src/sbm_runner/checkout.py) | Frische Kopie der Dateien eines Uploads aus GridFS unter `/tmp/sbm-bots`, mit erneuter Prüfung von Pfad, Art, Größe und SHA-256 (E94); `BotDir` |
+| [`checkout.py`](../../services/runner/src/sbm_runner/checkout.py) | Frische Kopie der Dateien eines Uploads aus GridFS unter `/tmp/sbm-bots`, mit erneuter Prüfung von Pfad, Art, Größe und SHA-256 (E94), für C# dazu das Programm in einem eigenen Verzeichnis (`BotDir.program`, E204); `write_program` |
 | [`heartbeat.py`](../../services/runner/src/sbm_runner/heartbeat.py) | `Heartbeat`: verlängert die Lease im eigenen Thread; ruft `on_lost`, wenn der Job nicht mehr gehalten wird (E152) |
 | [`stopper.py`](../../services/runner/src/sbm_runner/stopper.py) | `Stopper`: beendet die Spieler einer Partie aus dem Heartbeat-Thread, auch später hinzugefügte |
 | [`retries.py`](../../services/runner/src/sbm_runner/retries.py) | `retry_or_abort` (Partie) und `retry_or_reject` (Verifikation) nach einem Infrastrukturfehler |
@@ -57,20 +57,23 @@ Lesereihenfolge:
 | [`limits.py`](../../services/runner/src/sbm_runner/sandbox/limits.py) | Feste Grenzen je Bot: 1024 MiB, 128 Prozesse, 4096 Byte stderr-Ende (A14) |
 | [`cgroup_tree.py`](../../services/runner/src/sbm_runner/sandbox/cgroup_tree.py) | `CgroupTree.prepare`: cgroup-v2-Baum beschreibbar machen, Runner nach `runner/`, Controller `memory` und `pids` für `bots/`, Reste entfernen; `create` legt die cgroup eines Bots an |
 | [`cgroup.py`](../../services/runner/src/sbm_runner/sandbox/cgroup.py) | `BotCgroup`: Grenzen setzen, `enter` (Shell schreibt sich in `cgroup.procs`), `freeze`/`thaw`, `kill`, `oom_killed` |
-| [`jail.py`](../../services/runner/src/sbm_runner/sandbox/jail.py) | `Sandbox`: `prepare` mit Selbstprüfung (Versionen in `runtime`), `player` je Bot, `script_player`, `analyze` (`sbm.analysis` im Jail), `checkout`; `SandboxBroken` |
+| [`jail.py`](../../services/runner/src/sbm_runner/sandbox/jail.py) | `Sandbox`: `prepare` mit Selbstprüfung je Laufzeit (Versionen in `runtimes`), `player` je Bot, `candidate` (Bot in der Verifikation), `script_player`, `program_player`, `analyze` (`sbm.analysis` im Jail), `build` (`sbm-build` im Jail), `checkout`; `SandboxBroken` |
+| [`runtimes.py`](../../services/runner/src/sbm_runner/sandbox/runtimes.py) | `Runtime` je Sprache: nsjail-Konfiguration, Start, Selbstprüfung, Build und Referenzen (E205) |
 | [`jail_player.py`](../../services/runner/src/sbm_runner/sandbox/jail_player.py) | `JailPlayer`: Bot über nsjail in eigener cgroup, außerhalb des Zuges eingefroren; `exited_cleanly`, `stderr_bytes`; OOM ergibt `memory_limit` |
 | [`run_once.py`](../../services/runner/src/sbm_runner/sandbox/run_once.py) | `run_once`: Befehl im Jail bis zum Ende mit Zeitlimit; `Completed` (`returncode` `None` bei Zeitüberschreitung) |
 | [`stderr_tail.py`](../../services/runner/src/sbm_runner/sandbox/stderr_tail.py) | `StderrTail`: liest stderr in einem Thread leer, behält das Ende und zählt alle Bytes |
 
-Zur Sandbox gehören außerhalb des Pakets [`sandbox/python.cfg`](../../sandbox/python.cfg) (nsjail-Konfiguration) und [`sandbox/python.policy`](../../sandbox/python.policy) (seccomp-Whitelist in kafel-Syntax). Das Runner-Image kopiert sie nach `/opt/sbm/sandbox` (`deploy/python.Dockerfile`, Ziel `runner`).
+Zur Sandbox gehören außerhalb des Pakets [`sandbox/python.cfg`](../../sandbox/python.cfg) (nsjail-Konfiguration) und [`sandbox/python.policy`](../../sandbox/python.policy) (seccomp-Whitelist in kafel-Syntax), für C# [`sandbox/csharp.cfg`](../../sandbox/csharp.cfg) und [`sandbox/csharp.policy`](../../sandbox/csharp.policy) (E205). Das Runner-Image kopiert sie nach `/opt/sbm/sandbox` (`deploy/python.Dockerfile`, Ziel `runner`).
 
 ### Verifikation `sbm_runner/verification/` (E92)
 
 | Modul | Aufgabe |
 |-------|---------|
 | [`__init__.py`](../../services/runner/src/sbm_runner/verification/__init__.py) | Paketbeschreibung |
-| [`pipeline.py`](../../services/runner/src/sbm_runner/verification/pipeline.py) | `run_verification`: Checkout, Stufe Analyse, Stufe Mindesttests, Report, `verified`/`rejected`; Neuprüfung schreibt nur einen Report (E153); Protokoll `Verifier` |
+| [`pipeline.py`](../../services/runner/src/sbm_runner/verification/pipeline.py) | `run_verification`: Checkout, Stufe Analyse, für C# Stufe Build, Stufe Mindesttests, Report, `verified`/`rejected` mit dem Programm in GridFS; Neuprüfung schreibt nur einen Report (E153); Protokoll `Verifier` |
 | [`analysis_stage.py`](../../services/runner/src/sbm_runner/verification/analysis_stage.py) | Prüft die Ausgabe des Analysators streng und macht daraus die Stufe `analysis` (60 s, höchstens 1 MiB) |
+| [`build_stage.py`](../../services/runner/src/sbm_runner/verification/build_stage.py) | Prüft den Bericht von `sbm-build` streng und macht daraus die Stufen `analysis` und `build` samt Programm (120 s, höchstens 16 MiB, E203) |
+| [`findings.py`](../../services/runner/src/sbm_runner/verification/findings.py) | Gemeinsame Prüfung der Abschnitte mit Befunden (`is_section`, `problems_found`) |
 | [`minimum_tests.py`](../../services/runner/src/sbm_runner/verification/minimum_tests.py) | `TEST_GAMES` gegen den eingesperrten Random-Bot (Stellungen, zwei Partien, Zeitnot); `play_test` bewertet Schuld, sauberes Ende und stderr-Menge |
 | [`rejection.py`](../../services/runner/src/sbm_runner/verification/rejection.py) | `reject_internal`: Report mit Stufe `internal` und Ablehnung, wenn der Server nicht prüfen konnte |
 
@@ -107,9 +110,9 @@ Fehler: Eine Ausnahme aus `run_job` geht an `retry_or_abort`. `UnsupportedBot` b
 1. `Worker._claim` nimmt einen Job `verification`, wenn ein `verifier` da ist.
 2. `pipeline.run_verification` lädt den Bot; ein nicht neu zu prüfender Bot außerhalb von `bots.PIPELINE` schließt nur den Job.
 3. `Verifier.checkout` kopiert die Dateien einmal für alle Stufen.
-4. `_stages`: `bots.advance(ANALYZING)`, `Sandbox.analyze` (`run_once` mit `python -I -m sbm.analysis --json`), `analysis_stage` bewertet die Ausgabe.
-5. Bei Erfolg `bots.advance(TESTING)` und `_tests_stage`: je Testpartie ein neuer `script_player` gegen `RANDOM`, Abbruch beim ersten Fehlschlag.
-6. `verification_reports.insert` speichert den Report; `bots.finish_verification` setzt `verified` oder `rejected` (E93). Bei einer Neuprüfung nur der Report (E153).
+4. `_stages`: `bots.advance(ANALYZING)`, `Sandbox.analyze` (`run_once` mit `python -I -m sbm.analysis --json`), `analysis_stage` bewertet die Ausgabe. Für C# stattdessen `Sandbox.build` (`sbm-build`), `build_stages` gibt Analyse, Build und Programm.
+5. Bei Erfolg `bots.advance(TESTING)` und `_tests_stage`: je Testpartie ein neuer Spieler aus `Sandbox.candidate` gegen `RANDOM` (für C# mit dem neuen Programm aus `write_program` als `/program`), Abbruch beim ersten Fehlschlag.
+6. `verification_reports.insert` speichert den Report; ein bestandenes Programm legt `bot_files.store_program` in GridFS ab, `bots.finish_verification` setzt `verified` oder `rejected` (E93, E204). Bei einer Neuprüfung nur der Report (E153).
 
 Fehler: `retry_or_reject`; nach `max_attempts` `reject_internal`. Bei `Shutdown` gibt der Worker den Job frei.
 
@@ -177,7 +180,7 @@ Einstellungen, die Admins ändern, gehören nicht in die Umgebung, sondern in di
 2. nsjail-Optionen (Mounts, Namespaces, Umgebung, rlimits) in `sandbox/python.cfg`, Systemaufrufe in `sandbox/python.policy`, cgroup-Grenzen in `sandbox/limits.py`.
 3. Einen Testbot unter `services/runner/tests/sandbox/bots/<name>/bot.py` anlegen, der den Fall versucht (Fluchtversuche enden mit Exit-Code 42, wenn sie etwas erreichen), und einen Test in `test_sandbox_escape.py`, `test_sandbox_limits.py` oder `test_sandbox_freeze.py`.
 4. Die Negativ-Suite mit `bash services/runner/tests/sandbox/run-in-docker.sh` laufen lassen. Ändern sich Rechte des Containers, die Optionen dort und beim Dienst `runner` in `deploy/compose.yaml` gleich halten.
-5. Neue Sprache: eigene `sandbox/<sprache>.cfg` und Whitelist, Laufzeitverzeichnis im Image, Sprachprüfung in `Sandbox.player` (`LANGUAGE`).
+5. Neue Sprache: eigene `sandbox/<sprache>.cfg` und Whitelist, Laufzeitverzeichnis im Image (Vorbild Stufe `bot-csharp` in `deploy/python.Dockerfile`), Eintrag in `RUNTIMES` (`sandbox/runtimes.py`), Testbots der Sprache in `suite.Dockerfile`.
 
 ## Tests
 
@@ -196,16 +199,16 @@ Fixtures und Hilfsmodule:
 | `tests/uploads.py` | `upload` legt einen Bot mit Dateien und Verifikationsjob an; Dateisätze `GOOD`, `CRASHING`; Berichte `CLEAN`, `DIRTY`; `FakeVerifier` (echter Checkout, Analyse nach Vorgabe, Bots als Prozesse ohne nsjail); `CheckedPlayer` |
 | `tests/play/conftest.py` | `RunningGateway` im eigenen Thread, `RemoteBot` (Bot-Protokoll v1 über WebSocket), `Person` (Browser mit play-v1), `Watcher` (Zuschauer des Live-Kanals über HTTP); Fixtures `gateway`, `play_config` (mit Live-Port), `play_worker`, `create_remote` |
 | `tests/live_listener.py` | `LiveListener`: echter TCP-Server auf `127.0.0.1` als Gegenstelle des `LiveFeed`, sammelt die Zeilen je Verbindung (`connections`, `wait_closed`) |
-| `tests/sandbox/conftest.py` | `sandbox` (überspringt ohne `SBM_SANDBOX=nsjail`, scheitert mit `SBM_REQUIRE_SANDBOX=1`), `no_leftovers` (nach jedem Test keine cgroup unter `bots/`), `jailed`, `play`; Fehler als GitHub-Annotation |
-| `tests/sandbox/sandbox_suite.py` | `BOTS`, `RANDOM`, `QUICK`, `REGULAR` (reguläre Endgründe) |
-| `tests/sandbox/bots/` | Testbots: Endlosschleife, Dateien, verbotene Aufrufe, fork, lange Zeile, Speicher, Netz, Spinner, stderr-Flut, Threads, ein Upload mit Datendatei |
+| `tests/sandbox/conftest.py` | `sandbox` (überspringt ohne `SBM_SANDBOX=nsjail`, scheitert mit `SBM_REQUIRE_SANDBOX=1`), `no_leftovers` (nach jedem Test keine cgroup unter `bots/`), `jailed`, `play`, für C# `programmed` und `play_csharp`; Fehler als GitHub-Annotation |
+| `tests/sandbox/sandbox_suite.py` | `BOTS`, `CSHARP_BOTS` (gebaute C#-Testbots im Suite-Image), `RANDOM`, `QUICK`, `REGULAR` (reguläre Endgründe) |
+| `tests/sandbox/bots/` | Testbots: Endlosschleife, Dateien, verbotene Aufrufe, fork, lange Zeile, Speicher, Netz, Spinner, stderr-Flut, Threads, ein Upload mit Datendatei; unter `csharp/` dieselben Angriffe in C# (Netz, Dateien, Prozesse, Systemaufrufe, Threads, verwalteter und nativer Speicher), dazu `csharp_uploaded` (Upload mit Datendatei) und `csharp_forbidden` (verbotener Typ) |
 
 Befehle aus dem Repo-Wurzelverzeichnis:
 
 | Zweck | Befehl |
 |-------|--------|
 | Tests ohne Sandbox | `pytest services/runner` (Standard `SBM_SANDBOX=none`; die Negativ-Suite wird übersprungen) |
-| Negativ-Suite | `bash services/runner/tests/sandbox/run-in-docker.sh` (Linux mit cgroup v2; `SBM_RUNNER_IMAGE=…` nimmt ein vorhandenes Image, E88) |
+| Negativ-Suite | `bash services/runner/tests/sandbox/run-in-docker.sh` (baut `suite.Dockerfile`: Runner-Image plus C#-Testbots; Linux mit cgroup v2; `SBM_RUNNER_IMAGE=…` nimmt ein vorhandenes Image, E88) |
 | Lint/Format | `ruff check services/runner` und `ruff format --check services/runner` |
 
 Besonderheiten:

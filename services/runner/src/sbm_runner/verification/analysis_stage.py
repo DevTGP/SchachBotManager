@@ -9,10 +9,10 @@ import json
 from sbm_store.verification_reports import ANALYSIS, FAILED, PASSED
 
 from sbm_runner.sandbox.run_once import Completed
+from sbm_runner.verification.findings import is_section, problems_found
 
 ANALYSIS_SECONDS = 60
 MAX_OUTPUT_BYTES = 1024 * 1024
-_FINDING_KEYS = ["file", "line", "message", "rule"]
 
 
 def analysis_stage(completed: Completed, duration_ms: int) -> tuple[dict, str | None]:
@@ -28,9 +28,7 @@ def analysis_stage(completed: Completed, duration_ms: int) -> tuple[dict, str | 
             report = None
             problem = f"the analysis failed with exit code {completed.returncode}"
         elif not report["ok"]:
-            count = len(report["findings"])
-            more = " or more" if report["truncated"] else ""
-            problem = f"{count}{more} problem{'' if count == 1 else 's'} found"
+            problem = problems_found(report)
         else:
             problem = None
     stage = {
@@ -49,24 +47,6 @@ def _report(stdout: bytes) -> dict | None:
         report = json.loads(stdout)
     except ValueError:
         return None
-    if not isinstance(report, dict) or sorted(report) != ["findings", "ok", "ruleset", "truncated"]:
-        return None
-    if not (
-        isinstance(report["ruleset"], str)
-        and isinstance(report["ok"], bool)
-        and isinstance(report["truncated"], bool)
-        and isinstance(report["findings"], list)
-        and all(_is_finding(finding) for finding in report["findings"])
-        and report["ok"] == (not report["findings"])
-    ):
+    if not is_section(report, extra=("ruleset",)) or not isinstance(report["ruleset"], str):
         return None
     return report
-
-
-def _is_finding(finding: object) -> bool:
-    return (
-        isinstance(finding, dict)
-        and sorted(finding) == _FINDING_KEYS
-        and all(isinstance(finding[key], str) for key in ("file", "message", "rule"))
-        and (finding["line"] is None or type(finding["line"]) is int)
-    )

@@ -1,8 +1,10 @@
-"""What an upload of a Python bot may contain (verifikation.md); the web API, the runner and
+"""What an upload of a bot may contain (verifikation.md); the web API, the runner and
 sbm-check apply the same rules.
 
-Paths are relative and use /. Source files are .py files outside data/; data files lie directly
-in data/, since load_data only takes plain names (E62).
+Paths are relative and use /. Source files are the files of the bot's language outside data/
+(.py, .cs); data files lie directly in data/, since load_data only takes plain names (E62). A
+Python bot starts with a file in the top folder, a C# bot with the class named at the upload,
+for which the server writes the entry (E203).
 """
 
 import re
@@ -19,8 +21,14 @@ MAX_DATA_FILES = 100
 MAX_DATA_BYTES = 1024 * 1024
 MAX_DEPTH = 8
 MAX_PATH_LENGTH = 200
+PYTHON = "python"
+CSHARP = "csharp"
 DEFAULT_ENTRY = "bot.py"
+SOURCE_SUFFIXES = {PYTHON: ".py", CSHARP: ".cs"}
+LANGUAGES = tuple(SOURCE_SUFFIXES)
 _COMPONENT = re.compile(r"[A-Za-z0-9_][A-Za-z0-9_.-]*")
+# Name or Namespace.Name, as sbm-build accepts it.
+_CLASS_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]{0,99}(\.[A-Za-z_][A-Za-z0-9_]{0,99}){0,9}")
 
 
 class UploadError(ValueError):
@@ -38,8 +46,14 @@ class UploadFile:
     size: int
 
 
-def file_kind(path: str) -> str:
+def default_entry(language: str) -> str | None:
+    """The entry an upload may leave out; a C# bot must name its class."""
+    return DEFAULT_ENTRY if language == PYTHON else None
+
+
+def file_kind(path: str, language: str = PYTHON) -> str:
     """SOURCE or DATA; raises UploadError for a path an upload may not contain."""
+    suffix = SOURCE_SUFFIXES[language]
     if len(path) > MAX_PATH_LENGTH:
         raise UploadError(f"the path is longer than {MAX_PATH_LENGTH} characters", path)
     parts = path.split("/")
@@ -56,14 +70,16 @@ def file_kind(path: str) -> str:
         if len(parts) != 2:
             raise UploadError(f"data files must lie directly in {DATA_DIR}/", path)
         return DATA
-    if not path.endswith(".py"):
-        raise UploadError(f"only .py files and data files in {DATA_DIR}/ are allowed", path)
+    if not path.endswith(suffix):
+        raise UploadError(f"only {suffix} files and data files in {DATA_DIR}/ are allowed", path)
     return SOURCE
 
 
-def check_upload(files: Iterable[tuple[str, int]], entry: str) -> list[UploadFile]:
-    """Checks paths, sizes and the entry file; files are (path, size in bytes)."""
-    checked = [UploadFile(path, file_kind(path), size) for path, size in files]
+def check_upload(
+    files: Iterable[tuple[str, int]], entry: str, language: str = PYTHON
+) -> list[UploadFile]:
+    """Checks paths, sizes and the entry; files are (path, size in bytes)."""
+    checked = [UploadFile(path, file_kind(path, language), size) for path, size in files]
     _check_unique(checked)
     for kind, max_files, max_bytes in (
         (SOURCE, MAX_SOURCE_FILES, MAX_SOURCE_BYTES),
@@ -74,11 +90,26 @@ def check_upload(files: Iterable[tuple[str, int]], entry: str) -> list[UploadFil
             raise UploadError(f"more than {max_files} {kind} files")
         if sum(file.size for file in of_kind) > max_bytes:
             raise UploadError(f"the {kind} files are larger than {max_bytes} bytes in all")
+    if language == CSHARP:
+        _check_class(entry, checked)
+    else:
+        _check_entry_file(entry, checked)
+    return checked
+
+
+def _check_entry_file(entry: str, files: list[UploadFile]) -> None:
     if "/" in entry or not entry.endswith(".py"):
         raise UploadError("the entry file must be a .py file in the top folder", entry)
-    if not any(file.path == entry and file.kind == SOURCE for file in checked):
+    if not any(file.path == entry and file.kind == SOURCE for file in files):
         raise UploadError("the entry file is missing", entry)
-    return checked
+
+
+def _check_class(entry: str, files: list[UploadFile]) -> None:
+    """Whether the class exists is the build's task: it needs the compiled sources."""
+    if not _CLASS_NAME.fullmatch(entry):
+        raise UploadError("the bot class must be a full class name such as MyBot.MyBot", entry)
+    if not any(file.kind == SOURCE for file in files):
+        raise UploadError("the upload contains no .cs file")
 
 
 def _check_unique(files: list[UploadFile]) -> None:

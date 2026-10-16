@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { Bot } from "../api/types";
 import { folderFile } from "../test/files";
+import { botClasses, classCandidates } from "./botClasses";
 import { entryCandidates, MAX_BYTES, selectFiles, selectionProblem } from "./selection";
 import { parseVersion, suggestVersion } from "./version";
 
@@ -27,16 +28,92 @@ describe("selectFiles", () => {
     ]);
     expect(selection.ignored).toEqual([
       ".gitignore",
-      ".vscode/launch.json",
+      ".vscode/",
       "README.md",
       "requirements.txt",
-      "lib/__pycache__/eval.cpython-312.pyc",
+      "lib/__pycache__/",
       "data/deep/table.bin",
     ]);
   });
 
   it("takes single files by their name", () => {
     expect(selectFiles([new File(["x"], "bot.py")]).files[0]?.path).toBe("bot.py");
+  });
+});
+
+const CSHARP_TEMPLATE = [
+  ".vscode/launch.json",
+  "MyBot.csproj",
+  "Program.cs",
+  "TemplateBot.cs",
+  "Engine/Search.cs",
+  "Engine/Program.cs",
+  "bin/Release/net10.0/MyBot.dll",
+  "obj/project.assets.json",
+  "obj/Release/MyBot.AssemblyInfo.cs",
+  "data/book.txt",
+  "bot.py",
+].map((path) => folderFile(path));
+
+describe("selectFiles for C#", () => {
+  it("keeps .cs sources outside the build folders and leaves the entry file home", () => {
+    const selection = selectFiles(CSHARP_TEMPLATE, "csharp");
+    expect(selection.files.map(({ path, kind }) => [path, kind])).toEqual([
+      ["data/book.txt", "data"],
+      ["Engine/Program.cs", "source"],
+      ["Engine/Search.cs", "source"],
+      ["TemplateBot.cs", "source"],
+    ]);
+    expect(selection.ignored).toEqual([
+      ".vscode/",
+      "MyBot.csproj",
+      "Program.cs",
+      "bin/",
+      "obj/",
+      "bot.py",
+    ]);
+  });
+
+  it("keeps folders named bin or obj in a Python bot", () => {
+    const files = ["bot.py", "bin/tool.py", "Bot.cs"].map((path) => folderFile(path));
+    expect(selectFiles(files).files.map((file) => file.path)).toEqual(["bin/tool.py", "bot.py"]);
+  });
+});
+
+describe("botClasses", () => {
+  it("names classes deriving from Bot with their namespace", () => {
+    const source = `using Sbm;
+
+namespace MyBot;
+
+// class Old : Bot
+public sealed class TemplateBot : Bot { }
+internal class Helper : Sbm.Bot { }
+public abstract class Base : Bot { }
+public class Other : BotBase { }
+public class Generic<T> : Bot { }
+`;
+    expect(botClasses(source)).toEqual(["MyBot.TemplateBot", "MyBot.Helper"]);
+  });
+
+  it("follows block namespaces and classes without one", () => {
+    expect(botClasses("class Top : global::Sbm.Bot {}")).toEqual(["Top"]);
+    expect(botClasses("namespace A.B { /* x */ class C : Bot {} }")).toEqual(["A.B.C"]);
+  });
+
+  it("reads the sources of a selection", async () => {
+    const files = selectFiles(
+      [
+        folderFile("TemplateBot.cs", "namespace MyBot; class TemplateBot : Bot {}"),
+        folderFile("Engine/Second.cs", "namespace MyBot.Engine; class Second : Bot {}"),
+        folderFile("data/notes.cs", "class Data : Bot {}"),
+      ],
+      "csharp",
+    );
+    expect(await classCandidates(files.files)).toEqual([
+      "MyBot.Engine.Second",
+      "MyBot.TemplateBot",
+    ]);
   });
 });
 

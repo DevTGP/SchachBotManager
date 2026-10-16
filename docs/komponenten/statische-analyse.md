@@ -36,6 +36,21 @@ Die Regeln liegen als versionierte Konfiguration pro Sprache vor (Whitelist + Ve
 | Lokal | `sbm-check [ordner] [--entry bot.py] [--exclude GLOB] [--json]`; wählt die Dateien wie die Upload-Seite, Exit-Code 0 ohne Befund, 1 mit Befunden, 2 bei falschen Argumenten |
 | Auf dem Server | Der Runner startet `python -I -m sbm.analysis --json --entry … /bot` in der Sandbox mit höchstens 60 s und prüft die Ausgabe, bevor sie in den Report kommt ([verifikation.md](verifikation.md)) |
 
+## C# (umgesetzt, E203)
+
+| Teil | Umsetzung |
+|------|-----------|
+| Analyzer | `Sbm.Analyzers` (`sdk/csharp/src/Sbm.Analyzers`, `netstandard2.0`), im NuGet-Paket `SchachBotManager` unter `analyzers/dotnet/cs`; IDE und `dotnet build` melden dieselben Befunde wie der Server |
+| Regeln | `csharp_rules.txt`, Regelsatz `csharp-1`: Zeilen `namespace` (genau dieser Namensraum), `type`, `forbid` (Typ oder Member) und `assembly` (für den Build) |
+| Eingabe | Semantisches Modell von Roslyn: jeder Verweis auf ein Symbol (Typen, Member, Erweiterungsmethoden, Operatoren, Konversionen, `using static`, Aliase), auch in Attributen und Typargumenten; verschachtelte Typen zählen als ihr äußerer Typ |
+| Syntaxregeln | `SBM1002` `unsafe`, `fixed`, Zeigertypen und Funktionszeiger; `SBM1003` `extern`; `SBM1004` `async`/`await`; `SBM1005` Finalizer; `SBM1006` `__makeref`, `__reftype`, `__refvalue`, `__arglist` |
+| API-Regel | `SBM1001` für jedes Symbol außerhalb der Whitelist oder auf der Verbotsliste; eigene Typen des Uploads sind erlaubt |
+| Build-Regeln | Im Build-Werkzeug `sbm-build`: `SBM2001` Bot-Klasse, `SBM2002` Top-Level-Anweisungen, `SBM2003` Verweis außerhalb der Whitelist, `SBM2004` nativer Code im Programm, `SBM2005` Programm über 4 MiB, `SBM2006` Quelle nicht UTF-8 |
+| Umgehungen | `#pragma warning disable`, `[SuppressMessage]`, `.editorconfig` und Dateinamen wie `*.g.cs` helfen nicht: `sbm-build` analysiert auch generiert wirkenden Code und zählt unterdrückte Befunde; ein Absturz des Analyzers ist ein Fehler |
+| Report | Wie bei Python: Regel, Datei, Zeile, Meldung; höchstens 100 Befunde je Abschnitt (`analysis`, `build`) |
+| Lokal | Der Analyzer läuft bei jedem Build gegen das NuGet-Paket; eine eigene Kommandozeile wie `sbm-check` gibt es für C# nicht |
+| Auf dem Server | `sbm-build` in der Sandbox ([sandbox.md](sandbox.md), E205), Analyse und Build in einem Prozess ([verifikation.md](verifikation.md)) |
+
 ## Pro Sprache
 
 | Sprache | Analyseebene | Spezifische Verbote | Grenzen |
@@ -53,7 +68,7 @@ Die Regeln liegen als versionierte Konfiguration pro Sprache vor (Whitelist + Ve
 | Python | `math`, `random`, `itertools`, `functools`, `collections`, `heapq`, `bisect`, `dataclasses`, `enum`, `typing`, `array`, `operator`, `copy`, `time` | `numpy` (noch nicht in der Laufzeit, O20) |
 | C++ | `<vector>`, `<array>`, `<algorithm>`, `<bit>`, `<cstdint>`, `<unordered_map>`, `<map>`, `<string>`, `<string_view>`, `<optional>`, `<random>`, `<chrono>`, `<numeric>`, `<limits>`, `<memory>` (nur Smart Pointer), `<bitset>`, `<cmath>`, `<span>`, `<tuple>` | – |
 | Java | `java.util`, `java.util.function`, `java.util.stream`; aus `java.lang` nur `Math`, `Long`, `Integer`, `String`, `StringBuilder`, `System.nanoTime` und die Basistypen | – |
-| C# | `System.Collections.Generic`, `System.Linq`, `System.Numerics` (`BitOperations`), `System.Text`; aus `System.Diagnostics` nur `Stopwatch` | – |
+| C# | Umgesetzt (`csharp-1`): `System.Collections`, `System.Collections.Generic`, `System.Linq` (ohne `Queryable`, parallele und asynchrone Typen), `System.Numerics`, `System.Text`, `System.Diagnostics.CodeAnalysis`; aus `System` die Grundtypen, `Span`/`Memory`, `Math`, `Random`, `HashCode`, `Convert`, `TimeSpan`, `DateTime`, Delegaten, gängige Ausnahmen und Attribute (ohne `Object.GetType`); aus `System.Diagnostics` nur `Stopwatch` | – |
 | JavaScript | Nur Built-ins: `Math`, `BigInt`, Typed Arrays, `Map`, `Set`, `performance.now` | Keine npm-Pakete |
 
 Die Liste liegt als versionierte Konfiguration vor und ist erweiterbar; jede Erweiterung braucht eine neue Version des Laufzeitverzeichnisses, wenn ein Paket hinzukommt.

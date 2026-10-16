@@ -2,12 +2,15 @@
 *
 !sdk/core/
 !sdk/python/
+!sdk/csharp/
 !services/store/
 !services/runner/
 !services/gateway/
 !backend/
 !sandbox/
 **/build/
+**/bin/
+**/obj/
 **/__pycache__/
 **/*.egg-info/
 **/.pytest_cache/

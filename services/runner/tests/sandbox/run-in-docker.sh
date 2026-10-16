@@ -8,11 +8,9 @@ image=${SBM_RUNNER_IMAGE:-sbm-runner}
 if [ -z "${SBM_RUNNER_IMAGE:-}" ]; then
   docker build -f deploy/python.Dockerfile --target runner -t "$image" .
 fi
-# The runner image has no test tools; this layer adds pytest on top.
-docker build -t sbm-runner-suite - <<DOCKERFILE
-FROM $image
-RUN pip install --no-cache-dir pytest==9.1.1
-DOCKERFILE
+# The runner image has no test tools; this layer adds pytest and the compiled C# test bots.
+docker build -f services/runner/tests/sandbox/suite.Dockerfile --build-arg RUNNER="$image" \
+  -t sbm-runner-suite .
 
 # Keep these options in line with the runner service in deploy/compose.yaml.
 docker run --rm \

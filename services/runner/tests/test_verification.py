@@ -44,7 +44,7 @@ def test_a_bot_that_plays_by_the_rules_is_verified(db, verifying, verifier):
     assert (stored["sdk_version"], stored["runtime_version"]) == ("0.4.0", "python 3.12.1")
     report = report_of(db, bot)
     assert (report["result"], report["ruleset"]) == (PASSED, "python-test")
-    assert report["runtime"] == verifier.runtime
+    assert report["runtime"] == verifier.runtimes["python"]
     assert [stage["stage"] for stage in report["stages"]] == [ANALYSIS, TESTS]
     tests = report["stages"][1]["tests"]
     assert [test["name"] for test in tests] == [game.name for game in TEST_GAMES]

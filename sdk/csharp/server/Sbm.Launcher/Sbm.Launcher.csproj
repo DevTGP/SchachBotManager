@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The process of every C# bot on the server (E204): loads the program the build tool
+       compiled at verification and calls its entry point. Brings the SDK and the core, so that
+       the program itself carries nothing but the bot. Published into the runtime of the runner
+       image. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>sbm-launch</AssemblyName>
+    <RootNamespace>Sbm.Launcher</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Sbm/Sbm.csproj" />
+  </ItemGroup>
+</Project>

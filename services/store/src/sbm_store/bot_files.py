@@ -1,7 +1,8 @@
 """The uploaded files of bots in the GridFS bucket bot_files (E82, E94).
 
 Each file is stored on its own with bot_id and path as metadata; the bot document lists them
-with size and SHA-256, and source_hash covers the whole upload.
+with size and SHA-256, and source_hash covers the whole upload. A C# bot also has its program,
+compiled once by the verification (E204), stored the same way under the name PROGRAM.
 """
 
 import contextlib
@@ -14,6 +15,9 @@ from gridfs.errors import NoFile
 from pymongo.database import Database
 
 from sbm_store.names import BOT_FILES
+
+# The name of a compiled program in the bucket and in the jail (/program/bot.dll).
+PROGRAM = "bot.dll"
 
 
 def bucket(db: Database) -> GridFSBucket:
@@ -45,8 +49,17 @@ def store_files(
     return entries
 
 
+def store_program(db: Database, bot_id: ObjectId, content: bytes) -> dict:
+    """Stores the compiled program of a bot; returns the entry for its program field."""
+    file_id = bucket(db).upload_from_stream(
+        PROGRAM, content, metadata={"bot_id": bot_id, "program": True}
+    )
+    return {"size": len(content), "sha256": hashlib.sha256(content).hexdigest(), "file_id": file_id}
+
+
 def delete_files(db: Database, entries: Iterable[dict]) -> None:
-    """Removes stored files again, for an upload that could not be inserted."""
+    """Removes stored files or a program, for an upload that could not be inserted or a bot
+    that is deleted."""
     files_bucket = bucket(db)
     for entry in entries:
         with contextlib.suppress(NoFile):

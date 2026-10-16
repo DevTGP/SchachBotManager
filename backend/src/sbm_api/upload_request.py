@@ -9,7 +9,13 @@ import re
 from dataclasses import dataclass
 
 from flask import request
-from sbm.analysis.upload import DEFAULT_ENTRY, MAX_PATH_LENGTH, UploadError, check_upload
+from sbm.analysis.upload import (
+    LANGUAGES,
+    MAX_PATH_LENGTH,
+    UploadError,
+    check_upload,
+    default_entry,
+)
 from sbm_store import versions
 from werkzeug.datastructures import MultiDict
 
@@ -19,7 +25,6 @@ from sbm_api.errors import invalid_parameter, invalid_upload
 # The files may hold 2 MiB (verifikation.md); the rest is room for the multipart framing.
 MAX_REQUEST_BYTES = 3 * 1024 * 1024
 MAX_FILES = 200
-LANGUAGES = ("python",)
 NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{2,31}")
 TEXT_FIELDS = ("name", "version", "language", "entry", "description", "paths")
 FILES = "files"
@@ -55,12 +60,12 @@ def parse_upload() -> Upload:
     language = _single(form, "language")
     if language not in LANGUAGES:
         raise invalid_parameter("language", f"language must be one of {', '.join(LANGUAGES)}")
-    entry = _single(form, "entry", DEFAULT_ENTRY)
+    entry = _single(form, "entry", default_entry(language))
     if len(entry) > MAX_PATH_LENGTH:
         raise invalid_parameter("entry", f"entry must be at most {MAX_PATH_LENGTH} characters")
     description = bot_description.check(_single(form, "description", ""))
     contents = [part.read() for part in uploaded.getlist(FILES)]
-    files = _files(form.getlist("paths"), contents, entry)
+    files = _files(form.getlist("paths"), contents, entry, language)
     return Upload(name, version, language, entry, description, files)
 
 
@@ -73,14 +78,16 @@ def _single(form: MultiDict, field: str, default: str | None = None) -> str:
     return values[0]
 
 
-def _files(paths: list[str], contents: list[bytes], entry: str) -> list[tuple[str, str, bytes]]:
+def _files(
+    paths: list[str], contents: list[bytes], entry: str, language: str
+) -> list[tuple[str, str, bytes]]:
     if not 1 <= len(contents) <= MAX_FILES:
         raise invalid_parameter(FILES, f"send 1 to {MAX_FILES} files")
     if len(paths) != len(contents):
         raise invalid_parameter("paths", "send one path for each file")
     sizes = [(path, len(content)) for path, content in zip(paths, contents, strict=True)]
     try:
-        checked = check_upload(sizes, entry)
+        checked = check_upload(sizes, entry, language)
     except UploadError as error:
         raise invalid_upload(str(error), error.path) from error
     return [

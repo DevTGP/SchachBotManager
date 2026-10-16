@@ -2,7 +2,7 @@
 
 Jeder Upload durchläuft die Pipeline vollständig, bevor der Bot an Spielen teilnehmen darf. Die Pipeline läuft als Job im Runner; Partien haben Vorrang, ein Verifikationsjob nach 15 min Wartezeit aber vor der nächsten Partie (E81, E89). Quell- und Datendateien liegen in GridFS (E82, E94).
 
-Umgesetzt ist die Pipeline für Python (E92): Annahme, Analyse, Mindesttests und automatische Freigabe; Build und Artefaktprüfung entfallen bei Python.
+Umgesetzt ist die Pipeline für Python (E92): Annahme, Analyse, Mindesttests und automatische Freigabe; Build und Artefaktprüfung entfallen bei Python. Für C# (E202–E204) übernimmt `sbm-build` Analyse, Build und Artefaktprüfung in einem Lauf; das Programm wird gespeichert, wenn auch die Mindesttests bestanden sind.
 
 ## Stufen
 
@@ -38,7 +38,23 @@ Umgesetzt ist die Pipeline für Python (E92): Annahme, Analyse, Mindesttests und
 | Einstieg | Eine `.py`-Datei im obersten Ordner, Standard `bot.py`; der Bot startet als `python /bot/<entry>` |
 | Form | Ein Ordner oder einzelne Dateien im Browser; die Upload-Seite lässt versteckte Ordner, `__pycache__` und alles Übrige weg und zeigt es an |
 
+### C# (E202)
+
+| Regel | Wert |
+|-------|------|
+| Quelldateien | `.cs`-Dateien außerhalb von `data/`, sonst dieselben Grenzen und Pfadregeln wie bei Python; mindestens eine |
+| Datendateien | Wie bei Python |
+| Nicht erlaubt | Projektdateien (`.csproj`, `.sln`), Dateien anderer Sprachen; ein `Program.cs` mit Top-Level-Anweisungen scheitert am Build (`SBM2002`) |
+| Einstieg | Voller Name der Bot-Klasse, z. B. `MyBot.MyBot`, ohne Standard; den Einstieg `Sdk.Run<…>()` erzeugt der Server |
+| Form | Ein Ordner oder einzelne Dateien im Browser; die Upload-Seite lässt `bin/`, `obj/`, versteckte Ordner und ein `Program.cs` im obersten Ordner weg und schlägt die Klassen vor, die von `Bot` erben |
+
 Dieselben Regeln (`sbm.analysis.upload`) prüfen die Web-API bei der Annahme, der Runner beim Bereitstellen der Dateien (E94) und `sbm-check` vor dem Upload.
+
+### Build und Programm bei C# (E203, E204)
+
+- `sbm-build` läuft in der Sandbox mit dem Laufzeitverzeichnis von C# (höchstens 120 s, Ausgabe höchstens 16 MiB) und gibt die Abschnitte `analysis` und `build` aus; ist die Analyse nicht sauber, wird nicht kompiliert. Der Report hat dann die Stufen `analysis` und `build`; ein Absturz oder eine ungültige Ausgabe ist eine gescheiterte Stufe `build`.
+- Die Artefaktprüfung ist Teil der Stufe `build`: nur Verweise auf die Assemblies der Whitelist, kein nativer Code, höchstens 4 MiB.
+- Das Programm `bot.dll` kommt in GridFS und an den Bot (`program` mit Größe, SHA-256 und Datei), sobald die Mindesttests bestanden sind; eine Neuprüfung speichert keines.
 
 ## Mindestanforderungen (Stufe 5)
 
@@ -75,9 +91,9 @@ verified, retired → disabled (Admin)   disabled → verified (Admin)
 rejected → verified (Admin, Override)
 ```
 
-Bei Python fehlt `building`. Admins sperren und geben frei (E93, E96); der Besitzer zieht einen geprüften Bot zurück und aktiviert ihn wieder, eine Sperre kann er nicht aufheben (E96). Kann der Server einen Bot dreimal nicht prüfen (Infrastrukturfehler), wird er mit der Stufe `internal` abgelehnt (E89). Ein Admin kann jeden abgelehnten Bot trotzdem auf `verified` setzen (Override, E153); `overridden_at` hält das fest, Ablehnung und Report bleiben stehen.
+`building` ist noch keinem Bot zugeordnet: Bei Python gibt es keinen Build, bei C# deckt `analyzing` Analyse und Build, weil beide in einem Lauf von `sbm-build` geschehen (E203). Admins sperren und geben frei (E93, E96); der Besitzer zieht einen geprüften Bot zurück und aktiviert ihn wieder, eine Sperre kann er nicht aufheben (E96). Kann der Server einen Bot dreimal nicht prüfen (Infrastrukturfehler), wird er mit der Stufe `internal` abgelehnt (E89). Ein Admin kann jeden abgelehnten Bot trotzdem auf `verified` setzen (Override, E153); `overridden_at` hält das fest, Ablehnung und Report bleiben stehen.
 
-- Der Report (Stufe, Regel, Datei/Zeile, Build-Ausgabe gekürzt, Testprotokoll) ist für Besitzer und Admin einsehbar. Er liegt in `verification_reports` mit Regelsatz und den Versionen von Python und SDK; der Bot verweist über `report_id` darauf und hält Stufe und Grund einer Ablehnung in `rejection`.
+- Der Report (Stufe, Regel, Datei/Zeile, Build-Ausgabe gekürzt, Testprotokoll) ist für Besitzer und Admin einsehbar. Er liegt in `verification_reports` mit Regelsatz und den Versionen der Laufzeit (Python bzw. .NET) und des SDK; der Bot verweist über `report_id` darauf und hält Stufe und Grund einer Ablehnung in `rejection`.
 - Der Quellcode ist ausschließlich für Besitzer und Admin abrufbar (E15).
 - Quellcode und Artefakt eines Bots sind nach dem Upload **unveränderlich** (E6). Bearbeitbar bleiben nur Metadaten (Name, Beschreibung) und Anmeldungen.
 

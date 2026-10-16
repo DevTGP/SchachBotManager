@@ -1,10 +1,14 @@
 import { apiUrl, getBytes, getJson, sendForm, sendJson } from "./client";
 import type { Bot, BotDetail, EnqueuedMatches, OwnBotUpdate, OwnMatchRequest } from "./types";
 
-/** A bot as the upload page collects it; paths are relative with /. */
+/**
+ * A bot as the upload page collects it; paths are relative with /. The entry is the start file
+ * of a Python bot and the bot class of a C# bot (E202).
+ */
 export interface BotUpload {
   name: string;
   version: string;
+  language: "python" | "csharp";
   entry: string;
   description: string;
   files: { path: string; content: Blob }[];
@@ -29,7 +33,7 @@ export function uploadBot(upload: BotUpload): Promise<BotDetail> {
   const form = new FormData();
   form.append("name", upload.name);
   form.append("version", upload.version);
-  form.append("language", "python");
+  form.append("language", upload.language);
   form.append("entry", upload.entry);
   if (upload.description) form.append("description", upload.description);
   for (const file of upload.files) {

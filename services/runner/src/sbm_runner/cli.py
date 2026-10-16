@@ -63,7 +63,7 @@ def start_sandbox(settings: SandboxSettings, db: Database) -> Sandbox | None:
         return None
     sandbox = Sandbox(settings, files=partial(checkout, db))
     sandbox.prepare()
-    log.info("sandbox %s ready, runtime %s", settings.mode, sandbox.runtime)
+    log.info("sandbox %s ready, runtimes %s", settings.mode, sandbox.runtimes)
     return sandbox
 
 

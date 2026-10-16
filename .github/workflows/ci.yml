@@ -200,7 +200,7 @@ jobs:
         working-directory: sdk/csharp
         run: |
           dotnet tool restore
-          dotnet csharpier check . ../../templates/csharp
+          dotnet csharpier check . ../../templates/csharp ../../services/runner/tests/sandbox/bots
           dotnet format Sbm.slnx --verify-no-changes
 
       - name: Test (API vectors, API surface, runtime, reference bot)
@@ -373,6 +373,6 @@ jobs:
       - name: Check formatting
         run: >
           find sdk/core/include sdk/core/src sdk/core/tests sdk/python/src/native
-          sdk/viewer/src sdk/viewer/tests
+          sdk/viewer/src sdk/viewer/tests sdk/csharp/server/Sbm.Host
           \( -name '*.h' -o -name '*.c' -o -name '*.hpp' -o -name '*.cpp' \)
           -exec clang-format --dry-run --Werror {} +

@@ -11,6 +11,7 @@ from sbm.referee import PlayerClosed
 from sbm_runner.checkout import BotDir
 from sbm_runner.sandbox.cgroup import BotCgroup
 from sbm_runner.sandbox.limits import MEMORY_LIMIT_MIB
+from sbm_runner.sandbox.run_once import jail_env
 from sbm_runner.sandbox.stderr_tail import StderrTail
 
 log = logging.getLogger(__name__)
@@ -21,12 +22,13 @@ EXIT_WAIT_SECONDS = 0.5
 
 
 class JailPlayer(StreamPlayer):
-    """command starts nsjail; nsjail reads SBM_BOT_DIR from its environment, the bot never.
+    """command starts nsjail; nsjail reads the directories to mount from its environment.
 
-    When it starts, bot_dir provides the directory mounted as /bot and new_cgroup the bot's
-    cgroup; close removes both. Errors there are infrastructure errors, those of the cgroup are
-    OSError. After close, exited_cleanly says whether the bot ended on its own with code 0 within
-    the grace period after game_over, and stderr_bytes how much it wrote to stderr.
+    When it starts, bot_dir provides the directories mounted as /bot and /program and
+    new_cgroup the bot's cgroup; close removes both. Errors there are infrastructure errors,
+    those of the cgroup are OSError. After close, exited_cleanly says whether the bot ended on
+    its own with code 0 within the grace period after game_over, and stderr_bytes how much it
+    wrote to stderr.
     """
 
     def __init__(
@@ -61,7 +63,7 @@ class JailPlayer(StreamPlayer):
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            env={"SBM_BOT_DIR": str(self._bot_dir.path)},
+            env=jail_env(self._bot_dir),
             close_fds=True,
         )
         self._stderr = StderrTail(self._process.stderr, self.name)

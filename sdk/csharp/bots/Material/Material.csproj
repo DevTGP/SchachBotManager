@@ -6,6 +6,12 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Sbm/Sbm.csproj" />
+    <!-- The analyzer as the NuGet package brings it: the reference bot follows the rules too. -->
+    <ProjectReference
+      Include="../../src/Sbm.Analyzers/Sbm.Analyzers.csproj"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="false"
+    />
   </ItemGroup>
 
   <ItemGroup>

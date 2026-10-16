@@ -1,5 +1,7 @@
 """Choosing the sandbox and starting it, without nsjail; the jail itself is tested in sandbox/."""
 
+from pathlib import Path
+
 import pytest
 from bson import ObjectId
 from sbm_store.bots import BUILTIN_PREFIX
@@ -66,11 +68,25 @@ def test_only_python_bots_run():
         sandbox.player({**UPLOADED, "language": "java"})
 
 
+def test_csharp_bots_run_only_with_their_program():
+    sandbox = Sandbox(SandboxSettings(mode=NSJAIL), tree=BrokenTree(), files=BotDir)
+    bot = {**UPLOADED, "language": "csharp", "entry": "MyBot.Bot", "program": None}
+    with pytest.raises(UnsupportedBot, match="no compiled program"):
+        sandbox.player(bot)
+    with pytest.raises(ValueError, match="no program"):
+        sandbox.candidate(bot, Path("/bot"), None)
+
+
 def test_the_self_check_reports_both_versions():
-    assert _versions(b'{"python": "3.12.1", "sdk": "0.4.0"}\n') == {
+    assert _versions(b'{"python": "3.12.1", "sdk": "0.4.0"}\n', "python") == {
         "python": "3.12.1",
         "sdk": "0.4.0",
     }
-    assert _versions(b"3.12.1") is None
-    assert _versions(b'{"python": "3.12.1"}') is None
-    assert _versions(b'{"python": "3.12.1", "sdk": 4}') is None
+    assert _versions(b'{"dotnet": "10.0.13", "sdk": "0.4.0"}', "dotnet") == {
+        "dotnet": "10.0.13",
+        "sdk": "0.4.0",
+    }
+    assert _versions(b'{"python": "3.12.1", "sdk": "0.4.0"}', "dotnet") is None
+    assert _versions(b"3.12.1", "python") is None
+    assert _versions(b'{"python": "3.12.1"}', "python") is None
+    assert _versions(b'{"python": "3.12.1", "sdk": 4}', "python") is None

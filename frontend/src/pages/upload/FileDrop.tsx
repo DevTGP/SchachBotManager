@@ -2,7 +2,7 @@ import { type ChangeEvent, type DragEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { droppedEntries, droppedFiles } from "../../upload/dropped";
-import { type Selection, selectFiles, selectPaths } from "../../upload/selection";
+import { type FoundFile, foundFiles, type Language, type Selection } from "../../upload/selection";
 import { SelectedFiles } from "./SelectedFiles";
 
 /** Browsers only offer a folder with this attribute, which React does not know. */
@@ -10,16 +10,21 @@ function chooseFolders(input: HTMLInputElement | null) {
   input?.setAttribute("webkitdirectory", "");
 }
 
+const ACCEPT: Record<Language, string> = { python: ".py", csharp: ".cs" };
+
 /**
  * One area for the sources (G16): drop a folder or files, or choose them with buttons in the
- * language of the page; the inputs themselves stay hidden (U12).
+ * language of the page; the inputs themselves stay hidden (U12). It reports every file found;
+ * the page selects from them by the bot's language, also when that changes afterwards.
  */
 export function FileDrop({
+  language,
   selection,
-  onSelect,
+  onFound,
 }: {
+  language: Language;
   selection: Selection | undefined;
-  onSelect: (selection: Selection) => void;
+  onFound: (found: FoundFile[]) => void;
 }) {
   const { t } = useTranslation();
   const folder = useRef<HTMLInputElement>(null);
@@ -27,7 +32,7 @@ export function FileDrop({
   const [over, setOver] = useState(false);
 
   function onFiles(event: ChangeEvent<HTMLInputElement>) {
-    onSelect(selectFiles(Array.from(event.target.files ?? [])));
+    onFound(foundFiles(event.target.files ?? []));
     event.target.value = "";
   }
 
@@ -40,7 +45,7 @@ export function FileDrop({
     event.preventDefault();
     setOver(false);
     const entries = droppedEntries(event.dataTransfer.items);
-    void droppedFiles(entries).then((found) => onSelect(selectPaths(found)));
+    void droppedFiles(entries).then(onFound);
   }
 
   return (
@@ -50,7 +55,7 @@ export function FileDrop({
       onDragLeave={() => setOver(false)}
       onDrop={onDrop}
     >
-      <p>{t("upload.drop")}</p>
+      <p>{t(`upload.drop.${language}`)}</p>
       <div className="inline-actions">
         <button type="button" onClick={() => folder.current?.click()}>
           {t("upload.chooseFolder")}
@@ -74,7 +79,7 @@ export function FileDrop({
         ref={files}
         type="file"
         multiple
-        accept=".py"
+        accept={ACCEPT[language]}
         hidden
         aria-label={t("upload.chooseFiles")}
         onChange={onFiles}

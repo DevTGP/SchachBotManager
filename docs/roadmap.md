@@ -143,7 +143,7 @@ C# in fünf Schritten (E192):
 | 1 | Binding auf den Kern (`Board`, `Move`, Konstanten, Fehler), Tests gegen alle API-Vektoren, CI-Job `csharp` (E193–E195) | Umgesetzt |
 | 2 | Hauptschleife nach dem Protokoll: `Clock`, `Log`, `Bot`, `Run` mit `stdio`/`tcp`, `LoadData`; Referenzbot; Kreuztest über die Arena (E196–E198) | Umgesetzt |
 | 3 | NuGet-Paket mit `runtimes/<rid>/native`, Workflow `nuget.yml`, Vorlagenprojekt `templates/csharp` (E199–E201) | Umgesetzt |
-| 4 | Serverseite: Laufzeitverzeichnis, seccomp-Whitelist, Analyzer (Roslyn), Verifikation im Runner, Negativ-Suite | Offen |
+| 4 | Serverseite: Laufzeitverzeichnis, seccomp-Whitelist, Analyzer (Roslyn), Verifikation im Runner, Negativ-Suite (E202–E205) | Umgesetzt |
 | 5 | Viewer, Transport `remote`, `Play` | Offen |
 
 Abnahme je Sprache: Alle API-Vektoren bestanden, Bot der Sprache spielt regulär gegen Bots aller bereits unterstützten Sprachen, Negativ-Suite bestanden, Setup auf frischem Rechner mit einem Paketbefehl.

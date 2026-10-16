@@ -7,6 +7,8 @@ from sbm.referee import MatchSettings
 from sbm_store.bots import BUILTIN_PREFIX
 
 BOTS = Path(__file__).parent / "bots"
+# The C# test bots of bots/csharp, each compiled into a bot.dll there (suite.Dockerfile).
+CSHARP_BOTS = Path("/opt/sbm-suite/csharp")
 RANDOM = {"_id": ObjectId(), "name": "Random", "source_ref": f"{BUILTIN_PREFIX}random_mover"}
 QUICK = MatchSettings(initial_time_ms=10_000, increment_ms=0, max_moves=3)
 # Endings of a game in which both bots played by the rules.

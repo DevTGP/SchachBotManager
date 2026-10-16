@@ -1,9 +1,17 @@
-// What a folder selection uploads (verifikation.md): .py files outside data/ and files directly
-// in data/. Everything else, such as .vscode/, README.md or __pycache__/, stays at home; the API
-// checks the remaining rules and names the file to blame.
+// What a folder selection uploads (verifikation.md): the sources of the language (.py or .cs)
+// outside data/ and files directly in data/. Everything else, such as .vscode/, README.md,
+// __pycache__/ or bin/ and obj/ of a C# build, stays at home; the API checks the remaining rules
+// and names the file to blame.
 
 export const DATA_DIR = "data";
 export const DEFAULT_ENTRY = "bot.py";
+export const LANGUAGES = ["python", "csharp"] as const;
+export type Language = (typeof LANGUAGES)[number];
+const SUFFIX: Record<Language, string> = { python: ".py", csharp: ".cs" };
+/** Folders of a local build, which hold nothing to upload. */
+const SKIPPED: Record<Language, string[]> = { python: ["__pycache__"], csharp: ["bin", "obj"] };
+/** The server writes the entry of a C# bot itself (E203), so the template's one stays home. */
+const CSHARP_ENTRY_FILE = "Program.cs";
 export const MAX_FILES = 100;
 export const MAX_BYTES = 1024 * 1024;
 
@@ -34,11 +42,18 @@ export function relativePath(file: File): string {
   return relative ? insideFolder(relative) : file.name;
 }
 
-export function fileKind(path: string): FileKind | undefined {
+/** Whether a folder of the selection is skipped as a whole, also while reading a drop. */
+export function skippedFolder(name: string, language: Language): boolean {
+  return name.startsWith(".") || SKIPPED[language].includes(name);
+}
+
+export function fileKind(path: string, language: Language = "python"): FileKind | undefined {
   const parts = path.split("/");
-  if (parts.some((part) => part.startsWith(".") || part === "__pycache__")) return undefined;
+  if (parts.some((part) => part.startsWith("."))) return undefined;
+  if (parts.slice(0, -1).some((part) => skippedFolder(part, language))) return undefined;
   if (parts[0] === DATA_DIR) return parts.length === 2 ? "data" : undefined;
-  return path.endsWith(".py") ? "source" : undefined;
+  if (language === "csharp" && path === CSHARP_ENTRY_FILE) return undefined;
+  return path.endsWith(SUFFIX[language]) ? "source" : undefined;
 }
 
 /** A file and its path inside the chosen or dropped folder. */
@@ -47,19 +62,33 @@ export interface FoundFile {
   file: File;
 }
 
-export function selectFiles(files: Iterable<File>): Selection {
-  return selectPaths(Array.from(files, (file) => ({ path: relativePath(file), file })));
+export function foundFiles(files: Iterable<File>): FoundFile[] {
+  return Array.from(files, (file) => ({ path: relativePath(file), file }));
 }
 
-export function selectPaths(found: Iterable<FoundFile>): Selection {
+export function selectFiles(files: Iterable<File>, language: Language = "python"): Selection {
+  return selectPaths(foundFiles(files), language);
+}
+
+export function selectPaths(found: Iterable<FoundFile>, language: Language = "python"): Selection {
   const selection: Selection = { files: [], ignored: [] };
   for (const { path, file } of found) {
-    const kind = fileKind(path);
+    const kind = fileKind(path, language);
     if (kind) selection.files.push({ path, kind, file });
-    else selection.ignored.push(path);
+    else {
+      const ignored = ignoredPath(path, language);
+      if (!selection.ignored.includes(ignored)) selection.ignored.push(ignored);
+    }
   }
   selection.files.sort((a, b) => a.path.localeCompare(b.path));
   return selection;
+}
+
+/** A file in a skipped folder is listed as that folder, such as obj/ with its many files. */
+function ignoredPath(path: string, language: Language): string {
+  const parts = path.split("/");
+  const folder = parts.slice(0, -1).findIndex((part) => skippedFolder(part, language));
+  return folder < 0 ? path : `${parts.slice(0, folder + 1).join("/")}/`;
 }
 
 /** The translation key of a broken limit, checked before anything is sent. */

@@ -1,11 +1,12 @@
 """Uploaded bots for the tests, and a Verifier that runs them without nsjail."""
 
+import base64
 import json
 import sys
 from pathlib import Path
 
 from bson import ObjectId
-from sbm.analysis.upload import DATA, SOURCE
+from sbm.analysis.upload import CSHARP, DATA, PYTHON, SOURCE
 from sbm.arena.process_player import ProcessPlayer
 from sbm.referee import Player
 from sbm_store import bot_files, bots, jobs
@@ -36,8 +37,44 @@ CLEAN = {"ruleset": "python-test", "ok": True, "truncated": False, "findings": [
 FINDING = {"rule": "import", "file": "bot.py", "line": 1, "message": "socket is not allowed"}
 DIRTY = {**CLEAN, "ok": False, "findings": [FINDING]}
 
+# A C# bot for the fake build: its "program" is the Python bot of GOOD in one file, which the
+# fake candidate runs from the program directory.
+CSHARP_FILES = [
+    ("MyBot.cs", SOURCE, b"class First : Sbm.Bot {}\n"),
+    ("data/book.txt", DATA, b"e2e4\n"),
+]
+CSHARP_ENTRY = "MyBot.First"
+PROGRAM = (
+    b"import sbm\n\n\n"
+    b"class First(sbm.Bot):\n"
+    b"    def choose_move(self, board, clock):\n"
+    b"        return board.legal_moves()[0]\n\n\n"
+    b"sbm.run(First)\n"
+)
+SECTION = {"ok": True, "truncated": False, "findings": []}
+BUILT = {
+    "ruleset": "csharp-test",
+    "analysis": SECTION,
+    "build": SECTION,
+    "program": base64.b64encode(PROGRAM).decode(),
+}
+CS_FINDING = {"rule": "CS0103", "file": "MyBot.cs", "line": 1, "message": "x does not exist"}
+NOT_BUILT = {**BUILT, "build": {**SECTION, "ok": False, "findings": [CS_FINDING]}, "program": None}
 
-def upload(db, files=GOOD, *, name: str = "Uploaded", version: str = "1.0.0") -> dict:
+
+def upload_csharp(db, files=CSHARP_FILES, **kwargs) -> dict:
+    return upload(db, files, language=CSHARP, entry=CSHARP_ENTRY, **kwargs)
+
+
+def upload(
+    db,
+    files=GOOD,
+    *,
+    name: str = "Uploaded",
+    version: str = "1.0.0",
+    language: str = PYTHON,
+    entry: str = "bot.py",
+) -> dict:
     """Stores an uploaded bot and queues its verification, as the web API will."""
     bot_id = ObjectId()
     now = utc_now()
@@ -46,8 +83,8 @@ def upload(db, files=GOOD, *, name: str = "Uploaded", version: str = "1.0.0") ->
         bot_id=bot_id,
         name=name,
         version=version,
-        language="python",
-        entry="bot.py",
+        language=language,
+        entry=entry,
         files=entries,
         source_hash=bot_files.source_hash(entries),
         owner_id=ObjectId(),
@@ -67,11 +104,16 @@ class CheckedPlayer(ProcessPlayer):
 
 
 class FakeVerifier:
-    """The bot's files are checked out for real; the analysis says what report is given."""
+    """The bot's files are checked out for real; analysis and build say what report is given."""
 
-    def __init__(self, db, root: Path, report: dict = CLEAN) -> None:
-        self.runtime = {"python": "3.12.1", "sdk": "0.4.0"}
+    def __init__(self, db, root: Path, report: dict = CLEAN, built: dict = BUILT) -> None:
+        self.runtimes = {
+            PYTHON: {"python": "3.12.1", "sdk": "0.4.0"},
+            CSHARP: {"dotnet": "10.0.13", "sdk": "0.4.0"},
+        }
         self.report = report
+        self.built = built
+        self.programs: list[Path] = []
         self.error: BaseException | None = None
         self.checked_out: list[BotDir] = []
         self.analyzed: list[str] = []
@@ -92,8 +134,22 @@ class FakeVerifier:
         stdout = json.dumps(self.report).encode()
         return Completed(0 if self.report["ok"] else 1, stdout, b"")
 
-    def script_player(self, name: str, bot_dir: Path, script: str) -> Player:
-        return CheckedPlayer(name, [sys.executable, str(bot_dir / script)], log=None)
+    def build(self, bot_dir: Path, entry: str, timeout: float) -> Completed:
+        if self.error is not None:
+            raise self.error
+        self.analyzed = sorted(
+            path.relative_to(bot_dir).as_posix() for path in bot_dir.rglob("*") if path.is_file()
+        )
+        stdout = json.dumps(self.built).encode()
+        return Completed(1 if self.built["program"] is None else 0, stdout, b"")
+
+    def candidate(self, bot: dict, bot_dir: Path, program_dir: Path | None) -> Player:
+        if program_dir is None:
+            script = bot_dir / bot["entry"]
+        else:
+            self.programs.append(program_dir)
+            script = program_dir / bot_files.PROGRAM
+        return CheckedPlayer(bot["name"], [sys.executable, str(script)], log=None)
 
     def player(self, bot: dict) -> Player:
         return plain_player(bot)
