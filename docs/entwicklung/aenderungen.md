@@ -89,8 +89,9 @@ Parallel laufende Meilensteine haben getrennte Nummernkreise, damit sich gleichz
 1. Änderungen am SDK, am Kern oder am Viewer sind auf `master` und die CI ist grün.
 2. Version in `sdk/core/CMakeLists.txt` (`project(sbm_core VERSION X.Y.Z …)`) setzen; Paket und `sbm.__version__` übernehmen sie. Semantische Versionen: neue Funktionen erhöhen die mittlere Stelle.
 3. Im selben Commit `CLAUDE.md` (Absatz „Stand“) und die Nutzerdoku unter `sdk/python/docs/` nachführen.
-4. `git tag vX.Y.Z` und `git push origin master vX.Y.Z`. `wheels.yml` baut, testet und veröffentlicht auf PyPI (E70); Ablauf in [tests-und-ci.md](tests-und-ci.md#release-des-sdk-wheelsyml).
-5. Die Vorlage `templates/python/requirements.txt` nennt das Paket ohne Version, installiert also immer die neueste; nutzt die Vorlage eine neue Funktion, erst nach der Veröffentlichung auf `master` bringen.
+4. Im selben Commit die Version des Pakets in `templates/csharp/MyBot.csproj` nachziehen; `test_template.py` scheitert sonst.
+5. `git tag vX.Y.Z` und `git push origin master vX.Y.Z`. `wheels.yml` baut, testet und veröffentlicht auf PyPI (E70), `nuget.yml` ebenso auf nuget.org (E200); Ablauf in [tests-und-ci.md](tests-und-ci.md#release-des-sdk-wheelsyml).
+6. Die Vorlage `templates/python/requirements.txt` nennt das Paket ohne Version, installiert also immer die neueste; nutzt die Vorlage eine neue Funktion, erst nach der Veröffentlichung auf `master` bringen.
 
 Das Deploy der Website ist davon unabhängig: `deploy/python.Dockerfile` baut das SDK aus dem Repo (ohne Viewer), nicht von PyPI.
 

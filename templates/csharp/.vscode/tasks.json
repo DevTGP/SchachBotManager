@@ -1,0 +1,259 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build: Debug",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/MyBot.csproj",
+        "-c",
+        "Debug",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "Build: Release",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/MyBot.csproj",
+        "-c",
+        "Release",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Arena: Bot mit Weiß gegen material",
+      "type": "process",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "windows": {
+        "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+      },
+      "args": [
+        "-m",
+        "sbm.arena",
+        "tcp",
+        "material",
+        "--no-clock",
+        "--moves"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "sbm-arena",
+        "pattern": {
+          "regexp": "^sbm-arena reports no problems: (.*):(\\d+): (.*)$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        },
+        "background": {
+          "activeBegin": true,
+          "beginsPattern": "waiting for .* to connect",
+          "endsPattern": "waiting for .* to connect"
+        }
+      }
+    },
+    {
+      "label": "Arena: Bot mit Schwarz gegen material",
+      "type": "process",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "windows": {
+        "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+      },
+      "args": [
+        "-m",
+        "sbm.arena",
+        "material",
+        "tcp",
+        "--no-clock",
+        "--moves"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "sbm-arena",
+        "pattern": {
+          "regexp": "^sbm-arena reports no problems: (.*):(\\d+): (.*)$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        },
+        "background": {
+          "activeBegin": true,
+          "beginsPattern": "waiting for .* to connect",
+          "endsPattern": "waiting for .* to connect"
+        }
+      }
+    },
+    {
+      "label": "Arena: Stellung aus games.pgn, Bot mit Weiß",
+      "type": "process",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "windows": {
+        "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+      },
+      "args": [
+        "-m",
+        "sbm.arena",
+        "tcp",
+        "material",
+        "--no-clock",
+        "--moves",
+        "--replay",
+        "games.pgn",
+        "--replay-game",
+        "${input:replayGame}",
+        "--replay-ply",
+        "${input:replayPly}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "sbm-arena",
+        "pattern": {
+          "regexp": "^sbm-arena reports no problems: (.*):(\\d+): (.*)$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        },
+        "background": {
+          "activeBegin": true,
+          "beginsPattern": "waiting for .* to connect",
+          "endsPattern": "waiting for .* to connect"
+        }
+      }
+    },
+    {
+      "label": "Arena: Stellung aus games.pgn, Bot mit Schwarz",
+      "type": "process",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "windows": {
+        "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+      },
+      "args": [
+        "-m",
+        "sbm.arena",
+        "material",
+        "tcp",
+        "--no-clock",
+        "--moves",
+        "--replay",
+        "games.pgn",
+        "--replay-game",
+        "${input:replayGame}",
+        "--replay-ply",
+        "${input:replayPly}"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "sbm-arena",
+        "pattern": {
+          "regexp": "^sbm-arena reports no problems: (.*):(\\d+): (.*)$",
+          "file": 1,
+          "line": 2,
+          "message": 3
+        },
+        "background": {
+          "activeBegin": true,
+          "beginsPattern": "waiting for .* to connect",
+          "endsPattern": "waiting for .* to connect"
+        }
+      }
+    },
+    {
+      "label": "Debug: Bot mit Weiß gegen material",
+      "dependsOn": [
+        "Build: Debug",
+        "Arena: Bot mit Weiß gegen material"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Debug: Bot mit Schwarz gegen material",
+      "dependsOn": [
+        "Build: Debug",
+        "Arena: Bot mit Schwarz gegen material"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Debug: Stellung aus games.pgn, Bot mit Weiß",
+      "dependsOn": [
+        "Build: Debug",
+        "Arena: Stellung aus games.pgn, Bot mit Weiß"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Debug: Stellung aus games.pgn, Bot mit Schwarz",
+      "dependsOn": [
+        "Build: Debug",
+        "Arena: Stellung aus games.pgn, Bot mit Schwarz"
+      ],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Arena: 10 Partien gegen material",
+      "type": "process",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "windows": {
+        "command": "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+      },
+      "args": [
+        "-m",
+        "sbm.arena",
+        "dotnet bin/Release/net10.0/MyBot.dll",
+        "material",
+        "--games",
+        "10",
+        "--pgn",
+        "games.pgn"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "dependsOn": [
+        "Build: Release"
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "replayGame",
+      "type": "promptString",
+      "description": "Nummer der Partie in games.pgn",
+      "default": "1"
+    },
+    {
+      "id": "replayPly",
+      "type": "promptString",
+      "description": "Halbzüge, die nachgespielt werden, bevor die Bots übernehmen"
+    }
+  ]
+}

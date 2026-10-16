@@ -23,7 +23,7 @@ Schachkern (C++)     ── Stellung, Zuggenerierung, make/undo, Endbedingungen,
 | Python | Erweiterungsmodul `sbm._core` mit nanobind, Kern statisch eingebunden (E58) | Vorkompiliertes Wheel je Python-Version und Plattform (`pip install schachbotmanager`, E59, E64) |
 | C++ | Direkt (Header + Bibliothek) | Archiv mit CMake-Einbindung |
 | Java | JNI oder Foreign-Function-API | JAR mit eingebetteten nativen Bibliotheken je Plattform |
-| C# | P/Invoke mit `LibraryImport` auf den Kern als geteilte Bibliothek (nur innerhalb des SDK, E193); Form der API in E194 | NuGet-Paket `SchachBotManager` mit nativen Bibliotheken je Plattform (ab Schritt 3, E192) |
+| C# | P/Invoke mit `LibraryImport` auf den Kern als geteilte Bibliothek (nur innerhalb des SDK, E193); Form der API in E194 | NuGet-Paket `SchachBotManager` mit dem Kern unter `runtimes/<rid>/native` für Windows x64, Linux x64/arm64 und macOS x64/arm64 (`dotnet add package SchachBotManager`, E199, E200) |
 | JavaScript | Nativer Node-Addon (A12) | npm-Paket mit vorkompilierten Binaries |
 
 ## Eigene Brett-Instanz pro Bot (E22)

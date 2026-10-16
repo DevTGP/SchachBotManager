@@ -3,22 +3,46 @@
     <!-- Not "Sbm": on Windows Sbm.dll and the core's sbm.dll would be the same file. -->
     <AssemblyName>SchachBotManager</AssemblyName>
     <RootNamespace>Sbm</RootNamespace>
-    <PackageId>SchachBotManager</PackageId>
-    <Description>SDK for chess bots on SchachBotManager.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
+  <!-- The NuGet package (E199). -->
+  <PropertyGroup>
+    <PackageId>SchachBotManager</PackageId>
+    <Version>$(SbmCoreVersion)</Version>
+    <Authors>DevTGP</Authors>
+    <Description>SDK for chess bots on SchachBotManager.</Description>
+    <PackageLicenseExpression>MIT-0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/DevTGP/SchachBotManager</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/DevTGP/SchachBotManager</RepositoryUrl>
+    <PackageTags>chess;chess-bot;schachbotmanager</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
   <!-- The shared core next to the assembly, where the default native library search finds it.
-       Wildcards, so that only the library of the current platform is copied. -->
+       Wildcards, so that only the library of the current platform is copied. Without
+       SbmRuntimesDir the package carries this library, for local tests. -->
   <ItemGroup>
     <None
       Include="$(SbmNativeDir)/lib/libsbm*.so;$(SbmNativeDir)/lib/libsbm*.dylib;$(SbmNativeDir)/bin/**/sbm.dll"
       CopyToOutputDirectory="PreserveNewest"
       Link="%(Filename)%(Extension)"
       Visible="false"
-    />
+    >
+      <Pack Condition="'$(SbmRuntimesDir)' == ''">true</Pack>
+      <PackagePath>runtimes/$(NETCoreSdkPortableRuntimeIdentifier)/native/</PackagePath>
+    </None>
+  </ItemGroup>
+
+  <!-- The package for every platform: SbmRuntimesDir holds <rid>/native/<library> (nuget.yml). -->
+  <ItemGroup Condition="'$(SbmRuntimesDir)' != ''">
+    <None Include="$(SbmRuntimesDir)/**/*" Pack="true" PackagePath="runtimes/" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
   <ItemGroup>
