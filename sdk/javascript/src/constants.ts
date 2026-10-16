@@ -1,4 +1,4 @@
-// Named constants of the bot API (spec/api/constants.json) as plain numbers (E204). NULL_MOVE
+// Named constants of the bot API (spec/api/constants.json) as plain numbers (E224). NULL_MOVE
 // and RESIGN are Move objects and live in src/move.ts.
 
 /** WHITE = 0, BLACK = 1; NO_COLOR = 2. */

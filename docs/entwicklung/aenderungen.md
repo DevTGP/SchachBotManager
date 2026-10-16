@@ -78,7 +78,7 @@ Parallel laufende Meilensteine haben getrennte Nummernkreise, damit sich gleichz
 | M4 | E99–E108 (E106–E108 Viewer), danach E130–E149 (E130) | unterhalb `0110`, zuletzt `0008` | läuft (alle fünf Schritte umgesetzt, zuletzt der Live-Kanal mit E142; Abnahme auf dem Server steht aus) |
 | M7 | E110–E129 | `0110`–`0149` | abgeschlossen |
 | M6 | E150–E169 | ab `0150`, zuletzt `0153` | läuft |
-| M5 | E192–E199 (C#), E200–E219 (JavaScript) | ab `0200` | läuft (C# und JavaScript je Schritt 1 umgesetzt) |
+| M5 | E192–E219 (C#), E220–E239 (JavaScript) | ab `0220` | läuft (C# und JavaScript je Schritt 1 umgesetzt) |
 
 - Freie Nummern im Kreis des eigenen Meilensteins nehmen, der Reihe nach. Ist ein Kreis voll oder kommt ein neuer Meilenstein parallel dazu, legt eine eigene Entscheidung einen neuen Kreis fest (wie E110, E130 und E150).
 - Migrationen tragen ihre Nummer im Dateinamen (`m0154_<thema>.py`) und in der Id (`0154_<thema>`); die Reihenfolge der Ausführung ist die Liste `MIGRATIONS`, nicht die Nummer ([Code-Karte Store](code-store.md#neue-migration)).
@@ -90,7 +90,7 @@ Parallel laufende Meilensteine haben getrennte Nummernkreise, damit sich gleichz
 1. Änderungen am SDK, am Kern oder am Viewer sind auf `master` und die CI ist grün.
 2. Version in `sdk/core/CMakeLists.txt` (`project(sbm_core VERSION X.Y.Z …)`) setzen; Paket und `sbm.__version__` übernehmen sie. Im selben Commit `version` in `sdk/javascript/package.json` und `package-lock.json` gleichziehen (`npm version X.Y.Z --no-git-tag-version` in `sdk/javascript`); `version.test.ts` prüft das. Semantische Versionen: neue Funktionen erhöhen die mittlere Stelle.
 3. Im selben Commit `CLAUDE.md` (Absatz „Stand“) und die Nutzerdoku unter `sdk/python/docs/` nachführen.
-4. `git tag vX.Y.Z` und `git push origin master vX.Y.Z`. `wheels.yml` baut, testet und veröffentlicht auf PyPI (E70), `npm.yml` das JavaScript-SDK auf npm (E206); Ablauf in [tests-und-ci.md](tests-und-ci.md#release-des-sdk-wheelsyml).
+4. `git tag vX.Y.Z` und `git push origin master vX.Y.Z`. `wheels.yml` baut, testet und veröffentlicht auf PyPI (E70), `npm.yml` das JavaScript-SDK auf npm (E226); Ablauf in [tests-und-ci.md](tests-und-ci.md#release-des-sdk-wheelsyml).
 5. Die Vorlage `templates/python/requirements.txt` nennt das Paket ohne Version, `templates/javascript/package.json` mit Untergrenze; beide installieren also die neueste; nutzt die Vorlage eine neue Funktion, erst nach der Veröffentlichung auf `master` bringen.
 
 Das Deploy der Website ist davon unabhängig: `deploy/python.Dockerfile` baut das SDK aus dem Repo (ohne Viewer), nicht von PyPI.

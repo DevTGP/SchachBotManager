@@ -74,7 +74,7 @@ Einmal-Links zeigt die Seite nur direkt nach dem Erstellen; die Liste der Einlad
 
 | Ort | Inhalt |
 |-----|--------|
-| `src/pages/upload/` | Seite `/bots/new` (nur angemeldet): Sprache wählen (Python oder JavaScript, E207; wechselt zur Sprache der gewählten Dateien), Ordner oder einzelne `.py`- bzw. `.js`/`.mjs`-Dateien wählen, Auswahl der Dateien mit Liste des Weggelassenen, Einstiegsdatei, Name mit Vorschlägen aus den eigenen Bots, Version mit Vorschlag der nächsten Patch-Version; darunter die eigenen Bots |
+| `src/pages/upload/` | Seite `/bots/new` (nur angemeldet): Sprache wählen (Python oder JavaScript, E227; wechselt zur Sprache der gewählten Dateien), Ordner oder einzelne `.py`- bzw. `.js`/`.mjs`-Dateien wählen, Auswahl der Dateien mit Liste des Weggelassenen, Einstiegsdatei, Name mit Vorschlägen aus den eigenen Bots, Version mit Vorschlag der nächsten Patch-Version; darunter die eigenen Bots |
 | `src/upload/` | Auswahl und Prüfung der Dateien nach den Regeln aus E92 vor dem Senden, Muster für Name und Version |
 | `src/pages/bot/` | Seite `/bots/:id`: Status, Sprache, Version, Link zu den Partien; für Besitzer und Admins Dateien und Report mit Befunden und Testpartien; Admins können sperren und freigeben. Während der Verifikation fragt sie alle 3 s nach |
 | `src/api/bots.ts` | Upload als `FormData`, Bot, eigene Bots, Sperre |

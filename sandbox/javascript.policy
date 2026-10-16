@@ -1,4 +1,4 @@
-// Seccomp policy of a JavaScript bot in kafel syntax (sandbox.md, E86, E207).
+// Seccomp policy of a JavaScript bot in kafel syntax (sandbox.md, E86, E227).
 //
 // The whitelist of Python (python.policy), which also covers Node: V8, its worker threads and
 // libuv. Node manages without what is missing and fails with EPERM: libuv falls back from

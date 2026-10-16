@@ -1,4 +1,4 @@
-// The versioned rule set of the JavaScript analyzer (statische-analyse.md, E208), read from JSON.
+// The versioned rule set of the JavaScript analyzer (statische-analyse.md, E228), read from JSON.
 import data from "./javascript-rules.json" with { type: "json" };
 
 export interface Rules {

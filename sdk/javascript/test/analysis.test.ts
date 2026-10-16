@@ -1,4 +1,4 @@
-// The static analysis of JavaScript bots (statische-analyse.md, E208).
+// The static analysis of JavaScript bots (statische-analyse.md, E228).
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";

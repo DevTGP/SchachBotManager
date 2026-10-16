@@ -1,4 +1,4 @@
-# Native addon sbm.node: the chess core linked statically into a Node-API module (E201).
+# Native addon sbm.node: the chess core linked statically into a Node-API module (E221).
 # scripts/build-native.mjs configures it with the paths of node-api-headers and node-addon-api.
 cmake_minimum_required(VERSION 3.21)
 

@@ -1,4 +1,4 @@
-// Errors of the bot API (spec/api/errors.json, E49, E204), all derived from ChessError.
+// Errors of the bot API (spec/api/errors.json, E49, E224), all derived from ChessError.
 
 /** Base class of all errors of the bot API; also thrown for internal errors of the core. */
 export class ChessError extends Error {

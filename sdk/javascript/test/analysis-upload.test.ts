@@ -1,4 +1,4 @@
-// What an upload of a JavaScript bot may contain (verifikation.md, E207).
+// What an upload of a JavaScript bot may contain (verifikation.md, E227).
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

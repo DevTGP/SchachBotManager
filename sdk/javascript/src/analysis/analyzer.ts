@@ -1,4 +1,4 @@
-// Analyzes all source files of a JavaScript bot at once (statische-analyse.md, E208).
+// Analyzes all source files of a JavaScript bot at once (statische-analyse.md, E228).
 //
 // The analyzer only parses; it never imports or runs the bot. On the server it runs in the
 // sandbox like the bot itself (E81).
@@ -33,7 +33,7 @@ function parseFile(file: string, content: Uint8Array, findings: Finding[]): Prog
     return null;
   }
   try {
-    // As Node reads a file without package.json from its syntax: an ES module (E207).
+    // As Node reads a file without package.json from its syntax: an ES module (E227).
     return parse(text, { ecmaVersion: "latest", sourceType: "module", locations: true });
   } catch (error) {
     if (error instanceof RangeError) {

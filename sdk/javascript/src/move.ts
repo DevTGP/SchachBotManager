@@ -1,5 +1,5 @@
 // Move (spec/api/move.json): an immutable 16-bit value. Each value has exactly one object, so
-// moves compare with === as well as with equals (E204). The bit operations are computed here;
+// moves compare with === as well as with equals (E224). The bit operations are computed here;
 // parse and uci call the core.
 import type { MoveFlags, PieceType, Square } from "./constants.ts";
 import { NO_PIECE_TYPE } from "./constants.ts";

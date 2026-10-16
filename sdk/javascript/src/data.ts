@@ -1,4 +1,4 @@
-// loadData (spec/api/runtime.json, E30, E62, E205): the data files uploaded with the bot.
+// loadData (spec/api/runtime.json, E30, E62, E225): the data files uploaded with the bot.
 import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 

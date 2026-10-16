@@ -1,4 +1,4 @@
-// Every function of spec/api/ exists in camelCase with its kind and parameter count (E204).
+// Every function of spec/api/ exists in camelCase with its kind and parameter count (E224).
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -7,13 +7,13 @@ import { apiFunctions, camel, CORE_MODULES } from "./spec.ts";
 
 const MODULES = [...CORE_MODULES, "bot", "clock", "log", "runtime"];
 
-// Not part of this SDK until step 3 of E200.
+// Not part of this SDK until step 3 of E220.
 const LATER = new Set(["play"]);
 
 // Parameters with a default value, which Function.length does not count.
 const DEFAULTS: Record<string, number> = { "Board.pieces": 2, run: 1 };
 
-// The constructor of a class as spec create; Move has a static create instead (E204).
+// The constructor of a class as spec create; Move has a static create instead (E224).
 const CONSTRUCTORS: Record<string, string> = { Board: "constructor", Move: "static" };
 
 type Owner = Record<string, unknown> & { prototype: Record<string, unknown> };

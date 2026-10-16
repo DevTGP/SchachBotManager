@@ -1,4 +1,4 @@
-// Tries to start other processes and threads; exits with 42 if one starts (sandbox.md, E207).
+// Tries to start other processes and threads; exits with 42 if one starts (sandbox.md, E227).
 import { execFileSync, spawnSync } from "node:child_process";
 import { Worker } from "node:worker_threads";
 

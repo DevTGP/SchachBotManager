@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Images for the Python services; the build context is the repository root.
 # Target services: migrate, api and gateway. Target runner (also the play runner): adds nsjail, the sandbox configuration and the
-# runtime directories the bots run in, one per language (sandbox.md, E207).
+# runtime directories the bots run in, one per language (sandbox.md, E227).
 
 FROM python:3.12-slim AS build
 # The SDK compiles the C++ core; CMake and Ninja come from PyPI through scikit-build-core.
@@ -59,7 +59,7 @@ RUN mkdir -p /rt/usr/lib /rt/etc /rt/dev /rt/bot \
     && cp /etc/ld.so.cache /rt/etc/ \
     && touch /rt/dev/null
 
-# The Node the JavaScript bots run with, pinned (E203, E207); the npm package with its addon.
+# The Node the JavaScript bots run with, pinned (E223, E227); the npm package with its addon.
 FROM node:24.22.0-trixie-slim AS bot-javascript-build
 RUN apt-get update     && apt-get install -y --no-install-recommends cmake g++ make     && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
@@ -70,7 +70,7 @@ RUN npm ci --no-audit --no-fund     && npm run build:native     && npm run build
 
 # Without a compiler: this tree becomes the read-only root of every JavaScript bot. The package
 # lies nested in /node_modules, so a bot finds schachbotmanager but none of its dependencies; the
-# root has no package.json, so Node reads every file of the bot as an ES module (E207).
+# root has no package.json, so Node reads every file of the bot as an ES module (E227).
 FROM node:24.22.0-trixie-slim AS bot-javascript
 RUN --mount=type=bind,from=bot-javascript-build,source=/pkg,target=/pkg     mkdir /install     && npm install --prefix /install --omit=dev --ignore-scripts --install-strategy=nested        --no-audit --no-fund --no-package-lock /pkg/*.tgz
 RUN mkdir -p /rt/usr/local/bin /rt/usr/lib /rt/etc /rt/dev /rt/bot     && cp -a /usr/local/bin/node /rt/usr/local/bin/     && cp -a /install/node_modules /rt/node_modules     && rm -f /rt/node_modules/.package-lock.json     && cp -a /usr/lib/x86_64-linux-gnu /usr/lib64 /rt/usr/lib/     && mv /rt/usr/lib/lib64 /rt/usr/lib64     && ln -s usr/lib /rt/lib     && ln -s usr/lib64 /rt/lib64     && cp /etc/ld.so.cache /rt/etc/     && touch /rt/dev/null

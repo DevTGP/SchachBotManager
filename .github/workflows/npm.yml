@@ -1,7 +1,7 @@
 name: npm
 
 # Builds the addon of the JavaScript SDK for every platform, tests it there and packs the npm
-# package schachbotmanager with all of them (E201, E202). A version tag such as v0.5.0 also
+# package schachbotmanager with all of them (E221, E222). A version tag such as v0.5.0 also
 # publishes it on npm through trusted publishing; npm knows this file and the environment npm as
 # the allowed publisher. Like wheels.yml it runs only for a version tag or by hand (E79); the CI
 # tests the SDK on every platform anyway.
@@ -141,7 +141,7 @@ jobs:
         with:
           name: npm-package
 
-      # The version comes from sdk/core/CMakeLists.txt (E36, E202); the tag only triggers the upload.
+      # The version comes from sdk/core/CMakeLists.txt (E36, E222); the tag only triggers the upload.
       - name: Check that the tag matches the package version
         run: |
           version="${GITHUB_REF_NAME#v}"

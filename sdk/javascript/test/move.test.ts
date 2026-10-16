@@ -1,4 +1,4 @@
-// Move as an immutable, interned class (E204).
+// Move as an immutable, interned class (E224).
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

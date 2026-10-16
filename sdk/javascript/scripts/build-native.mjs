@@ -1,4 +1,4 @@
-// Builds the addon sbm.node into prebuilds/<platform>-<arch>/ (E201). Options:
+// Builds the addon sbm.node into prebuilds/<platform>-<arch>/ (E221). Options:
 //   --debug          build type Debug instead of Release
 //   --build-dir DIR  CMake build directory (default build/ in this package)
 // The environment variable CMAKE_GENERATOR picks the generator as for any CMake build; on Windows

@@ -1,4 +1,4 @@
-"""The runtimes of the bots in the jail, one per language (E86, E207).
+"""The runtimes of the bots in the jail, one per language (E86, E227).
 
 Each runtime has its own root under /opt/sbm/runtimes, its own nsjail configuration
 <language>.cfg and its own analyzer (sbm-check), which also runs in the jail.

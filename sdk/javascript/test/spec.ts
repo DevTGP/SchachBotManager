@@ -82,7 +82,7 @@ export function constants(): { name: string; type: string; value: number }[] {
   ).constants;
 }
 
-/** The spelling of a spec name in JavaScript (E204): make_null_move becomes makeNullMove. */
+/** The spelling of a spec name in JavaScript (E224): make_null_move becomes makeNullMove. */
 export function camel(name: string): string {
   return name.replace(/_([a-z0-9])/g, (_, letter: string) => letter.toUpperCase());
 }

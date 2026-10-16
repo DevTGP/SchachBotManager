@@ -1,4 +1,4 @@
-// An uploaded bot as the verification sees it: an own module and a data file (E94, E207).
+// An uploaded bot as the verification sees it: an own module and a data file (E94, E227).
 import * as sbm from "schachbotmanager";
 
 import { firstMove } from "./opening.js";

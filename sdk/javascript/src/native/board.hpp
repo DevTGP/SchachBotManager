@@ -1,5 +1,5 @@
 // NativeBoard: owns one board handle of the core, freed with the JavaScript object (E22). It
-// returns plain values only; the class Board of src/board.ts turns them into the API (E201).
+// returns plain values only; the class Board of src/board.ts turns them into the API (E221).
 #pragma once
 
 #include <memory>

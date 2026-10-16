@@ -2,7 +2,7 @@
 apply the same rules.
 
 Paths are relative and use /. Source files are the files of the language outside data/: .py for
-Python, .js and .mjs for JavaScript (E207). Data files lie directly in data/, since load_data only
+Python, .js and .mjs for JavaScript (E227). Data files lie directly in data/, since load_data only
 takes plain names (E62). A JavaScript upload has no node_modules folder, which would come before
 the SDK when Node resolves an import.
 """

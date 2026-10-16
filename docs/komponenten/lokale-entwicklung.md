@@ -29,7 +29,7 @@ sbm-arena tcp material --no-clock --replay partien.pgn --replay-game 3 --replay-
 | Bot-Angabe | Bedeutung |
 |------------|-----------|
 | `bot.py` | Läuft mit dem Python, in dem die Arena läuft |
-| `bot.js`, `bot.mjs`, `bot.cjs` | Läuft mit `node` aus dem `PATH` (E205) |
+| `bot.js`, `bot.mjs`, `bot.cjs` | Läuft mit `node` aus dem `PATH` (E225) |
 | andere Datei, z. B. `engine.exe` | Wird direkt gestartet |
 | Befehlszeile, z. B. `"java -jar bot.jar"` | Wird so gestartet; Name nach der Datei im Befehl (`bot`) |
 | `tcp`, `tcp:PORT` | Arena wartet auf 127.0.0.1 (Standard 7470), bis sich der Bot verbindet; je Partie eine neue Verbindung |
@@ -79,7 +79,7 @@ Ohne VS Code gilt dieselbe Reihenfolge: erst die Arena mit `tcp` im Terminal, da
 
 ### Schritt für Schritt (JavaScript, VS Code)
 
-Die Vorlage `templates/javascript/` (E205) hat dieselben Aufgaben und Debug-Konfigurationen wie die für Python, ohne `start.py`. Nach `npm install` im Ordner (Node ab 22.18, E203) startet „Bot debuggen: Weiß gegen material“ erst `sbm-arena tcp material --no-clock --moves` und dann `bot.js --tcp` im Node-Debugger. Die Arena kommt aus dem Python-SDK (`pipx install schachbotmanager`). `bot.js` startet nur als Programm eine Partie (`if (import.meta.main)`), die Funktionen lassen sich also auch importieren und testen.
+Die Vorlage `templates/javascript/` (E225) hat dieselben Aufgaben und Debug-Konfigurationen wie die für Python, ohne `start.py`. Nach `npm install` im Ordner (Node ab 22.18, E223) startet „Bot debuggen: Weiß gegen material“ erst `sbm-arena tcp material --no-clock --moves` und dann `bot.js --tcp` im Node-Debugger. Die Arena kommt aus dem Python-SDK (`pipx install schachbotmanager`). `bot.js` startet nur als Programm eine Partie (`if (import.meta.main)`), die Funktionen lassen sich also auch importieren und testen.
 
 ### Partien per Code (E120)
 
@@ -127,6 +127,6 @@ Zu beachten:
 
 - **Plattformabdeckung (R8):** Für eine Plattform ohne vorkompiliertes Paket müsste lokal gebaut werden. Die CI-Matrix deckt Windows x64, Linux x64/arm64 und macOS x64/arm64 ab (Python: E64); Alpine (musl) und 32-Bit-Systeme bauen lokal.
 - **Python-Versionen:** Python 3.11 und neuer, ein Wheel je Version (E59); Import als `import sbm`.
-- **JavaScript:** ein Addon je Plattform für alle Node-Versionen ab 22.18, ohne Linux mit musl (E201, E206); Import als `import * as sbm from "schachbotmanager"`.
+- **JavaScript:** ein Addon je Plattform für alle Node-Versionen ab 22.18, ohne Linux mit musl (E221, E226); Import als `import * as sbm from "schachbotmanager"`.
 - **Kein Schritt in den Kern (R9):** Der Python-Debugger hält im eigenen Code und im Python-Teil des SDK, nicht in der Zuggenerierung.
 - **Vorlagenprojekt je Sprache** unter `templates/<sprache>/` mit fertiger Debug-Konfiguration und einem lauffähigen Beispielbot (E69); vorhanden für Python und JavaScript, die übrigen folgen mit ihren SDKs.

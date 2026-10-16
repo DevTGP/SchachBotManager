@@ -12,7 +12,7 @@ import { OptionsError, parseOptions } from "./options.ts";
 export type BotClass = new () => Bot;
 
 export interface RunOptions {
-  /** true shows the game in the viewer window (E106); not part of this SDK yet (E205). */
+  /** true shows the game in the viewer window (E106); not part of this SDK yet (E225). */
   readonly viewer?: boolean;
 }
 

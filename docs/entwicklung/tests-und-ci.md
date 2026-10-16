@@ -126,7 +126,7 @@ Alle Python-Jobs außer `python` nutzen Python 3.12. Fehlgeschlagene pytest-Test
 
 ## Release des npm-Pakets (`npm.yml`)
 
-- Läuft wie `wheels.yml` bei einem Tag `v*` und von Hand (E206). Baut den Addon für fünf Plattformen (Linux x64/arm64 in `manylinux_2_28`, Windows x64, macOS x64/arm64 ab macOS 11), testet ihn je Plattform, packt alle in `schachbotmanager-X.Y.Z.tgz` und installiert das Paket zur Probe in einem leeren Ordner.
+- Läuft wie `wheels.yml` bei einem Tag `v*` und von Hand (E226). Baut den Addon für fünf Plattformen (Linux x64/arm64 in `manylinux_2_28`, Windows x64, macOS x64/arm64 ab macOS 11), testet ihn je Plattform, packt alle in `schachbotmanager-X.Y.Z.tgz` und installiert das Paket zur Probe in einem leeren Ordner.
 - Nur beim Tag veröffentlicht der Job `publish` es auf npm (Umgebung `npm`, Trusted Publishing). Er prüft vorher, dass der Tag zur Version des Pakets passt.
 - Derselbe Tag veröffentlicht also beide SDKs. Die Version kommt für beide aus `sdk/core/CMakeLists.txt`; `version.test.ts` prüft, dass `sdk/javascript/package.json` sie trägt.
 

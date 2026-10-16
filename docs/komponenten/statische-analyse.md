@@ -36,7 +36,7 @@ Die Regeln liegen als versionierte Konfiguration pro Sprache vor (Whitelist + Ve
 | Lokal | `sbm-check [ordner] [--entry bot.py] [--exclude GLOB] [--json]`; wählt die Dateien wie die Upload-Seite, Exit-Code 0 ohne Befund, 1 mit Befunden, 2 bei falschen Argumenten |
 | Auf dem Server | Der Runner startet `python -I -m sbm.analysis --json --entry … /bot` in der Sandbox mit höchstens 60 s und prüft die Ausgabe, bevor sie in den Report kommt ([verifikation.md](verifikation.md)) |
 
-## JavaScript (umgesetzt, E208)
+## JavaScript (umgesetzt, E228)
 
 | Teil | Umsetzung |
 |------|-----------|
@@ -46,7 +46,7 @@ Die Regeln liegen als versionierte Konfiguration pro Sprache vor (Whitelist + Ve
 | Importe | Nur `schachbotmanager` und relative Pfade auf Quelldateien des Uploads; keine `node:`-Module, kein `import()`, `import.meta` nur als `import.meta.main` |
 | Verbotene Namen | u. a. `eval`, `Function`, `globalThis`, `process`, `require`, `Reflect`, `Proxy`, `WebAssembly`, `fetch`, `Worker`, `SharedArrayBuffer` |
 | Verbotene Eigenschaften | u. a. `constructor`, `prototype`, `__proto__`, `getPrototypeOf`, `defineProperty`, `caller`, `callee`, `prepareStackTrace`; auch als Zeichenkette gemeldet |
-| Grenzen | Zur Laufzeit zusammengesetzte Zeichenketten erkennt die Analyse nicht; dafür stehen die Flags von Node und die Sandbox (E207) |
+| Grenzen | Zur Laufzeit zusammengesetzte Zeichenketten erkennt die Analyse nicht; dafür stehen die Flags von Node und die Sandbox (E227) |
 | Report | Wie bei Python: Regel, Datei, Zeile, Meldung; höchstens 100 Befunde, danach `truncated` |
 | Lokal | `npx sbm-check [ordner] [--entry bot.js] [--exclude GLOB] [--json]`; wählt die Dateien wie die Upload-Seite, Exit-Codes wie bei Python |
 | Auf dem Server | Der Runner startet `node <Flags> /node_modules/schachbotmanager/dist/analysis/bin.js --json --entry … /bot` in der Sandbox; Grenzen und Prüfung der Ausgabe wie bei Python |

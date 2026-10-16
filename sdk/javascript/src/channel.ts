@@ -146,7 +146,7 @@ function writer(stream: NodeJS.WritableStream): (line: string) => Promise<void> 
 
 /**
  * Takes stdin and stdout for the protocol and sends everything else written to process.stdout,
- * console.log included, to stderr, so nothing can corrupt the protocol stream (E205).
+ * console.log included, to stderr, so nothing can corrupt the protocol stream (E225).
  */
 export function openStdio(): Channel {
   const stdout = process.stdout;

@@ -79,14 +79,14 @@ JVM, .NET und Node müssen schon jetzt auf die feste Speichergrenze eingestellt 
 
 ## Stand M3 Schritt 2 (E86–E88)
 
-Umgesetzt für Python und seit E207 für JavaScript; die übrigen Sprachen folgen mit ihren SDKs nach demselben Muster (eigene `sandbox/<sprache>.cfg`, eigene Whitelist, eigenes Laufzeitverzeichnis unter `/opt/sbm/runtimes/<sprache>`).
+Umgesetzt für Python und seit E227 für JavaScript; die übrigen Sprachen folgen mit ihren SDKs nach demselben Muster (eigene `sandbox/<sprache>.cfg`, eigene Whitelist, eigenes Laufzeitverzeichnis unter `/opt/sbm/runtimes/<sprache>`).
 
 | Datei | Inhalt |
 |-------|--------|
 | `sandbox/python.cfg` | nsjail-Konfiguration eines Python-Bots: Namespaces, Nutzer-Abbildung, Umgebung, Mounts, rlimits; setzt `SBM_NO_VIEWER`, damit kein Viewer-Fenster aufgeht (E108) |
 | `sandbox/python.policy` | seccomp-Whitelist in kafel-Syntax |
-| `sandbox/javascript.cfg`, `sandbox/javascript.policy` | Dasselbe für Node (E207); die Whitelist erlaubt zusätzlich `restart_syscall` |
-| `services/runner/src/sbm_runner/sandbox/` | `settings` (`SBM_SANDBOX`), `runtimes` (Interpreter, Analyse, Selbstprüfung und Konfiguration je Sprache, E207), `limits` (feste Grenzen), `cgroup_tree` (Aufteilung des Baums beim Start), `cgroup` (cgroup eines Bots), `jail_player` (Spieler über nsjail), `stderr_tail`, `jail` (Selbstprüfung, Spieler je Bot) |
+| `sandbox/javascript.cfg`, `sandbox/javascript.policy` | Dasselbe für Node (E227); die Whitelist erlaubt zusätzlich `restart_syscall` |
+| `services/runner/src/sbm_runner/sandbox/` | `settings` (`SBM_SANDBOX`), `runtimes` (Interpreter, Analyse, Selbstprüfung und Konfiguration je Sprache, E227), `limits` (feste Grenzen), `cgroup_tree` (Aufteilung des Baums beim Start), `cgroup` (cgroup eines Bots), `jail_player` (Spieler über nsjail), `stderr_tail`, `jail` (Selbstprüfung, Spieler je Bot) |
 | `services/runner/tests/sandbox/` | Negativ-Suite mit Testbots und `run-in-docker.sh` |
 
 **Feste Grenzen** (`limits.py`, A14): 1 GiB Speicher ohne Swap, 128 Prozesse und Threads, 64 Dateideskriptoren, keine beschreibbare Datei außer `/dev/null`, kein `/dev/urandom` (Zufall über `getrandom`), Zeilen bis 64 KiB, von stderr bleiben die letzten 4 KiB im Log des Runners.
@@ -106,7 +106,7 @@ Umgesetzt für Python und seit E207 für JavaScript; die übrigen Sprachen folge
 - **Selbstprüfung:** Sie läuft beim Start des Runners für jede Laufzeit und meldet die Versionen von Python bzw. Node und SDK als JSON; der Runner trägt sie in Report und Bot ein.
 - **stderr:** Zusätzlich zu den letzten 4 KiB zählt der Runner die Gesamtmenge; über 1 MiB scheitert ein Mindesttest (E92).
 
-## Stand JavaScript (E207)
+## Stand JavaScript (E227)
 
 - **Laufzeit:** Read-only-Wurzelbaum `/opt/sbm/runtimes/javascript` aus `node:24.22.0-trixie-slim` mit `/usr/local/bin/node`, den nötigen Bibliotheken und dem npm-Paket samt Addon unter `/node_modules/schachbotmanager`. acorn liegt verschachtelt im Paket, ein Bot findet also nur das SDK. Ohne `package.json` in der Wurzel liest Node jede Datei des Bots nach ihrer Syntax als ES-Modul.
 - **Start:** `node --permission --allow-fs-read=* --allow-addons --disable-warning=SecurityWarning --disallow-code-generation-from-strings --no-expose-wasm --max-old-space-size=768 /bot/<entry>`. Die Flags verbieten Kindprozesse, Worker, WASI, Inspector, Schreibrechte, Code aus Zeichenketten und WebAssembly; der Heap bleibt unter der Speichergrenze, sodass ein voller Heap als JavaScript-Fehler endet. Sie sind eine weitere Schicht, die Sandbox muss allein reichen.

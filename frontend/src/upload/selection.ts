@@ -1,4 +1,4 @@
-// What a folder selection uploads (verifikation.md, E207): the source files of the language
+// What a folder selection uploads (verifikation.md, E227): the source files of the language
 // outside data/ and files directly in data/. Everything else, such as .vscode/, README.md or
 // __pycache__/, stays at home; node_modules/ is left out without a word, since it holds thousands
 // of files. The API checks the remaining rules and names the file to blame.

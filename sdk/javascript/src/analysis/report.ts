@@ -1,4 +1,4 @@
-// Findings and the report of an analysis; the JSON form is what the runner reads (E90, E208).
+// Findings and the report of an analysis; the JSON form is what the runner reads (E90, E228).
 
 export const UPLOAD = "upload";
 export const ENCODING = "encoding";

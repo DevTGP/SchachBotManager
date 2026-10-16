@@ -1,4 +1,4 @@
-// Tries to run code from strings or WebAssembly; exits with 42 if it can (E207).
+// Tries to run code from strings or WebAssembly; exits with 42 if it can (E227).
 import * as sbm from "schachbotmanager";
 
 function evaluates(attempt) {

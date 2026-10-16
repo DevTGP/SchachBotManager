@@ -1,4 +1,4 @@
-// Loads the addon sbm.node for this platform (E201) and hands it the error classes, so that
+// Loads the addon sbm.node for this platform (E221) and hands it the error classes, so that
 // errors of the core arrive as ChessError and its subclasses.
 import { createRequire } from "node:module";
 import path from "node:path";

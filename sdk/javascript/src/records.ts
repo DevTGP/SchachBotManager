@@ -1,4 +1,4 @@
-// Records of the bot API (spec/api/types.json) with fields in camelCase (E204). The SDK hands
+// Records of the bot API (spec/api/types.json) with fields in camelCase (E224). The SDK hands
 // them over as frozen objects; Info is filled in by the bot.
 import type { Color, Piece, Square } from "./constants.ts";
 import type { Move } from "./move.ts";

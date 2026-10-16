@@ -57,7 +57,7 @@ function call(vector: CallVector, board: sbm.Board | undefined): unknown {
   const args = vector.args.map((value, i) => decode(value, spec.params[i].type));
   const owner = spec.owner === "Board" ? sbm.Board : sbm.Move;
   if (spec.kind === "constructor") {
-    // Move has no public constructor, its create is static (E204).
+    // Move has no public constructor, its create is static (E224).
     return owner === sbm.Board
       ? new sbm.Board()
       : sbm.Move.create(...(args as [number, number, number]));

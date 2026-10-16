@@ -1,4 +1,4 @@
-// sbm-check: the files of a bot folder, the report and the command line (E208).
+// sbm-check: the files of a bot folder, the report and the command line (E228).
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
@@ -11,7 +11,7 @@ import { EXIT_FINDINGS, EXIT_USAGE, main } from "../src/analysis/cli.ts";
 import { checkProject, selectFiles } from "../src/analysis/project.ts";
 
 const BIN = fileURLToPath(new URL("../src/analysis/bin.ts", import.meta.url));
-// The flags of a bot on the server (E207); the analysis runs with them too. Without
+// The flags of a bot on the server (E227); the analysis runs with them too. Without
 // --no-expose-wasm here, since Node strips the types of bin.ts with WebAssembly.
 const SANDBOX_FLAGS = [
   "--permission",

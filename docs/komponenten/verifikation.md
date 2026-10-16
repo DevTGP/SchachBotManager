@@ -2,7 +2,7 @@
 
 Jeder Upload durchläuft die Pipeline vollständig, bevor der Bot an Spielen teilnehmen darf. Die Pipeline läuft als Job im Runner; Partien haben Vorrang, ein Verifikationsjob nach 15 min Wartezeit aber vor der nächsten Partie (E81, E89). Quell- und Datendateien liegen in GridFS (E82, E94).
 
-Umgesetzt ist die Pipeline für Python (E92) und JavaScript (E207): Annahme, Analyse, Mindesttests und automatische Freigabe; Build und Artefaktprüfung entfallen bei beiden.
+Umgesetzt ist die Pipeline für Python (E92) und JavaScript (E227): Annahme, Analyse, Mindesttests und automatische Freigabe; Build und Artefaktprüfung entfallen bei beiden.
 
 ## Stufen
 
@@ -38,7 +38,7 @@ Umgesetzt ist die Pipeline für Python (E92) und JavaScript (E207): Annahme, Ana
 | Einstieg | Eine `.py`-Datei im obersten Ordner, Standard `bot.py`; der Bot startet als `python /bot/<entry>` |
 | Form | Ein Ordner oder einzelne Dateien im Browser; die Upload-Seite lässt versteckte Ordner, `__pycache__` und alles Übrige weg und zeigt es an |
 
-### JavaScript (E207)
+### JavaScript (E227)
 
 Wie bei Python, mit diesen Unterschieden:
 
@@ -65,7 +65,7 @@ Dieselben Regeln (`sbm.analysis.upload` mit Sprache) prüfen die Web-API bei der
 
 Die Tests laufen mit einer kurzen Standard-Zeitkontrolle und den festen Schutzgrenzen der Sandbox.
 
-Umsetzung (E92, für JavaScript gleich, E207): Gegner ist der Referenzbot `random`, ebenfalls in der Sandbox. Die Tests enden beim ersten Fehlschlag.
+Umsetzung (E92, für JavaScript gleich, E227): Gegner ist der Referenzbot `random`, ebenfalls in der Sandbox. Die Tests enden beim ersten Fehlschlag.
 
 | Test | Bedingungen |
 |------|-------------|

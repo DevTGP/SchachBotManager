@@ -1,4 +1,4 @@
-"""The commands of the runtimes in the jail; the jail itself is tested in sandbox/ (E207)."""
+"""The commands of the runtimes in the jail; the jail itself is tested in sandbox/ (E227)."""
 
 from sbm_runner.sandbox.runtimes import JAVASCRIPT, NODE_FLAGS, PYTHON, REFERENCE, RUNTIMES
 

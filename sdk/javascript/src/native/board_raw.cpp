@@ -1,5 +1,5 @@
 // Raw access for fast evaluations (spec/api/board_raw.json). Every bitboard comes as bigint and,
-// with the suffix 32, as a Uint32Array with the low and high half (E204).
+// with the suffix 32, as a Uint32Array with the low and high half (E224).
 #include <array>
 #include <cstdint>
 

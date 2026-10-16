@@ -22,7 +22,7 @@ inline Napi::Uint16Array move_array(Napi::Env env, const sbm_move* moves, std::u
     return result;
 }
 
-// The low and high half of each value, for the functions with the suffix 32 (E204).
+// The low and high half of each value, for the functions with the suffix 32 (E224).
 inline Napi::Uint32Array halves(Napi::Env env, const std::uint64_t* values, std::size_t count) {
     Napi::Uint32Array result = Napi::Uint32Array::New(env, count * 2);
     for (std::size_t i = 0; i < count; ++i) {

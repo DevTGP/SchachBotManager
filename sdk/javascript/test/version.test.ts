@@ -1,4 +1,4 @@
-// The package carries the version of the core (E202).
+// The package carries the version of the core (E222).
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";

@@ -1,4 +1,4 @@
-// sbm-check: checks a bot folder against the rules of the server before the upload (E208).
+// sbm-check: checks a bot folder against the rules of the server before the upload (E228).
 //
 // Exit codes: 0 no findings, 1 findings, 2 invalid arguments.
 import { statSync } from "node:fs";

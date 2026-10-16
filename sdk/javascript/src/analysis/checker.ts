@@ -1,11 +1,11 @@
-// The rules a single file must follow (statische-analyse.md, E208).
+// The rules a single file must follow (statische-analyse.md, E228).
 //
 // Every .js file is an ES module: Node runs one without import or export as CommonJS in sloppy
 // mode, where this in a function is the global object. Imports name the SDK or a source file of
 // the upload; there is no import() and import.meta only as import.meta.main. Forbidden globals
 // may not appear as names, forbidden properties neither as property names nor as strings.
 // Strings built at runtime pass this check; for them the flags of Node and the sandbox are the
-// defense (E207).
+// defense (E227).
 import path from "node:path";
 
 import type { AnyNode, Identifier, Program } from "acorn";

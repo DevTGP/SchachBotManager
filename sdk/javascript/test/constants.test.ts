@@ -1,4 +1,4 @@
-// The constants of spec/api/constants.json as named exports (E204).
+// The constants of spec/api/constants.json as named exports (E224).
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

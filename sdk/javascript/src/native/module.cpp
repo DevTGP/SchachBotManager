@@ -1,4 +1,4 @@
-// Entry of the addon sbm.node (E201): checks the ABI of the core and exports NativeBoard, the
+// Entry of the addon sbm.node (E221): checks the ABI of the core and exports NativeBoard, the
 // move functions and the version. src/native.ts loads it and hands over the error classes.
 #include <napi.h>
 

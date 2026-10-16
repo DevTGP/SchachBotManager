@@ -1,4 +1,4 @@
-// What an upload of a JavaScript bot may contain (verifikation.md, E207); the same rules as
+// What an upload of a JavaScript bot may contain (verifikation.md, E227); the same rules as
 // sbm.analysis.upload of the Python SDK, which the web API and the runner apply.
 //
 // Paths are relative and use /. Source files are .js and .mjs files outside data/; data files

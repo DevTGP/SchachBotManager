@@ -22,7 +22,7 @@ import { NAME, parseVersion, suggestVersion } from "../../upload/version";
 import { DESCRIPTION_LENGTH } from "../bot/BotDescription";
 import { FileDrop } from "./FileDrop";
 
-/** Upload of a bot as a folder of sources (E91, E92, E207); the own bots are on "My bots". */
+/** Upload of a bot as a folder of sources (E91, E92, E227); the own bots are on "My bots". */
 export function UploadPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();

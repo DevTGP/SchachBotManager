@@ -1,6 +1,6 @@
 # Code-Karte: JavaScript-SDK
 
-Das JavaScript-SDK unter `sdk/javascript` ist das npm-Paket `schachbotmanager` (E200–E206): ein Node-API-Addon `sbm.node` mit dem Kern und darüber TypeScript, ausgeliefert als ESM mit `.d.ts`. Es ist Schritt 1 von M5: lokales SDK mit `run` über `stdio` und `tcp`; Upload, `remote`, `play` und Viewer kommen später. Konzepte: [sdk-api.md](../komponenten/sdk-api.md), [bot-protokoll.md](../komponenten/bot-protokoll.md) und [`spec/api/`](../../spec/api/).
+Das JavaScript-SDK unter `sdk/javascript` ist das npm-Paket `schachbotmanager` (E220–E226): ein Node-API-Addon `sbm.node` mit dem Kern und darüber TypeScript, ausgeliefert als ESM mit `.d.ts`. Es ist Schritt 1 von M5: lokales SDK mit `run` über `stdio` und `tcp`; Upload, `remote`, `play` und Viewer kommen später. Konzepte: [sdk-api.md](../komponenten/sdk-api.md), [bot-protokoll.md](../komponenten/bot-protokoll.md) und [`spec/api/`](../../spec/api/).
 
 ## Einstieg
 
@@ -14,7 +14,7 @@ Das JavaScript-SDK unter `sdk/javascript` ist das npm-Paket `schachbotmanager` (
 
 Lesereihenfolge:
 
-1. `spec/api/*.json`: was die API verspricht; die Namen sind dort in snake_case, hier in camelCase (E204).
+1. `spec/api/*.json`: was die API verspricht; die Namen sind dort in snake_case, hier in camelCase (E224).
 2. `src/native.ts`: Schnittstelle `NativeBoard` und Laden des Addons.
 3. `src/move.ts`, dann `src/board.ts`: Züge als 16-Bit-Werte mit genau einem Objekt je Wert, Brett darüber.
 4. `src/bot.ts`, `src/game.ts`, `src/channel.ts`, `src/runtime.ts`: Partie aus Sicht des Bots.
@@ -24,13 +24,13 @@ Lesereihenfolge:
 
 | Modul | Aufgabe |
 |-------|---------|
-| `board.ts`, `move.ts` | `Board` und `Move` (spec `board*.json`, `move.json`); 64-Bit-Werte als `bigint`, mit Endung `32` als `Uint32Array` (E204) |
+| `board.ts`, `move.ts` | `Board` und `Move` (spec `board*.json`, `move.json`); 64-Bit-Werte als `bigint`, mit Endung `32` als `Uint32Array` (E224) |
 | `constants.ts`, `errors.ts`, `records.ts` | Konstanten als Zahlen, Fehlerklassen ab `ChessError`, eingefrorene Records (`GameInfo`, `GameResult`, `Info`) |
 | `clock.ts`, `log.ts` | Uhr des aktuellen Zuges; Debug-Log auf stderr mit Zeit, Halbzug und Stufe |
 | `bot.ts` | Basisklasse `Bot`; `report` merkt sich die Suchinfo, `takeReport` holt sie für die Zugnachricht ab |
 | `info.ts` | Kürzt `Info` auf die Grenzen des Protokolls (E43, E63) |
 | `protocol.ts`, `channel.ts`, `game.ts` | Nachrichten von Protokoll v1, Zeilenkanal über stdio oder TCP, Zustandsautomat einer Partie |
-| `options.ts`, `runtime.ts` | Argumente und Umgebung wie in Python (E61); `run` lenkt `process.stdout` auf stderr um und schreibt das Protokoll direkt auf fd 1 (E205) |
+| `options.ts`, `runtime.ts` | Argumente und Umgebung wie in Python (E61); `run` lenkt `process.stdout` auf stderr um und schreibt das Protokoll direkt auf fd 1 (E225) |
 | `data.ts` | `loadData` aus `SBM_DATA_DIR`, sonst `data/` neben dem Hauptmodul (E62) |
 | `native.ts` | Lädt `prebuilds/<platform>-<arch>/sbm.node` und gibt ihm die Fehlerklassen |
 | `src/native/*.cpp` | Addon mit `node-addon-api`: je Datei der spec ein Teil (`board_moves`, `board_query`, `board_raw`, `board_state`), dazu `status` (Statuscodes als Fehler), `arguments.hpp` und `values.hpp` (Umwandlung der Werte) |
@@ -38,7 +38,7 @@ Lesereihenfolge:
 - [`CMakeLists.txt`](../../sdk/javascript/CMakeLists.txt) bindet den Kern über `add_subdirectory(../core)` statisch ein, mit statischer C++-Laufzeit unter MSVC. Die Pfade von `node-api-headers` und `node-addon-api` setzt `build-native.mjs`; direkt mit CMake aufgerufen bricht es ab.
 - `npm run build` übersetzt `src/` mit `tsconfig.build.json` nach `dist/`; das Paket enthält `dist/` und `prebuilds/`. In den Quellen und Tests importieren die Module mit Endung `.ts`, Node führt sie ab 22.18 ohne Build-Schritt aus.
 
-### Statische Analyse `src/analysis/` (E207, E208)
+### Statische Analyse `src/analysis/` (E227, E228)
 
 | Modul | Aufgabe |
 |-------|---------|

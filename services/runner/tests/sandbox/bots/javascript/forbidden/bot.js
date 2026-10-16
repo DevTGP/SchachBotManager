@@ -1,4 +1,4 @@
-// Imports a module the analysis does not allow; it must find it (E208).
+// Imports a module the analysis does not allow; it must find it (E228).
 import * as sbm from "schachbotmanager";
 import { hostname } from "node:os";
 

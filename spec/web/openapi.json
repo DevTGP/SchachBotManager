@@ -2963,7 +2963,7 @@
         "additionalProperties": false
       },
       "BotUpload": {
-        "description": "Paths are relative with /; source files of the language (.py for Python, .js and .mjs for JavaScript, no folder node_modules) and data files directly in data/, at most 100 of each and 1 MiB each in all (verifikation.md, E207). At most 20 uploads a day per account.",
+        "description": "Paths are relative with /; source files of the language (.py for Python, .js and .mjs for JavaScript, no folder node_modules) and data files directly in data/, at most 100 of each and 1 MiB each in all (verifikation.md, E227). At most 20 uploads a day per account.",
         "type": "object",
         "properties": {
           "name": { "$ref": "#/components/schemas/BotName" },
