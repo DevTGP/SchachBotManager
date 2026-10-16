@@ -24,6 +24,7 @@ jobs:
       core_headers: ${{ steps.areas.outputs.core_headers }}
       core: ${{ steps.areas.outputs.core }}
       python: ${{ steps.areas.outputs.python }}
+      javascript: ${{ steps.areas.outputs.javascript }}
       services: ${{ steps.areas.outputs.services }}
       sandbox: ${{ steps.areas.outputs.sandbox }}
       frontend: ${{ steps.areas.outputs.frontend }}
@@ -172,6 +173,62 @@ jobs:
       - name: Test (API vectors, constants, errors, objects, template)
         run: pytest sdk/python
 
+  javascript:
+    name: JavaScript SDK (${{ matrix.os }}, Node ${{ matrix.node }})
+    needs: changes
+    if: needs.changes.outputs.javascript == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node: ["22", "24"]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: sdk/javascript
+    env:
+      # One entry also plays real games in sbm-arena of the Python SDK (M5 step 1).
+      ARENA: ${{ matrix.os == 'ubuntu-latest' && matrix.node == '24' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: sdk/javascript/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Build the addon with the core
+        run: npm run build:native
+
+      - name: Lint (SDK and templates/javascript)
+        run: |
+          npm run lint
+          npm run format:check
+
+      - name: Type check and build
+        run: |
+          npm run typecheck
+          npm run build
+
+      - uses: actions/setup-python@v6
+        if: env.ARENA == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Install the Python SDK for sbm-arena
+        if: env.ARENA == 'true'
+        working-directory: .
+        run: |
+          pip install -C cmake.define.SBM_VIEWER=OFF ./sdk/python
+          echo "SBM_REQUIRE_ARENA=1" >> "$GITHUB_ENV"
+
+      - name: Test (API vectors, protocol, run, template)
+        run: npm test
+
   services:
     name: Store, runner and web API
     needs: changes
@@ -319,6 +376,6 @@ jobs:
       - name: Check formatting
         run: >
           find sdk/core/include sdk/core/src sdk/core/tests sdk/python/src/native
-          sdk/viewer/src sdk/viewer/tests
+          sdk/javascript/src/native sdk/viewer/src sdk/viewer/tests
           \( -name '*.h' -o -name '*.c' -o -name '*.hpp' -o -name '*.cpp' \)
           -exec clang-format --dry-run --Werror {} +

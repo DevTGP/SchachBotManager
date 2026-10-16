@@ -17,6 +17,7 @@ Welche Tests es je Paket gibt, wie sie laufen, was die CI daraus macht und wie R
 | `tools/testvector-gen` | Unit-Tests des Generators; dazu prüft `--check`, dass die eingecheckten Vektoren dem Generator entsprechen | `tools/testvector-gen/tests` | `pytest tools/testvector-gen`, `testvector-gen spec --check --perft fast` |
 | Kern (`sdk/core`) | C++-Unit-Tests der Engine und der C-Schnittstelle; Vektor-Läufer über alle JSON-Vektoren; Header-Check in C11 und C++20 | `sdk/core/tests/{unit,vectors}`, `header_check.{c,cpp}` | `ctest --test-dir build/core …`, `gcc`/`g++ -fsyntax-only` |
 | Python-SDK | API-Vektoren, Oberfläche, Referee, Arena, Analyse, Transporte, `sbm.play`, Viewer-Client, Vorlage, Abnahmetest | `sdk/python/tests` | `pytest sdk/python` (gegen das installierte Paket) |
+| JavaScript-SDK (`sdk/javascript`) | API-Vektoren, Oberfläche gegen `spec/api/`, je Modul, `run` in eigenen Prozessen, Partien in `sbm-arena`, Vorlage | `sdk/javascript/test` | `npm test` in `sdk/javascript` (nach `npm run build:native`) |
 | Viewer (`sdk/viewer`) | Modelltests ohne Fenster (Nachrichten, Session, Navigation, Text); das Programm selbst testet `test_viewer_program.py` über einen Screenshot | `sdk/viewer/tests` | `ctest --test-dir build/viewer …` |
 | `services/store` | Funktionen je Collection, Migrationen, Ratings, Einstellungen | `services/store/tests` | `pytest services/store` |
 | `services/gateway` | Gateway in einem Thread auf freien Ports, beide Enden als WebSocket- bzw. TCP-Client | `services/gateway/tests` | `pytest services/gateway` |
@@ -24,6 +25,7 @@ Welche Tests es je Paket gibt, wie sie laufen, was die CI daraus macht und wie R
 | `backend` | Je Endpunkt eine Testdatei; jede Antwort gegen `spec/web/openapi.json` geprüft | `backend/tests` | `pytest backend` |
 | `frontend` | Vitest mit Testing Library: Seiten, Viewer, Formulare, Socket | `frontend/src/**/*.test.ts(x)` | `npm test` in `frontend/` |
 | `templates/python` | Die Vorlage startet und spielt; läuft mit dem SDK | `sdk/python/tests/test_template.py` | `pytest sdk/python` |
+| `templates/javascript` | Buch, Zugwahl, Start als Programm, VS-Code-Konfiguration, Partie in der Arena; gegen eine Kopie, die das SDK aus `src/` importiert | `sdk/javascript/test/template.test.ts` | `npm test` in `sdk/javascript` |
 
 Die Python-Pakete werden einzeln aufgerufen (`pytest services/store`, nicht `pytest services`): Jedes hat eigene `conftest.py` und Hilfsmodule mit gleichen Namen.
 
@@ -40,6 +42,7 @@ Die Python-Pakete werden einzeln aufgerufen (`pytest services/store`, nicht `pyt
 | `RunningGateway` | [`services/gateway/tests/conftest.py`](../../services/gateway/tests/conftest.py) | Gateway auf freien Ports in eigenem Event-Loop |
 | `reset_log` (autouse) | [`sdk/python/tests/conftest.py`](../../sdk/python/tests/conftest.py) | Jeder Test beginnt mit dem Standard-Logzustand |
 | `arena_bots.py`, `scripted_player.py`, `remote_fakes.py`, `viewer_fakes.py`, `vector_codec.py`, `protocol_schemas.py`, `spec_files.py` | `sdk/python/tests/` | Bots für die Arena, Spieler mit festem Skript, falscher Server und falsches Viewer-Programm, Lesen der Vektoren und Schemas aus `spec/` |
+| `spec.ts`, `referee.ts`, `bot-process.ts`, `capture.ts`, `arena-command.ts` | `sdk/javascript/test/` | Spezifikation lesen, Referee mit festem Skript, Bot in eigenem Node-Prozess, Log mitschneiden, `sbm-arena` aufrufen |
 | `mockApi`, `renderRoute` u. a. | [`frontend/src/test/render.tsx`](../../frontend/src/test/render.tsx) | Ersetzt `fetch`; Antworten je API-Pfad als Wert oder Funktion; zeichnet jede Anfrage mit Methode, Kopf und Körper auf |
 | `fixtures.ts`, `leagues.ts`, `fakeSocket.ts`, `files.ts`, `setup.ts` | `frontend/src/test/` | Typisierte Beispieldaten aus `api/types` (Ligen eigens), steuerbarer WebSocket, Dateien wie aus einer Ordnerauswahl, Englisch als Sprache und Aufräumen nach jedem Test |
 
@@ -50,6 +53,8 @@ Die Python-Pakete werden einzeln aufgerufen (`pytest services/store`, nicht `pyt
 | `SBM_TEST_MONGO_URI` | MongoDB der Tests, Standard `mongodb://localhost:27017`; ohne erreichbaren Server werden die Datenbanktests übersprungen |
 | `SBM_REQUIRE_MONGO=1` | Datenbanktests scheitern statt sich zu überspringen (in der CI gesetzt) |
 | `SBM_REQUIRE_VIEWER=1` | Tests des Viewer-Programms scheitern, wenn es im installierten Paket fehlt (Job `viewer`) |
+| `SBM_ARENA` | Pfad zu `sbm-arena` für die Arena-Tests des JavaScript-SDK, Standard aus dem `PATH`; ohne Arena überspringen sie sich |
+| `SBM_REQUIRE_ARENA=1` | Arena-Tests des JavaScript-SDK scheitern ohne `sbm-arena` (Job `javascript` unter Linux mit Node 24) |
 | `SBM_REQUIRE_SANDBOX=1` | Negativ-Suite scheitert ohne nsjail und beschreibbare cgroup v2 (gesetzt von `run-in-docker.sh`) |
 | `SBM_SANDBOX=none` | Runner ohne Sandbox, nur für Referenzbots; so laufen die Runner-Tests außerhalb des Images |
 | `SDL_VIDEO_DRIVER=offscreen` | Viewer ohne Display, für den Screenshot-Test |
@@ -83,11 +88,12 @@ Die Bereiche stehen als reguläre Ausdrücke in [`changed-areas.sh`](../../.gith
 | `core-headers` | `sdk/core/include/`, `sdk/core/tests/header_check*` | Header in C11 und C++20 mit `-Wall -Wextra -Wpedantic -Werror` |
 | `core` | `sdk/core/`, `spec/testvectors/` | Build und `ctest` mit langsamen Perft-Vektoren unter Linux, Windows, macOS |
 | `python` | `sdk/core/`, `sdk/python/`, `templates/python/`, `spec/` | SDK ohne Viewer bauen, Ruff für SDK und Vorlage, `pytest sdk/python`; Python 3.11 und 3.14 auf drei Systemen |
+| `javascript` | `sdk/core/`, `sdk/javascript/`, `templates/javascript/`, `sdk/python/src/sbm/{arena,referee,bots}/`, `spec/` | `npm ci`, Addon bauen, ESLint und Prettier für SDK und Vorlage, `tsc`, `npm test`; Node 22 und 24 auf drei Systemen, unter Linux mit Node 24 mit installiertem Python-SDK und `SBM_REQUIRE_ARENA=1` |
 | `services` | `sdk/core/`, `sdk/python/`, `services/`, `backend/`, `spec/` | Mit MongoDB 8.0 als Dienst und `SBM_REQUIRE_MONGO=1`: Ruff, dann Tests von Store, Gateway, Runner und API |
 | `sandbox` | `sandbox/`, `deploy/python.Dockerfile`, `sdk/core/`, `sdk/python/`, `services/` | Baut das Runner-Image und führt die Negativ-Suite mit den Rechten des Runners aus |
 | `frontend` | `frontend/`, `spec/web/` | `npm ci`, `api-types:check`, Lint, Prettier, `npm test`, `npm run build` |
 | `viewer` | `sdk/core/`, `sdk/viewer/`, Viewer-Teile von `sdk/python/`, `spec/protocol/` | Modelltests, dann das SDK mit Viewer bauen und `pytest sdk/python -k viewer` mit `SBM_REQUIRE_VIEWER=1`; drei Systeme, unter Linux mit X11-Headern |
-| `native-format` | `sdk/.clang-format`, Quellen in Kern, Python-Modul und Viewer | `clang-format --dry-run --Werror` (19.1.7) |
+| `native-format` | `sdk/.clang-format`, Quellen in Kern, Python-Modul, JavaScript-Addon und Viewer | `clang-format --dry-run --Werror` (19.1.7) |
 
 Alle Python-Jobs außer `python` nutzen Python 3.12. Fehlgeschlagene pytest-Tests erscheinen als Annotation des Laufs, lesbar ohne Anmeldung.
 
@@ -100,6 +106,7 @@ Alle Python-Jobs außer `python` nutzen Python 3.12. Fehlgeschlagene pytest-Test
 | Fehler aus `openapi_core` in einem `backend`-Test | Die Antwort weicht vom Schema ab: Feld fehlt in `openapi.json`, falscher Typ oder `nullable` vergessen |
 | Ruff-Format | `ruff format` im betroffenen Paket ausführen |
 | clang-format | `clang-format -i` auf die Datei; Version 19.1.7 verwenden, andere Versionen formatieren anders |
+| Prettier im Job `javascript` | `npm run format` in `sdk/javascript`; prüft auch `templates/javascript` |
 | Test nur unter Windows rot | Häufig Pfadtrenner, Zeilenenden oder Prozessgruppen; die Arena hat dafür getrennte Module (`posix_group.py`, `windows_job.py`) |
 
 ## Deploy (`deploy.yml`)
@@ -114,6 +121,12 @@ Alle Python-Jobs außer `python` nutzen Python 3.12. Fehlgeschlagene pytest-Test
 - Läuft bei einem Tag `v*` und von Hand. Baut und testet die Wheels mit cibuildwheel für Linux, Windows und macOS und lädt sie als Artefakte hoch.
 - Nur beim Tag veröffentlicht der Job `publish` sie auf PyPI (Umgebung `pypi`, Trusted Publishing, E70). Er prüft vorher, dass der Tag zur Version des Pakets passt.
 - Ablauf: Version in `sdk/core/CMakeLists.txt` setzen, committen, `git tag vX.Y.Z`, `git push origin master vX.Y.Z`. Details in [aenderungen.md](aenderungen.md#sdk-veröffentlichen).
+
+## Release des npm-Pakets (`npm.yml`)
+
+- Läuft wie `wheels.yml` bei einem Tag `v*` und von Hand (E206). Baut den Addon für fünf Plattformen (Linux x64/arm64 in `manylinux_2_28`, Windows x64, macOS x64/arm64 ab macOS 11), testet ihn je Plattform, packt alle in `schachbotmanager-X.Y.Z.tgz` und installiert das Paket zur Probe in einem leeren Ordner.
+- Nur beim Tag veröffentlicht der Job `publish` es auf npm (Umgebung `npm`, Trusted Publishing). Er prüft vorher, dass der Tag zur Version des Pakets passt.
+- Derselbe Tag veröffentlicht also beide SDKs. Die Version kommt für beide aus `sdk/core/CMakeLists.txt`; `version.test.ts` prüft, dass `sdk/javascript/package.json` sie trägt.
 
 ## Workflows lokal prüfen
 
