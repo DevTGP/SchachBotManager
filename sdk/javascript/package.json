@@ -22,10 +22,10 @@
     "build:native": "node scripts/build-native.mjs",
     "build": "tsc -p tsconfig.build.json",
     "test": "node --test \"test/*.test.ts\"",
-    "lint": "eslint .",
+    "lint": "eslint . && node scripts/lint-template.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format": "prettier --write . ../../templates/javascript",
+    "format:check": "prettier --check . ../../templates/javascript"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

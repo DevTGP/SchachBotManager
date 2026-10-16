@@ -1,0 +1,15 @@
+{
+  "name": "my-chess-bot",
+  "private": true,
+  "type": "module",
+  "main": "bot.js",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "arena": "sbm-arena bot.js material --games 10 --pgn games.pgn"
+  },
+  "dependencies": {
+    "schachbotmanager": ">=0.4.0"
+  }
+}

@@ -29,6 +29,7 @@ sbm-arena tcp material --no-clock --replay partien.pgn --replay-game 3 --replay-
 | Bot-Angabe | Bedeutung |
 |------------|-----------|
 | `bot.py` | Läuft mit dem Python, in dem die Arena läuft |
+| `bot.js`, `bot.mjs`, `bot.cjs` | Läuft mit `node` aus dem `PATH` (E205) |
 | andere Datei, z. B. `engine.exe` | Wird direkt gestartet |
 | Befehlszeile, z. B. `"java -jar bot.jar"` | Wird so gestartet; Name nach der Datei im Befehl (`bot`) |
 | `tcp`, `tcp:PORT` | Arena wartet auf 127.0.0.1 (Standard 7470), bis sich der Bot verbindet; je Partie eine neue Verbindung |
@@ -76,6 +77,10 @@ Ausgangspunkt ist die Vorlage `templates/python/` (E69); ihr README beschreibt d
 
 Ohne VS Code gilt dieselbe Reihenfolge: erst die Arena mit `tcp` im Terminal, dann den Bot mit `--tcp` im Debugger der eigenen IDE.
 
+### Schritt für Schritt (JavaScript, VS Code)
+
+Die Vorlage `templates/javascript/` (E205) hat dieselben Aufgaben und Debug-Konfigurationen wie die für Python, ohne `start.py`. Nach `npm install` im Ordner (Node ab 22.18, E203) startet „Bot debuggen: Weiß gegen material“ erst `sbm-arena tcp material --no-clock --moves` und dann `bot.js --tcp` im Node-Debugger. Die Arena kommt aus dem Python-SDK (`pipx install schachbotmanager`). `bot.js` startet nur als Programm eine Partie (`if (import.meta.main)`), die Funktionen lassen sich also auch importieren und testen.
+
 ### Partien per Code (E120)
 
 `start.py` der Vorlage ruft `sbm.play(TemplateBot, "material", games=2)` auf; `python start.py` oder „Partien aus start.py“ in VS Code spielt ohne Argumente. Der eigene Bot läuft dabei in einem Thread des Skripts, Haltepunkte greifen also ohne Arena; die Uhr läuft weiter und der Bot wird nicht eingefroren. Mit `server` und `token` spielt derselbe Aufruf gegen einen Bot der Website (siehe unten). Anleitung: `sdk/python/docs/spielen-per-code.md`.
@@ -111,7 +116,7 @@ Der gemeinsame Kern (E3) wird nie vom Bot-Autor kompiliert. Jedes SDK-Paket enth
 | Sprache | Einrichtung | Bot starten |
 |---------|-------------|-------------|
 | Python | `pip install schachbotmanager` | `python mein_bot.py` |
-| JavaScript | `npm install <sdk>` | `node mein_bot.js` |
+| JavaScript | `npm install schachbotmanager` (Node ab 22.18) | `node mein_bot.js` |
 | Java | Eine Abhängigkeit (Maven/Gradle) oder ein JAR im Klassenpfad | Normale `main`-Klasse |
 | C# | `dotnet add package <sdk>` | `dotnet run` |
 | C++ | Archiv entpacken, per CMake einbinden; Compiler nötig | Kompilieren, ausführen |
@@ -122,5 +127,6 @@ Zu beachten:
 
 - **Plattformabdeckung (R8):** Für eine Plattform ohne vorkompiliertes Paket müsste lokal gebaut werden. Die CI-Matrix deckt Windows x64, Linux x64/arm64 und macOS x64/arm64 ab (Python: E64); Alpine (musl) und 32-Bit-Systeme bauen lokal.
 - **Python-Versionen:** Python 3.11 und neuer, ein Wheel je Version (E59); Import als `import sbm`.
+- **JavaScript:** ein Addon je Plattform für alle Node-Versionen ab 22.18, ohne Linux mit musl (E201, E206); Import als `import * as sbm from "schachbotmanager"`.
 - **Kein Schritt in den Kern (R9):** Der Python-Debugger hält im eigenen Code und im Python-Teil des SDK, nicht in der Zuggenerierung.
-- **Vorlagenprojekt je Sprache** unter `templates/<sprache>/` mit fertiger Debug-Konfiguration und einem lauffähigen Beispielbot (E69); vorhanden für Python, die übrigen folgen mit ihren SDKs.
+- **Vorlagenprojekt je Sprache** unter `templates/<sprache>/` mit fertiger Debug-Konfiguration und einem lauffähigen Beispielbot (E69); vorhanden für Python und JavaScript, die übrigen folgen mit ihren SDKs.

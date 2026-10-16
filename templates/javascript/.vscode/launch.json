@@ -1,0 +1,59 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Bot debuggen: Weiß gegen material",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/bot.js",
+      "args": ["--tcp"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"],
+      "preLaunchTask": "Arena: Bot mit Weiß gegen material"
+    },
+    {
+      "name": "Bot debuggen: Schwarz gegen material",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/bot.js",
+      "args": ["--tcp"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"],
+      "preLaunchTask": "Arena: Bot mit Schwarz gegen material"
+    },
+    {
+      "name": "Bot debuggen: Stellung aus games.pgn, Weiß",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/bot.js",
+      "args": ["--tcp"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"],
+      "preLaunchTask": "Arena: Stellung aus games.pgn, Bot mit Weiß"
+    },
+    {
+      "name": "Bot debuggen: Stellung aus games.pgn, Schwarz",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/bot.js",
+      "args": ["--tcp"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"],
+      "preLaunchTask": "Arena: Stellung aus games.pgn, Bot mit Schwarz"
+    },
+    {
+      "name": "Bot debuggen: Arena läuft schon",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/bot.js",
+      "args": ["--tcp"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}
