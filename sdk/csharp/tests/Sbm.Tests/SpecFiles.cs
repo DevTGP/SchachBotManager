@@ -26,6 +26,17 @@ internal static class SpecFiles
             )
             .ToDictionary(function => $"{Str(function, "owner")}.{Str(function, "name")}");
 
+    /// <summary>Functions of the given modules of spec/api/, e.g. bot and log.</summary>
+    public static IEnumerable<JsonObject> Functions(params string[] modules) =>
+        modules.SelectMany(module =>
+            Array(Load(Path.Combine(Spec, "api", module + ".json")), "functions")
+        );
+
+    /// <summary>The types of kind record in spec/api/types.json.</summary>
+    public static IEnumerable<JsonObject> Records() =>
+        Array(Load(Path.Combine(Spec, "api", "types.json")), "types")
+            .Where(type => Str(type, "kind") == "record");
+
     /// <summary>Call vectors (spec/testvectors/calls.schema.json) by their id.</summary>
     public static IReadOnlyDictionary<string, JsonObject> CallVectors() =>
         Directory

@@ -19,7 +19,7 @@ Je Paket eine Karte: Einstieg, Module mit ihrer Aufgabe, Abläufe im Code, Tests
 | [code-kern.md](code-kern.md) | C++-Kern mit C-Schnittstelle | `sdk/core` |
 | [code-python-sdk.md](code-python-sdk.md) | Python-SDK `schachbotmanager` (Binding, Laufzeit, Referee, Arena, Analyse, Remote) | `sdk/python` |
 | [code-viewer.md](code-viewer.md) | Grafischer Viewer `sbm-viewer` | `sdk/viewer` |
-| [code-csharp-sdk.md](code-csharp-sdk.md) | C#-SDK (Binding auf den Kern, M5 Schritt 1) | `sdk/csharp` |
+| [code-csharp-sdk.md](code-csharp-sdk.md) | C#-SDK (Binding, Hauptschleife, Referenzbot und Kreuztest, M5 Schritte 1–2) | `sdk/csharp` |
 | [code-store.md](code-store.md) | Datenbankzugriff, Queue, Ratings, Einstellungen, Migrationen | `services/store` |
 | [code-runner.md](code-runner.md) | Runner für Partien, Verifikation und interaktive Partien | `services/runner` |
 | [code-gateway.md](code-gateway.md) | WebSocket-Gateway | `services/gateway` |

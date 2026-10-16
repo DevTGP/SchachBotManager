@@ -59,6 +59,8 @@ Zustand in Objektfeldern (Transpositionstabelle, Suchbaum) bleibt zwischen den Z
 
 Argumente schlagen Umgebung; ohne beides gelten `stdio` und `INFO`. Andere Argumente bleiben dem Bot.
 
+In C# ist der Einstieg `Sdk.Run<MyBot>()` mit `MyBot : Bot`, die Rückrufe heißen `ChooseMove`, `OnGameStart` und `OnGameEnd` (E196). `stdio` lenkt dort nur `Console.Out` und `Console.In` um, nicht die Dateideskriptoren 0 und 1 (E197).
+
 Daneben startet `play(bot, opponent, …)` Partien aus einem eigenen Skript ohne Argumente: lokal gegen einen Referenzbot, eine Bot-Datei oder einen Befehl, oder mit `server` und `token` gegen einen Bot der Website. Es gibt die Partien als Liste von `PlayedGame` zurück (E120). Bisher nur im Python-SDK.
 
 ## API – hohe Ebene

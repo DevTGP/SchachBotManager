@@ -81,7 +81,7 @@ SchachBotManager/
 ├── sdk/
 │   ├── core/                C++-Schachkern + C-Schnittstelle
 │   ├── python/              Binding, Referee-Kern (sbm.referee), lokale Arena (sbm.arena, E65), Referenzbots (sbm.bots, E68), statische Analyse (sbm.analysis, E90), Anbindung des Viewers (sbm.viewer, E107)
-│   ├── csharp/              C#-Binding (Sbm.slnx, Bibliothek src/Sbm, Tests tests/Sbm.Tests), erste Sprache von M5 (E192)
+│   ├── csharp/              C#-SDK (Sbm.slnx, Bibliothek src/Sbm, Referenzbot bots/Material, Tests tests/Sbm.Tests, Kreuztest tests/cross), erste Sprache von M5 (E192)
 │   └── viewer/              Viewer-Programm sbm-viewer (C++, SDL3, Dear ImGui), in jedem SDK-Paket mitgeliefert (E106, E107)
 ├── templates/               Vorlagenprojekte je Sprache mit Debug-Konfiguration (python/, E69)
 ├── tools/

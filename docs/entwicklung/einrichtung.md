@@ -85,7 +85,9 @@ cmake --build build/core --config Release
 dotnet test sdk/csharp/Sbm.slnx
 ```
 
-Format und Lint aus `sdk/csharp`: `dotnet tool restore`, `dotnet csharpier check .`, `dotnet format Sbm.slnx --verify-no-changes`. Mehr in [code-csharp-sdk.md](code-csharp-sdk.md).
+Der Kreuztest spielt den C#-Referenzbot in der Python-Arena und braucht dazu das installierte Python-SDK (Schritt 3): `pytest sdk/csharp/tests/cross`. Den Referenzbot allein startet `dotnet run --project sdk/csharp/bots/Material`.
+
+Format und Lint aus `sdk/csharp`: `dotnet tool restore`, `dotnet csharpier check .`, `dotnet format Sbm.slnx --verify-no-changes`; für den Kreuztest `ruff check sdk/csharp/tests/cross` und `ruff format --check sdk/csharp/tests/cross`. Mehr in [code-csharp-sdk.md](code-csharp-sdk.md).
 
 ## Stack lokal
 

@@ -20,4 +20,8 @@
       Visible="false"
     />
   </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Sbm.Tests" />
+  </ItemGroup>
 </Project>
