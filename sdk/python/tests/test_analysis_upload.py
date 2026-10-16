@@ -1,17 +1,19 @@
-"""What an upload may contain: paths, kinds, sizes and the entry file (verifikation.md)."""
+"""What an upload may contain: paths, kinds, sizes and the entry (verifikation.md, E203)."""
 
 import pytest
 
 from sbm.analysis.upload import (
+    CSHARP,
     DATA,
+    DEFAULT_ENTRY,
     JAVASCRIPT,
-    LANGUAGES,
     MAX_DATA_BYTES,
     MAX_SOURCE_FILES,
     PYTHON,
     SOURCE,
     UploadError,
     check_upload,
+    default_entry,
     file_kind,
 )
 
@@ -125,7 +127,7 @@ def test_languages_keep_their_files():
 
 def test_check_upload_javascript():
     files = [("bot.js", 10), ("lib/a.mjs", 5), ("data/book.bin", 3)]
-    checked = check_upload(files, LANGUAGES[JAVASCRIPT].default_entry, JAVASCRIPT)
+    checked = check_upload(files, default_entry(JAVASCRIPT), JAVASCRIPT)
     assert [(file.path, file.kind) for file in checked] == [
         ("bot.js", SOURCE),
         ("lib/a.mjs", SOURCE),
@@ -135,3 +137,51 @@ def test_check_upload_javascript():
         check_upload(files, "bot.py", JAVASCRIPT)
     with pytest.raises(UploadError, match="missing"):
         check_upload(files, "main.mjs", JAVASCRIPT)
+
+
+def test_default_entry():
+    assert default_entry(PYTHON) == DEFAULT_ENTRY
+    assert default_entry(CSHARP) is None
+
+
+@pytest.mark.parametrize(
+    "path, kind",
+    [("Bot.cs", SOURCE), ("Engine/Search.cs", SOURCE), ("data/book.txt", DATA)],
+)
+def test_csharp_file_kind(path, kind):
+    assert file_kind(path, CSHARP) == kind
+
+
+@pytest.mark.parametrize("path", ["bot.py", "MyBot.csproj", "Program.cs.txt", "data/x/y.cs"])
+def test_csharp_rejected_paths(path):
+    with pytest.raises(UploadError):
+        file_kind(path, CSHARP)
+
+
+def test_python_rejects_cs_files():
+    with pytest.raises(UploadError):
+        file_kind("Bot.cs")
+
+
+@pytest.mark.parametrize("entry", ["Bot", "MyBot.TemplateBot", "A.B.C._D9"])
+def test_csharp_entry_is_a_class(entry):
+    files = check_upload([("Bot.cs", 10), ("data/book.txt", 3)], entry, CSHARP)
+    assert [file.kind for file in files] == [SOURCE, DATA]
+
+
+@pytest.mark.parametrize(
+    "files, entry",
+    [
+        ([("Bot.cs", 1)], "MyBot."),
+        ([("Bot.cs", 1)], "9Bot"),
+        ([("Bot.cs", 1)], "My Bot"),
+        ([("Bot.cs", 1)], "global::MyBot.Bot"),
+        ([("Bot.cs", 1)], "MyBot.Bot<int>"),
+        ([("Bot.cs", 1)], ".".join(["A"] * 11)),
+        ([("data/book.txt", 1)], "MyBot.Bot"),
+        ([("Bot.cs", 1), ("bot.cs", 1)], "MyBot.Bot"),
+    ],
+)
+def test_csharp_rejected_uploads(files, entry):
+    with pytest.raises(UploadError):
+        check_upload(files, entry, CSHARP)

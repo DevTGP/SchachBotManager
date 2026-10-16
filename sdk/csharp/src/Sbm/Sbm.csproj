@@ -46,6 +46,22 @@
     <None Include="../../README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
+  <!-- The analyzer of uploaded bots (E203) in the package, so that the IDE and the build report
+       what the server would reject. Built first, but not referenced by the SDK itself. -->
+  <ItemGroup>
+    <ProjectReference
+      Include="../Sbm.Analyzers/Sbm.Analyzers.csproj"
+      ReferenceOutputAssembly="false"
+      PrivateAssets="all"
+    />
+    <None
+      Include="../Sbm.Analyzers/bin/$(Configuration)/netstandard2.0/SchachBotManager.Analyzers.dll"
+      Pack="true"
+      PackagePath="analyzers/dotnet/cs"
+      Visible="false"
+    />
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="Sbm.Tests" />
   </ItemGroup>

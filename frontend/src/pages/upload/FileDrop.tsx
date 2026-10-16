@@ -2,13 +2,7 @@ import { type ChangeEvent, type DragEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { droppedEntries, droppedFiles } from "../../upload/dropped";
-import {
-  type FoundFile,
-  foundFiles,
-  type Selection,
-  sourceSuffixes,
-  type UploadLanguage,
-} from "../../upload/selection";
+import { type FoundFile, foundFiles, type Language, type Selection } from "../../upload/selection";
 import { SelectedFiles } from "./SelectedFiles";
 
 /** Browsers only offer a folder with this attribute, which React does not know. */
@@ -16,16 +10,19 @@ function chooseFolders(input: HTMLInputElement | null) {
   input?.setAttribute("webkitdirectory", "");
 }
 
+const ACCEPT: Record<Language, string> = { python: ".py", javascript: ".js,.mjs", csharp: ".cs" };
+
 /**
  * One area for the sources (G16): drop a folder or files, or choose them with buttons in the
- * language of the page; the inputs themselves stay hidden (U12).
+ * language of the page; the inputs themselves stay hidden (U12). It reports every file found;
+ * the page selects from them by the bot's language, also when that changes afterwards.
  */
 export function FileDrop({
   language,
   selection,
   onFound,
 }: {
-  language: UploadLanguage;
+  language: Language;
   selection: Selection | undefined;
   onFound: (found: FoundFile[]) => void;
 }) {
@@ -58,7 +55,7 @@ export function FileDrop({
       onDragLeave={() => setOver(false)}
       onDrop={onDrop}
     >
-      <p>{t("upload.drop", { sources: sourceSuffixes(language) })}</p>
+      <p>{t(`upload.drop.${language}`)}</p>
       <div className="inline-actions">
         <button type="button" onClick={() => folder.current?.click()}>
           {t("upload.chooseFolder")}
@@ -82,7 +79,7 @@ export function FileDrop({
         ref={files}
         type="file"
         multiple
-        accept={sourceSuffixes(language).replaceAll(" ", "")}
+        accept={ACCEPT[language]}
         hidden
         aria-label={t("upload.chooseFiles")}
         onChange={onFiles}

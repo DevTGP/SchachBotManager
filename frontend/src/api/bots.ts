@@ -1,11 +1,14 @@
 import { apiUrl, getBytes, getJson, sendForm, sendJson } from "./client";
 import type { Bot, BotDetail, EnqueuedMatches, OwnBotUpdate, OwnMatchRequest } from "./types";
 
-/** A bot as the upload page collects it; paths are relative with /. */
+/**
+ * A bot as the upload page collects it; paths are relative with /. The entry is the start file
+ * of a Python bot and the bot class of a C# bot (E202).
+ */
 export interface BotUpload {
   name: string;
   version: string;
-  language: "python" | "javascript";
+  language: "python" | "javascript" | "csharp";
   entry: string;
   description: string;
   files: { path: string; content: Blob }[];

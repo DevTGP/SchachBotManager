@@ -15,12 +15,12 @@ declare -A areas=(
   [core]='^(sdk/core/|spec/testvectors/)'
   [python]='^(sdk/core/|sdk/python/|templates/python/|spec/)'
   [javascript]='^(sdk/core/|sdk/javascript/|templates/javascript/|sdk/python/src/sbm/(arena|referee|bots)/|spec/)'
-  [csharp]='^(sdk/core/|sdk/csharp/|templates/csharp/|sdk/python/|spec/api/|spec/protocol/|spec/testvectors/)'
+  [csharp]='^(sdk/core/|sdk/csharp/|templates/csharp/|services/runner/tests/sandbox/bots/csharp|sdk/python/|spec/api/|spec/protocol/|spec/testvectors/)'
   [services]='^(sdk/core/|sdk/python/|services/|backend/|spec/)'
-  [sandbox]='^(sandbox/|deploy/python\.Dockerfile|sdk/core/|sdk/python/|sdk/javascript/|services/)'
+  [sandbox]='^(sandbox/|deploy/python\.Dockerfile|sdk/core/|sdk/python/|sdk/javascript/|sdk/csharp/|services/)'
   [frontend]='^(frontend/|spec/web/)'
   [viewer]='^(sdk/core/|sdk/viewer/|sdk/python/(CMakeLists\.txt|src/sbm/viewer/|tests/(test_)?viewer)|spec/protocol/)'
-  [native_format]='^(sdk/\.clang-format$|sdk/core/(include|src|tests)/|sdk/python/src/native/|sdk/javascript/src/native/|sdk/viewer/(src|tests)/)'
+  [native_format]='^(sdk/\.clang-format$|sdk/core/(include|src|tests)/|sdk/python/src/native/|sdk/javascript/src/native/|sdk/viewer/(src|tests)/|sdk/csharp/server/Sbm\.Host/)'
 )
 everything='^(\.github/workflows/ci\.yml|\.github/scripts/changed-areas\.sh)$'
 

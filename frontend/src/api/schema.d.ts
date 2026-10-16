@@ -1699,7 +1699,7 @@ export interface components {
         BotDetails: {
             /** @description Name of the owner; null for reference bots. */
             owner: string | null;
-            /** @description The file the bot starts with; null for reference bots. */
+            /** @description Python: the file the bot starts with; C#: the bot class. null for reference bots. */
             entry: string | null;
             files: components["schemas"]["BotFile"][];
             /** @description SDK version of the runtime that verified the bot. */
@@ -1718,10 +1718,10 @@ export interface components {
             recheck_pending: boolean;
         };
         /**
-         * @description internal: the server could not verify the bot (E92).
+         * @description build: compiling a C# bot (E203); internal: the server could not verify the bot (E92).
          * @enum {unknown}
          */
-        VerificationStageName: "analysis" | "tests" | "internal";
+        VerificationStageName: "analysis" | "build" | "tests" | "internal";
         Rejection: {
             stage: components["schemas"]["VerificationStageName"];
             /** @description English text from the runner. */
@@ -1758,9 +1758,9 @@ export interface components {
             duration_ms: number;
             /** @description Why the stage failed. */
             problem: string | null;
-            /** @description Stage analysis. */
+            /** @description Stages analysis and build. */
             findings?: components["schemas"]["Finding"][];
-            /** @description Stage analysis: there were more findings than listed. */
+            /** @description Stages analysis and build: there were more findings than listed. */
             truncated?: boolean;
             /** @description Stage tests, up to the first that failed. */
             tests?: components["schemas"]["TestGame"][];
@@ -1768,9 +1768,9 @@ export interface components {
         VerificationReport: {
             /** @enum {unknown} */
             result: "passed" | "failed";
-            /** @description The rules of the static analysis, e.g. python-1. */
+            /** @description The rules of the static analysis, e.g. python-1 or csharp-1. */
             ruleset: string | null;
-            /** @description Versions in the bots' runtime, e.g. python and sdk. */
+            /** @description Versions in the bots' runtime: python or dotnet, and sdk. */
             runtime: {
                 [key: string]: string;
             };
@@ -1778,14 +1778,17 @@ export interface components {
             finished_at: components["schemas"]["Timestamp"];
             stages: components["schemas"]["VerificationStage"][];
         };
-        /** @description Paths are relative with /; source files of the language (.py for Python, .js and .mjs for JavaScript, no folder node_modules) and data files directly in data/, at most 100 of each and 1 MiB each in all (verifikation.md, E227). At most 20 uploads a day per account. */
+        /** @description Paths are relative with /; source files of the language (.py for Python, .js and .mjs for JavaScript without a folder node_modules, .cs for C#) and data files directly in data/, at most 100 of each and 1 MiB each in all (verifikation.md, E202, E227). At most 20 uploads a day per account. */
         BotUpload: {
             name: components["schemas"]["BotName"];
             /** @description Higher than every earlier version of the name. */
             version: components["schemas"]["BotVersion"];
-            /** @enum {unknown} */
-            language: "python" | "javascript";
-            /** @description The file the bot starts with, in the top folder; bot.py for Python and bot.js for JavaScript if left out. */
+            /**
+             * @description Python, JavaScript and C# so far (E202, E227).
+             * @enum {unknown}
+             */
+            language: "python" | "javascript" | "csharp";
+            /** @description Python and JavaScript: the file the bot starts with, in the top folder, by default bot.py or bot.js. C#: the full name of the bot class, e.g. MyBot.TemplateBot; required (E203). */
             entry?: string;
             /**
              * @description Plain text by the owner, at most 500 characters; line breaks but no other control characters (E95).

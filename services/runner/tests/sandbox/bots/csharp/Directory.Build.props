@@ -1,0 +1,21 @@
+<Project>
+    <!--
+    The C# bots of the negative suite (sandbox.md, E205). They are compiled with the .NET SDK, not
+    with sbm-build: its analyzer would reject most of them, and the sandbox must hold on its own.
+    suite.Dockerfile builds each into a bot.dll, which the launcher runs like a verified program.
+  -->
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <OutputType>Exe</OutputType>
+        <AssemblyName>bot</AssemblyName>
+        <RootNamespace>SandboxSuite</RootNamespace>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <InvariantGlobalization>true</InvariantGlobalization>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="$(MSBuildThisFileDirectory)../../../../../../sdk/csharp/src/Sbm/Sbm.csproj" />
+    </ItemGroup>
+</Project>

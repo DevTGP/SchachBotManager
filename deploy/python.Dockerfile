@@ -61,19 +61,72 @@ RUN mkdir -p /rt/usr/lib /rt/etc /rt/dev /rt/bot \
 
 # The Node the JavaScript bots run with, pinned (E223, E227); the npm package with its addon.
 FROM node:24.22.0-trixie-slim AS bot-javascript-build
-RUN apt-get update     && apt-get install -y --no-install-recommends cmake g++ make     && rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends cmake g++ make \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
 COPY sdk/core sdk/core
 COPY sdk/javascript sdk/javascript
 WORKDIR /src/sdk/javascript
-RUN npm ci --no-audit --no-fund     && npm run build:native     && npm run build     && npm pack --pack-destination /pkg
+RUN npm ci --no-audit --no-fund \
+    && npm run build:native \
+    && npm run build \
+    && npm pack --pack-destination /pkg
 
 # Without a compiler: this tree becomes the read-only root of every JavaScript bot. The package
 # lies nested in /node_modules, so a bot finds schachbotmanager but none of its dependencies; the
 # root has no package.json, so Node reads every file of the bot as an ES module (E227).
 FROM node:24.22.0-trixie-slim AS bot-javascript
-RUN --mount=type=bind,from=bot-javascript-build,source=/pkg,target=/pkg     mkdir /install     && npm install --prefix /install --omit=dev --ignore-scripts --install-strategy=nested        --no-audit --no-fund --no-package-lock /pkg/*.tgz
-RUN mkdir -p /rt/usr/local/bin /rt/usr/lib /rt/etc /rt/dev /rt/bot     && cp -a /usr/local/bin/node /rt/usr/local/bin/     && cp -a /install/node_modules /rt/node_modules     && rm -f /rt/node_modules/.package-lock.json     && cp -a /usr/lib/x86_64-linux-gnu /usr/lib64 /rt/usr/lib/     && mv /rt/usr/lib/lib64 /rt/usr/lib64     && ln -s usr/lib /rt/lib     && ln -s usr/lib64 /rt/lib64     && cp /etc/ld.so.cache /rt/etc/     && touch /rt/dev/null
+RUN --mount=type=bind,from=bot-javascript-build,source=/pkg,target=/pkg \
+    mkdir /install \
+    && npm install --prefix /install --omit=dev --ignore-scripts --install-strategy=nested \
+       --no-audit --no-fund --no-package-lock /pkg/*.tgz
+RUN mkdir -p /rt/usr/local/bin /rt/usr/lib /rt/etc /rt/dev /rt/bot \
+    && cp -a /usr/local/bin/node /rt/usr/local/bin/ \
+    && cp -a /install/node_modules /rt/node_modules \
+    && rm -f /rt/node_modules/.package-lock.json \
+    && cp -a /usr/lib/x86_64-linux-gnu /usr/lib64 /rt/usr/lib/ \
+    && mv /rt/usr/lib/lib64 /rt/usr/lib64 \
+    && ln -s usr/lib /rt/lib \
+    && ln -s usr/lib64 /rt/lib64 \
+    && cp /etc/ld.so.cache /rt/etc/ \
+    && touch /rt/dev/null
+
+# C# bots (E192): the native host that starts .NET without /proc (E205), the core as a shared
+# library, the launcher every bot runs in and the build tool that analyzes and compiles an upload
+# at verification (E203, E204), plus the reference assemblies it compiles against. No MSBuild and
+# no NuGet at run time.
+FROM mcr.microsoft.com/dotnet/sdk:10.0.402 AS bot-csharp-build
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends cmake g++ make \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /src
+COPY sdk/core sdk/core
+COPY sdk/csharp sdk/csharp
+RUN cmake -S sdk/core -B build/core -DCMAKE_BUILD_TYPE=Release -DSBM_BUILD_TESTS=OFF \
+    && cmake --build build/core -j"$(nproc)"
+RUN dotnet publish sdk/csharp/server/Sbm.Launcher -c Release -o /out/launch --no-self-contained \
+    && dotnet publish sdk/csharp/server/Sbm.Build -c Release -o /out/build --no-self-contained \
+    && mkdir -p /out/refs/net /out/refs/sdk \
+    && cp /usr/share/dotnet/packs/Microsoft.NETCore.App.Ref/*/ref/net10.0/*.dll /out/refs/net/ \
+    && cp /out/launch/SchachBotManager.dll /out/refs/sdk/ \
+    && find /out -name '*.xml' -delete \
+    && gcc -std=c11 -O2 -Wall -Wextra -Wpedantic -Werror -pthread \
+       -o /out/host sdk/csharp/server/Sbm.Host/sbm-host.c -ldl
+
+# The .NET runtime of the same release as the reference assemblies; this tree becomes the
+# read-only root of every C# bot and of the build tool.
+FROM mcr.microsoft.com/dotnet/runtime:10.0.13 AS bot-csharp
+COPY --from=bot-csharp-build /out /out
+RUN mkdir -p /rt/usr/lib /rt/usr/share /rt/etc /rt/dev /rt/bot /rt/program /rt/sbm \
+    && cp -a /usr/share/dotnet /rt/usr/share/dotnet \
+    && cp -a /usr/lib/x86_64-linux-gnu /usr/lib64 /rt/usr/lib/ \
+    && mv /rt/usr/lib/lib64 /rt/usr/lib64 \
+    && ln -s usr/lib /rt/lib \
+    && ln -s usr/lib64 /rt/lib64 \
+    && cp /etc/ld.so.cache /rt/etc/ \
+    && touch /rt/dev/null /rt/dev/urandom \
+    && cp -a /out/host /out/launch /out/build /out/refs /rt/sbm/
 
 FROM python:3.12-slim AS services
 RUN useradd --system --uid 10001 --no-create-home --shell /usr/sbin/nologin sbm
@@ -93,6 +146,7 @@ RUN apt-get update \
 COPY --from=nsjail /nsjail/nsjail /usr/local/bin/nsjail
 COPY --from=bot-python /rt /opt/sbm/runtimes/python
 COPY --from=bot-javascript /rt /opt/sbm/runtimes/javascript
+COPY --from=bot-csharp /rt /opt/sbm/runtimes/csharp
 COPY sandbox /opt/sbm/sandbox
 # The bot directory of the reference bots, which live in the SDK of the runtime.
 RUN mkdir /opt/sbm/no-files

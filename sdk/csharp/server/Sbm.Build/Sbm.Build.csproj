@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The build tool of the server (E203): analyzes and compiles an uploaded C# bot in one
+       process inside the sandbox, against the reference assemblies only, without MSBuild or
+       NuGet. Published into the runtime of the runner image. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>sbm-build</AssemblyName>
+    <RootNamespace>Sbm.Build</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Sbm.Analyzers/Sbm.Analyzers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Sbm.Build.Tests" />
+  </ItemGroup>
+</Project>

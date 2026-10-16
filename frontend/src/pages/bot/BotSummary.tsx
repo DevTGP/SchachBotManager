@@ -13,7 +13,8 @@ export function BotSummary({ bot }: { bot: BotDetail }) {
     [t("bots.created"), formatDateTime(bot.created_at, locale)],
   ];
   const details = bot.details;
-  if (details?.entry) rows.push([t("bot.entry"), details.entry]);
+  const entry = bot.language === "csharp" ? t("bot.botClass") : t("bot.entry");
+  if (details?.entry) rows.push([entry, details.entry]);
   if (details?.sdk_version) rows.push([t("bot.sdk"), details.sdk_version]);
   if (details?.runtime_version) rows.push([t("bot.runtime"), details.runtime_version]);
   if (details?.verified_at) {

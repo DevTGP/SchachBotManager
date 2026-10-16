@@ -53,7 +53,7 @@ describe("upload page", () => {
       TEMPLATE.map((path) => folderFile(path)),
     );
     expect(screen.getByText("3 files will be uploaded:")).toBeVisible();
-    expect(screen.getByText("Not uploaded: .vscode/launch.json, README.md")).toBeVisible();
+    expect(screen.getByText("Not uploaded: .vscode/, README.md")).toBeVisible();
     expect(screen.getByRole("combobox", { name: "Entry file" })).toHaveValue("bot.py");
     await user.type(screen.getByLabelText(/^Name/), "sharp");
     await waitFor(() => expect(screen.getByLabelText(/^Version/)).toHaveValue("1.0.5"));
@@ -102,11 +102,13 @@ describe("upload page", () => {
     );
     expect(screen.getByLabelText("Choose files")).toHaveAttribute("accept", ".js,.mjs");
     expect(screen.getByText("2 files will be uploaded:")).toBeVisible();
-    expect(screen.getByText("Not uploaded: package.json")).toBeVisible();
+    expect(screen.getByText("Not uploaded: package.json, node_modules/")).toBeVisible();
     expect(screen.getByRole("combobox", { name: "Entry file" })).toHaveValue("bot.js");
 
     await user.click(python);
-    expect(screen.getByText("Not uploaded: package.json, bot.js, lib/eval.mjs")).toBeVisible();
+    expect(
+      screen.getByText("Not uploaded: package.json, bot.js, lib/eval.mjs, node_modules/"),
+    ).toBeVisible();
     await user.click(screen.getByRole("button", { name: "JavaScript" }));
     await user.type(screen.getByLabelText(/^Name/), "Sharp");
     await user.click(screen.getByRole("button", { name: "Upload" }));
@@ -127,12 +129,58 @@ describe("upload page", () => {
     expect(screen.getByLabelText(/^Version/)).toHaveValue("1.0.0");
     await user.click(screen.getByRole("button", { name: "Upload" }));
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "Choose a folder or files with at least one source file (.py).",
+      "Choose a folder or files with at least one source file.",
     );
 
     await user.upload(screen.getByLabelText("Choose folder"), [folderFile("lib/eval.py")]);
     await user.click(screen.getByRole("button", { name: "Upload" }));
     expect(screen.getByRole("alert")).toHaveTextContent("The top folder needs a source file (.py)");
+    expect(api.calls.some((call) => call.method === "POST")).toBe(false);
+  });
+
+  it("uploads a C# bot with the class found in its sources", async () => {
+    const user = userEvent.setup();
+    const api = mockApi({
+      "/session": { user: CODER },
+      "/account/bots": { items: [] },
+      "/bots": (_url: URL, call: ApiCall) =>
+        call.method === "POST" ? botDetail({ status: "uploaded" }) : { items: BOTS },
+      [`/bots/${SHARP_ID}`]: botDetail({ status: "uploaded" }),
+    });
+    renderRoute("/bots/new");
+
+    await screen.findByRole("link", { name: "All your bots and versions" });
+    await user.click(screen.getByRole("button", { name: "C#" }));
+    await user.upload(screen.getByLabelText("Choose folder"), [
+      folderFile("Program.cs", "Sbm.Sdk.Run<MyBot.TemplateBot>();"),
+      folderFile("TemplateBot.cs", "namespace MyBot;\npublic sealed class TemplateBot : Bot {}"),
+      folderFile("obj/project.assets.json"),
+    ]);
+    expect(screen.getByText("Not uploaded: Program.cs, obj/")).toBeVisible();
+    expect(screen.queryByRole("combobox", { name: "Entry file" })).toBeNull();
+    await waitFor(() =>
+      expect(screen.getByLabelText(/^Bot class/)).toHaveValue("MyBot.TemplateBot"),
+    );
+    await user.type(screen.getByLabelText(/^Name/), "Sharp");
+    await user.click(screen.getByRole("button", { name: "Upload" }));
+
+    expect(await screen.findByRole("heading", { level: 1, name: "Sharp" })).toBeVisible();
+    const form = api.calls.find((call) => call.method === "POST")?.form;
+    expect([form?.get("language"), form?.get("entry")]).toEqual(["csharp", "MyBot.TemplateBot"]);
+    expect(form?.getAll("paths")).toEqual(["TemplateBot.cs"]);
+  });
+
+  it("asks for the bot class of a C# bot", async () => {
+    const user = userEvent.setup();
+    const api = mockApi({ "/session": { user: CODER }, "/account/bots": { items: [] } });
+    renderRoute("/bots/new");
+
+    await screen.findByRole("link", { name: "All your bots and versions" });
+    await user.click(screen.getByRole("button", { name: "C#" }));
+    await user.upload(screen.getByLabelText("Choose folder"), [folderFile("Engine.cs")]);
+    await user.type(screen.getByLabelText(/^Name/), "Sharp");
+    await user.click(screen.getByRole("button", { name: "Upload" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Name the bot class");
     expect(api.calls.some((call) => call.method === "POST")).toBe(false);
   });
 

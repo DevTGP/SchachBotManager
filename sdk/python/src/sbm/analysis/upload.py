@@ -1,10 +1,11 @@
-"""What an upload of a bot may contain (verifikation.md); the web API, the runner and sbm-check
-apply the same rules.
+"""What an upload of a bot may contain (verifikation.md); the web API, the runner and
+sbm-check apply the same rules.
 
-Paths are relative and use /. Source files are the files of the language outside data/: .py for
-Python, .js and .mjs for JavaScript (E227). Data files lie directly in data/, since load_data only
-takes plain names (E62). A JavaScript upload has no node_modules folder, which would come before
-the SDK when Node resolves an import.
+Paths are relative and use /. Source files are the files of the bot's language outside data/
+(.py, .cs, .js and .mjs); data files lie directly in data/, since load_data only takes plain names
+(E62). A Python or JavaScript bot starts with a file in the top folder, a C# bot with the class
+named at the upload, for which the server writes the entry (E203). A JavaScript upload has no
+node_modules folder, which would come before the SDK when Node resolves an import (E227).
 """
 
 import re
@@ -21,10 +22,13 @@ MAX_DATA_FILES = 100
 MAX_DATA_BYTES = 1024 * 1024
 MAX_DEPTH = 8
 MAX_PATH_LENGTH = 200
-DEFAULT_ENTRY = "bot.py"
 PYTHON = "python"
+CSHARP = "csharp"
 JAVASCRIPT = "javascript"
+DEFAULT_ENTRY = "bot.py"
 _COMPONENT = re.compile(r"[A-Za-z0-9_][A-Za-z0-9_.-]*")
+# Name or Namespace.Name, as sbm-build accepts it.
+_CLASS_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]{0,99}(\.[A-Za-z_][A-Za-z0-9_]{0,99}){0,9}")
 
 
 class UploadError(ValueError):
@@ -38,7 +42,8 @@ class UploadError(ValueError):
 @dataclass(frozen=True)
 class Language:
     suffixes: tuple[str, ...]
-    default_entry: str
+    # The entry an upload may leave out; None where the bot names its class (C#).
+    default_entry: str | None
     # Path parts an upload may not contain, in lower case.
     reserved: frozenset[str] = frozenset()
 
@@ -49,15 +54,17 @@ class Language:
         return " and ".join(self.suffixes)
 
 
-LANGUAGES = {
+RULES = {
     PYTHON: Language((".py",), DEFAULT_ENTRY),
+    CSHARP: Language((".cs",), None),
     JAVASCRIPT: Language((".js", ".mjs"), "bot.js", frozenset({"node_modules"})),
 }
+LANGUAGES = tuple(RULES)
 
 
 def language_rules(language: str) -> Language:
     try:
-        return LANGUAGES[language]
+        return RULES[language]
     except KeyError:
         raise UploadError(f"unknown language {language}") from None
 
@@ -67,6 +74,11 @@ class UploadFile:
     path: str
     kind: str
     size: int
+
+
+def default_entry(language: str) -> str | None:
+    """The entry an upload may leave out; a C# bot must name its class."""
+    return language_rules(language).default_entry
 
 
 def file_kind(path: str, language: str = PYTHON) -> str:
@@ -100,8 +112,7 @@ def file_kind(path: str, language: str = PYTHON) -> str:
 def check_upload(
     files: Iterable[tuple[str, int]], entry: str, language: str = PYTHON
 ) -> list[UploadFile]:
-    """Checks paths, sizes and the entry file; files are (path, size in bytes)."""
-    rules = language_rules(language)
+    """Checks paths, sizes and the entry; files are (path, size in bytes)."""
     checked = [UploadFile(path, file_kind(path, language), size) for path, size in files]
     _check_unique(checked)
     for kind, max_files, max_bytes in (
@@ -113,13 +124,28 @@ def check_upload(
             raise UploadError(f"more than {max_files} {kind} files")
         if sum(file.size for file in of_kind) > max_bytes:
             raise UploadError(f"the {kind} files are larger than {max_bytes} bytes in all")
+    if language == CSHARP:
+        _check_class(entry, checked)
+    else:
+        _check_entry_file(entry, checked, language_rules(language))
+    return checked
+
+
+def _check_entry_file(entry: str, files: list[UploadFile], rules: Language) -> None:
     if "/" in entry or not rules.is_source(entry):
         raise UploadError(
             f"the entry file must be a {rules.describe()} file in the top folder", entry
         )
-    if not any(file.path == entry and file.kind == SOURCE for file in checked):
+    if not any(file.path == entry and file.kind == SOURCE for file in files):
         raise UploadError("the entry file is missing", entry)
-    return checked
+
+
+def _check_class(entry: str, files: list[UploadFile]) -> None:
+    """Whether the class exists is the build's task: it needs the compiled sources."""
+    if not _CLASS_NAME.fullmatch(entry):
+        raise UploadError("the bot class must be a full class name such as MyBot.MyBot", entry)
+    if not any(file.kind == SOURCE for file in files):
+        raise UploadError("the upload contains no .cs file")
 
 
 def _check_unique(files: list[UploadFile]) -> None:

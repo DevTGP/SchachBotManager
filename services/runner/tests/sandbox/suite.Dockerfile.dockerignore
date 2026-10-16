@@ -1,0 +1,7 @@
+# Only what suite.Dockerfile copies, without local build output.
+*
+!sdk/core/CMakeLists.txt
+!sdk/csharp/
+!services/runner/tests/sandbox/bots/csharp/
+**/bin/
+**/obj/

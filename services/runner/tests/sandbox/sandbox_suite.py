@@ -3,14 +3,15 @@
 from pathlib import Path
 
 from bson import ObjectId
+from sbm.analysis.upload import JAVASCRIPT, PYTHON
 from sbm.referee import MatchSettings
 from sbm_store.bots import BUILTIN_PREFIX
-
-from sbm_runner.sandbox.runtimes import JAVASCRIPT, PYTHON
 
 BOTS = Path(__file__).parent / "bots"
 LANGUAGES = [PYTHON, JAVASCRIPT]
 ENTRIES = {PYTHON: "bot.py", JAVASCRIPT: "bot.js"}
+# The C# test bots of bots/csharp, each compiled into a bot.dll there (suite.Dockerfile).
+CSHARP_BOTS = Path("/opt/sbm-suite/csharp")
 RANDOM = {"_id": ObjectId(), "name": "Random", "source_ref": f"{BUILTIN_PREFIX}random_mover"}
 QUICK = MatchSettings(initial_time_ms=10_000, increment_ms=0, max_moves=3)
 # Endings of a game in which both bots played by the rules.

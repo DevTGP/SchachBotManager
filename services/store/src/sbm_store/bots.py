@@ -86,6 +86,8 @@ def new_uploaded_bot(
         },
         "sdk_version": None,
         "runtime_version": None,
+        # C#: the program compiled by the verification (bot_files.store_program, E204).
+        "program": None,
         "report_id": None,
         "rejection": None,
         "created_at": now,
@@ -164,12 +166,15 @@ def finish_verification(
     sdk_version: str | None,
     runtime_version: str | None,
     now: datetime,
+    program: dict | None = None,
 ) -> bool:
     """Ends the pipeline; rejection holds stage and reason. False if the bot already left it.
 
-    The versions stay None if the runtime was not reached, e.g. after a server error.
+    The versions stay None if the runtime was not reached, e.g. after a server error. program
+    is the entry of a compiled bot from bot_files.store_program; the caller deletes it on False.
     """
     fields = {
+        "program": program,
         "status": VERIFIED if verified else REJECTED,
         "report_id": report_id,
         "rejection": rejection,

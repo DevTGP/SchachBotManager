@@ -1,12 +1,13 @@
 """The commands of the runtimes in the jail; the jail itself is tested in sandbox/ (E227)."""
 
-from sbm_runner.sandbox.runtimes import JAVASCRIPT, NODE_FLAGS, PYTHON, REFERENCE, RUNTIMES
+from sbm.analysis.upload import CSHARP, JAVASCRIPT, PYTHON
+
+from sbm_runner.sandbox.runtimes import NODE_FLAGS, RUNTIMES
 
 
 def test_python_runs_the_analysis_isolated_from_the_bot():
     python = RUNTIMES[PYTHON]
     assert python.config == "python.cfg"
-    assert python.bot("/bot/bot.py") == ["/usr/local/bin/python3", "/bot/bot.py"]
     assert python.analysis("bot.py") == [
         "/usr/local/bin/python3",
         "-I",
@@ -17,7 +18,6 @@ def test_python_runs_the_analysis_isolated_from_the_bot():
         "bot.py",
         "/bot",
     ]
-    assert python.label({"python": "3.14.8", "sdk": "0.4.0"}) == "python 3.14.8"
 
 
 def test_node_always_runs_with_its_flags():
@@ -25,11 +25,12 @@ def test_node_always_runs_with_its_flags():
     assert node.config == "javascript.cfg"
     assert "--permission" in NODE_FLAGS
     assert "--allow-fs-write" not in " ".join(NODE_FLAGS)
-    for command in (node.bot("/bot/bot.js"), node.analysis("bot.js"), node.check()):
+    for command in (list(node.start), node.analysis("bot.js"), list(node.self_check)):
         assert command[: 1 + len(NODE_FLAGS)] == ["/usr/local/bin/node", *NODE_FLAGS]
     assert node.analysis("main.mjs")[-4:] == ["--json", "--entry", "main.mjs", "/bot"]
-    assert node.label({"node": "24.1.0", "sdk": "0.4.0"}) == "node 24.1.0"
+    assert node.build == ()
 
 
-def test_the_reference_bots_are_python_bots():
-    assert REFERENCE is RUNTIMES[PYTHON]
+def test_only_csharp_builds():
+    assert [language for language, runtime in RUNTIMES.items() if runtime.build] == [CSHARP]
+    assert RUNTIMES[CSHARP].analyzer == ()

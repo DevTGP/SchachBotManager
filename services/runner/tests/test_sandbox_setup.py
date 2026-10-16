@@ -62,7 +62,7 @@ def test_uploaded_bots_need_their_files():
         sandbox.player(UNKNOWN)
 
 
-def test_only_python_and_javascript_bots_run():
+def test_bots_of_other_languages_do_not_run():
     sandbox = Sandbox(SandboxSettings(mode=NSJAIL), tree=BrokenTree(), files=BotDir)
     with pytest.raises(UnsupportedBot, match="'java'"):
         sandbox.player({**UPLOADED, "language": "java"})
@@ -70,16 +70,29 @@ def test_only_python_and_javascript_bots_run():
         sandbox.script_player("Uploaded", Path("/bot"), "Bot.java", "java")
 
 
+def test_csharp_bots_run_only_with_their_program():
+    sandbox = Sandbox(SandboxSettings(mode=NSJAIL), tree=BrokenTree(), files=BotDir)
+    bot = {**UPLOADED, "language": "csharp", "entry": "MyBot.Bot", "program": None}
+    with pytest.raises(UnsupportedBot, match="no compiled program"):
+        sandbox.player(bot)
+    with pytest.raises(ValueError, match="no program"):
+        sandbox.candidate(bot, Path("/bot"), None)
+
+
 def test_the_self_check_reports_both_versions():
     assert _versions(b'{"python": "3.12.1", "sdk": "0.4.0"}\n', "python") == {
         "python": "3.12.1",
+        "sdk": "0.4.0",
+    }
+    assert _versions(b'{"dotnet": "10.0.13", "sdk": "0.4.0"}', "dotnet") == {
+        "dotnet": "10.0.13",
         "sdk": "0.4.0",
     }
     assert _versions(b'{"node": "24.1.0", "sdk": "0.4.0"}', "node") == {
         "node": "24.1.0",
         "sdk": "0.4.0",
     }
+    assert _versions(b'{"python": "3.12.1", "sdk": "0.4.0"}', "dotnet") is None
     assert _versions(b"3.12.1", "python") is None
     assert _versions(b'{"python": "3.12.1"}', "python") is None
     assert _versions(b'{"python": "3.12.1", "sdk": 4}', "python") is None
-    assert _versions(b'{"python": "3.12.1", "sdk": "0.4.0"}', "node") is None

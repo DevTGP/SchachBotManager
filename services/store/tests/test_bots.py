@@ -135,6 +135,26 @@ def test_pipeline_moves_forward_until_it_ends(db):
     assert not bots.advance(db, bot["_id"], bots.TESTING)
 
 
+def test_an_upload_has_no_program_until_it_is_verified(db):
+    bot = upload(db)
+    assert bot["program"] is None
+    program = {"size": 4, "sha256": "p", "file_id": ObjectId()}
+
+    assert bots.finish_verification(
+        db,
+        bot["_id"],
+        verified=True,
+        report_id=ObjectId(),
+        rejection=None,
+        sdk_version="0.4.0",
+        runtime_version="dotnet 10.0.13",
+        now=T0,
+        program=program,
+    )
+
+    assert bots.get(db, bot["_id"])["program"] == program
+
+
 def verified(db, name="Alpha", version="1.0.0") -> dict:
     bot = upload(db, name, version)
     bots.finish_verification(

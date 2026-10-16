@@ -2811,7 +2811,7 @@
             "type": ["string", "null"]
           },
           "entry": {
-            "description": "The file the bot starts with; null for reference bots.",
+            "description": "Python: the file the bot starts with; C#: the bot class. null for reference bots.",
             "type": ["string", "null"]
           },
           "files": { "type": "array", "items": { "$ref": "#/components/schemas/BotFile" } },
@@ -2865,8 +2865,8 @@
         "additionalProperties": false
       },
       "VerificationStageName": {
-        "description": "internal: the server could not verify the bot (E92).",
-        "enum": ["analysis", "tests", "internal"]
+        "description": "build: compiling a C# bot (E203); internal: the server could not verify the bot (E92).",
+        "enum": ["analysis", "build", "tests", "internal"]
       },
       "Rejection": {
         "type": "object",
@@ -2922,12 +2922,12 @@
           "duration_ms": { "type": "integer", "minimum": 0 },
           "problem": { "description": "Why the stage failed.", "type": ["string", "null"] },
           "findings": {
-            "description": "Stage analysis.",
+            "description": "Stages analysis and build.",
             "type": "array",
             "items": { "$ref": "#/components/schemas/Finding" }
           },
           "truncated": {
-            "description": "Stage analysis: there were more findings than listed.",
+            "description": "Stages analysis and build: there were more findings than listed.",
             "type": "boolean"
           },
           "tests": {
@@ -2944,11 +2944,11 @@
         "properties": {
           "result": { "enum": ["passed", "failed"] },
           "ruleset": {
-            "description": "The rules of the static analysis, e.g. python-1.",
+            "description": "The rules of the static analysis, e.g. python-1 or csharp-1.",
             "type": ["string", "null"]
           },
           "runtime": {
-            "description": "Versions in the bots' runtime, e.g. python and sdk.",
+            "description": "Versions in the bots' runtime: python or dotnet, and sdk.",
             "type": "object",
             "additionalProperties": { "type": "string" }
           },
@@ -2963,7 +2963,7 @@
         "additionalProperties": false
       },
       "BotUpload": {
-        "description": "Paths are relative with /; source files of the language (.py for Python, .js and .mjs for JavaScript, no folder node_modules) and data files directly in data/, at most 100 of each and 1 MiB each in all (verifikation.md, E227). At most 20 uploads a day per account.",
+        "description": "Paths are relative with /; source files of the language (.py for Python, .js and .mjs for JavaScript without a folder node_modules, .cs for C#) and data files directly in data/, at most 100 of each and 1 MiB each in all (verifikation.md, E202, E227). At most 20 uploads a day per account.",
         "type": "object",
         "properties": {
           "name": { "$ref": "#/components/schemas/BotName" },
@@ -2971,9 +2971,9 @@
             "description": "Higher than every earlier version of the name.",
             "$ref": "#/components/schemas/BotVersion"
           },
-          "language": { "enum": ["python", "javascript"] },
+          "language": { "description": "Python, JavaScript and C# so far (E202, E227).", "enum": ["python", "javascript", "csharp"] },
           "entry": {
-            "description": "The file the bot starts with, in the top folder; bot.py for Python and bot.js for JavaScript if left out.",
+            "description": "Python and JavaScript: the file the bot starts with, in the top folder, by default bot.py or bot.js. C#: the full name of the bot class, e.g. MyBot.TemplateBot; required (E203).",
             "type": "string",
             "maxLength": 200
           },

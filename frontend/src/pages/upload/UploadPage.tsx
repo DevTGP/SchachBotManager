@@ -1,4 +1,4 @@
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 
@@ -8,38 +8,63 @@ import { FormError } from "../../components/FormError";
 import { PillSelect } from "../../components/PillSelect";
 import { useApi } from "../../hooks/useApi";
 import { useSubmit } from "../../hooks/useSubmit";
+import { classCandidates } from "../../upload/botClasses";
 import {
   detectLanguage,
   entryCandidates,
   type FoundFile,
+  type Language,
+  LANGUAGES,
+  type Selection,
   selectionProblem,
   selectPaths,
   sourceSuffixes,
-  UPLOAD_LANGUAGES,
-  type UploadLanguage,
 } from "../../upload/selection";
 import { NAME, parseVersion, suggestVersion } from "../../upload/version";
 import { DESCRIPTION_LENGTH } from "../bot/BotDescription";
 import { FileDrop } from "./FileDrop";
 
-/** Upload of a bot as a folder of sources (E91, E92, E227); the own bots are on "My bots". */
+/**
+ * Upload of a bot as a folder of sources (E91, E92): a Python or JavaScript bot starts with a
+ * file (E227), a C# bot with a class the server calls (E202). The own bots are on "My bots".
+ */
 export function UploadPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const ownBots = useApi(fetchOwnBots, "own-bots");
   const limits = useApi(fetchLimits, "own-limits");
   const { pending, error, submit, fail } = useSubmit();
-  const [language, setLanguage] = useState<UploadLanguage>("python");
+  const [language, setLanguage] = useState<Language>("python");
   const [found, setFound] = useState<FoundFile[]>();
   const [entryChoice, setEntryChoice] = useState<string>();
+  const [classInput, setClassInput] = useState<string>();
+  // The classes found in a selection, kept with it, since reading the files takes a while.
+  const [foundClasses, setFoundClasses] = useState<{ of: Selection; names: string[] }>();
   const [name, setName] = useState("");
   const [versionInput, setVersionInput] = useState<string>();
   const [description, setDescription] = useState("");
 
   const selection = useMemo(() => found && selectPaths(found, language), [found, language]);
-  const candidates = selection ? entryCandidates(selection.files, language) : [];
+  const candidates =
+    selection && language !== "csharp" ? entryCandidates(selection.files, language) : [];
+  const entryFile = entryChoice && candidates.includes(entryChoice) ? entryChoice : candidates[0];
+  const classes =
+    language === "csharp" && foundClasses && foundClasses.of === selection
+      ? foundClasses.names
+      : [];
+  const entry = language === "csharp" ? (classInput ?? classes[0] ?? "").trim() : entryFile;
+
+  useEffect(() => {
+    if (!selection || language !== "csharp") return;
+    let current = true;
+    void classCandidates(selection.files).then(
+      (names) => current && setFoundClasses({ of: selection, names }),
+    );
+    return () => {
+      current = false;
+    };
+  }, [selection, language]);
   const sources = sourceSuffixes(language);
-  const entry = entryChoice && candidates.includes(entryChoice) ? entryChoice : candidates[0];
   const version = versionInput ?? suggestVersion(ownBots.data ?? [], name);
   const ownNames = [...new Set(ownBots.data?.map((bot) => bot.name))];
 
@@ -54,7 +79,7 @@ export function UploadPage() {
     const files = selection?.files ?? [];
     const problem = selectionProblem(files);
     if (problem) return fail(problem);
-    if (!entry) return fail("upload.noEntry");
+    if (!entry) return fail(language === "csharp" ? "upload.noClass" : "upload.noEntry");
     if (!NAME.test(name)) return fail("fieldError.name");
     if (!parseVersion(version)) return fail("fieldError.version");
     void submit(async () => {
@@ -73,19 +98,38 @@ export function UploadPage() {
   return (
     <>
       <h1>{t("upload.title")}</h1>
-      <p>{t("upload.intro", { sources })}</p>
+      <p>{t("upload.intro")}</p>
       <form className="form" onSubmit={onSubmit}>
         <PillSelect
-          label={t("upload.language")}
-          options={UPLOAD_LANGUAGES.map((code) => ({ value: code, label: t(`language.${code}`) }))}
+          label={t("bots.language")}
+          options={LANGUAGES.map((code) => ({ value: code, label: t(`language.${code}`) }))}
           value={language}
           onChange={setLanguage}
         />
+        <p className="hint">{t(`upload.files.${language}`)}</p>
         <FileDrop language={language} selection={selection} onFound={onFound} />
+        {language === "csharp" && (
+          <label>
+            {t("upload.botClass")}
+            <input
+              list="bot-classes"
+              autoComplete="off"
+              placeholder="MyBot.TemplateBot"
+              value={classInput ?? classes[0] ?? ""}
+              onChange={(event) => setClassInput(event.target.value)}
+            />
+            <span className="hint">{t("upload.botClassHint")}</span>
+            <datalist id="bot-classes">
+              {classes.map((name) => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
+          </label>
+        )}
         {candidates.length > 0 && (
           <label>
             {t("upload.entry")}
-            <select value={entry} onChange={(event) => setEntryChoice(event.target.value)}>
+            <select value={entryFile} onChange={(event) => setEntryChoice(event.target.value)}>
               {candidates.map((path) => (
                 <option key={path} value={path}>
                   {path}

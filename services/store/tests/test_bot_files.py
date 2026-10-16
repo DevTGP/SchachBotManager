@@ -1,3 +1,5 @@
+import hashlib
+
 from bson import ObjectId
 
 from sbm_store import bot_files
@@ -34,3 +36,15 @@ def test_source_hash_ignores_order_and_sees_content():
 
     assert bot_files.source_hash([a, b]) == bot_files.source_hash([b, a])
     assert bot_files.source_hash([a, b]) != bot_files.source_hash([a, {**b, "sha256": "3"}])
+
+
+def test_a_program_is_stored_with_its_hash(db):
+    bot_id = ObjectId()
+    program = bot_files.store_program(db, bot_id, b"MZ\x90\x00")
+
+    assert program["size"] == 4
+    assert program["sha256"] == hashlib.sha256(b"MZ\x90\x00").hexdigest()
+    assert bot_files.read_file(db, program) == b"MZ\x90\x00"
+    stored = db["bot_files.files"].find_one({"_id": program["file_id"]})
+    assert stored["filename"] == bot_files.PROGRAM
+    assert stored["metadata"] == {"bot_id": bot_id, "program": True}

@@ -1,0 +1,142 @@
+# Rules of uploaded C# bots (statische-analyse.md, E203). One entry per line, # starts a comment.
+#
+#   ruleset NAME     the name in the verification report
+#   namespace N      every type of exactly this namespace, not of its sub-namespaces
+#   type N.T         one type by its full name without arity; nested types count as their outer type
+#   forbid N.T       a type, even in an allowed namespace
+#   forbid N.T.M     a member of an allowed type
+#   assembly A       an assembly the compiled bot may reference (checked by the server's build tool)
+#
+# A change of the rules is a new ruleset name.
+
+ruleset csharp-1
+
+namespace Sbm
+namespace System.Collections
+namespace System.Collections.Generic
+namespace System.Linq
+namespace System.Numerics
+namespace System.Text
+namespace System.Diagnostics.CodeAnalysis
+
+# Basic types
+type System.Object
+type System.String
+type System.Char
+type System.Boolean
+type System.Byte
+type System.SByte
+type System.Int16
+type System.UInt16
+type System.Int32
+type System.UInt32
+type System.Int64
+type System.UInt64
+type System.Int128
+type System.UInt128
+type System.IntPtr
+type System.UIntPtr
+type System.Half
+type System.Single
+type System.Double
+type System.Decimal
+type System.Enum
+type System.ValueType
+type System.Nullable
+type System.ValueTuple
+type System.Tuple
+type System.Array
+type System.Span
+type System.ReadOnlySpan
+type System.Memory
+type System.ReadOnlyMemory
+type System.MemoryExtensions
+type System.Index
+type System.Range
+
+# Arithmetic, randomness, time and text
+type System.Math
+type System.MathF
+type System.Random
+type System.HashCode
+type System.BitConverter
+type System.Convert
+type System.TimeSpan
+type System.DateTime
+type System.Lazy
+type System.StringComparison
+type System.StringComparer
+type System.StringSplitOptions
+type System.MidpointRounding
+type System.FormattableString
+type System.IFormatProvider
+type System.Globalization.CultureInfo
+type System.Globalization.NumberStyles
+type System.Runtime.CompilerServices.DefaultInterpolatedStringHandler
+type System.Diagnostics.Stopwatch
+
+# Delegates and interfaces
+type System.Func
+type System.Action
+type System.Predicate
+type System.Comparison
+type System.Converter
+type System.IComparable
+type System.IEquatable
+type System.IDisposable
+type System.ICloneable
+type System.IFormattable
+
+# Exceptions
+type System.Exception
+type System.SystemException
+type System.ArgumentException
+type System.ArgumentNullException
+type System.ArgumentOutOfRangeException
+type System.InvalidOperationException
+type System.NotImplementedException
+type System.NotSupportedException
+type System.IndexOutOfRangeException
+type System.OverflowException
+type System.DivideByZeroException
+type System.ArithmeticException
+type System.FormatException
+type System.NullReferenceException
+
+# Attributes
+type System.Attribute
+type System.AttributeUsageAttribute
+type System.AttributeTargets
+type System.FlagsAttribute
+type System.ObsoleteAttribute
+type System.Runtime.CompilerServices.MethodImplAttribute
+type System.Runtime.CompilerServices.MethodImplOptions
+
+# Ways to reflection, expression trees and threads
+forbid System.Object.GetType
+forbid System.Exception.TargetSite
+forbid System.Linq.Queryable
+forbid System.Linq.IQueryable
+forbid System.Linq.IOrderedQueryable
+forbid System.Linq.IQueryProvider
+forbid System.Linq.EnumerableQuery
+forbid System.Linq.ParallelEnumerable
+forbid System.Linq.ParallelQuery
+forbid System.Linq.OrderedParallelQuery
+forbid System.Linq.AsyncEnumerable
+forbid System.Linq.IOrderedAsyncEnumerable
+forbid System.Linq.ParallelExecutionMode
+forbid System.Linq.ParallelMergeOptions
+forbid System.Linq.EnumerableExecutor
+forbid System.Text.CodePagesEncodingProvider
+
+# References of the compiled bot: the reference assemblies that hold the types above
+assembly SchachBotManager
+assembly System.Runtime
+assembly System.Collections
+assembly System.Collections.NonGeneric
+assembly System.Linq
+assembly System.Memory
+assembly System.Numerics.Vectors
+assembly System.Runtime.Numerics
+assembly System.Text.Encoding.Extensions

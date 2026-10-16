@@ -58,4 +58,6 @@ sdk/javascript/prebuilds/
 ### .NET
 sdk/csharp/**/bin/
 sdk/csharp/**/obj/
+services/runner/tests/sandbox/bots/**/bin/
+services/runner/tests/sandbox/bots/**/obj/
 *.trx

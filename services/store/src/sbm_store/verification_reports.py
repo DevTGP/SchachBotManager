@@ -17,8 +17,10 @@ from sbm_store.names import VERIFICATION_REPORTS
 SCHEMA_VERSION = 1
 PASSED = "passed"
 FAILED = "failed"
-# The stages a report can contain (verifikation.md); internal marks an error of the server.
+# The stages a report can contain (verifikation.md); build compiles a C# bot (E203), internal
+# marks an error of the server.
 ANALYSIS = "analysis"
+BUILD = "build"
 TESTS = "tests"
 INTERNAL = "internal"
 UPLOAD = "upload"

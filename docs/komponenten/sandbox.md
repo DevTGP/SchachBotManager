@@ -75,7 +75,7 @@ JVM, .NET und Node müssen schon jetzt auf die feste Speichergrenze eingestellt 
 - **Gemeinsamer Kernel:** Die Isolation teilt den Host-Kernel; ein Kernel-Fehler wäre ein Ausbruchsweg. Für den Nutzerkreis (Freunde, Invite-only) als ausreichend eingestuft; aktuelle Kernel-Updates bleiben relevant.
 - **seccomp-Whitelists je Laufzeit** müssen einmal ermittelt und bei Laufzeit-Updates geprüft werden (JVM und .NET nutzen mehr Aufrufe als CPython).
 - **Aufräumen:** Beim Runner-Start verwaiste cgroups/Prozesse entfernen.
-- **Negativ-Tests:** Testbots für Netz, Datei, Fork-Bombe, Speicher, Endlosschleife, übergroße Ausgabe laufen in CI gegen die Sandbox (E88).
+- **Negativ-Tests:** Testbots für Netz, Datei, Fork-Bombe, Speicher, Endlosschleife, übergroße Ausgabe laufen in CI gegen die Sandbox (E88); für C# dieselben Angriffe als kompilierte Programme (E205).
 
 ## Stand M3 Schritt 2 (E86–E88)
 
@@ -84,12 +84,12 @@ Umgesetzt für Python und seit E227 für JavaScript; die übrigen Sprachen folge
 | Datei | Inhalt |
 |-------|--------|
 | `sandbox/python.cfg` | nsjail-Konfiguration eines Python-Bots: Namespaces, Nutzer-Abbildung, Umgebung, Mounts, rlimits; setzt `SBM_NO_VIEWER`, damit kein Viewer-Fenster aufgeht (E108) |
-| `sandbox/python.policy` | seccomp-Whitelist in kafel-Syntax |
-| `sandbox/javascript.cfg`, `sandbox/javascript.policy` | Dasselbe für Node (E227); die Whitelist erlaubt zusätzlich `restart_syscall` |
-| `services/runner/src/sbm_runner/sandbox/` | `settings` (`SBM_SANDBOX`), `runtimes` (Interpreter, Analyse, Selbstprüfung und Konfiguration je Sprache, E227), `limits` (feste Grenzen), `cgroup_tree` (Aufteilung des Baums beim Start), `cgroup` (cgroup eines Bots), `jail_player` (Spieler über nsjail), `stderr_tail`, `jail` (Selbstprüfung, Spieler je Bot) |
-| `services/runner/tests/sandbox/` | Negativ-Suite mit Testbots und `run-in-docker.sh` |
+| `sandbox/python.policy` | seccomp-Whitelist in kafel-Syntax; erlaubt `restart_syscall`, damit ein Warten mit Zeitgrenze nach dem Auftauen weiterläuft |
+| `sandbox/javascript.cfg`, `sandbox/javascript.policy` | Dasselbe für Node (E227) mit derselben Whitelist |
+| `services/runner/src/sbm_runner/sandbox/` | `settings` (`SBM_SANDBOX`), `runtimes` (Start, Selbstprüfung, Analyse bzw. Build und Konfiguration je Sprache, E205, E227), `limits` (feste Grenzen), `cgroup_tree` (Aufteilung des Baums beim Start), `cgroup` (cgroup eines Bots), `jail_player` (Spieler über nsjail), `stderr_tail`, `jail` (Selbstprüfung, Spieler je Bot) |
+| `services/runner/tests/sandbox/` | Negativ-Suite mit Testbots, `suite.Dockerfile` (Runner-Image plus die mit dem .NET-SDK gebauten C#-Testbots) und `run-in-docker.sh` |
 
-**Feste Grenzen** (`limits.py`, A14): 1 GiB Speicher ohne Swap, 128 Prozesse und Threads, 64 Dateideskriptoren, keine beschreibbare Datei außer `/dev/null`, kein `/dev/urandom` (Zufall über `getrandom`), Zeilen bis 64 KiB, von stderr bleiben die letzten 4 KiB im Log des Runners.
+**Feste Grenzen** (`limits.py`, A14): 1 GiB Speicher ohne Swap, 128 Prozesse und Threads, 256 Dateideskriptoren (bis E205 64), keine beschreibbare Datei außer `/dev/null`, für Python kein `/dev/urandom` (Zufall über `getrandom`), Zeilen bis 64 KiB, von stderr bleiben die letzten 4 KiB im Log des Runners.
 
 **Ablauf eines Bots:** Runner legt `bots/bot-<zufall>/` mit den Grenzen an → `sh` schreibt sich in deren `cgroup.procs` und wird zu nsjail → nsjail baut die Namespaces, hängt Laufzeit und Bot-Dateien ein, setzt den seccomp-Filter und startet `python3`. Außerhalb seines Zuges ist die cgroup eingefroren. Am Ende: auftauen, stdin schließen, nach `game_over` bis 2 s warten, `cgroup.kill`, cgroup entfernen.
 
@@ -106,9 +106,26 @@ Umgesetzt für Python und seit E227 für JavaScript; die übrigen Sprachen folge
 - **Selbstprüfung:** Sie läuft beim Start des Runners für jede Laufzeit und meldet die Versionen von Python bzw. Node und SDK als JSON; der Runner trägt sie in Report und Bot ein.
 - **stderr:** Zusätzlich zu den letzten 4 KiB zählt der Runner die Gesamtmenge; über 1 MiB scheitert ein Mindesttest (E92).
 
+## Stand M5 Schritt 4: C# (E203–E205)
+
+| Datei | Inhalt |
+|-------|--------|
+| `sandbox/csharp.cfg` | nsjail-Konfiguration eines C#-Bots und von `sbm-build`: wie Python, dazu .NET-Umgebung (invariante Globalisierung, keine Diagnose, `DOTNET_GCHeapHardLimit` 768 MiB), `/dev/urandom` read-only und das Programm als `/program` (read-only, `noexec`) |
+| `sandbox/csharp.policy` | seccomp-Whitelist wie Python, zusätzlich `membarrier` (drei Befehle) und `sched_setaffinity` für den eigenen Prozess; `open`/`openat` nur mit `O_RDONLY`, weil `/dev/urandom` trotz read-only-Mount beschreibbar wäre |
+| `services/runner/src/sbm_runner/sandbox/runtimes.py` | je Sprache Konfiguration, Startbefehl, Selbstprüfung und Build |
+| `sdk/csharp/server/Sbm.Host/sbm-host.c` | nativer Starter: hostfxr in einem zweiten Thread mit 8 MiB Stack, weil glibc ohne `/proc` den Stack des Hauptthreads nicht bestimmen kann |
+
+**Laufzeitverzeichnis** `/opt/sbm/runtimes/csharp` (Stufe `bot-csharp` in `deploy/python.Dockerfile`): .NET-Runtime 10.0.13 ohne SDK, darin `/sbm/host`, `/sbm/build/sbm-build.dll`, `/sbm/launch/sbm-launch.dll` und die Referenz-Assemblies unter `/sbm/refs/net` und `/sbm/refs/sdk`. Gebaut wird in der Stufe `bot-csharp-build` mit dem .NET-SDK 10.0.402; ins Runner-Image kommt nur das Ergebnis.
+
+**Ablauf:** Bei der Verifikation läuft `/sbm/host /sbm/build/sbm-build.dll --entry … --references /sbm/refs/net --references /sbm/refs/sdk /bot` in der Sandbox (höchstens 120 s, Ausgabe höchstens 16 MiB, `/program` leer). Für jeden Test und jede Partie schreibt `checkout.py` das gespeicherte Programm in ein eigenes Verzeichnis (Hash geprüft), nsjail hängt es als `/program` ein, und `/sbm/host /sbm/launch/sbm-launch.dll` lädt es aus dem Speicher. Die Selbstprüfung startet den Launcher mit `--versions`.
+
+**Speicher:** Verwalteter Speicher endet an `DOTNET_GCHeapHardLimit` mit einer `OutOfMemoryException` unterhalb der cgroup-Grenze, also als `crash`; nativer Speicher (`NativeMemory.Alloc`) läuft bis zur cgroup-Grenze und endet als `memory_limit`. Beides prüft die Negativ-Suite.
+
+**Negativ-Suite für C#** (`test_sandbox_csharp.py`, `test_sandbox_verification_csharp.py`): Die Testbots unter `services/runner/tests/sandbox/bots/csharp/` (Netz, Dateien, Prozesse, Systemaufrufe, Threads, verwalteter und nativer Speicher) baut `suite.Dockerfile` mit dem .NET-SDK und legt sie als Programme neben das Runner-Image; sie laufen wie hochgeladene Bots über den Launcher. Dazu `sbm-build` in der echten Sandbox: `csharp_forbidden` scheitert an der Analyse, `csharp_uploaded` wird kompiliert, liest seine Datendatei und besteht die Mindesttests.
+
 ## Stand JavaScript (E227)
 
 - **Laufzeit:** Read-only-Wurzelbaum `/opt/sbm/runtimes/javascript` aus `node:24.22.0-trixie-slim` mit `/usr/local/bin/node`, den nötigen Bibliotheken und dem npm-Paket samt Addon unter `/node_modules/schachbotmanager`. acorn liegt verschachtelt im Paket, ein Bot findet also nur das SDK. Ohne `package.json` in der Wurzel liest Node jede Datei des Bots nach ihrer Syntax als ES-Modul.
 - **Start:** `node --permission --allow-fs-read=* --allow-addons --disable-warning=SecurityWarning --disallow-code-generation-from-strings --no-expose-wasm --max-old-space-size=768 /bot/<entry>`. Die Flags verbieten Kindprozesse, Worker, WASI, Inspector, Schreibrechte, Code aus Zeichenketten und WebAssembly; der Heap bleibt unter der Speichergrenze, sodass ein voller Heap als JavaScript-Fehler endet. Sie sind eine weitere Schicht, die Sandbox muss allein reichen.
 - **Grenzen:** dieselben wie für Python (A14).
-- **Negativ-Suite:** prüft Netz, Dateien und Prozesse für beide Sprachen, für Node zusätzlich Code aus Zeichenketten und WebAssembly (`tests/sandbox/bots/javascript/`).
+- **Negativ-Suite:** prüft Netz, Dateien und Prozesse wie für Python, für Node zusätzlich Code aus Zeichenketten und WebAssembly (`tests/sandbox/bots/javascript/`).

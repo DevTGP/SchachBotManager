@@ -65,6 +65,18 @@ def test_a_bot_goes_with_its_files_reports_jobs_and_matches(db):
     assert not rating_recount.is_requested(db)
 
 
+def test_the_program_of_a_bot_goes_too(db):
+    migrate(db)
+    bot = upload(db)
+    program = bot_files.store_program(db, bot["_id"], b"MZ")
+    db[BOTS].update_one({"_id": bot["_id"]}, {"$set": {"program": program}})
+
+    bot_deletion.delete_bot(db, bot["_id"], T0)
+
+    assert db["bot_files.files"].count_documents({}) == 0
+    assert db["bot_files.chunks"].count_documents({}) == 0
+
+
 def test_deleting_a_counted_match_asks_for_a_recount(db):
     migrate(db)
     bot = upload(db)

@@ -7,12 +7,12 @@ SBM_REQUIRE_SANDBOX=1 it fails instead.
 import os
 
 import pytest
-from sandbox_suite import ENTRIES, QUICK, RANDOM, bot_dir
+from sandbox_suite import CSHARP_BOTS, ENTRIES, QUICK, RANDOM, bot_dir
+from sbm.analysis.upload import PYTHON
 from sbm.referee import Match, MatchSettings, Outcome, Player
 
 from sbm_runner.sandbox.cgroup_tree import CGROUP_ROOT
 from sbm_runner.sandbox.jail import Sandbox
-from sbm_runner.sandbox.runtimes import PYTHON
 from sbm_runner.sandbox.settings import NSJAIL, SandboxSettings
 
 
@@ -32,8 +32,13 @@ def _escape(text: str, extra: str) -> str:
 
 
 @pytest.fixture(scope="session")
-def sandbox() -> Sandbox:
-    settings = SandboxSettings.from_env(os.environ)
+def sandbox_settings() -> SandboxSettings:
+    return SandboxSettings.from_env(os.environ)
+
+
+@pytest.fixture(scope="session")
+def sandbox(sandbox_settings) -> Sandbox:
+    settings = sandbox_settings
     if settings.mode != NSJAIL:
         if os.environ.get("SBM_REQUIRE_SANDBOX") == "1":
             pytest.fail("SBM_REQUIRE_SANDBOX=1, but SBM_SANDBOX is not nsjail")
@@ -59,6 +64,16 @@ def jailed(sandbox):
 
 
 @pytest.fixture
+def programmed(sandbox, sandbox_settings):
+    """A C# test bot, compiled into the suite's image (suite.Dockerfile), without files."""
+
+    def programmed(name: str) -> Player:
+        return sandbox.program_player(name, sandbox_settings.no_files, CSHARP_BOTS / name)
+
+    return programmed
+
+
+@pytest.fixture
 def play(sandbox, jailed):
     """Plays the test bot as white against the jailed random bot."""
 
@@ -66,3 +81,13 @@ def play(sandbox, jailed):
         return Match(jailed(name, language), sandbox.player(RANDOM), settings).play().outcome
 
     return play
+
+
+@pytest.fixture
+def play_csharp(sandbox, programmed):
+    """Plays the C# test bot as white against the jailed random bot."""
+
+    def play_csharp(name: str, settings: MatchSettings = QUICK) -> Outcome:
+        return Match(programmed(name), sandbox.player(RANDOM), settings).play().outcome
+
+    return play_csharp

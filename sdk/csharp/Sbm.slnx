@@ -2,10 +2,17 @@
   <Folder Name="/bots/">
     <Project Path="bots/Material/Material.csproj" />
   </Folder>
+  <Folder Name="/server/">
+    <Project Path="server/Sbm.Build/Sbm.Build.csproj" />
+    <Project Path="server/Sbm.Launcher/Sbm.Launcher.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Sbm/Sbm.csproj" />
+    <Project Path="src/Sbm.Analyzers/Sbm.Analyzers.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Sbm.Analyzers.Tests/Sbm.Analyzers.Tests.csproj" />
+    <Project Path="tests/Sbm.Build.Tests/Sbm.Build.Tests.csproj" />
     <Project Path="tests/Sbm.Tests/Sbm.Tests.csproj" />
   </Folder>
 </Solution>

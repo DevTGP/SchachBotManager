@@ -9,7 +9,13 @@ import re
 from dataclasses import dataclass
 
 from flask import request
-from sbm.analysis.upload import LANGUAGES, MAX_PATH_LENGTH, UploadError, check_upload
+from sbm.analysis.upload import (
+    LANGUAGES,
+    MAX_PATH_LENGTH,
+    UploadError,
+    check_upload,
+    default_entry,
+)
 from sbm_store import versions
 from werkzeug.datastructures import MultiDict
 
@@ -54,7 +60,7 @@ def parse_upload() -> Upload:
     language = _single(form, "language")
     if language not in LANGUAGES:
         raise invalid_parameter("language", f"language must be one of {', '.join(LANGUAGES)}")
-    entry = _single(form, "entry", LANGUAGES[language].default_entry)
+    entry = _single(form, "entry", default_entry(language))
     if len(entry) > MAX_PATH_LENGTH:
         raise invalid_parameter("entry", f"entry must be at most {MAX_PATH_LENGTH} characters")
     description = bot_description.check(_single(form, "description", ""))

@@ -6,7 +6,7 @@ import pytest
 from sbm_store import bots, jobs, matches, queue_settings, verification_reports
 from sbm_store.names import BOTS, JOBS
 from sbm_store.verification_reports import ANALYSIS, FAILED, INTERNAL, PASSED, TESTS
-from uploads import CRASHING, DIRTY, FINDING, JAVASCRIPT, FakeVerifier, upload
+from uploads import CRASHING, DIRTY, FINDING, JAVASCRIPT_FILES, FakeVerifier, upload
 
 from sbm_runner.recovery import recover_expired
 from sbm_runner.shutdown import Shutdown
@@ -55,7 +55,7 @@ def test_a_bot_that_plays_by_the_rules_is_verified(db, verifying, verifier):
 
 
 def test_a_javascript_bot_is_checked_and_played_with_node(db, verifying, verifier):
-    bot = upload(db, JAVASCRIPT, language="javascript", entry="bot.js")
+    bot = upload(db, JAVASCRIPT_FILES, language="javascript", entry="bot.js")
 
     assert verifying.step()
 

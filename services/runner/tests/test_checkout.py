@@ -4,9 +4,9 @@ import os
 import stat
 
 import pytest
-from sbm_store import bots
+from sbm_store import bot_files, bots
 from sbm_store.names import BOTS
-from uploads import GOOD, upload
+from uploads import CSHARP_FILES, GOOD, PROGRAM, upload, upload_csharp
 
 from sbm_runner.checkout import CheckoutError, checkout
 
@@ -71,6 +71,52 @@ def test_a_path_twice_is_an_error(db, tmp_path):
     db[BOTS].update_one({"_id": bot["_id"]}, {"$push": {"files": bot["files"][0]}})
 
     with pytest.raises(FileExistsError):
+        checkout(db, bots.get(db, bot["_id"]), tmp_path)
+
+    assert list(tmp_path.iterdir()) == []
+
+
+def compiled(db, bot: dict, content: bytes = PROGRAM) -> dict:
+    program = bot_files.store_program(db, bot["_id"], content)
+    db[BOTS].update_one({"_id": bot["_id"]}, {"$set": {"program": program}})
+    return bots.get(db, bot["_id"])
+
+
+def test_a_csharp_bot_gets_its_program_in_a_directory_of_its_own(db, tmp_path):
+    bot = compiled(db, upload_csharp(db))
+
+    bot_dir = checkout(db, bot, tmp_path)
+
+    assert files_in(bot_dir.path) == {path: content for path, _kind, content in CSHARP_FILES}
+    assert bot_dir.program.path.parent == tmp_path
+    assert files_in(bot_dir.program.path) == {bot_files.PROGRAM: PROGRAM}
+    assert stat.S_IMODE((bot_dir.program.path / bot_files.PROGRAM).stat().st_mode) == 0o644
+    bot_dir.remove()
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_a_python_bot_has_no_program(db, tmp_path):
+    bot_dir = checkout(db, upload(db), tmp_path)
+
+    assert bot_dir.program is None
+    bot_dir.remove()
+
+
+def test_a_tampered_program_leaves_nothing_behind(db, tmp_path):
+    bot = compiled(db, upload_csharp(db))
+    db[BOTS].update_one({"_id": bot["_id"]}, {"$set": {"program.sha256": "0" * 64}})
+
+    with pytest.raises(CheckoutError, match="program"):
+        checkout(db, bots.get(db, bot["_id"]), tmp_path)
+
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_the_rules_of_the_language_apply_to_the_paths(db, tmp_path):
+    bot = upload_csharp(db)
+    db[BOTS].update_one({"_id": bot["_id"]}, {"$set": {"language": "python"}})
+
+    with pytest.raises(CheckoutError, match="stored path"):
         checkout(db, bots.get(db, bot["_id"]), tmp_path)
 
     assert list(tmp_path.iterdir()) == []

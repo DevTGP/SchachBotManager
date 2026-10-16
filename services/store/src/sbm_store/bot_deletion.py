@@ -61,6 +61,8 @@ def delete_bot(db: Database, bot_id: ObjectId, now: datetime) -> Deletion | None
         rating_recount.request(db, now)
     db[VERIFICATION_REPORTS].delete_many({"bot_id": bot_id})
     bot_files.delete_files(db, bot.get("files", []))
+    if bot.get("program"):
+        bot_files.delete_files(db, [bot["program"]])
     db[BOTS].update_many(
         {"parent_bot_id": bot_id}, {"$set": {"parent_bot_id": bot.get("parent_bot_id")}}
     )
