@@ -14,6 +14,7 @@ declare -A areas=(
   [core_headers]='^sdk/core/(include/|tests/header_check)'
   [core]='^(sdk/core/|spec/testvectors/)'
   [python]='^(sdk/core/|sdk/python/|templates/python/|spec/)'
+  [csharp]='^(sdk/core/|sdk/csharp/|spec/api/|spec/testvectors/)'
   [services]='^(sdk/core/|sdk/python/|services/|backend/|spec/)'
   [sandbox]='^(sandbox/|deploy/python\.Dockerfile|sdk/core/|sdk/python/|services/)'
   [frontend]='^(frontend/|spec/web/)'

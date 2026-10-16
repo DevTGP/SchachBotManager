@@ -10,6 +10,7 @@ Vom frischen Klon bis zum laufenden Stack auf dem eigenen Rechner. Wer nur einen
 | C++-Compiler mit C++20 | GCC, Clang oder MSVC (Visual Studio 2022) | Kern, Python-Modul, Viewer |
 | CMake | ab 3.21 | Kern und Viewer; beim Bau des SDK ergänzt scikit-build-core es bei Bedarf als Python-Paket |
 | Node.js | ab 22.12 | Frontend |
+| .NET SDK (optional) | 10.0 | C#-SDK (`sdk/csharp`) |
 | Docker | aktuell | MongoDB für Tests, Stack lokal, Negativ-Suite der Sandbox |
 | clang-format | genau 19.1.7 (`pip install clang-format==19.1.7`) | Format des nativen Codes; andere Versionen formatieren anders |
 | X11-Header (nur Linux, nur für den Viewer) | `libx11-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libxfixes-dev` | SDL3 im Viewer |
@@ -73,6 +74,18 @@ npm ci
 npm test
 npm run build
 ```
+
+### 6. C#-SDK (optional)
+
+Braucht das .NET-10-SDK und den Kern als geteilte Bibliothek unter `build/core` (E193).
+
+```
+cmake -S sdk/core -B build/core -DCMAKE_BUILD_TYPE=Release -DSBM_BUILD_TESTS=OFF
+cmake --build build/core --config Release
+dotnet test sdk/csharp/Sbm.slnx
+```
+
+Format und Lint aus `sdk/csharp`: `dotnet tool restore`, `dotnet csharpier check .`, `dotnet format Sbm.slnx --verify-no-changes`. Mehr in [code-csharp-sdk.md](code-csharp-sdk.md).
 
 ## Stack lokal
 

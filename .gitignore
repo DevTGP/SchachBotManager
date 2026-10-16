@@ -51,3 +51,8 @@ node_modules/
 
 ### Wheels built locally with cibuildwheel
 wheelhouse/
+
+### .NET
+sdk/csharp/**/bin/
+sdk/csharp/**/obj/
+*.trx

@@ -123,18 +123,28 @@ Abnahme: Ein Python-Bot aus der Vorlage öffnet beim lokalen Lauf ein Fenster, d
 
 ### M5 – Weitere Sprachen (P2)
 
-Zurückgestellt (E110). Mit jeder Sprache kommt auch ihr Transport `remote` für M7 (E111).
+Für C# läuft M5 (E192), die übrigen Sprachen sind zurückgestellt (E110). Mit jeder Sprache kommt auch ihr Transport `remote` für M7 (E111).
 
 Pro Sprache: Binding auf den Kern, Paket mit eingebetteten Binaries samt Viewer (E106), API- und Protokolltests, Laufzeitverzeichnis + seccomp-Whitelist, Analyzer mit Bibliotheks-Whitelist, Vorlagenprojekt, Aufnahme in den Kreuztest. Die Schachregeln selbst müssen nicht erneut implementiert werden.
 
 | Reihenfolge | Sprache | Begründung der Position |
 |-------------|---------|-------------------------|
-| 1 | C++ | Binding entfällt praktisch (direkter Zugriff auf den Kern); der Analyzer ist der aufwendigste, kann aber früh beginnen |
-| 2 | JavaScript | Analyseform ähnlich zu Python (AST); nativer Addon als neue Bindungsart |
-| 3 | Java | Bytecode-Analyse gut abgrenzbar; Laufzeit mit größerer seccomp-Whitelist |
-| 4 | C# | Ähnlich zu Java |
+| 1 | C# | Gewünscht vorgezogen (E192) |
+| 2 | C++ | Binding entfällt praktisch (direkter Zugriff auf den Kern); der Analyzer ist der aufwendigste, kann aber früh beginnen |
+| 3 | JavaScript | Analyseform ähnlich zu Python (AST); nativer Addon als neue Bindungsart |
+| 4 | Java | Bytecode-Analyse gut abgrenzbar; Laufzeit mit größerer seccomp-Whitelist |
 
-Die Reihenfolge ist nach Aufwand und Abhängigkeiten sortiert und frei änderbar; die Sprachen sind untereinander unabhängig.
+Die Reihenfolge ist frei änderbar; die Sprachen sind untereinander unabhängig.
+
+C# in fünf Schritten (E192):
+
+| Schritt | Inhalt | Stand |
+|---------|--------|-------|
+| 1 | Binding auf den Kern (`Board`, `Move`, Konstanten, Fehler), Tests gegen alle API-Vektoren, CI-Job `csharp` (E193–E195) | Umgesetzt |
+| 2 | Hauptschleife nach dem Protokoll: `Clock`, `Log`, `Bot`, `Run` mit `stdio`/`tcp`, `LoadData`; Referenzbot; Kreuztest über die Arena | Offen |
+| 3 | NuGet-Paket mit `runtimes/<rid>/native`, Vorlagenprojekt | Offen |
+| 4 | Serverseite: Laufzeitverzeichnis, seccomp-Whitelist, Analyzer (Roslyn), Verifikation im Runner, Negativ-Suite | Offen |
+| 5 | Viewer, Transport `remote`, `Play` | Offen |
 
 Abnahme je Sprache: Alle API-Vektoren bestanden, Bot der Sprache spielt regulär gegen Bots aller bereits unterstützten Sprachen, Negativ-Suite bestanden, Setup auf frischem Rechner mit einem Paketbefehl.
 

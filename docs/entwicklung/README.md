@@ -19,6 +19,7 @@ Je Paket eine Karte: Einstieg, Module mit ihrer Aufgabe, Abläufe im Code, Tests
 | [code-kern.md](code-kern.md) | C++-Kern mit C-Schnittstelle | `sdk/core` |
 | [code-python-sdk.md](code-python-sdk.md) | Python-SDK `schachbotmanager` (Binding, Laufzeit, Referee, Arena, Analyse, Remote) | `sdk/python` |
 | [code-viewer.md](code-viewer.md) | Grafischer Viewer `sbm-viewer` | `sdk/viewer` |
+| [code-csharp-sdk.md](code-csharp-sdk.md) | C#-SDK (Binding auf den Kern, M5 Schritt 1) | `sdk/csharp` |
 | [code-store.md](code-store.md) | Datenbankzugriff, Queue, Ratings, Einstellungen, Migrationen | `services/store` |
 | [code-runner.md](code-runner.md) | Runner für Partien, Verifikation und interaktive Partien | `services/runner` |
 | [code-gateway.md](code-gateway.md) | WebSocket-Gateway | `services/gateway` |
@@ -33,7 +34,7 @@ Je Paket eine Karte: Einstieg, Module mit ihrer Aufgabe, Abläufe im Code, Tests
 | Neue Seite oder neuer Endpunkt | [aenderungen.md](aenderungen.md#funktion-durch-alle-schichten), [code-store.md](code-store.md), [code-backend.md](code-backend.md), [code-frontend.md](code-frontend.md) |
 | Partien, Queue, Verifikation | [ablaeufe.md](../architektur/ablaeufe.md), [code-runner.md](code-runner.md), [match-runner.md](../komponenten/match-runner.md) |
 | Sandbox | [sandbox.md](../komponenten/sandbox.md), [code-runner.md](code-runner.md), Negativ-Suite in [tests-und-ci.md](tests-und-ci.md) |
-| Schachregeln oder Bot-API | [aenderungen.md](aenderungen.md#protokoll-oder-bot-api-ändern), [code-kern.md](code-kern.md), [code-python-sdk.md](code-python-sdk.md) |
+| Schachregeln oder Bot-API | [aenderungen.md](aenderungen.md#protokoll-oder-bot-api-ändern), [code-kern.md](code-kern.md), [code-python-sdk.md](code-python-sdk.md), [code-csharp-sdk.md](code-csharp-sdk.md) |
 | Mensch gegen Bot, Remote-Bots | [gateway.md](../komponenten/gateway.md), [code-gateway.md](code-gateway.md), [code-runner.md](code-runner.md) |
 | Viewer | [viewer.md](../komponenten/viewer.md), [code-viewer.md](code-viewer.md) |
 | CI rot | [tests-und-ci.md](tests-und-ci.md#typische-fehler-in-der-ci) |

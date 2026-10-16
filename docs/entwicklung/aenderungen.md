@@ -35,7 +35,7 @@ Store, API und Frontend lassen sich nacheinander committen, solange jeder Commit
 | Was | Spezifikation | Danach |
 |-----|---------------|--------|
 | Bot ↔ Referee (v1) | `spec/protocol/v1/` mit Beispielen unter `examples/valid` und `examples/invalid` | Referee `sbm.referee` (strenge Prüfung, E66), Bot-Seite in `sbm/runtime`, Doku [bot-protokoll.md](../komponenten/bot-protokoll.md); alle SDKs müssen folgen |
-| Bot-API (`Board`, `Move`, …) | `spec/api/*.json`, dann Vektoren mit `testvector-gen spec` | [Kern](code-kern.md#neue-funktion-der-c-schnittstelle), dann [Binding](code-python-sdk.md#erweitern); `test_vectors.py` und `test_api_surface.py` fordern die neue Funktion ein |
+| Bot-API (`Board`, `Move`, …) | `spec/api/*.json`, dann Vektoren mit `testvector-gen spec` | [Kern](code-kern.md#neue-funktion-der-c-schnittstelle), dann [Binding](code-python-sdk.md#erweitern) und [C#-Binding](code-csharp-sdk.md#erweitern); `test_vectors.py` und `test_api_surface.py` bzw. `VectorTests` und `ApiSurfaceTests` fordern die neue Funktion ein |
 | Schachregel | Beschreibung in `spec/api/*.json` bzw. Entscheidung, Fälle im Generator | [Regeländerung im Kern](code-kern.md#regeländerung); alle Vektoren neu erzeugen und mit `--perft all` prüfen |
 | Gateway, Relay, Browser | `spec/protocol/gateway-v1/`, `relay-v1/`, `play-v1/` | [Gateway](code-gateway.md#erweitern), Runner (`play/`), Remote-Transport im SDK, `frontend/src/play/` |
 | Viewer | `spec/protocol/viewer-v1/` | [Viewer](code-viewer.md#neues-feld-in-einer-nachricht): Python-Seite, Modell, Anzeige |

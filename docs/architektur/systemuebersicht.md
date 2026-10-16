@@ -81,6 +81,7 @@ SchachBotManager/
 ├── sdk/
 │   ├── core/                C++-Schachkern + C-Schnittstelle
 │   ├── python/              Binding, Referee-Kern (sbm.referee), lokale Arena (sbm.arena, E65), Referenzbots (sbm.bots, E68), statische Analyse (sbm.analysis, E90), Anbindung des Viewers (sbm.viewer, E107)
+│   ├── csharp/              C#-Binding (Sbm.slnx, Bibliothek src/Sbm, Tests tests/Sbm.Tests), erste Sprache von M5 (E192)
 │   └── viewer/              Viewer-Programm sbm-viewer (C++, SDL3, Dear ImGui), in jedem SDK-Paket mitgeliefert (E106, E107)
 ├── templates/               Vorlagenprojekte je Sprache mit Debug-Konfiguration (python/, E69)
 ├── tools/
@@ -91,4 +92,4 @@ SchachBotManager/
 └── .github/                 Workflows (ci, deploy, wheels) und Skripte der CI
 ```
 
-Die Verifikation hat kein eigenes Paket: Der Runner führt sie aus (E81, E89), die statische Analyse liegt im SDK (E90). Die SDKs für C++, Java, C# und JavaScript (`sdk/cpp/`, `sdk/java/`, `sdk/csharp/`, `sdk/javascript/`) kommen mit M5 (zurückgestellt, E110). Wie der Code in den vorhandenen Paketen aufgebaut ist, beschreiben die Code-Karten unter [`entwicklung/`](../entwicklung/README.md).
+Die Verifikation hat kein eigenes Paket: Der Runner führt sie aus (E81, E89), die statische Analyse liegt im SDK (E90). Das C#-SDK unter `sdk/csharp/` entsteht als erste Sprache von M5 (E192); die SDKs für C++, Java und JavaScript (`sdk/cpp/`, `sdk/java/`, `sdk/javascript/`) bleiben zurückgestellt (E110). Wie der Code in den vorhandenen Paketen aufgebaut ist, beschreiben die Code-Karten unter [`entwicklung/`](../entwicklung/README.md).

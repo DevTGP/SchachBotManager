@@ -24,6 +24,7 @@ jobs:
       core_headers: ${{ steps.areas.outputs.core_headers }}
       core: ${{ steps.areas.outputs.core }}
       python: ${{ steps.areas.outputs.python }}
+      csharp: ${{ steps.areas.outputs.csharp }}
       services: ${{ steps.areas.outputs.services }}
       sandbox: ${{ steps.areas.outputs.sandbox }}
       frontend: ${{ steps.areas.outputs.frontend }}
@@ -171,6 +172,39 @@ jobs:
 
       - name: Test (API vectors, constants, errors, objects, template)
         run: pytest sdk/python
+
+  csharp:
+    name: C# SDK (${{ matrix.os }})
+    needs: changes
+    if: needs.changes.outputs.csharp == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      # The binding loads the shared core; the build copies it next to the assembly (E193).
+      - name: Build the core as shared library
+        run: |
+          cmake -S sdk/core -B build/core -DCMAKE_BUILD_TYPE=Release -DSBM_BUILD_TESTS=OFF
+          cmake --build build/core --config Release --parallel
+
+      - name: Lint
+        if: runner.os == 'Linux'
+        working-directory: sdk/csharp
+        run: |
+          dotnet tool restore
+          dotnet csharpier check .
+          dotnet format Sbm.slnx --verify-no-changes
+
+      - name: Test (API vectors, API surface, constants, errors)
+        run: dotnet test sdk/csharp/Sbm.slnx
 
   services:
     name: Store, runner and web API

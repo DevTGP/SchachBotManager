@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Sbm</AssemblyName>
+    <RootNamespace>Sbm</RootNamespace>
+    <PackageId>SchachBotManager</PackageId>
+    <Description>SDK for chess bots on SchachBotManager.</Description>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <!-- The shared core next to the assembly, where the default native library search finds it.
+       Wildcards, so that only the library of the current platform is copied. -->
+  <ItemGroup>
+    <None
+      Include="$(SbmNativeDir)/lib/libsbm*.so;$(SbmNativeDir)/lib/libsbm*.dylib;$(SbmNativeDir)/bin/**/sbm.dll"
+      CopyToOutputDirectory="PreserveNewest"
+      Link="%(Filename)%(Extension)"
+      Visible="false"
+    />
+  </ItemGroup>
+</Project>
