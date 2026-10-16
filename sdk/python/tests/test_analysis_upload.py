@@ -4,8 +4,11 @@ import pytest
 
 from sbm.analysis.upload import (
     DATA,
+    JAVASCRIPT,
+    LANGUAGES,
     MAX_DATA_BYTES,
     MAX_SOURCE_FILES,
+    PYTHON,
     SOURCE,
     UploadError,
     check_upload,
@@ -87,3 +90,48 @@ def test_limits_are_inclusive():
     files = [("bot.py", 1), ("data/a", MAX_DATA_BYTES)]
     files += [(f"m{i}.py", 1) for i in range(MAX_SOURCE_FILES - 1)]
     assert len(check_upload(files, "bot.py")) == MAX_SOURCE_FILES + 1
+
+
+@pytest.mark.parametrize(
+    "path, kind",
+    [
+        ("bot.js", SOURCE),
+        ("lib/search.mjs", SOURCE),
+        ("data/book.js", DATA),
+    ],
+)
+def test_file_kind_javascript(path, kind):
+    assert file_kind(path, JAVASCRIPT) == kind
+
+
+@pytest.mark.parametrize(
+    "path",
+    ["bot.py", "bot.ts", "bot.cjs", "package.json", "node_modules/x.js", "lib/Node_Modules/a.js"],
+)
+def test_rejected_paths_javascript(path):
+    with pytest.raises(UploadError) as raised:
+        file_kind(path, JAVASCRIPT)
+    assert raised.value.path == path
+
+
+def test_languages_keep_their_files():
+    with pytest.raises(UploadError):
+        file_kind("bot.js", PYTHON)
+    # node_modules is reserved for JavaScript only.
+    assert file_kind("node_modules/x.py") == SOURCE
+    with pytest.raises(UploadError, match="unknown language"):
+        file_kind("bot.rb", "ruby")
+
+
+def test_check_upload_javascript():
+    files = [("bot.js", 10), ("lib/a.mjs", 5), ("data/book.bin", 3)]
+    checked = check_upload(files, LANGUAGES[JAVASCRIPT].default_entry, JAVASCRIPT)
+    assert [(file.path, file.kind) for file in checked] == [
+        ("bot.js", SOURCE),
+        ("lib/a.mjs", SOURCE),
+        ("data/book.bin", DATA),
+    ]
+    with pytest.raises(UploadError, match=r"\.js and \.mjs"):
+        check_upload(files, "bot.py", JAVASCRIPT)
+    with pytest.raises(UploadError, match="missing"):
+        check_upload(files, "main.mjs", JAVASCRIPT)
