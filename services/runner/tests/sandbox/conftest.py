@@ -7,11 +7,12 @@ SBM_REQUIRE_SANDBOX=1 it fails instead.
 import os
 
 import pytest
-from sandbox_suite import BOTS, QUICK, RANDOM
+from sandbox_suite import ENTRIES, QUICK, RANDOM, bot_dir
 from sbm.referee import Match, MatchSettings, Outcome, Player
 
 from sbm_runner.sandbox.cgroup_tree import CGROUP_ROOT
 from sbm_runner.sandbox.jail import Sandbox
+from sbm_runner.sandbox.runtimes import PYTHON
 from sbm_runner.sandbox.settings import NSJAIL, SandboxSettings
 
 
@@ -51,8 +52,8 @@ def no_leftovers(sandbox):
 
 @pytest.fixture
 def jailed(sandbox):
-    def jailed(name: str) -> Player:
-        return sandbox.script_player(name, BOTS / name, "bot.py")
+    def jailed(name: str, language: str = PYTHON) -> Player:
+        return sandbox.script_player(name, bot_dir(name, language), ENTRIES[language], language)
 
     return jailed
 
@@ -61,7 +62,7 @@ def jailed(sandbox):
 def play(sandbox, jailed):
     """Plays the test bot as white against the jailed random bot."""
 
-    def play(name: str, settings: MatchSettings = QUICK) -> Outcome:
-        return Match(jailed(name), sandbox.player(RANDOM), settings).play().outcome
+    def play(name: str, settings: MatchSettings = QUICK, language: str = PYTHON) -> Outcome:
+        return Match(jailed(name, language), sandbox.player(RANDOM), settings).play().outcome
 
     return play

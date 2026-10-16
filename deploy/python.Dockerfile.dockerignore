@@ -2,12 +2,16 @@
 *
 !sdk/core/
 !sdk/python/
+!sdk/javascript/
 !services/store/
 !services/runner/
 !services/gateway/
 !backend/
 !sandbox/
 **/build/
+**/node_modules/
+sdk/javascript/dist/
+sdk/javascript/prebuilds/
 **/__pycache__/
 **/*.egg-info/
 **/.pytest_cache/
