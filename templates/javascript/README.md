@@ -2,13 +2,13 @@
 
 Ein lauffähiger Bot mit Eröffnungsbuch und fertiger Debug-Konfiguration für VS Code. Ordner kopieren, `bot.js` umbauen, gegen andere Bots antreten lassen.
 
-| Datei                 | Inhalt                                                                    |
-| --------------------- | ------------------------------------------------------------------------- |
-| `bot.js`              | Der Bot: Buchzug aus `data/book.txt`, sonst die Schlagregel in `score`    |
-| `data/book.txt`       | Datendatei, gelesen mit `sbm.loadData("book.txt")`                        |
-| `package.json`        | Das SDK `schachbotmanager` von npm und die Arena als `npm run arena`      |
-| `.vscode/launch.json` | Debug-Konfigurationen, die die Arena vorher starten                       |
-| `.vscode/tasks.json`  | Arena-Aufgaben: gegen `material` warten, Stellung nachspielen, 10 Partien |
+| Datei                 | Inhalt                                                                                                |
+| --------------------- | ----------------------------------------------------------------------------------------------------- |
+| `bot.js`              | Der Bot: Buchzug aus `data/book.txt`, sonst die Schlagregel in `score`                                |
+| `data/book.txt`       | Datendatei, gelesen mit `sbm.loadData("book.txt")`                                                    |
+| `package.json`        | Das SDK `schachbotmanager` von npm, die Arena als `npm run arena` und die Prüfung als `npm run check` |
+| `.vscode/launch.json` | Debug-Konfigurationen, die die Arena vorher starten                                                   |
+| `.vscode/tasks.json`  | Arena-Aufgaben: gegen `material` warten, Stellung nachspielen, 10 Partien                             |
 
 ## Einrichten
 
@@ -48,8 +48,8 @@ Das Muster ist überall gleich: erst die Arena mit `tcp` starten, dann `bot.js -
 
 ## TypeScript
 
-Das Paket bringt Typen mit. Ein Bot in TypeScript heißt `bot.ts`, importiert genauso aus `schachbotmanager` und läuft ab Node 22.18 ohne Build-Schritt mit `node bot.ts`; in der Arena dann als Befehl `"node bot.ts"`.
+Das Paket bringt Typen mit. Ein Bot in TypeScript heißt `bot.ts`, importiert genauso aus `schachbotmanager` und läuft ab Node 22.18 ohne Build-Schritt mit `node bot.ts`; in der Arena dann als Befehl `"node bot.ts"`. Hochgeladen wird JavaScript: vorher mit `tsc` nach `.js` übersetzen und die übersetzten Dateien hochladen.
 
 ## Hochladen
 
-Auf der Website laufen JavaScript-Bots erst mit dem nächsten Schritt; bis dahin spielt der Bot lokal in der Arena. Hochgeladen werden dann `bot.js` und der Ordner `data/` (Datendateien bis 1 MB), nicht `node_modules/`. Auf dem Server liest der Bot über stdin/stdout, deshalb dort ohne `--tcp`. `console.log` geht auf stderr, stdout gehört dem Protokoll.
+Hochgeladen werden `bot.js`, weitere `.js`- oder `.mjs`-Dateien und der Ordner `data/` (Datendateien bis 1 MB), nicht `node_modules/` und nicht `package.json`. Vorher prüft `npm run check` (also `sbm-check`) den Ordner wie der Server: erlaubte Dateien, Importe nur aus eigenen Dateien und `schachbotmanager`, keine verbotenen Namen wie `process` oder `eval`. Auf dem Server liest der Bot über stdin/stdout, deshalb dort ohne `--tcp`. `console.log` geht auf stderr, stdout gehört dem Protokoll.

@@ -6,7 +6,7 @@ JavaScript-SDK für [SchachBotManager](https://github.com/DevTGP/SchachBotManage
 npm install schachbotmanager
 ```
 
-- Node ab 22.18. Das Paket ist ESM mit Typen (`.d.ts`) und hat keine Abhängigkeiten.
+- Node ab 22.18. Das Paket ist ESM mit Typen (`.d.ts`); seine einzige Abhängigkeit ist der Parser `acorn` für `sbm-check`.
 - Der Schachkern liegt als fertig übersetzter Node-API-Addon bei, für Windows x64, Linux x64/arm64 (glibc ab 2.28) und macOS x64/arm64 (ab macOS 11). Ein Addon gilt für alle Node-Versionen.
 - Die Schachregeln stecken in einem gemeinsamen C++-Kern, den alle SDKs und der Server nutzen. Lokal und auf dem Server gelten also dieselben Regeln.
 
@@ -56,9 +56,18 @@ Dieselbe API wie im Python-SDK, in camelCase:
 
 `console.log` geht auf stderr, stdout gehört dem Protokoll. `Info` und die Ausgaben von `Log` erscheinen in der Arena und im Partie-Viewer der Website.
 
+## Hochladen
+
+Hochgeladene Bots laufen auf dem Server in einer Sandbox (nsjail mit seccomp), vorher wird der Code statisch geprüft. Hochgeladen werden `.js`- und `.mjs`-Dateien und Datendateien direkt in `data/`; jede `.js`-Datei ist ein ES-Modul mit `import` oder `export`. Importiert werden nur eigene Dateien und `schachbotmanager`, nicht `node:`-Module. Namen wie `process`, `globalThis`, `eval` oder `Function` und Eigenschaften wie `constructor` oder `__proto__` sind verboten; Dateien liest der Bot nur über `loadData`. Dieselbe Prüfung läuft lokal:
+
+```
+npx sbm-check .
+npx sbm-check my-bot --entry main.js --json
+```
+
 ## Noch nicht enthalten
 
-Upload auf die Website, Partien gegen Bots auf dem Server (`--remote`), `play` und das Viewer-Fenster kommen mit den nächsten Schritten; bis dahin gibt es sie im Python-SDK. `run(MyBot, { viewer: true })` meldet lokal eine Warnung und spielt ohne Fenster.
+Partien gegen Bots auf dem Server (`--remote`), `play` und das Viewer-Fenster kommen mit den nächsten Schritten; bis dahin gibt es sie im Python-SDK. `run(MyBot, { viewer: true })` meldet lokal eine Warnung und spielt ohne Fenster.
 
 ## Vorlage
 

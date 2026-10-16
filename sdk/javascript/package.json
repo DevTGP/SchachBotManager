@@ -7,10 +7,16 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "bin": {
+        "sbm-check": "dist/analysis/bin.js"
+      },
       "default": "./dist/index.js"
     }
   },
   "types": "./dist/index.d.ts",
+  "bin": {
+    "sbm-check": "dist/analysis/bin.js"
+  },
   "files": [
     "dist",
     "prebuilds"
@@ -36,5 +42,8 @@
     "prettier": "^3.9.10",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.71.2"
+  },
+  "dependencies": {
+    "acorn": "^8.19.0"
   }
 }
