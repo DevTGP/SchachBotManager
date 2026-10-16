@@ -15,6 +15,7 @@ declare -A areas=(
   [core]='^(sdk/core/|spec/testvectors/)'
   [python]='^(sdk/core/|sdk/python/|templates/python/|spec/)'
   [javascript]='^(sdk/core/|sdk/javascript/|templates/javascript/|sdk/python/src/sbm/(arena|referee|bots)/|spec/)'
+  [csharp]='^(sdk/core/|sdk/csharp/|spec/api/|spec/testvectors/)'
   [services]='^(sdk/core/|sdk/python/|services/|backend/|spec/)'
   [sandbox]='^(sandbox/|deploy/python\.Dockerfile|sdk/core/|sdk/python/|services/)'
   [frontend]='^(frontend/|spec/web/)'

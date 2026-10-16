@@ -34,7 +34,7 @@ Welche Angaben wohin gehören, steht unter „Stand M2“.
 
 | Workflow | Auslöser | Schritte |
 |----------|----------|----------|
-| CI | Pull Request, Push, manuell; je Job nur bei Änderungen in seinem Bereich (E79) | Spezifikation und Testvektoren, Header und Build des Kerns, Python-SDK mit Vorlage, Format des nativen Codes, Dienste und API gegen MongoDB, Negativ-Suite der Sandbox, Frontend, Viewer; Jobs im Einzelnen in [tests-und-ci.md](../entwicklung/tests-und-ci.md) |
+| CI | Pull Request, Push, manuell; je Job nur bei Änderungen in seinem Bereich (E79) | Spezifikation und Testvektoren, Header und Build des Kerns, Python-SDK mit Vorlage, C#-SDK, Format des nativen Codes, Dienste und API gegen MongoDB, Negativ-Suite der Sandbox, Frontend, Viewer; Jobs im Einzelnen in [tests-und-ci.md](../entwicklung/tests-und-ci.md) |
 | Deploy | Nach grüner CI auf `master`, nur bei Änderungen am Stack (E79), oder manuell | Per SSH auf den Server, Stack-Dateien setzen, `docker compose` baut die Images dort und startet die Dienste neu; Migrationen laufen beim Start; Health-Check |
 | SDK-Release | Tag `vX.Y.Z` oder manuell (`wheels.yml`, E70) | Wheels des Python-SDK samt Kern und Viewer für Windows, Linux und macOS bauen und testen; beim Tag auf PyPI veröffentlichen (Umgebung `pypi`). Derselbe Tag startet `npm.yml`: Addons des JavaScript-SDK für fünf Plattformen bauen und testen, Paket packen und auf npm veröffentlichen (Umgebung `npm`, E206) |
 

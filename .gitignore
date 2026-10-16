@@ -54,3 +54,8 @@ wheelhouse/
 
 ### JavaScript SDK: addons built locally or in CI
 sdk/javascript/prebuilds/
+
+### .NET
+sdk/csharp/**/bin/
+sdk/csharp/**/obj/
+*.trx

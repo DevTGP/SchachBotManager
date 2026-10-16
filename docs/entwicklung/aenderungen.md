@@ -35,7 +35,7 @@ Store, API und Frontend lassen sich nacheinander committen, solange jeder Commit
 | Was | Spezifikation | Danach |
 |-----|---------------|--------|
 | Bot ↔ Referee (v1) | `spec/protocol/v1/` mit Beispielen unter `examples/valid` und `examples/invalid` | Referee `sbm.referee` (strenge Prüfung, E66), Bot-Seite in `sbm/runtime`, Doku [bot-protokoll.md](../komponenten/bot-protokoll.md); alle SDKs müssen folgen |
-| Bot-API (`Board`, `Move`, …) | `spec/api/*.json`, dann Vektoren mit `testvector-gen spec` | [Kern](code-kern.md#neue-funktion-der-c-schnittstelle), dann [Binding](code-python-sdk.md#erweitern); `test_vectors.py` und `test_api_surface.py` fordern die neue Funktion ein |
+| Bot-API (`Board`, `Move`, …) | `spec/api/*.json`, dann Vektoren mit `testvector-gen spec` | [Kern](code-kern.md#neue-funktion-der-c-schnittstelle), dann [Binding](code-python-sdk.md#erweitern) und [C#-Binding](code-csharp-sdk.md#erweitern); `test_vectors.py` und `test_api_surface.py` bzw. `VectorTests` und `ApiSurfaceTests` fordern die neue Funktion ein |
 | Schachregel | Beschreibung in `spec/api/*.json` bzw. Entscheidung, Fälle im Generator | [Regeländerung im Kern](code-kern.md#regeländerung); alle Vektoren neu erzeugen und mit `--perft all` prüfen |
 | Gateway, Relay, Browser | `spec/protocol/gateway-v1/`, `relay-v1/`, `play-v1/` | [Gateway](code-gateway.md#erweitern), Runner (`play/`), Remote-Transport im SDK, `frontend/src/play/` |
 | Viewer | `spec/protocol/viewer-v1/` | [Viewer](code-viewer.md#neues-feld-in-einer-nachricht): Python-Seite, Modell, Anzeige |
@@ -78,7 +78,7 @@ Parallel laufende Meilensteine haben getrennte Nummernkreise, damit sich gleichz
 | M4 | E99–E108 (E106–E108 Viewer), danach E130–E149 (E130) | unterhalb `0110`, zuletzt `0008` | läuft (alle fünf Schritte umgesetzt, zuletzt der Live-Kanal mit E142; Abnahme auf dem Server steht aus) |
 | M7 | E110–E129 | `0110`–`0149` | abgeschlossen |
 | M6 | E150–E169 | ab `0150`, zuletzt `0153` | läuft |
-| M5 | E200–E219 | ab `0200` | läuft (JavaScript, Schritt 1) |
+| M5 | E192–E199 (C#), E200–E219 (JavaScript) | ab `0200` | läuft (C# und JavaScript je Schritt 1 umgesetzt) |
 
 - Freie Nummern im Kreis des eigenen Meilensteins nehmen, der Reihe nach. Ist ein Kreis voll oder kommt ein neuer Meilenstein parallel dazu, legt eine eigene Entscheidung einen neuen Kreis fest (wie E110, E130 und E150).
 - Migrationen tragen ihre Nummer im Dateinamen (`m0154_<thema>.py`) und in der Id (`0154_<thema>`); die Reihenfolge der Ausführung ist die Liste `MIGRATIONS`, nicht die Nummer ([Code-Karte Store](code-store.md#neue-migration)).

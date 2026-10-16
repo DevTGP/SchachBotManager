@@ -18,6 +18,7 @@ Welche Tests es je Paket gibt, wie sie laufen, was die CI daraus macht und wie R
 | Kern (`sdk/core`) | C++-Unit-Tests der Engine und der C-Schnittstelle; Vektor-Läufer über alle JSON-Vektoren; Header-Check in C11 und C++20 | `sdk/core/tests/{unit,vectors}`, `header_check.{c,cpp}` | `ctest --test-dir build/core …`, `gcc`/`g++ -fsyntax-only` |
 | Python-SDK | API-Vektoren, Oberfläche, Referee, Arena, Analyse, Transporte, `sbm.play`, Viewer-Client, Vorlage, Abnahmetest | `sdk/python/tests` | `pytest sdk/python` (gegen das installierte Paket) |
 | JavaScript-SDK (`sdk/javascript`) | API-Vektoren, Oberfläche gegen `spec/api/`, je Modul, `run` in eigenen Prozessen, Partien in `sbm-arena`, Vorlage | `sdk/javascript/test` | `npm test` in `sdk/javascript` (nach `npm run build:native`) |
+| C#-SDK (`sdk/csharp`) | xUnit v3: alle API-Vektoren über Reflexion, Oberfläche, Konstanten, Fehler, `Move`, `Board` | `sdk/csharp/tests/Sbm.Tests` | `dotnet test sdk/csharp/Sbm.slnx` (Kern vorher als geteilte Bibliothek bauen) |
 | Viewer (`sdk/viewer`) | Modelltests ohne Fenster (Nachrichten, Session, Navigation, Text); das Programm selbst testet `test_viewer_program.py` über einen Screenshot | `sdk/viewer/tests` | `ctest --test-dir build/viewer …` |
 | `services/store` | Funktionen je Collection, Migrationen, Ratings, Einstellungen | `services/store/tests` | `pytest services/store` |
 | `services/gateway` | Gateway in einem Thread auf freien Ports, beide Enden als WebSocket- bzw. TCP-Client | `services/gateway/tests` | `pytest services/gateway` |
@@ -89,6 +90,7 @@ Die Bereiche stehen als reguläre Ausdrücke in [`changed-areas.sh`](../../.gith
 | `core` | `sdk/core/`, `spec/testvectors/` | Build und `ctest` mit langsamen Perft-Vektoren unter Linux, Windows, macOS |
 | `python` | `sdk/core/`, `sdk/python/`, `templates/python/`, `spec/` | SDK ohne Viewer bauen, Ruff für SDK und Vorlage, `pytest sdk/python`; Python 3.11 und 3.14 auf drei Systemen |
 | `javascript` | `sdk/core/`, `sdk/javascript/`, `templates/javascript/`, `sdk/python/src/sbm/{arena,referee,bots}/`, `spec/` | `npm ci`, Addon bauen, ESLint und Prettier für SDK und Vorlage, `tsc`, `npm test`; Node 22 und 24 auf drei Systemen, unter Linux mit Node 24 mit installiertem Python-SDK und `SBM_REQUIRE_ARENA=1` |
+| `csharp` | `sdk/core/`, `sdk/csharp/`, `spec/api/`, `spec/testvectors/` | Kern als geteilte Bibliothek bauen, unter Linux CSharpier und `dotnet format --verify-no-changes`, dann `dotnet test`; .NET 10 auf drei Systemen (E195) |
 | `services` | `sdk/core/`, `sdk/python/`, `services/`, `backend/`, `spec/` | Mit MongoDB 8.0 als Dienst und `SBM_REQUIRE_MONGO=1`: Ruff, dann Tests von Store, Gateway, Runner und API |
 | `sandbox` | `sandbox/`, `deploy/python.Dockerfile`, `sdk/core/`, `sdk/python/`, `services/` | Baut das Runner-Image und führt die Negativ-Suite mit den Rechten des Runners aus |
 | `frontend` | `frontend/`, `spec/web/` | `npm ci`, `api-types:check`, Lint, Prettier, `npm test`, `npm run build` |
