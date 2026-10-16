@@ -74,7 +74,7 @@ Einmal-Links zeigt die Seite nur direkt nach dem Erstellen; die Liste der Einlad
 
 | Ort | Inhalt |
 |-----|--------|
-| `src/pages/upload/` | Seite `/bots/new` (nur angemeldet): Ordner oder einzelne `.py`-Dateien wählen, Auswahl der Dateien mit Liste des Weggelassenen, Einstiegsdatei, Name mit Vorschlägen aus den eigenen Bots, Version mit Vorschlag der nächsten Patch-Version; darunter die eigenen Bots |
+| `src/pages/upload/` | Seite `/bots/new` (nur angemeldet): Sprache wählen (Python oder JavaScript, E207; wechselt zur Sprache der gewählten Dateien), Ordner oder einzelne `.py`- bzw. `.js`/`.mjs`-Dateien wählen, Auswahl der Dateien mit Liste des Weggelassenen, Einstiegsdatei, Name mit Vorschlägen aus den eigenen Bots, Version mit Vorschlag der nächsten Patch-Version; darunter die eigenen Bots |
 | `src/upload/` | Auswahl und Prüfung der Dateien nach den Regeln aus E92 vor dem Senden, Muster für Name und Version |
 | `src/pages/bot/` | Seite `/bots/:id`: Status, Sprache, Version, Link zu den Partien; für Besitzer und Admins Dateien und Report mit Befunden und Testpartien; Admins können sperren und freigeben. Während der Verifikation fragt sie alle 3 s nach |
 | `src/api/bots.ts` | Upload als `FormData`, Bot, eigene Bots, Sperre |
@@ -210,7 +210,7 @@ Einheitliche Darstellung nach der Durchsicht aller Seiten:
 | `src/components/AccountNav.tsx`, `src/session/useLogout.ts` | Kontonavigation mit Abmelden; auf schmalen Bildschirmen als Auswahl (E168) |
 | `src/components/ExploreLinks.tsx` | Links auf Partien, Rangliste, Spielen und Startseite auf der Seite 404 und bei fehlgeschlagener Anmeldung (E168) |
 | `src/pages/bot/BotHeader.tsx`, `BotActions.tsx`, `BotAdmin.tsx` | Bot-Seite: Kopf mit Version, Ersteller, Sprache, Status und Rating; eine Leiste der Aktionen; Eingriffe der Admins gesammelt am Ende |
-| `src/pages/upload/FileDrop.tsx`, `src/upload/dropped.ts` | Upload: Ordner oder Dateien hineinziehen oder wählen; versteckte Ordner und `__pycache__` entfallen |
+| `src/pages/upload/FileDrop.tsx`, `src/upload/dropped.ts` | Upload: Ordner oder Dateien hineinziehen oder wählen; versteckte Ordner, `__pycache__` und `node_modules` entfallen |
 | `src/pages/account/OwnRating.tsx` | Kontoseite: Gesamtrating und Rating je Disziplin aus `GET /account/rating` (E169) |
 | `src/pages/admin/AuditTable.tsx` | `/admin/audit`: Ziel mit Name und Link aus `target_kind` und `target_label` (E169) |
 

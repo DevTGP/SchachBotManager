@@ -151,7 +151,7 @@ JavaScript in drei Schritten (E200):
 | Schritt | Inhalt | Stand |
 |---------|--------|-------|
 | 1 | Lokales SDK: Node-API-Addon (E201), npm-Paket `schachbotmanager` in TypeScript (E202, E203), API in camelCase (E204), `run` mit `stdio` und `tcp`, `loadData` (E205), Vorlage `templates/javascript/`, Partie gegen Python-Bots in `sbm-arena`, Veröffentlichung über CI (E206) | Umgesetzt |
-| 2 | Server: Laufzeit Node 24 im Runner-Image, Sandbox, statische Analyse, Upload | Offen |
+| 2 | Server: Laufzeit Node 24 im Runner-Image mit eigener nsjail-Konfiguration und Flags, Negativ-Suite, Upload mit Sprachauswahl (E207), statische Analyse `sbm-check` mit acorn (E208) | Umgesetzt |
 | 3 | Transport `remote`, `play` und Viewer | Offen |
 
 Abnahme je Sprache: Alle API-Vektoren bestanden, Bot der Sprache spielt regulär gegen Bots aller bereits unterstützten Sprachen, Negativ-Suite bestanden, Setup auf frischem Rechner mit einem Paketbefehl.

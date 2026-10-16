@@ -2,7 +2,7 @@
 
 Jeder Upload durchläuft die Pipeline vollständig, bevor der Bot an Spielen teilnehmen darf. Die Pipeline läuft als Job im Runner; Partien haben Vorrang, ein Verifikationsjob nach 15 min Wartezeit aber vor der nächsten Partie (E81, E89). Quell- und Datendateien liegen in GridFS (E82, E94).
 
-Umgesetzt ist die Pipeline für Python (E92): Annahme, Analyse, Mindesttests und automatische Freigabe; Build und Artefaktprüfung entfallen bei Python.
+Umgesetzt ist die Pipeline für Python (E92) und JavaScript (E207): Annahme, Analyse, Mindesttests und automatische Freigabe; Build und Artefaktprüfung entfallen bei beiden.
 
 ## Stufen
 
@@ -38,7 +38,18 @@ Umgesetzt ist die Pipeline für Python (E92): Annahme, Analyse, Mindesttests und
 | Einstieg | Eine `.py`-Datei im obersten Ordner, Standard `bot.py`; der Bot startet als `python /bot/<entry>` |
 | Form | Ein Ordner oder einzelne Dateien im Browser; die Upload-Seite lässt versteckte Ordner, `__pycache__` und alles Übrige weg und zeigt es an |
 
-Dieselben Regeln (`sbm.analysis.upload`) prüfen die Web-API bei der Annahme, der Runner beim Bereitstellen der Dateien (E94) und `sbm-check` vor dem Upload.
+### JavaScript (E207)
+
+Wie bei Python, mit diesen Unterschieden:
+
+| Regel | Wert |
+|-------|------|
+| Quelldateien | `.js`- und `.mjs`-Dateien außerhalb von `data/` |
+| Pfade | Kein Teil heißt `node_modules`, weil Node einen solchen Ordner vor dem SDK fände |
+| Einstieg | Standard `bot.js`; der Bot startet als `node <Flags> /bot/<entry>` ([sandbox.md](sandbox.md)) |
+| Form | Die Upload-Seite hat eine Sprachauswahl (Standard Python) und wechselt zur einzigen Sprache mit Quelldateien im gewählten Ordner; `node_modules/` lässt sie stillschweigend weg |
+
+Dieselben Regeln (`sbm.analysis.upload` mit Sprache) prüfen die Web-API bei der Annahme, der Runner beim Bereitstellen der Dateien (E94) und `sbm-check` vor dem Upload; das npm-Paket hat sie in `upload.ts`.
 
 ## Mindestanforderungen (Stufe 5)
 
@@ -54,7 +65,7 @@ Dieselben Regeln (`sbm.analysis.upload`) prüfen die Web-API bei der Annahme, de
 
 Die Tests laufen mit einer kurzen Standard-Zeitkontrolle und den festen Schutzgrenzen der Sandbox.
 
-Umsetzung für Python (E92): Gegner ist der Referenzbot `random`, ebenfalls in der Sandbox. Die Tests enden beim ersten Fehlschlag.
+Umsetzung (E92, für JavaScript gleich, E207): Gegner ist der Referenzbot `random`, ebenfalls in der Sandbox. Die Tests enden beim ersten Fehlschlag.
 
 | Test | Bedingungen |
 |------|-------------|
@@ -75,9 +86,9 @@ verified, retired → disabled (Admin)   disabled → verified (Admin)
 rejected → verified (Admin, Override)
 ```
 
-Bei Python fehlt `building`. Admins sperren und geben frei (E93, E96); der Besitzer zieht einen geprüften Bot zurück und aktiviert ihn wieder, eine Sperre kann er nicht aufheben (E96). Kann der Server einen Bot dreimal nicht prüfen (Infrastrukturfehler), wird er mit der Stufe `internal` abgelehnt (E89). Ein Admin kann jeden abgelehnten Bot trotzdem auf `verified` setzen (Override, E153); `overridden_at` hält das fest, Ablehnung und Report bleiben stehen.
+Bei Python und JavaScript fehlt `building`. Admins sperren und geben frei (E93, E96); der Besitzer zieht einen geprüften Bot zurück und aktiviert ihn wieder, eine Sperre kann er nicht aufheben (E96). Kann der Server einen Bot dreimal nicht prüfen (Infrastrukturfehler), wird er mit der Stufe `internal` abgelehnt (E89). Ein Admin kann jeden abgelehnten Bot trotzdem auf `verified` setzen (Override, E153); `overridden_at` hält das fest, Ablehnung und Report bleiben stehen.
 
-- Der Report (Stufe, Regel, Datei/Zeile, Build-Ausgabe gekürzt, Testprotokoll) ist für Besitzer und Admin einsehbar. Er liegt in `verification_reports` mit Regelsatz und den Versionen von Python und SDK; der Bot verweist über `report_id` darauf und hält Stufe und Grund einer Ablehnung in `rejection`.
+- Der Report (Stufe, Regel, Datei/Zeile, Build-Ausgabe gekürzt, Testprotokoll) ist für Besitzer und Admin einsehbar. Er liegt in `verification_reports` mit Regelsatz und den Versionen der Laufzeit (Python bzw. Node) und des SDK; der Bot verweist über `report_id` darauf und hält Stufe und Grund einer Ablehnung in `rejection`.
 - Der Quellcode ist ausschließlich für Besitzer und Admin abrufbar (E15).
 - Quellcode und Artefakt eines Bots sind nach dem Upload **unveränderlich** (E6). Bearbeitbar bleiben nur Metadaten (Name, Beschreibung) und Anmeldungen.
 

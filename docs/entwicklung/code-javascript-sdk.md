@@ -38,6 +38,18 @@ Lesereihenfolge:
 - [`CMakeLists.txt`](../../sdk/javascript/CMakeLists.txt) bindet den Kern über `add_subdirectory(../core)` statisch ein, mit statischer C++-Laufzeit unter MSVC. Die Pfade von `node-api-headers` und `node-addon-api` setzt `build-native.mjs`; direkt mit CMake aufgerufen bricht es ab.
 - `npm run build` übersetzt `src/` mit `tsconfig.build.json` nach `dist/`; das Paket enthält `dist/` und `prebuilds/`. In den Quellen und Tests importieren die Module mit Endung `.ts`, Node führt sie ab 22.18 ohne Build-Schritt aus.
 
+### Statische Analyse `src/analysis/` (E207, E208)
+
+| Modul | Aufgabe |
+|-------|---------|
+| `upload.ts` | Upload-Regeln wie `sbm.analysis.upload` mit Sprache `javascript` |
+| `project.ts` | Ordner prüfen wie beim Upload: Auswahl der Dateien, Upload-Regeln, Analyse; für `sbm-check` und den Runner |
+| `analyzer.ts` | Alle Quelldateien mit acorn lesen und prüfen, ohne den Bot zu laden |
+| `checker.ts`, `walk.ts` | Regeln einer Datei; den AST ohne Rekursion durchgehen |
+| `rules.ts`, `javascript-rules.json` | Regelsatz `javascript-1`: Importe, verbotene Namen und Eigenschaften |
+| `report.ts` | Befunde und Report, als JSON für den Runner |
+| `cli.ts`, `bin.ts` | `sbm-check` mit Exit-Codes 0, 1, 2; `bin.ts` ist der Eintrag `bin` des Pakets und der Analyzer im Runner |
+
 ## Tests
 
 `npm test` führt `node --test "test/*.test.ts"` aus. Die Tests brauchen den gebauten Addon, nicht `dist/`.
@@ -48,6 +60,7 @@ Lesereihenfolge:
 | `surface.test.ts`, `constants.test.ts`, `version.test.ts` | Exporte gegen `spec/api/`, Konstanten, Version gleich der des Kerns |
 | `board.test.ts`, `move.test.ts`, `clock.test.ts`, `log.test.ts`, `info.test.ts`, `data.test.ts` | Je Modul |
 | `channel.test.ts`, `game.test.ts`, `options.test.ts`, `run.test.ts` | Protokoll, Partie, Optionen, `run` in eigenen Prozessen |
+| `analysis.test.ts`, `analysis-project.test.ts`, `analysis-upload.test.ts` | Regeln der Analyse, Auswahl der Dateien, Upload-Regeln |
 | `arena.test.ts` | Partien gegen `random` und `material` in `sbm-arena` |
 | `template.test.ts` | Vorlage `templates/javascript/`: Buch, Zugwahl, Start als Programm, Konfiguration für VS Code, Partie in der Arena |
 

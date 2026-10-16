@@ -70,7 +70,7 @@ Die API schreibt nur über `sbm-store` und mit der MongoDB-Rolle `sbm_api_writes
 
 ### Stand M3, Schritt 3 (E91–E94)
 
-Upload und Bot-Seite für Python:
+Upload und Bot-Seite für Python, seit E207 auch für JavaScript (`language` im Upload):
 
 | Route | Aufgabe |
 |-------|---------|
