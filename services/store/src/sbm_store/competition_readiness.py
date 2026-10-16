@@ -213,7 +213,9 @@ def expire(db: Database, now: datetime) -> list[ObjectId]:
 def reset(db: Database, match_id: ObjectId, now: datetime) -> bool:
     """Puts a competition game with an account back after an infrastructure failure (E185): it
     waits again, without moves, released anew with the same time to the deadline, nobody ready
-    and no seats. False if it is no game with readiness or has ended."""
+    and no seats. False if it is no game with readiness or has ended. A second reset at the
+    same instant, as when the play runner stops while the game gives up, changes nothing and
+    still counts, so the caller does not abort the game instead."""
     match = db[MATCHES].find_one(
         {"_id": match_id, "status": {"$in": [matches.QUEUED, matches.RUNNING]}},
         {"readiness": 1, "white": 1, "black": 1},
@@ -237,7 +239,7 @@ def reset(db: Database, match_id: ObjectId, now: datetime) -> bool:
         {"_id": match_id, "status": {"$in": [matches.QUEUED, matches.RUNNING]}},
         {"$set": fields},
     )
-    return updated.modified_count == 1
+    return updated.matched_count == 1
 
 
 # The play jobs of competition games (E185).
