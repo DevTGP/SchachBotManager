@@ -30,6 +30,11 @@ GOOD = [
     ("helper.py", SOURCE, b"def first(moves):\n    return moves[0]\n"),
     ("data/book.txt", DATA, b"e2e4\n"),
 ]
+# A JavaScript bot; FakeVerifier does not run it.
+JAVASCRIPT = [
+    ("bot.js", SOURCE, b'import * as sbm from "schachbotmanager";\n'),
+    ("data/book.txt", DATA, b"e2e4\n"),
+]
 # Exits before it says hello.
 CRASHING = [("bot.py", SOURCE, b"raise SystemExit(3)\n")]
 CLEAN = {"ruleset": "python-test", "ok": True, "truncated": False, "findings": []}
@@ -37,7 +42,15 @@ FINDING = {"rule": "import", "file": "bot.py", "line": 1, "message": "socket is 
 DIRTY = {**CLEAN, "ok": False, "findings": [FINDING]}
 
 
-def upload(db, files=GOOD, *, name: str = "Uploaded", version: str = "1.0.0") -> dict:
+def upload(
+    db,
+    files=GOOD,
+    *,
+    name: str = "Uploaded",
+    version: str = "1.0.0",
+    language: str = "python",
+    entry: str = "bot.py",
+) -> dict:
     """Stores an uploaded bot and queues its verification, as the web API will."""
     bot_id = ObjectId()
     now = utc_now()
@@ -46,8 +59,8 @@ def upload(db, files=GOOD, *, name: str = "Uploaded", version: str = "1.0.0") ->
         bot_id=bot_id,
         name=name,
         version=version,
-        language="python",
-        entry="bot.py",
+        language=language,
+        entry=entry,
         files=entries,
         source_hash=bot_files.source_hash(entries),
         owner_id=ObjectId(),
@@ -67,14 +80,21 @@ class CheckedPlayer(ProcessPlayer):
 
 
 class FakeVerifier:
-    """The bot's files are checked out for real; the analysis says what report is given."""
+    """The bot's files are checked out for real; the analysis says what report is given.
+
+    Only Python bots play themselves; for a bot in another language the random bot plays.
+    """
 
     def __init__(self, db, root: Path, report: dict = CLEAN) -> None:
-        self.runtime = {"python": "3.12.1", "sdk": "0.4.0"}
+        self.runtimes = {
+            "python": {"python": "3.12.1", "sdk": "0.4.0"},
+            "javascript": {"node": "24.1.0", "sdk": "0.4.0"},
+        }
         self.report = report
         self.error: BaseException | None = None
         self.checked_out: list[BotDir] = []
         self.analyzed: list[str] = []
+        self.languages: list[str] = []
         self._db = db
         self._root = root
 
@@ -83,16 +103,20 @@ class FakeVerifier:
         self.checked_out.append(bot_dir)
         return bot_dir
 
-    def analyze(self, bot_dir: Path, entry: str, timeout: float) -> Completed:
+    def analyze(self, bot_dir: Path, entry: str, timeout: float, language: str) -> Completed:
         if self.error is not None:
             raise self.error
+        self.languages.append(language)
         self.analyzed = sorted(
             path.relative_to(bot_dir).as_posix() for path in bot_dir.rglob("*") if path.is_file()
         )
         stdout = json.dumps(self.report).encode()
         return Completed(0 if self.report["ok"] else 1, stdout, b"")
 
-    def script_player(self, name: str, bot_dir: Path, script: str) -> Player:
+    def script_player(self, name: str, bot_dir: Path, script: str, language: str) -> Player:
+        self.languages.append(language)
+        if language != "python":
+            return CheckedPlayer(name, [sys.executable, "-m", "sbm.bots.random_mover"], log=None)
         return CheckedPlayer(name, [sys.executable, str(bot_dir / script)], log=None)
 
     def player(self, bot: dict) -> Player:

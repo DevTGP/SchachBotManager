@@ -1,8 +1,8 @@
 """Verifies an uploaded bot: static analysis, then the Mindesttests, then the report (E92).
 
-Python needs no build stage. The bot's files are checked out once and removed at the end;
-a bot that passes is verified at once (E93). A recheck by an admin runs the same stages but
-only writes a report of kind recheck; the bot keeps its status (E153).
+Python and JavaScript need no build stage. The bot's files are checked out once and removed at
+the end; a bot that passes is verified at once (E93). A recheck by an admin runs the same stages
+but only writes a report of kind recheck; the bot keeps its status (E153).
 """
 
 import logging
@@ -19,6 +19,7 @@ from sbm_store.verification_reports import FAILED, PASSED, RECHECK, TESTS, UPLOA
 
 from sbm_runner.checkout import BotDir
 from sbm_runner.sandbox.run_once import Completed
+from sbm_runner.sandbox.runtimes import RUNTIMES
 from sbm_runner.verification.analysis_stage import ANALYSIS_SECONDS, analysis_stage
 from sbm_runner.verification.minimum_tests import RANDOM, TEST_GAMES, play_test
 
@@ -28,13 +29,14 @@ log = logging.getLogger(__name__)
 class Verifier(Protocol):
     """What the pipeline needs from the sandbox (sandbox/jail.py)."""
 
-    runtime: dict[str, str]
+    # Per language the versions of the runtime and the SDK.
+    runtimes: dict[str, dict[str, str]]
 
     def checkout(self, bot: dict) -> BotDir: ...
 
-    def analyze(self, bot_dir: Path, entry: str, timeout: float) -> Completed: ...
+    def analyze(self, bot_dir: Path, entry: str, timeout: float, language: str) -> Completed: ...
 
-    def script_player(self, name: str, bot_dir: Path, script: str) -> Player: ...
+    def script_player(self, name: str, bot_dir: Path, script: str, language: str) -> Player: ...
 
     def player(self, bot: dict) -> Player: ...
 
@@ -61,6 +63,7 @@ def run_verification(
         bot["name"],
         bot["version"],
     )
+    runtime = verifier.runtimes.get(bot["language"], {})
     started_at = now()
     bot_dir = verifier.checkout(bot)
     try:
@@ -76,7 +79,7 @@ def run_verification(
         finished_at=now(),
         passed=failed is None,
         ruleset=ruleset,
-        runtime=verifier.runtime,
+        runtime=runtime,
         stages=stages,
         kind=RECHECK if recheck else UPLOAD,
     )
@@ -91,8 +94,8 @@ def run_verification(
         verified=failed is None,
         report_id=report["_id"],
         rejection=rejection,
-        sdk_version=verifier.runtime.get("sdk"),
-        runtime_version=f"python {verifier.runtime['python']}" if verifier.runtime else None,
+        sdk_version=runtime.get("sdk"),
+        runtime_version=RUNTIMES[bot["language"]].label(runtime) if runtime else None,
         now=now(),
     )
     jobs.complete(db, job["_id"], job["worker_id"], now())
@@ -106,7 +109,7 @@ def _stages(
     if advance:
         bots.advance(db, bot["_id"], bots.ANALYZING)
     start = time.monotonic()
-    completed = verifier.analyze(bot_dir, bot["entry"], ANALYSIS_SECONDS)
+    completed = verifier.analyze(bot_dir, bot["entry"], ANALYSIS_SECONDS, bot["language"])
     analysis, ruleset = analysis_stage(completed, _ms_since(start))
     if analysis["status"] == FAILED:
         return [analysis], ruleset
@@ -120,7 +123,7 @@ def _tests_stage(bot: dict, verifier: Verifier, bot_dir: Path) -> dict:
     start = time.monotonic()
     results = []
     for game in TEST_GAMES:
-        player = verifier.script_player(bot["name"], bot_dir, bot["entry"])
+        player = verifier.script_player(bot["name"], bot_dir, bot["entry"], bot["language"])
         results.append(play_test(game, player, verifier.player(RANDOM)))
         if not results[-1]["passed"]:
             break

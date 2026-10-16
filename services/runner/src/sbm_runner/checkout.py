@@ -43,17 +43,17 @@ def checkout(db: Database, bot: dict, root: Path = CHECKOUT_ROOT) -> BotDir:
     try:
         bot_dir.path.chmod(_DIR_MODE)
         for entry in bot["files"]:
-            _write(bot_dir.path, entry, bot_files.read_file(db, entry))
+            _write(bot_dir.path, entry, bot_files.read_file(db, entry), bot["language"])
     except BaseException:
         bot_dir.remove()
         raise
     return bot_dir
 
 
-def _write(root: Path, entry: dict, content: bytes) -> None:
+def _write(root: Path, entry: dict, content: bytes, language: str) -> None:
     path = entry["path"]
     try:
-        kind = file_kind(path)
+        kind = file_kind(path, language)
     except UploadError as error:
         raise CheckoutError(f"stored path {path!r}: {error}") from None
     if kind != entry["kind"]:
