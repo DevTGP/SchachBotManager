@@ -7,9 +7,6 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "bin": {
-        "sbm-check": "dist/analysis/bin.js"
-      },
       "default": "./dist/index.js"
     }
   },
