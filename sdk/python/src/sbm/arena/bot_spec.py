@@ -3,6 +3,7 @@
 - "tcp" or "tcp:PORT": the bot connects over TCP, e.g. from an IDE (default port 7470).
 - "random" or "material": a reference bot from sbm.bots (E68); "./random" means a file.
 - A .py file: runs with the Python that runs the arena, so the SDK is available.
+- A .js, .mjs or .cjs file: runs with node from the PATH (E205).
 - Anything else: a command line, e.g. "java -jar bot.jar" or "./engine".
 """
 
@@ -16,6 +17,8 @@ from sbm.referee.settings import MAX_NAME_LENGTH
 
 # Short name: module of the reference bot.
 REFERENCE_BOTS = {"random": "sbm.bots.random_mover", "material": "sbm.bots.material"}
+# File suffix: program that runs such a file.
+INTERPRETERS = {".js": "node", ".mjs": "node", ".cjs": "node"}
 
 
 class BotSpecError(ValueError):
@@ -43,6 +46,10 @@ def parse_bot(text: str) -> BotSpec:
         if not path.is_file():
             raise BotSpecError(f"{text!r} is not a file")
         return BotSpec(_shorten(path.stem), [sys.executable, str(path)])
+    if path.suffix.lower() in INTERPRETERS:
+        if not path.is_file():
+            raise BotSpecError(f"{text!r} is not a file")
+        return BotSpec(_shorten(path.stem), [INTERPRETERS[path.suffix.lower()], str(path)])
     if path.is_file():
         return BotSpec(_shorten(path.stem), [str(path)])
     return _command(text)

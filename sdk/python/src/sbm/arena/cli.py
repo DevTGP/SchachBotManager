@@ -42,8 +42,9 @@ def _parser() -> argparse.ArgumentParser:
         prog="sbm-arena",
         description="Plays games between two chess bots by the SchachBotManager protocol.",
         epilog=(
-            "A bot is a .py file (run with this Python), a command line such as "
-            '"java -jar bot.jar", tcp[:PORT] for a bot started in an IDE with --tcp, '
+            "A bot is a .py file (run with this Python), a .js, .mjs or .cjs file (run with "
+            'node), a command line such as "java -jar bot.jar", tcp[:PORT] for a bot started '
+            "in an IDE with --tcp, "
             "or a reference bot: random, material."
         ),
     )
