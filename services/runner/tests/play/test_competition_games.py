@@ -10,7 +10,7 @@ from sbm_store.discipline import Discipline
 from sbm_store.names import JOBS
 
 from sbm_runner.play.config import PlayConfig
-from sbm_runner.play.worker import PlayWorker, recover_expired_play, utc_now
+from sbm_runner.play.worker import recover_expired_play, utc_now
 
 QUICK = Discipline("Quick", initial_time_ms=10_000, increment_ms=0, max_moves=3)
 SHORT = Discipline("Short", initial_time_ms=500, increment_ms=0, max_moves=3)
@@ -70,10 +70,10 @@ def test_a_person_plays_a_league_game(db, gateway, play_worker, reference_bots):
 
 
 def test_the_game_starts_without_an_absent_person_whose_clock_runs_out(
-    db, gateway, play_config, reference_bots
+    db, make_play_worker, gateway, play_config, reference_bots
 ):
     config = PlayConfig(**{**play_config.__dict__, "connect_wait": timedelta(seconds=0.5)})
-    worker = PlayWorker(db, config, sleep=lambda _seconds: None)
+    worker = make_play_worker(config)
     match_id, _seat = started_league_game(db, reference_bots[0], SHORT)
 
     assert worker.step()
@@ -83,9 +83,11 @@ def test_the_game_starts_without_an_absent_person_whose_clock_runs_out(
     assert (match["result"], match["termination"]) == ("0-1", "timeout")
 
 
-def test_an_unreachable_gateway_resets_the_game(db, play_config, gateway, reference_bots):
+def test_an_unreachable_gateway_resets_the_game(
+    db, make_play_worker, play_config, gateway, reference_bots
+):
     config = PlayConfig(**{**play_config.__dict__, "relay_port": 1})
-    worker = PlayWorker(db, config, sleep=lambda _seconds: None)
+    worker = make_play_worker(config)
     match_id, _seat = started_league_game(db, reference_bots[0])
 
     assert worker.step()
@@ -106,11 +108,11 @@ def test_a_competition_job_that_lost_its_runner_resets_the_game(db, reference_bo
 
 
 def test_competition_games_start_beyond_the_limit_of_the_website(
-    db, gateway, play_config, reference_bots, create_remote
+    db, make_play_worker, gateway, play_config, reference_bots, create_remote
 ):
     play_settings.save(db, play_settings.PlaySettings(max_games=1))
     config = PlayConfig(**{**play_config.__dict__, "slots": 2})
-    worker = PlayWorker(db, config, sleep=lambda _seconds: None)
+    worker = make_play_worker(config)
     first, _ = create_remote()
     second, _ = create_remote()
     league_game, _seat = started_league_game(db, reference_bots[0])

@@ -236,8 +236,23 @@ def play_config(gateway) -> PlayConfig:
 
 
 @pytest.fixture
-def play_worker(db, play_config) -> PlayWorker:
-    return PlayWorker(db, play_config, sleep=lambda _seconds: None)
+def make_play_worker(db):
+    """Play workers stopped before the database closes, so no game thread outlives its test."""
+    workers: list[PlayWorker] = []
+
+    def make(config: PlayConfig) -> PlayWorker:
+        worker = PlayWorker(db, config, sleep=lambda _seconds: None)
+        workers.append(worker)
+        return worker
+
+    yield make
+    for worker in workers:
+        worker.stop()
+
+
+@pytest.fixture
+def play_worker(make_play_worker, play_config) -> PlayWorker:
+    return make_play_worker(play_config)
 
 
 @pytest.fixture

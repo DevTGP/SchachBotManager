@@ -6,7 +6,7 @@ from sbm_store import jobs, matches, play
 from sbm_store.names import JOBS
 
 from sbm_runner.play.config import PlayConfig
-from sbm_runner.play.worker import PlayWorker, recover_expired_play, utc_now
+from sbm_runner.play.worker import recover_expired_play, utc_now
 
 
 def wait_for(predicate, seconds: float = 15) -> None:
@@ -46,9 +46,11 @@ def test_a_remote_bot_plays_a_whole_game_through_the_gateway(
     assert job_of(db, match_id)["status"] == jobs.DONE
 
 
-def test_a_seat_nobody_takes_aborts_the_match(db, gateway, play_config, create_remote):
+def test_a_seat_nobody_takes_aborts_the_match(
+    db, make_play_worker, gateway, play_config, create_remote
+):
     config = PlayConfig(**{**play_config.__dict__, "connect_wait": timedelta(seconds=0.5)})
-    worker = PlayWorker(db, config, sleep=lambda _seconds: None)
+    worker = make_play_worker(config)
     match_id, _seat = create_remote()
 
     assert worker.step()
@@ -73,9 +75,11 @@ def test_a_client_that_leaves_for_good_aborts_the_game(db, gateway, play_worker,
     assert "SeatAbandoned" in match["termination_detail"]
 
 
-def test_an_unreachable_gateway_aborts_the_match(db, play_config, create_remote, gateway):
+def test_an_unreachable_gateway_aborts_the_match(
+    db, make_play_worker, play_config, create_remote, gateway
+):
     config = PlayConfig(**{**play_config.__dict__, "relay_port": 1})
-    worker = PlayWorker(db, config, sleep=lambda _seconds: None)
+    worker = make_play_worker(config)
     match_id, _seat = create_remote()
 
     assert worker.step()
@@ -130,12 +134,14 @@ def test_a_match_left_running_is_not_restarted(db, gateway, play_worker, create_
     assert "cannot be resumed" in matches.get(db, match_id)["termination_detail"]
 
 
-def test_the_setting_on_the_website_lowers_the_slots(db, gateway, play_config, create_remote):
+def test_the_setting_on_the_website_lowers_the_slots(
+    db, make_play_worker, gateway, play_config, create_remote
+):
     from sbm_store import play_settings
 
     play_settings.save(db, play_settings.PlaySettings(max_games=1))
     config = PlayConfig(**{**play_config.__dict__, "slots": 3})
-    worker = PlayWorker(db, config, sleep=lambda _seconds: None)
+    worker = make_play_worker(config)
     create_remote()
     create_remote()
 
