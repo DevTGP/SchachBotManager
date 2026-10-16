@@ -123,7 +123,13 @@ Abnahme: Ein Python-Bot aus der Vorlage öffnet beim lokalen Lauf ein Fenster, d
 
 ### M5 – Weitere Sprachen (P2)
 
-Zurückgestellt (E110). Mit jeder Sprache kommt auch ihr Transport `remote` für M7 (E111).
+Zurückgestellt (E110), begonnen mit JavaScript (E200); Nummern E200–E219, Migrationen ab `0200`. Mit jeder Sprache kommt auch ihr Transport `remote` für M7 (E111).
+
+JavaScript in drei Schritten (E200):
+
+1. Lokales SDK – Node-API-Addon (E201), npm-Paket `schachbotmanager` in TypeScript (E202, E203), API in camelCase (E204), `run` mit `stdio` und `tcp`, `loadData` (E205), Vorlage `templates/javascript/`, Partie gegen Python-Bots in `sbm-arena`, Veröffentlichung über CI (E206).
+2. Server – Laufzeit Node 24 im Runner-Image, Sandbox, statische Analyse, Upload.
+3. Transport `remote`, `play` und Viewer.
 
 Pro Sprache: Binding auf den Kern, Paket mit eingebetteten Binaries samt Viewer (E106), API- und Protokolltests, Laufzeitverzeichnis + seccomp-Whitelist, Analyzer mit Bibliotheks-Whitelist, Vorlagenprojekt, Aufnahme in den Kreuztest. Die Schachregeln selbst müssen nicht erneut implementiert werden.
 
