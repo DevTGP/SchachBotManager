@@ -39,6 +39,9 @@ POLICY bot {
 
     // Threads, signals and synchronisation
     clone(flags) { (flags & CLONE_THREAD) == CLONE_THREAD },
+    // A wait with a timeout that the freezer interrupts between two moves resumes through
+    // restart_syscall; refused, glibc aborts on the futex error.
+    restart_syscall,
     futex, set_robust_list, get_robust_list, rseq, set_tid_address, arch_prctl,
     sched_yield, sched_getaffinity, sched_getparam, sched_getscheduler,
     rt_sigaction, rt_sigprocmask, rt_sigreturn, rt_sigtimedwait, sigaltstack, kill, tgkill,

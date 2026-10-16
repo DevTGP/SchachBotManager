@@ -84,7 +84,7 @@ Umgesetzt für Python; die übrigen Sprachen folgen mit ihren SDKs nach demselbe
 | Datei | Inhalt |
 |-------|--------|
 | `sandbox/python.cfg` | nsjail-Konfiguration eines Python-Bots: Namespaces, Nutzer-Abbildung, Umgebung, Mounts, rlimits; setzt `SBM_NO_VIEWER`, damit kein Viewer-Fenster aufgeht (E108) |
-| `sandbox/python.policy` | seccomp-Whitelist in kafel-Syntax |
+| `sandbox/python.policy` | seccomp-Whitelist in kafel-Syntax; erlaubt `restart_syscall`, damit ein Warten mit Zeitgrenze nach dem Auftauen weiterläuft |
 | `services/runner/src/sbm_runner/sandbox/` | `settings` (`SBM_SANDBOX`), `limits` (feste Grenzen), `cgroup_tree` (Aufteilung des Baums beim Start), `cgroup` (cgroup eines Bots), `jail_player` (Spieler über nsjail), `stderr_tail`, `jail` (Selbstprüfung, Spieler je Bot) |
 | `services/runner/tests/sandbox/` | Negativ-Suite mit Testbots, `suite.Dockerfile` (Runner-Image plus die mit dem .NET-SDK gebauten C#-Testbots) und `run-in-docker.sh` |
 
