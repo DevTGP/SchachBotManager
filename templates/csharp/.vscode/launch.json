@@ -1,0 +1,70 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Bot debuggen: Weiß gegen material",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/MyBot.dll",
+      "args": [
+        "--tcp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "stopAtEntry": false,
+      "preLaunchTask": "Debug: Bot mit Weiß gegen material"
+    },
+    {
+      "name": "Bot debuggen: Schwarz gegen material",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/MyBot.dll",
+      "args": [
+        "--tcp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "stopAtEntry": false,
+      "preLaunchTask": "Debug: Bot mit Schwarz gegen material"
+    },
+    {
+      "name": "Bot debuggen: Stellung aus games.pgn, Weiß",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/MyBot.dll",
+      "args": [
+        "--tcp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "stopAtEntry": false,
+      "preLaunchTask": "Debug: Stellung aus games.pgn, Bot mit Weiß"
+    },
+    {
+      "name": "Bot debuggen: Stellung aus games.pgn, Schwarz",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/MyBot.dll",
+      "args": [
+        "--tcp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "stopAtEntry": false,
+      "preLaunchTask": "Debug: Stellung aus games.pgn, Bot mit Schwarz"
+    },
+    {
+      "name": "Bot debuggen: Arena läuft schon",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/bin/Debug/net10.0/MyBot.dll",
+      "args": [
+        "--tcp"
+      ],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "stopAtEntry": false,
+      "preLaunchTask": "Build: Debug"
+    }
+  ]
+}

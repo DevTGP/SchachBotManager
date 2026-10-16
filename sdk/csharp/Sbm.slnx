@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/bots/">
+    <Project Path="bots/Material/Material.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Sbm/Sbm.csproj" />
   </Folder>

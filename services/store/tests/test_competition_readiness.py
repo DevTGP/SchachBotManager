@@ -226,6 +226,8 @@ def test_reset_releases_a_failed_game_anew(db):
     assert match["readiness"]["started_at"] is None
     assert match["readiness"][color] == {"ready_at": None, "seen_at": None}
     assert competition_readiness.release(db, again) == []
+    # The game thread and the stopping play runner may both give it up at the same instant.
+    assert competition_readiness.reset(db, first["_id"], again)
 
     db[MATCHES].update_one({"_id": first["_id"]}, {"$set": {"status": matches.FINISHED}})
     assert not competition_readiness.reset(db, first["_id"], again)

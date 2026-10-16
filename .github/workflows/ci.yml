@@ -257,11 +257,29 @@ jobs:
         working-directory: sdk/csharp
         run: |
           dotnet tool restore
-          dotnet csharpier check .
+          dotnet csharpier check . ../../templates/csharp
           dotnet format Sbm.slnx --verify-no-changes
 
-      - name: Test (API vectors, API surface, constants, errors)
+      - name: Test (API vectors, API surface, runtime, reference bot)
         run: dotnet test sdk/csharp/Sbm.slnx
+
+      # The cross test plays the C# reference bot in the Python arena (E198).
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install the Python SDK for the arena
+        run: pip install -C cmake.define.SBM_VIEWER=OFF ./sdk/python pytest ruff
+
+      - name: Lint the cross test
+        if: runner.os == 'Linux'
+        run: |
+          ruff check sdk/csharp/tests/cross
+          ruff format --check sdk/csharp/tests/cross
+
+      # Also packs the SDK and builds the template against the package (E199, E201).
+      - name: Cross test against the Python reference bots, template
+        run: pytest sdk/csharp/tests/cross
 
   services:
     name: Store, runner and web API

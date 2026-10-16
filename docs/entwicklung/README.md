@@ -20,7 +20,7 @@ Je Paket eine Karte: Einstieg, Module mit ihrer Aufgabe, Abläufe im Code, Tests
 | [code-python-sdk.md](code-python-sdk.md) | Python-SDK `schachbotmanager` (Binding, Laufzeit, Referee, Arena, Analyse, Remote) | `sdk/python` |
 | [code-javascript-sdk.md](code-javascript-sdk.md) | JavaScript-SDK `schachbotmanager` auf npm (Addon, Laufzeit, Vorlage) | `sdk/javascript` |
 | [code-viewer.md](code-viewer.md) | Grafischer Viewer `sbm-viewer` | `sdk/viewer` |
-| [code-csharp-sdk.md](code-csharp-sdk.md) | C#-SDK (Binding auf den Kern, M5 Schritt 1) | `sdk/csharp` |
+| [code-csharp-sdk.md](code-csharp-sdk.md) | C#-SDK (Binding, Hauptschleife, Referenzbot und Kreuztest, Paket und Vorlage, M5 Schritte 1–3) | `sdk/csharp` |
 | [code-store.md](code-store.md) | Datenbankzugriff, Queue, Ratings, Einstellungen, Migrationen | `services/store` |
 | [code-runner.md](code-runner.md) | Runner für Partien, Verifikation und interaktive Partien | `services/runner` |
 | [code-gateway.md](code-gateway.md) | WebSocket-Gateway | `services/gateway` |

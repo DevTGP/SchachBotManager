@@ -141,8 +141,8 @@ C# in fünf Schritten (E192):
 | Schritt | Inhalt | Stand |
 |---------|--------|-------|
 | 1 | Binding auf den Kern (`Board`, `Move`, Konstanten, Fehler), Tests gegen alle API-Vektoren, CI-Job `csharp` (E193–E195) | Umgesetzt |
-| 2 | Hauptschleife nach dem Protokoll: `Clock`, `Log`, `Bot`, `Run` mit `stdio`/`tcp`, `LoadData`; Referenzbot; Kreuztest über die Arena | Offen |
-| 3 | NuGet-Paket mit `runtimes/<rid>/native`, Vorlagenprojekt | Offen |
+| 2 | Hauptschleife nach dem Protokoll: `Clock`, `Log`, `Bot`, `Run` mit `stdio`/`tcp`, `LoadData`; Referenzbot; Kreuztest über die Arena (E196–E198) | Umgesetzt |
+| 3 | NuGet-Paket mit `runtimes/<rid>/native`, Workflow `nuget.yml`, Vorlagenprojekt `templates/csharp` (E199–E201) | Umgesetzt |
 | 4 | Serverseite: Laufzeitverzeichnis, seccomp-Whitelist, Analyzer (Roslyn), Verifikation im Runner, Negativ-Suite | Offen |
 | 5 | Viewer, Transport `remote`, `Play` | Offen |
 

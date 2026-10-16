@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The SDK with the shared core for every platform; same version as the server. -->
+    <PackageReference Include="SchachBotManager" Version="0.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Data files next to the program, read with Sdk.LoadData; uploaded with the bot. -->
+    <None Include="data/**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

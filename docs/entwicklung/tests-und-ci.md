@@ -18,7 +18,7 @@ Welche Tests es je Paket gibt, wie sie laufen, was die CI daraus macht und wie R
 | Kern (`sdk/core`) | C++-Unit-Tests der Engine und der C-Schnittstelle; Vektor-Läufer über alle JSON-Vektoren; Header-Check in C11 und C++20 | `sdk/core/tests/{unit,vectors}`, `header_check.{c,cpp}` | `ctest --test-dir build/core …`, `gcc`/`g++ -fsyntax-only` |
 | Python-SDK | API-Vektoren, Oberfläche, Referee, Arena, Analyse, Transporte, `sbm.play`, Viewer-Client, Vorlage, Abnahmetest | `sdk/python/tests` | `pytest sdk/python` (gegen das installierte Paket) |
 | JavaScript-SDK (`sdk/javascript`) | API-Vektoren, Oberfläche gegen `spec/api/`, je Modul, `run` in eigenen Prozessen, Partien in `sbm-arena`, Vorlage | `sdk/javascript/test` | `npm test` in `sdk/javascript` (nach `npm run build:native`) |
-| C#-SDK (`sdk/csharp`) | xUnit v3: alle API-Vektoren über Reflexion, Oberfläche, Konstanten, Fehler, `Move`, `Board` | `sdk/csharp/tests/Sbm.Tests` | `dotnet test sdk/csharp/Sbm.slnx` (Kern vorher als geteilte Bibliothek bauen) |
+| C#-SDK (`sdk/csharp`) | xUnit v3: alle API-Vektoren über Reflexion, Oberfläche, Konstanten, Fehler, `Move`, `Board`, Hauptschleife gegen einen geskripteten Referee, Referenzbot `Material`; Kreuztest mit pytest gegen die Python-Referenzbots in der Arena (E198) und Vorlage `templates/csharp` gegen das gepackte SDK (E201) | `sdk/csharp/tests/Sbm.Tests`, `sdk/csharp/tests/cross` | `dotnet test sdk/csharp/Sbm.slnx` (Kern vorher als geteilte Bibliothek bauen), `pytest sdk/csharp/tests/cross` (braucht zusätzlich das installierte Python-SDK) |
 | Viewer (`sdk/viewer`) | Modelltests ohne Fenster (Nachrichten, Session, Navigation, Text); das Programm selbst testet `test_viewer_program.py` über einen Screenshot | `sdk/viewer/tests` | `ctest --test-dir build/viewer …` |
 | `services/store` | Funktionen je Collection, Migrationen, Ratings, Einstellungen | `services/store/tests` | `pytest services/store` |
 | `services/gateway` | Gateway in einem Thread auf freien Ports, beide Enden als WebSocket- bzw. TCP-Client | `services/gateway/tests` | `pytest services/gateway` |
@@ -90,7 +90,7 @@ Die Bereiche stehen als reguläre Ausdrücke in [`changed-areas.sh`](../../.gith
 | `core` | `sdk/core/`, `spec/testvectors/` | Build und `ctest` mit langsamen Perft-Vektoren unter Linux, Windows, macOS |
 | `python` | `sdk/core/`, `sdk/python/`, `templates/python/`, `spec/` | SDK ohne Viewer bauen, Ruff für SDK und Vorlage, `pytest sdk/python`; Python 3.11 und 3.14 auf drei Systemen |
 | `javascript` | `sdk/core/`, `sdk/javascript/`, `templates/javascript/`, `sdk/python/src/sbm/{arena,referee,bots}/`, `spec/` | `npm ci`, Addon bauen, ESLint und Prettier für SDK und Vorlage, `tsc`, `npm test`; Node 22 und 24 auf drei Systemen, unter Linux mit Node 24 mit installiertem Python-SDK und `SBM_REQUIRE_ARENA=1` |
-| `csharp` | `sdk/core/`, `sdk/csharp/`, `spec/api/`, `spec/testvectors/` | Kern als geteilte Bibliothek bauen, unter Linux CSharpier und `dotnet format --verify-no-changes`, dann `dotnet test`; .NET 10 auf drei Systemen (E195) |
+| `csharp` | `sdk/core/`, `sdk/csharp/`, `templates/csharp/`, `sdk/python/`, `spec/api/`, `spec/protocol/`, `spec/testvectors/` | Kern als geteilte Bibliothek bauen, unter Linux CSharpier (SDK und Vorlage) und `dotnet format --verify-no-changes`, dann `dotnet test`; danach Python-SDK ohne Viewer installieren, unter Linux `ruff` für den Kreuztest, dann `pytest sdk/csharp/tests/cross` samt Paket und Vorlage; .NET 10 auf drei Systemen (E195, E198, E201) |
 | `services` | `sdk/core/`, `sdk/python/`, `services/`, `backend/`, `spec/` | Mit MongoDB 8.0 als Dienst und `SBM_REQUIRE_MONGO=1`: Ruff, dann Tests von Store, Gateway, Runner und API |
 | `sandbox` | `sandbox/`, `deploy/python.Dockerfile`, `sdk/core/`, `sdk/python/`, `services/` | Baut das Runner-Image und führt die Negativ-Suite mit den Rechten des Runners aus |
 | `frontend` | `frontend/`, `spec/web/` | `npm ci`, `api-types:check`, Lint, Prettier, `npm test`, `npm run build` |
@@ -129,6 +129,14 @@ Alle Python-Jobs außer `python` nutzen Python 3.12. Fehlgeschlagene pytest-Test
 - Läuft wie `wheels.yml` bei einem Tag `v*` und von Hand (E226). Baut den Addon für fünf Plattformen (Linux x64/arm64 in `manylinux_2_28`, Windows x64, macOS x64/arm64 ab macOS 11), testet ihn je Plattform, packt alle in `schachbotmanager-X.Y.Z.tgz` und installiert das Paket zur Probe in einem leeren Ordner.
 - Nur beim Tag veröffentlicht der Job `publish` es auf npm (Umgebung `npm`, Trusted Publishing). Er prüft vorher, dass der Tag zur Version des Pakets passt.
 - Derselbe Tag veröffentlicht also beide SDKs. Die Version kommt für beide aus `sdk/core/CMakeLists.txt`; `version.test.ts` prüft, dass `sdk/javascript/package.json` sie trägt.
+
+## Release des C#-SDK (`nuget.yml`)
+
+- Läuft beim selben Tag `v*` wie `wheels.yml` und von Hand (E200).
+- `native` baut den Kern als geteilte Bibliothek auf fünf nativen Runnern mit [`build-core-shared.sh`](../../.github/scripts/build-core-shared.sh): Linux x64/arm64 in `manylinux_2_28` mit Prüfung auf `libstdc++` und glibc ≤ 2.28, Windows x64 mit statischer CRT, macOS x64/arm64 ab 11.
+- `pack` packt sie mit `-p:SbmRuntimesDir=…` in ein Paket, prüft jede Bibliothek darin und beim Tag den Namen gegen die Version; Artefakt `nuget`.
+- `test` installiert auf allen fünf Plattformen das Python-SDK aus dem Repo und läuft `test_template.py` mit `SBM_NUGET_SOURCE` auf dieses Paket.
+- Nur beim Tag lädt `publish` per Trusted Publishing hoch (Umgebung `nuget`, Secret `NUGET_USER` mit dem Profilnamen auf nuget.org).
 
 ## Workflows lokal prüfen
 

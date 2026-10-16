@@ -68,7 +68,7 @@ sbm-arena tcp material --no-clock --replay partien.pgn --replay-game 3 --replay-
 
 ### Schritt für Schritt (Python, VS Code)
 
-Ausgangspunkt ist die Vorlage `templates/python/` (E69); ihr README beschreibt die Einrichtung.
+Ausgangspunkt ist die Vorlage `templates/python/` (E69); ihr README beschreibt die Einrichtung. Für C# gilt dasselbe mit `templates/csharp/` (E201): Haltepunkt in `ChooseMove`, VS Code baut mit `dotnet build`, startet die Arena aus dem `.venv` der Vorlage und dann `MyBot.dll --tcp` im Debugger (`coreclr`).
 
 1. Ordner kopieren, in VS Code öffnen, das Python mit installiertem SDK als Interpreter wählen.
 2. Haltepunkt in `choose_move` setzen und z. B. „Bot debuggen: Weiß gegen material“ starten.
@@ -118,7 +118,7 @@ Der gemeinsame Kern (E3) wird nie vom Bot-Autor kompiliert. Jedes SDK-Paket enth
 | Python | `pip install schachbotmanager` | `python mein_bot.py` |
 | JavaScript | `npm install schachbotmanager` (Node ab 22.18) | `node mein_bot.js` |
 | Java | Eine Abhängigkeit (Maven/Gradle) oder ein JAR im Klassenpfad | Normale `main`-Klasse |
-| C# | `dotnet add package <sdk>` | `dotnet run` |
+| C# | `dotnet add package SchachBotManager` (E199) | `dotnet run` |
 | C++ | Archiv entpacken, per CMake einbinden; Compiler nötig | Kompilieren, ausführen |
 
 Für Python bedeutet das: ein Skript, ein `pip install`, kein Compiler, keine Build-Konfiguration. Die Arena kommt im selben Python-Paket als Kommandozeilenbefehl mit, sodass auch der lokale Gegner ohne weiteres Setup startet.
@@ -129,4 +129,4 @@ Zu beachten:
 - **Python-Versionen:** Python 3.11 und neuer, ein Wheel je Version (E59); Import als `import sbm`.
 - **JavaScript:** ein Addon je Plattform für alle Node-Versionen ab 22.18, ohne Linux mit musl (E221, E226); Import als `import * as sbm from "schachbotmanager"`.
 - **Kein Schritt in den Kern (R9):** Der Python-Debugger hält im eigenen Code und im Python-Teil des SDK, nicht in der Zuggenerierung.
-- **Vorlagenprojekt je Sprache** unter `templates/<sprache>/` mit fertiger Debug-Konfiguration und einem lauffähigen Beispielbot (E69); vorhanden für Python und JavaScript, die übrigen folgen mit ihren SDKs.
+- **Vorlagenprojekt je Sprache** unter `templates/<sprache>/` mit fertiger Debug-Konfiguration und einem lauffähigen Beispielbot (E69); vorhanden für Python, JavaScript und C# (E201), die übrigen folgen mit ihren SDKs.

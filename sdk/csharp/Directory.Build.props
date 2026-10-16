@@ -11,5 +11,7 @@
     <!-- Build directory of the shared core (sdk/core built with SBM_SHARED=ON). -->
     <SbmNativeDir Condition="'$(SbmNativeDir)' == ''"
       >$(MSBuildThisFileDirectory)../../build/core</SbmNativeDir>
+    <!-- One version for the core and every SDK (E36): read from sdk/core/CMakeLists.txt. -->
+    <SbmCoreVersion>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)../core/CMakeLists.txt')), 'project\(sbm_core VERSION ([0-9.]+)').Groups[1].Value)</SbmCoreVersion>
   </PropertyGroup>
 </Project>
