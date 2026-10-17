@@ -1,4 +1,7 @@
+using System.Net.Sockets;
+using System.Net.WebSockets;
 using System.Text;
+using Sbm.Runtime.Remote;
 using Sbm.Runtime.Viewer;
 
 namespace Sbm.Runtime;
@@ -13,7 +16,7 @@ internal static class Runner
         bool viewer,
         IReadOnlyList<string> args,
         Func<string, string?> env,
-        Func<Options, Channel>? open = null
+        Func<Options, IChannel>? open = null
     )
     {
         Options options;
@@ -58,22 +61,28 @@ internal static class Runner
         Func<Bot> create,
         string botName,
         Options options,
-        Func<Options, Channel> open
+        Func<Options, IChannel> open
     )
     {
-        if (options.Transport == Transport.Remote)
-        {
-            Log.Error("the transport remote is not available in this SDK yet");
-            return 1;
-        }
-        Channel channel;
+        IChannel channel;
         try
         {
             channel = open(options);
         }
-        catch (Exception error) when (error is IOException or System.Net.Sockets.SocketException)
+        catch (RemoteException error)
         {
-            Log.Error($"cannot connect to the arena on 127.0.0.1:{options.Port}: {error.Message}");
+            Log.Error(error.Message);
+            return 1;
+        }
+        catch (Exception error) when (error is IOException or SocketException or WebSocketException)
+        {
+            var where = options.Remote?.Url ?? $"the arena on 127.0.0.1:{options.Port}";
+            Log.Error($"cannot connect to {where}: {error.Message}");
+            return 1;
+        }
+        catch (ProtocolException error)
+        {
+            Log.Error($"protocol error: {error.Message}");
             return 1;
         }
         using (channel)
@@ -96,8 +105,11 @@ internal static class Runner
         }
     }
 
-    private static Channel Open(Options options) =>
-        options.Transport == Transport.Tcp
-            ? Transports.OpenTcp(options.Port)
-            : Transports.OpenStdio();
+    private static IChannel Open(Options options) =>
+        options.Transport switch
+        {
+            Transport.Remote => RemoteOpening.Open(options.Remote!).Channel,
+            Transport.Tcp => Transports.OpenTcp(options.Port),
+            _ => Transports.OpenStdio(),
+        };
 }

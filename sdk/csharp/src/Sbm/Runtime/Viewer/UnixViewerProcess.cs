@@ -17,7 +17,9 @@ internal sealed unsafe partial class UnixViewerProcess : IViewerProcess
     private const int WriteOnly = 1; // O_WRONLY
 
     // POSIX_SPAWN_SETSID of macOS and glibc.
-    private static readonly short NewSession = OperatingSystem.IsMacOS() ? (short)0x400 : (short)0x80;
+    private static readonly short NewSession = OperatingSystem.IsMacOS()
+        ? (short)0x400
+        : (short)0x80;
 
     // Large enough for posix_spawnattr_t and posix_spawn_file_actions_t of glibc and macOS.
     private const int OpaqueSize = 1024;

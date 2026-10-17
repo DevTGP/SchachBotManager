@@ -87,7 +87,10 @@ public sealed class ViewerWindowTests : IDisposable
         new ViewerWindow(process).WaitUntilClosed();
         Assert.True(process.Waited);
         Assert.True(process.InputClosed);
-        Assert.Contains("INFO  viewer: the program ends when the viewer window is closed", _log.Text);
+        Assert.Contains(
+            "INFO  viewer: the program ends when the viewer window is closed",
+            _log.Text
+        );
     }
 
     [Fact]

@@ -158,7 +158,9 @@ public sealed class RunnerTests : IDisposable
             message =>
                 Referee.Str(message, "type") == "log"
                 && Referee.Str(message, "level") == "error"
-                && Referee.Str(message, "text").StartsWith("ChooseMove raised", StringComparison.Ordinal)
+                && Referee
+                    .Str(message, "text")
+                    .StartsWith("ChooseMove raised", StringComparison.Ordinal)
         );
     }
 
@@ -187,14 +189,6 @@ public sealed class RunnerTests : IDisposable
         Assert.Equal(0, Run(() => new FirstMoveBot(), env: env, viewer: true));
         Assert.Equal("", _log.Text);
         Assert.Empty(process.Messages());
-    }
-
-    [Fact]
-    public void RemoteIsNotAvailableYet()
-    {
-        Assert.Equal(1, Run(() => new FirstMoveBot(), ["--remote", "https://example.org"]));
-        Assert.Contains("ERROR the transport remote is not available in this SDK yet", _log.Text);
-        Assert.Empty(Types());
     }
 
     [Fact]

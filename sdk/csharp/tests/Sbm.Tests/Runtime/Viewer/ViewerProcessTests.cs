@@ -47,7 +47,10 @@ public sealed class ViewerProcessTests : IDisposable
         var process = ViewerProgram.Start(script);
         process.Input.Dispose();
         WaitForExit(process);
-        var session = int.Parse(File.ReadAllText(output).Trim(), System.Globalization.CultureInfo.InvariantCulture);
+        var session = int.Parse(
+            File.ReadAllText(output).Trim(),
+            System.Globalization.CultureInfo.InvariantCulture
+        );
         Assert.NotEqual(SessionOfThisProcess(), session);
     }
 
@@ -67,7 +70,17 @@ public sealed class ViewerProcessTests : IDisposable
     private static int SessionOfThisProcess()
     {
         using var ps = Process.Start(
-            new ProcessStartInfo("ps", ["-o", "sid=", "-p", Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture)])
+            new ProcessStartInfo(
+                "ps",
+                [
+                    "-o",
+                    "sid=",
+                    "-p",
+                    Environment.ProcessId.ToString(
+                        System.Globalization.CultureInfo.InvariantCulture
+                    ),
+                ]
+            )
             {
                 RedirectStandardOutput = true,
             }

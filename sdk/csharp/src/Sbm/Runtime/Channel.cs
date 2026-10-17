@@ -1,11 +1,9 @@
-using System.Text;
 using System.Text.Json;
 
 namespace Sbm.Runtime;
 
 /// <summary>Line channel to the referee: one JSON message per line (NDJSON) over stdio or TCP.</summary>
-internal sealed class Channel(Stream reader, Stream writer, IDisposable? closing = null)
-    : IDisposable
+internal sealed class Channel(Stream reader, Stream writer, IDisposable? closing = null) : IChannel
 {
     internal const int MaxLineBytes = 65_536;
 
@@ -15,26 +13,7 @@ internal sealed class Channel(Stream reader, Stream writer, IDisposable? closing
     public JsonElement? Receive()
     {
         var line = _lines.ReadLine(MaxLineBytes);
-        if (line is null)
-        {
-            return null;
-        }
-        JsonElement message;
-        try
-        {
-            using var document = JsonDocument.Parse(line);
-            message = document.RootElement.Clone();
-        }
-        catch (JsonException error)
-        {
-            throw new ProtocolException($"invalid JSON: {error.Message}");
-        }
-        if (message.ValueKind != JsonValueKind.Object)
-        {
-            var start = Encoding.UTF8.GetString(line, 0, Math.Min(line.Length, 80));
-            throw new ProtocolException($"message is not a JSON object: {start}");
-        }
-        return message;
+        return line is null ? null : JsonLines.Object(line);
     }
 
     /// <summary>Writes one message, built by write, as a line and flushes it.</summary>

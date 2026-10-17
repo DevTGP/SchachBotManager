@@ -99,9 +99,100 @@ public class OptionsParserTests
     [Fact]
     public void RemoteOptionsTakeTheirValues()
     {
-        var options = Parse(["--remote", "https://example.org", "--opponent", "-1", "--tcp"]);
+        string[] args =
+        [
+            "--remote",
+            "https://example.org",
+            "--token",
+            "t",
+            "--opponent",
+            "-1",
+            "--tcp",
+        ];
+        var options = Parse(args);
         Assert.Equal(Transport.Remote, options.Transport);
+        Assert.Equal(new RemoteOptions("https://example.org", "t", "-1"), options.Remote);
     }
+
+    [Fact]
+    public void RemoteFromArgumentsAndEnvironment()
+    {
+        string[] args =
+        [
+            "--remote",
+            "https://example.org",
+            "--opponent",
+            "Material",
+            "--time",
+            "30+0.5",
+        ];
+        var options = Parse(args, new() { ["SBM_TOKEN"] = "t", ["SBM_COLOR"] = "Black" });
+        Assert.Equal(
+            new RemoteOptions("https://example.org", "t", "Material")
+            {
+                Color = "black",
+                Time = "30+0.5",
+            },
+            options.Remote
+        );
+    }
+
+    [Fact]
+    public void RemoteThroughTheEnvironmentAlone()
+    {
+        var env = new Dictionary<string, string>
+        {
+            ["SBM_TRANSPORT"] = "remote",
+            ["SBM_REMOTE_URL"] = "https://example.org",
+            ["SBM_TOKEN"] = "t",
+            ["SBM_OPPONENT"] = "Random",
+            ["SBM_DISCIPLINE"] = "Blitz",
+            ["SBM_TIME"] = "",
+        };
+        Assert.Equal(
+            new RemoteOptions("https://example.org", "t", "Random") { Discipline = "Blitz" },
+            Parse([], env).Remote
+        );
+    }
+
+    [Fact]
+    public void RemoteNamesAreLeftToTheBotOtherwise() =>
+        Assert.Null(Parse(["--color", "red", "--time", "x"]).Remote);
+
+    public static TheoryData<string[], string> IncompleteRemote() =>
+        new()
+        {
+            {
+                ["--remote", "https://example.org", "--opponent", "M"],
+                "a remote game needs SBM_TOKEN"
+            },
+            {
+                ["--remote", "https://example.org", "--token", "t"],
+                "a remote game needs --opponent"
+            },
+            {
+                ["--remote=", "--token", "t", "--opponent", "M"],
+                "a remote game needs --remote URL"
+            },
+            {
+                [
+                    "--remote",
+                    "https://example.org",
+                    "--token",
+                    "t",
+                    "--opponent",
+                    "M",
+                    "--color",
+                    "red",
+                ],
+                "invalid color 'red', expected one of white, black, random"
+            },
+        };
+
+    [Theory]
+    [MemberData(nameof(IncompleteRemote))]
+    public void IncompleteRemoteOptions(string[] args, string message) =>
+        Assert.Equal(message, Assert.Throws<OptionsException>(() => Parse(args)).Message);
 
     public static TheoryData<string[], string, string, string> InvalidValues() =>
         new()
@@ -112,7 +203,7 @@ public class OptionsParserTests
             { ["--log-level", "loud"], "", "", "invalid log level 'loud'" },
             { ["--log-level"], "", "", "argument --log-level: expected one argument" },
             { ["--log-file", "--tcp"], "", "", "argument --log-file: expected one argument" },
-            { [], "SBM_TRANSPORT", "remote", "invalid SBM_TRANSPORT 'remote'" },
+            { [], "SBM_TRANSPORT", "udp", "invalid SBM_TRANSPORT 'udp'" },
             { [], "SBM_PORT", "-1", "invalid port '-1'" },
             { [], "SBM_PORT", "+80", "invalid port '+80'" },
             { [], "SBM_LOG_LEVEL", "5", "invalid log level '5'" },

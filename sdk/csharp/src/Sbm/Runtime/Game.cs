@@ -4,7 +4,7 @@ using Sbm.Runtime.Viewer;
 namespace Sbm.Runtime;
 
 /// <summary>One game from the bot's side: init, turns and game_over (state machine of bot-protokoll.md).</summary>
-internal sealed class Game(Bot bot, Channel channel)
+internal sealed class Game(Bot bot, IChannel channel)
 {
     private Board? _board;
     private long _incrementMs;

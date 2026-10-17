@@ -19,8 +19,10 @@ internal static class OptionsParser
         "OFF",
     ];
 
+    private static readonly string[] Colors = ["white", "black", "random"];
+
     // Options of the remote transport (E116), read with a value so that it is not taken for an
-    // argument of the bot; the transport itself follows in step 5 (E197).
+    // argument of the bot.
     private static readonly string[] RemoteValues =
     [
         "--remote",
@@ -55,7 +57,59 @@ internal static class OptionsParser
         {
             options = options with { Transport = Transport.Remote };
         }
+        if (options.Transport == Transport.Remote)
+        {
+            options = options with { Remote = Remote(values, env) };
+        }
         return options;
+    }
+
+    /// <summary>
+    /// The remote options; the SDK reads them only for this transport, so a bot may use the same
+    /// argument names for itself otherwise.
+    /// </summary>
+    private static RemoteOptions Remote(
+        Dictionary<string, string?> values,
+        Func<string, string?> env
+    )
+    {
+        string? Value(string name, string variable) =>
+            values.TryGetValue(name, out var given)
+                ? given
+                : (string.IsNullOrEmpty(env(variable)) ? null : env(variable));
+
+        var url = Value("--remote", "SBM_REMOTE_URL");
+        var token = Value("--token", "SBM_TOKEN");
+        var opponent = Value("--opponent", "SBM_OPPONENT");
+        foreach (
+            var (found, what) in new[]
+            {
+                (url, "--remote URL"),
+                (token, "SBM_TOKEN"),
+                (opponent, "--opponent"),
+            }
+        )
+        {
+            if (string.IsNullOrEmpty(found))
+            {
+                throw new OptionsException($"a remote game needs {what}");
+            }
+        }
+        var color = Value("--color", "SBM_COLOR");
+        color = (string.IsNullOrEmpty(color) ? "random" : color).ToLowerInvariant();
+        if (!Colors.Contains(color))
+        {
+            throw new OptionsException(
+                $"invalid color '{color}', expected one of {string.Join(", ", Colors)}"
+            );
+        }
+        var time = Value("--time", "SBM_TIME");
+        return new RemoteOptions(url!, token!, opponent!)
+        {
+            Color = color,
+            Discipline = Value("--discipline", "SBM_DISCIPLINE"),
+            Time = string.IsNullOrEmpty(time) ? RemoteOptions.DefaultTime : time,
+        };
     }
 
     private static Options FromEnvironment(Func<string, string?> env)
@@ -70,6 +124,7 @@ internal static class OptionsParser
             {
                 "stdio" => Transport.Stdio,
                 "tcp" => Transport.Tcp,
+                "remote" => Transport.Remote,
                 _ => throw new OptionsException(
                     $"invalid SBM_TRANSPORT '{transport}', expected stdio or tcp"
                 ),

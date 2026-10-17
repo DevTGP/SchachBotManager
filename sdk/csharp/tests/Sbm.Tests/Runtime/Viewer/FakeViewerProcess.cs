@@ -40,7 +40,8 @@ internal sealed class FakeViewerProcess : IViewerProcess, IDisposable
                 .Select(line => JsonNode.Parse(line)!.AsObject()),
         ];
 
-    public IEnumerable<string> Types() => Messages().Select(message => Referee.Str(message, "type"));
+    public IEnumerable<string> Types() =>
+        Messages().Select(message => Referee.Str(message, "type"));
 
     private sealed class RecordingStream : MemoryStream
     {

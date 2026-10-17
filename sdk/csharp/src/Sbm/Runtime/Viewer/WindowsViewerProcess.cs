@@ -32,7 +32,10 @@ internal sealed unsafe partial class WindowsViewerProcess(SafeProcessHandle proc
     internal static WindowsViewerProcess Start(string path)
     {
         // The reading end is inherited as stdin, the writing end stays with the SDK.
-        var pipe = new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.Inheritable);
+        var pipe = new AnonymousPipeServerStream(
+            PipeDirection.Out,
+            HandleInheritability.Inheritable
+        );
         try
         {
             using var output = File.OpenHandle("NUL", FileMode.Open, FileAccess.Write);
@@ -108,7 +111,10 @@ internal sealed unsafe partial class WindowsViewerProcess(SafeProcessHandle proc
     {
         var current = GetCurrentProcess();
         var handle = GetStdHandle(StdError);
-        if (handle is 0 or -1 || !DuplicateHandle(current, handle, current, out var copy, 0, true, SameAccess))
+        if (
+            handle is 0 or -1
+            || !DuplicateHandle(current, handle, current, out var copy, 0, true, SameAccess)
+        )
         {
             return null;
         }
