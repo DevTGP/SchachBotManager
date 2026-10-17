@@ -27,10 +27,29 @@ internal static class ViewerProgram
         return System.IO.Path.Combine(
             AppContext.BaseDirectory,
             "runtimes",
-            RuntimeInformation.RuntimeIdentifier,
+            RuntimeIdentifier(),
             "native",
             Name
         );
+    }
+
+    /// <summary>
+    /// The portable runtime identifier the package uses. RuntimeInformation.RuntimeIdentifier can
+    /// name the distribution instead, such as ubuntu.24.04-x64, when .NET was built by it.
+    /// </summary>
+    internal static string RuntimeIdentifier()
+    {
+        var system =
+            OperatingSystem.IsWindows() ? "win"
+            : OperatingSystem.IsMacOS() ? "osx"
+            : "linux";
+        var architecture = RuntimeInformation.ProcessArchitecture switch
+        {
+            Architecture.Arm64 => "arm64",
+            Architecture.X64 => "x64",
+            var other => other.ToString().ToLowerInvariant(),
+        };
+        return $"{system}-{architecture}";
     }
 
     /// <summary>Starts the viewer; IOException if it cannot run.</summary>

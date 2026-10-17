@@ -1,7 +1,7 @@
 name: NuGet
 
-# Builds the NuGet package SchachBotManager of the C# SDK (E199) with the shared core for every
-# platform under runtimes/<rid>/native, tests it with the template templates/csharp on every
+# Builds the NuGet package SchachBotManager of the C# SDK (E199) with the shared core and the
+# viewer program (E206) for every platform under runtimes/<rid>/native, tests it with the template templates/csharp on every
 # platform and keeps it as a workflow artifact (E200). A version tag such as v0.4.0 also
 # publishes it on nuget.org through trusted publishing; nuget.org knows this file and the
 # environment nuget as the only allowed publisher. Like wheels.yml it runs only for a version
@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   native:
-    name: Core (${{ matrix.rid }})
+    name: Native (${{ matrix.rid }})
     strategy:
       fail-fast: false
       matrix:
@@ -36,9 +36,13 @@ jobs:
         shell: bash
         run: .github/scripts/build-core-shared.sh ${{ matrix.rid }} runtimes
 
+      - name: Build the viewer program
+        shell: bash
+        run: .github/scripts/build-viewer.sh ${{ matrix.rid }} runtimes
+
       - uses: actions/upload-artifact@v7
         with:
-          name: core-${{ matrix.rid }}
+          name: native-${{ matrix.rid }}
           path: runtimes
           if-no-files-found: error
 
@@ -55,21 +59,24 @@ jobs:
 
       - uses: actions/download-artifact@v8
         with:
-          pattern: core-*
+          pattern: native-*
           path: runtimes
           merge-multiple: true
 
       - name: Pack
         run: dotnet pack sdk/csharp/src/Sbm -c Release -o nuget "-p:SbmRuntimesDir=$PWD/runtimes"
 
-      - name: Check the native libraries in the package
+      - name: Check the native files in the package
         run: |
           contents=$(unzip -l nuget/*.nupkg)
           echo "$contents"
-          for library in linux-x64/native/libsbm.so linux-arm64/native/libsbm.so \
-            win-x64/native/sbm.dll osx-x64/native/libsbm.dylib osx-arm64/native/libsbm.dylib; do
-            if ! grep -q "runtimes/$library" <<<"$contents"; then
-              echo "::error::the package lacks runtimes/$library"
+          for file in linux-x64/native/libsbm.so linux-arm64/native/libsbm.so \
+            win-x64/native/sbm.dll osx-x64/native/libsbm.dylib osx-arm64/native/libsbm.dylib \
+            linux-x64/native/sbm-viewer linux-arm64/native/sbm-viewer \
+            win-x64/native/sbm-viewer.exe osx-x64/native/sbm-viewer osx-arm64/native/sbm-viewer \
+            win-x64/native/sbm-viewer-licenses/SDL3-LICENSE.txt; do
+            if ! grep -q "runtimes/$file" <<<"$contents"; then
+              echo "::error::the package lacks runtimes/$file"
               exit 1
             fi
           done
@@ -121,6 +128,7 @@ jobs:
       - name: Build the template against the package and play it
         env:
           SBM_NUGET_SOURCE: ${{ github.workspace }}/feed
+          SBM_REQUIRE_VIEWER: "1"
         run: pytest sdk/csharp/tests/cross/test_template.py
 
   publish:

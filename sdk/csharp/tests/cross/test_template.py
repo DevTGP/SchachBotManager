@@ -5,6 +5,7 @@ template is built outside the repository, as a user builds it, with its own pack
 that no package of the same version from an earlier run is used.
 """
 
+import os
 import platform
 import re
 import shutil
@@ -13,6 +14,7 @@ import sys
 import zipfile
 from pathlib import Path
 
+import pytest
 from sbm.arena.entrants import ProcessEntrant
 from sbm.arena.series import Game, Series
 from sbm.referee import MatchRecord, MatchSettings
@@ -39,6 +41,10 @@ def native_library() -> str:
     return {"Linux": "libsbm.so", "Windows": "sbm.dll", "Darwin": "libsbm.dylib"}[platform.system()]
 
 
+def viewer_program() -> str:
+    return "sbm-viewer.exe" if platform.system() == "Windows" else "sbm-viewer"
+
+
 def template_version() -> str:
     project = (TEMPLATE / "MyBot.csproj").read_text()
     return re.search(r'Include="SchachBotManager" Version="([^"]+)"', project).group(1)
@@ -53,6 +59,16 @@ def test_package_carries_the_core_for_this_platform(nuget_feed, core_version):
     names = zipfile.ZipFile(package).namelist()
     assert "lib/net10.0/SchachBotManager.dll" in names
     assert f"runtimes/{runtime_identifier()}/native/{native_library()}" in names
+
+
+def test_package_carries_the_viewer_for_this_platform(nuget_feed, core_version):
+    """The package built in nuget.yml carries the viewer (E206); the one packed here does not."""
+    package = nuget_feed / f"SchachBotManager.{core_version}.nupkg"
+    names = zipfile.ZipFile(package).namelist()
+    viewer = f"runtimes/{runtime_identifier()}/native/{viewer_program()}"
+    if os.environ.get("SBM_REQUIRE_VIEWER") != "1" and viewer not in names:
+        pytest.skip("the package carries no viewer; nuget.yml builds it")
+    assert viewer in names
 
 
 def test_template_plays_against_material(tmp_path, dotnet, nuget_feed, core_version):
@@ -70,7 +86,12 @@ def test_template_plays_against_material(tmp_path, dotnet, nuget_feed, core_vers
         check=True,
         stdout=subprocess.DEVNULL,
     )
-    command = [dotnet, str(project / "bin" / "Release" / "net10.0" / "MyBot.dll")]
+    output = project / "bin" / "Release" / "net10.0"
+    # Where the SDK looks for the viewer when the build is not for one platform (E206).
+    viewer = output / "runtimes" / runtime_identifier() / "native" / viewer_program()
+    if os.environ.get("SBM_REQUIRE_VIEWER") == "1":
+        assert viewer.is_file(), viewer
+    command = [dotnet, str(output / "MyBot.dll")]
     bot = ProcessEntrant("MyBot", command, sys.stderr)
     material = ProcessEntrant("Material", [sys.executable, "-m", "sbm.bots.material"], None)
     records: list[MatchRecord] = []
