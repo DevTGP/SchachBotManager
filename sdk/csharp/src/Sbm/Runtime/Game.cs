@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Sbm.Runtime.Viewer;
 
 namespace Sbm.Runtime;
 
@@ -74,6 +75,7 @@ internal sealed class Game(Bot bot, Channel channel)
             );
         }
         Guard.Call("OnGameStart", () => bot.OnGameStart(info));
+        GameView.Started(bot.GetType().Name, info);
         channel.Send(json => Protocol.Ready(json, Sdk.Version));
     }
 
@@ -89,12 +91,14 @@ internal sealed class Game(Bot bot, Channel channel)
         {
             throw new ProtocolException("turn before init");
         }
-        Log.SetPly(Protocol.SmallInteger(turn, "ply"));
+        var ply = Protocol.SmallInteger(turn, "ply");
+        Log.SetPly(ply);
         var board = Synchronize(_board, turn);
         _board = board;
+        GameView.OpponentMoved(ply, LastMove(turn), board, clock);
         bot.TakeReport();
         var choice = Guard.Call("ChooseMove", () => bot.ChooseMove(board.Copy(), clock));
-        var info = bot.TakeReport();
+        var report = bot.TakeReport();
         if (choice == Move.Resign)
         {
             channel.Send(Protocol.Resign);
@@ -109,6 +113,7 @@ internal sealed class Game(Bot bot, Channel channel)
         {
             throw new BotFailureException($"ChooseMove returned {choice}, which has no UCI form");
         }
+        var info = report is null ? null : InfoFields.Json(report);
         channel.Send(json => Protocol.Move(json, uci, info));
         try
         {
@@ -117,7 +122,9 @@ internal sealed class Game(Bot bot, Channel channel)
         catch (ChessException)
         {
             Log.Warn($"own move {uci} is not legal in this position; the referee decides");
+            return;
         }
+        GameView.OwnMove(ply + 1, uci, board, clock, info);
     }
 
     /// <summary>Applies the opponent's move and adopts the referee's position on a mismatch (E42).</summary>
@@ -135,15 +142,12 @@ internal sealed class Game(Bot bot, Channel channel)
         {
             throw new ProtocolException($"turn: {error.Message}");
         }
-        if (
-            turn.TryGetProperty("last_move", out var lastMove)
-            && lastMove.ValueKind == JsonValueKind.String
-        )
+        if (LastMove(turn) is { } lastMove)
         {
             // A move that does not fit is repaired by the comparison below.
             try
             {
-                board.MakeMove(board.ParseMove(lastMove.GetString()!));
+                board.MakeMove(board.ParseMove(lastMove));
             }
             catch (ChessException) { }
         }
@@ -159,8 +163,15 @@ internal sealed class Game(Bot bot, Channel channel)
     {
         var result = Protocol.GameResult(gameOver);
         Result = result;
+        GameView.Ended(gameOver);
         Guard.Call("OnGameEnd", () => bot.OnGameEnd(result));
     }
+
+    private static string? LastMove(JsonElement turn) =>
+        turn.TryGetProperty("last_move", out var lastMove)
+        && lastMove.ValueKind == JsonValueKind.String
+            ? lastMove.GetString()
+            : null;
 
     private static string Text(JsonElement message, string name) =>
         message.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String

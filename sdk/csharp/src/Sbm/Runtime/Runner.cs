@@ -1,4 +1,5 @@
 using System.Text;
+using Sbm.Runtime.Viewer;
 
 namespace Sbm.Runtime;
 
@@ -40,16 +41,14 @@ internal static class Runner
             }
         }
         Log.Configure(options.LogLevel, file);
+        var window = viewer ? ViewerWindow.Open(env) : null;
         try
         {
-            if (viewer && string.IsNullOrEmpty(env("SBM_NO_VIEWER")))
-            {
-                Log.Warn("viewer: this SDK has no viewer program yet; no window opens");
-            }
             return Play(create, botName, options, open ?? Open);
         }
         finally
         {
+            window?.WaitUntilClosed();
             Log.Configure(Log.Level(), null);
             file?.Dispose();
         }

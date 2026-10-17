@@ -13,8 +13,8 @@ public static partial class Sdk
     /// </summary>
     /// <typeparam name="TBot">The bot class.</typeparam>
     /// <param name="viewer">
-    /// true would open the viewer window (E106); this SDK has no viewer program yet and says so
-    /// once at WARN.
+    /// true opens the viewer window shipped with the package (E106, E108); when the game is over
+    /// the program waits until the window is closed. SBM_NO_VIEWER keeps it shut.
     /// </param>
     public static void Run<TBot>(bool viewer = false)
         where TBot : Bot, new()

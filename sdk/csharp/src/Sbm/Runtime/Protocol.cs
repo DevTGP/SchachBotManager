@@ -82,14 +82,15 @@ internal static class Protocol
         json.WriteEndObject();
     }
 
-    internal static void Move(Utf8JsonWriter json, string uci, Info? info)
+    /// <summary>info: the info object as JSON text (InfoFields.Json).</summary>
+    internal static void Move(Utf8JsonWriter json, string uci, string? info)
     {
         Start(json, "move");
         json.WriteString("move", uci);
         if (info is not null)
         {
             json.WritePropertyName("info");
-            InfoFields.Write(json, info);
+            json.WriteRawValue(info, skipInputValidation: true);
         }
         json.WriteEndObject();
     }

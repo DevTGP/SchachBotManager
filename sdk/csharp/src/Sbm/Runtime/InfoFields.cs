@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Text;
 using System.Text.Json;
 
 namespace Sbm.Runtime;
@@ -15,6 +14,9 @@ internal static class InfoFields
     internal const int MaxPvMoves = 32;
     internal const int MaxTextLength = 256;
     internal const long MaxNodes = (1L << 53) - 1;
+
+    /// <summary>The info object as JSON text, shared by the move message and the viewer.</summary>
+    internal static string Json(Info info) => JsonLines.Text(json => Write(json, info));
 
     /// <summary>Writes the info object; empty if no field is set.</summary>
     internal static void Write(Utf8JsonWriter json, Info info)
@@ -98,14 +100,5 @@ internal static class InfoFields
         return pv;
     }
 
-    /// <summary>At most 256 code points; lone surrogates, which have no UTF-8 form, become U+FFFD.</summary>
-    private static string Text(string text)
-    {
-        var result = new StringBuilder();
-        foreach (var rune in text.EnumerateRunes().Take(MaxTextLength))
-        {
-            result.Append(rune.ToString());
-        }
-        return result.ToString();
-    }
+    private static string Text(string text) => CodePoints.Truncate(text, MaxTextLength);
 }

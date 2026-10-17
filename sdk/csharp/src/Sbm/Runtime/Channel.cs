@@ -1,6 +1,4 @@
-using System.Buffers;
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace Sbm.Runtime;
@@ -10,11 +8,6 @@ internal sealed class Channel(Stream reader, Stream writer, IDisposable? closing
     : IDisposable
 {
     internal const int MaxLineBytes = 65_536;
-
-    private static readonly JsonWriterOptions WriterOptions = new()
-    {
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-    };
 
     private readonly LineReader _lines = new(reader);
 
@@ -47,13 +40,7 @@ internal sealed class Channel(Stream reader, Stream writer, IDisposable? closing
     /// <summary>Writes one message, built by write, as a line and flushes it.</summary>
     public void Send(Action<Utf8JsonWriter> write)
     {
-        var buffer = new ArrayBufferWriter<byte>();
-        using (var json = new Utf8JsonWriter(buffer, WriterOptions))
-        {
-            write(json);
-        }
-        buffer.Write("\n"u8);
-        writer.Write(buffer.WrittenSpan);
+        writer.Write(JsonLines.Encode(write).Span);
         writer.Flush();
     }
 

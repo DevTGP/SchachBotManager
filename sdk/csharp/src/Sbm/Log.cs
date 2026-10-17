@@ -16,8 +16,22 @@ public static class Log
     private static int? _ply;
     private static TextWriter? _file;
 
+    // Set on the threads of the reference bots of Sdk.Play, whose log the user does not see.
+    [ThreadStatic]
+    private static bool t_muted;
+
     /// <summary>Where lines go instead of stderr; for tests.</summary>
     internal static TextWriter? Output { get; set; }
+
+    /// <summary>Receives level, time and text of every written line: the viewer window (E106).</summary>
+    internal static Action<byte, string, string>? Listener { get; set; }
+
+    /// <summary>Whether the log of the current thread is dropped, ply included.</summary>
+    internal static bool Muted
+    {
+        get => t_muted;
+        set => t_muted = value;
+    }
 
     /// <summary>Writes at level TRACE.</summary>
     public static void Trace(string message) => Write(LogLevel.Trace, message);
@@ -55,7 +69,13 @@ public static class Log
     }
 
     /// <summary>Ply shown in each line from the current turn on.</summary>
-    internal static void SetPly(int? ply) => _ply = ply;
+    internal static void SetPly(int? ply)
+    {
+        if (!t_muted)
+        {
+            _ply = ply;
+        }
+    }
 
     private static byte Check(string function, byte level) =>
         level <= LogLevel.Off
@@ -64,7 +84,7 @@ public static class Log
 
     private static void Write(byte level, string message)
     {
-        if (level < _level)
+        if (level < _level || t_muted)
         {
             return;
         }
@@ -82,5 +102,6 @@ public static class Log
                 _file.Flush();
             }
         }
+        Listener?.Invoke(level, time, message);
     }
 }

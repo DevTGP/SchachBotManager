@@ -3,6 +3,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json.Nodes;
 using Sbm.Runtime;
+using Sbm.Runtime.Viewer;
+using Sbm.Tests.Runtime.Viewer;
 
 namespace Sbm.Tests.Runtime;
 
@@ -23,10 +25,17 @@ public sealed class RunnerTests : IDisposable
     private readonly TextWriter _consoleError = Console.Error;
     private readonly string _dir = Directory.CreateTempSubdirectory("sbm-runner-").FullName;
 
-    public RunnerTests() => Console.SetError(_stderr);
+    public RunnerTests()
+    {
+        Console.SetError(_stderr);
+        ViewerWindow.Reset();
+    }
 
     public void Dispose()
     {
+        ViewerWindow.Reset();
+        ViewerWindow.FindProgram = ViewerProgram.Path;
+        ViewerWindow.StartProgram = ViewerProgram.Start;
         Console.SetError(_consoleError);
         _log.Dispose();
         _output.Dispose();
@@ -128,18 +137,56 @@ public sealed class RunnerTests : IDisposable
     }
 
     [Fact]
-    public void ViewerIsNotAvailableYet()
+    public void ViewerShowsTheGameAndHoldsTheProgram()
     {
+        var process = FakeViewer();
         Assert.Equal(0, Run(() => new FirstMoveBot(), viewer: true));
-        Assert.Contains("WARN  viewer: this SDK has no viewer program yet", _log.Text);
+        Assert.Equal(["start", "move", "game_over"], process.Types().Where(type => type != "log"));
+        Assert.True(process.Waited);
+        Assert.True(process.InputClosed);
+        Assert.Contains("viewer: the program ends when the viewer window is closed", _log.Text);
+    }
+
+    [Fact]
+    public void ViewerWaitsAfterAnError()
+    {
+        var process = FakeViewer();
+        Assert.Equal(1, Run(() => new ThrowingBot(), viewer: true));
+        Assert.True(process.Waited);
+        Assert.Contains(
+            process.Messages(),
+            message =>
+                Referee.Str(message, "type") == "log"
+                && Referee.Str(message, "level") == "error"
+                && Referee.Str(message, "text").StartsWith("ChooseMove raised", StringComparison.Ordinal)
+        );
+    }
+
+    [Fact]
+    public void ViewerMissingInThisInstallation()
+    {
+        ViewerWindow.FindProgram = () => Path.Combine(_dir, "sbm-viewer");
+        Assert.Equal(0, Run(() => new FirstMoveBot(), viewer: true));
+        Assert.Contains("WARN  viewer: sbm-viewer is not part of this installation", _log.Text);
+    }
+
+    [Fact]
+    public void NoViewerWithoutTheArgument()
+    {
+        var process = FakeViewer();
+        Assert.Equal(0, Run(() => new FirstMoveBot()));
+        Assert.Empty(process.Messages());
+        Assert.False(process.Waited);
     }
 
     [Fact]
     public void NoViewerOnTheServer()
     {
+        var process = FakeViewer();
         var env = new Dictionary<string, string> { ["SBM_NO_VIEWER"] = "1" };
         Assert.Equal(0, Run(() => new FirstMoveBot(), env: env, viewer: true));
         Assert.Equal("", _log.Text);
+        Assert.Empty(process.Messages());
     }
 
     [Fact]
@@ -213,6 +260,16 @@ public sealed class RunnerTests : IDisposable
             name => env?.GetValueOrDefault(name),
             _ => Referee.Channel(messages ?? OneGame, _output)
         );
+    }
+
+    private FakeViewerProcess FakeViewer()
+    {
+        var program = Path.Combine(_dir, "sbm-viewer");
+        File.WriteAllBytes(program, []);
+        var process = new FakeViewerProcess();
+        ViewerWindow.FindProgram = () => program;
+        ViewerWindow.StartProgram = _ => process;
+        return process;
     }
 
     private IEnumerable<string> Types() =>
