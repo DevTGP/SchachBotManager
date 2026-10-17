@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text;
 using Sbm.Runtime.Viewer;
 
@@ -42,16 +41,15 @@ public sealed class ViewerProcessTests : IDisposable
     public void RunsInASessionOfItsOwn()
     {
         Assert.SkipWhen(OperatingSystem.IsWindows(), "sessions are a Unix matter");
+        // A new session also leads a new process group; ps of macOS shows no session id.
+        var field = OperatingSystem.IsMacOS() ? "pgid" : "sid";
         var output = Path.Combine(_dir, "session");
-        var script = Script("ps -o sid= -p $$ > \"$1\"; cat > /dev/null".Replace("$1", output));
+        var script = Script($"echo $$ $(ps -o {field}= -p $$) > \"{output}\"; cat > /dev/null");
         var process = ViewerProgram.Start(script);
         process.Input.Dispose();
         WaitForExit(process);
-        var session = int.Parse(
-            File.ReadAllText(output).Trim(),
-            System.Globalization.CultureInfo.InvariantCulture
-        );
-        Assert.NotEqual(SessionOfThisProcess(), session);
+        var ids = File.ReadAllText(output).Split(' ', StringSplitOptions.TrimEntries);
+        Assert.Equal(ids[0], ids[1]);
     }
 
     private string StandIn(string output) =>
@@ -65,29 +63,6 @@ public sealed class ViewerProcessTests : IDisposable
         var path = Path.Combine(_dir, ViewerProgram.Name);
         File.WriteAllText(path, $"#!/bin/sh\n{body}\n");
         return path;
-    }
-
-    private static int SessionOfThisProcess()
-    {
-        using var ps = Process.Start(
-            new ProcessStartInfo(
-                "ps",
-                [
-                    "-o",
-                    "sid=",
-                    "-p",
-                    Environment.ProcessId.ToString(
-                        System.Globalization.CultureInfo.InvariantCulture
-                    ),
-                ]
-            )
-            {
-                RedirectStandardOutput = true,
-            }
-        )!;
-        var text = ps.StandardOutput.ReadToEnd();
-        ps.WaitForExit();
-        return int.Parse(text.Trim(), System.Globalization.CultureInfo.InvariantCulture);
     }
 
     private static void WaitForExit(IViewerProcess process)

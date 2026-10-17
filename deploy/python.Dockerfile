@@ -71,6 +71,7 @@ WORKDIR /src/sdk/javascript
 RUN npm ci --no-audit --no-fund \
     && npm run build:native \
     && npm run build \
+    && mkdir /pkg \
     && npm pack --pack-destination /pkg
 
 # Without a compiler: this tree becomes the read-only root of every JavaScript bot. The package
