@@ -19,6 +19,8 @@ Bot-Programm (Python)                                   sbm-viewer (eigener Proz
 | Spezifikation | `spec/protocol/viewer-v1/` | Nachrichten SDK → Viewer; Beispiele unter `examples/valid` und `examples/invalid`, geprüft von `spec-check` |
 | Python-Seite | `sdk/python/src/sbm/viewer/` | Startet das Programm, übersetzt Partie und Log in viewer-v1 |
 | Auslieferung | `sdk/python/CMakeLists.txt` (Option `SBM_VIEWER`) | Baut das Programm per `ExternalProject_Add` und legt es in jedes Wheel unter `sbm/bin` (E107) |
+| C#-Seite | `sdk/csharp/src/Sbm/Runtime/Viewer/` | Wie die Python-Seite; startet das Programm unter Linux und macOS mit `posix_spawn` in eigener Sitzung, unter Windows außerhalb des Job-Objekts (E206) |
+| Auslieferung C# | `.github/scripts/build-viewer.sh`, `.github/workflows/nuget.yml` | Baut das Programm je Plattform und legt es samt Lizenzen ins NuGet-Paket unter `runtimes/<rid>/native/` (E206) |
 
 ## Prozessmodell
 
@@ -88,6 +90,7 @@ SDL_VIDEO_DRIVER=offscreen sbm-viewer --screenshot bild.bmp < partie.jsonl
 |-------|-----|-----|
 | Modell | `sdk/viewer/tests/` (ctest) | Nachrichten lesen, Partieaufzeichnung, Navigation, Sitzung mit mehreren Partien, Zeit- und Zugtexte |
 | Python-Seite | `sdk/python/tests/test_viewer_*.py`, Attrappen in `viewer_fakes.py` | Nachrichten gegen das Schema, Fenster und Partie ohne echtes Programm, Argument `viewer=` und `SBM_NO_VIEWER` |
+| C#-Seite | `sdk/csharp/tests/Sbm.Tests/Runtime/Viewer/`, Attrappe `FakeViewerProcess.cs` | Nachrichten, Fenster, Suche des Programms, Start als Prozess, Argument `viewer:` und `SBM_NO_VIEWER` |
 | Programm | `sdk/python/tests/test_viewer_program.py` | Startet das installierte `sbm-viewer` im Screenshot-Modus; ohne Programm übersprungen, mit `SBM_REQUIRE_VIEWER=1` gescheitert |
 
-CI-Job `viewer` in `.github/workflows/ci.yml`: Modelltests mit `SBM_VIEWER_BUILD_APP=OFF`, danach das Python-SDK mit Viewer unter Linux, Windows und macOS und `pytest sdk/python -k viewer` mit `SBM_REQUIRE_VIEWER=1`. `wheels.yml` setzt `SBM_REQUIRE_VIEWER=1` für die Tests jedes Wheels (`sdk/python/pyproject.toml`).
+CI-Job `viewer` in `.github/workflows/ci.yml`: Modelltests mit `SBM_VIEWER_BUILD_APP=OFF`, danach das Python-SDK mit Viewer unter Linux, Windows und macOS und `pytest sdk/python -k viewer` mit `SBM_REQUIRE_VIEWER=1`. `wheels.yml` setzt `SBM_REQUIRE_VIEWER=1` für die Tests jedes Wheels (`sdk/python/pyproject.toml`). `nuget.yml` prüft, dass das Paket das Programm für alle fünf Plattformen enthält, und testet die Vorlage mit `SBM_REQUIRE_VIEWER=1` (`sdk/csharp/tests/cross/test_template.py`).

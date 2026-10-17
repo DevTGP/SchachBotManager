@@ -17,6 +17,5 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Sbm/Sbm.csproj" />
-    <ProjectReference Include="../../bots/Material/Material.csproj" />
   </ItemGroup>
 </Project>

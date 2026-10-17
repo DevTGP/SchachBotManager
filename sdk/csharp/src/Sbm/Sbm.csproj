@@ -62,6 +62,11 @@
     />
   </ItemGroup>
 
+  <!-- The reference bots for Sdk.Play (E208); the program of MaterialBot compiles its own copy. -->
+  <ItemGroup>
+    <Compile Include="../../bots/Material/MaterialBot.cs" Link="Bots/MaterialBot.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="Sbm.Tests" />
   </ItemGroup>

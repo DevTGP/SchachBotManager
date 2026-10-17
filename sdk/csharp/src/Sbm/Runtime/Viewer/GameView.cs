@@ -1,10 +1,14 @@
 namespace Sbm.Runtime.Viewer;
 
-/// <summary>One game as Game sees it, passed to the viewer window if one is open (E106).</summary>
+/// <summary>
+/// One game as Game sees it, passed to the viewer window if one is open (E106). The reference
+/// bots of Sdk.Play run on muted threads and stay out of the window.
+/// </summary>
 internal static class GameView
 {
-    internal static void Started(string bot, GameInfo info) =>
-        ViewerWindow.Active?.GameStarted(bot, info);
+    private static ViewerWindow? Window => Log.Muted ? null : ViewerWindow.Active;
+
+    internal static void Started(string bot, GameInfo info) => Window?.GameStarted(bot, info);
 
     /// <summary>
     /// ply is the number of half-moves played including uci, which the first turn does not have;
@@ -12,7 +16,7 @@ internal static class GameView
     /// </summary>
     internal static void OpponentMoved(int ply, string? uci, Board board, Clock clock)
     {
-        if (ply > 0 && uci is not null && ViewerWindow.Active is { } window)
+        if (ply > 0 && uci is not null && Window is { } window)
         {
             var clocks = (clock.RemainingMs(), clock.OpponentRemainingMs());
             window.MovePlayed(ply, uci, board.Fen(), byBot: false, clocks);
@@ -25,7 +29,7 @@ internal static class GameView
     /// </summary>
     internal static void OwnMove(int ply, string uci, Board board, Clock clock, string? info)
     {
-        if (ViewerWindow.Active is not { } window)
+        if (Window is not { } window)
         {
             return;
         }
@@ -35,6 +39,5 @@ internal static class GameView
         window.MovePlayed(ply, uci, board.Fen(), byBot: true, clocks, elapsedMs, info);
     }
 
-    internal static void Ended(System.Text.Json.JsonElement gameOver) =>
-        ViewerWindow.Active?.GameOver(gameOver);
+    internal static void Ended(System.Text.Json.JsonElement gameOver) => Window?.GameOver(gameOver);
 }

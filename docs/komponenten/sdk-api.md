@@ -23,7 +23,7 @@ Schachkern (C++)     ── Stellung, Zuggenerierung, make/undo, Endbedingungen,
 | Python | Erweiterungsmodul `sbm._core` mit nanobind, Kern statisch eingebunden (E58) | Vorkompiliertes Wheel je Python-Version und Plattform (`pip install schachbotmanager`, E59, E64) |
 | C++ | Direkt (Header + Bibliothek) | Archiv mit CMake-Einbindung |
 | Java | JNI oder Foreign-Function-API | JAR mit eingebetteten nativen Bibliotheken je Plattform |
-| C# | P/Invoke mit `LibraryImport` auf den Kern als geteilte Bibliothek (nur innerhalb des SDK, E193); Form der API in E194 | NuGet-Paket `SchachBotManager` mit dem Kern unter `runtimes/<rid>/native` für Windows x64, Linux x64/arm64 und macOS x64/arm64 (`dotnet add package SchachBotManager`, E199, E200) |
+| C# | P/Invoke mit `LibraryImport` auf den Kern als geteilte Bibliothek (nur innerhalb des SDK, E193); Form der API in E194 | NuGet-Paket `SchachBotManager` mit dem Kern und dem Viewer-Programm unter `runtimes/<rid>/native` für Windows x64, Linux x64/arm64 und macOS x64/arm64 (`dotnet add package SchachBotManager`, E199, E200, E206) |
 | JavaScript | Nativer Node-Addon (A12) | npm-Paket mit vorkompilierten Binaries |
 
 ## Eigene Brett-Instanz pro Bot (E22)
@@ -55,13 +55,13 @@ Zustand in Objektfeldern (Transpositionstabelle, Suchbaum) bleibt zwischen den Z
 | `--tcp [PORT]` | `SBM_TRANSPORT=tcp`, `SBM_PORT` | Verbindet zu `127.0.0.1` (Standardport 7470) statt stdin/stdout zu nutzen |
 | `--log-level LEVEL` | `SBM_LOG_LEVEL` | Startstufe: `trace`, `debug`, `info`, `warn`, `error`, `off` |
 | `--log-file PATH` | `SBM_LOG_FILE` | Schreibt das Log zusätzlich in eine Datei (nur lokal) |
-| `--remote URL` | `SBM_TRANSPORT=remote`, `SBM_REMOTE_URL` | Spielt gegen einen Bot auf dem Server (E116); dazu `SBM_TOKEN` (oder `--token`), `--opponent`/`SBM_OPPONENT`, `--color`/`SBM_COLOR`, `--discipline`/`SBM_DISCIPLINE` oder `--time`/`SBM_TIME`. Bisher nur im Python-SDK |
+| `--remote URL` | `SBM_TRANSPORT=remote`, `SBM_REMOTE_URL` | Spielt gegen einen Bot auf dem Server (E116); dazu `SBM_TOKEN` (oder `--token`), `--opponent`/`SBM_OPPONENT`, `--color`/`SBM_COLOR`, `--discipline`/`SBM_DISCIPLINE` oder `--time`/`SBM_TIME`. Im Python- und im C#-SDK (E207) |
 
 Argumente schlagen Umgebung; ohne beides gelten `stdio` und `INFO`. Andere Argumente bleiben dem Bot.
 
-In C# ist der Einstieg `Sdk.Run<MyBot>()` mit `MyBot : Bot`, die Rückrufe heißen `ChooseMove`, `OnGameStart` und `OnGameEnd` (E196). `stdio` lenkt dort nur `Console.Out` und `Console.In` um, nicht die Dateideskriptoren 0 und 1 (E197).
+In C# ist der Einstieg `Sdk.Run<MyBot>()` mit `MyBot : Bot`, die Rückrufe heißen `ChooseMove`, `OnGameStart` und `OnGameEnd` (E196). `stdio` lenkt dort nur `Console.Out` und `Console.In` um, nicht die Dateideskriptoren 0 und 1 (E197). `Sdk.Run<MyBot>(viewer: true)` öffnet das Viewer-Fenster wie `viewer=True` in Python (E206).
 
-Daneben startet `play(bot, opponent, …)` Partien aus einem eigenen Skript ohne Argumente: lokal gegen einen Referenzbot, eine Bot-Datei oder einen Befehl, oder mit `server` und `token` gegen einen Bot der Website. Es gibt die Partien als Liste von `PlayedGame` zurück (E120). Bisher nur im Python-SDK.
+Daneben startet `play(bot, opponent, …)` Partien aus einem eigenen Skript ohne Argumente: lokal gegen einen Referenzbot, eine Bot-Datei oder einen Befehl, oder mit `server` und `token` gegen einen Bot der Website. Es gibt die Partien als Liste von `PlayedGame` zurück (E120). In C# heißt es `Sdk.Play<MyBot>(opponent, …)`; lokale Partien leitet dort ein Referee in C# im eigenen Programm, die Referenzbots `random` und `material` sind in die Bibliothek kompiliert (E208, E209).
 
 ## API – hohe Ebene
 

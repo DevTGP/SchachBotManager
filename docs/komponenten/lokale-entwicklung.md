@@ -80,22 +80,24 @@ Ohne VS Code gilt dieselbe Reihenfolge: erst die Arena mit `tcp` im Terminal, da
 
 `start.py` der Vorlage ruft `sbm.play(TemplateBot, "material", games=2)` auf; `python start.py` oder „Partien aus start.py“ in VS Code spielt ohne Argumente. Der eigene Bot läuft dabei in einem Thread des Skripts, Haltepunkte greifen also ohne Arena; die Uhr läuft weiter und der Bot wird nicht eingefroren. Mit `server` und `token` spielt derselbe Aufruf gegen einen Bot der Website (siehe unten). Anleitung: `sdk/python/docs/spielen-per-code.md`.
 
+In C# heißt der Aufruf `Sdk.Play<MyBot>("material", games: 2)`. Lokale Partien leitet dort ein Referee in C# im eigenen Programm; `random` und `material` sind in die Bibliothek kompiliert, ein Gegner als Datei oder Befehl läuft als eigener Prozess (E208, E209). Python ist dafür nicht nötig.
+
 ### Viewer-Fenster (E106, E107)
 
-`viewer=True` in `sbm.run` oder `sbm.play` öffnet ein Fenster (E108), in dem alle Partien des Programms live mitlaufen. Mit ←/→, Pos1/Ende oder dem Mausrad über dem Brett springt man durch die Züge, „Live“ folgt wieder der laufenden Partie, F dreht das Brett. Zum gewählten Zug zeigt das Fenster Bedenkzeit, Suchinfo und die Log-Zeilen des Bots. Am Ende wartet das Programm, bis das Fenster geschlossen ist; Strg+C oder das Beenden in der IDE schließt es ebenfalls. In der Arena schließt sich das Fenster, wenn die Arena den Bot nach der Partie beendet. Ist `SBM_NO_VIEWER` gesetzt, bleibt es zu, etwa in Tests; auf dem Server setzt die Sandbox die Variable.
+`viewer=True` in `sbm.run` oder `sbm.play` (in C# `viewer: true` in `Sdk.Run` oder `Sdk.Play`, E206) öffnet ein Fenster (E108), in dem alle Partien des Programms live mitlaufen. Mit ←/→, Pos1/Ende oder dem Mausrad über dem Brett springt man durch die Züge, „Live“ folgt wieder der laufenden Partie, F dreht das Brett. Zum gewählten Zug zeigt das Fenster Bedenkzeit, Suchinfo und die Log-Zeilen des Bots. Am Ende wartet das Programm, bis das Fenster geschlossen ist; Strg+C oder das Beenden in der IDE schließt es ebenfalls. In der Arena schließt sich das Fenster, wenn die Arena den Bot nach der Partie beendet. Ist `SBM_NO_VIEWER` gesetzt, bleibt es zu, etwa in Tests; auf dem Server setzt die Sandbox die Variable.
 
-Das Programm `sbm-viewer` steckt in jedem Wheel. Wer das SDK aus dem Repo baut, baut es mit (dauert beim ersten Mal einige Minuten, holt SDL3 und Dear ImGui); `-C cmake.define.SBM_VIEWER=OFF` lässt es weg. Unter Linux braucht der Build die X11-Header (`libx11-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libxfixes-dev`).
+Das Programm `sbm-viewer` steckt in jedem Wheel. Wer das SDK aus dem Repo baut, baut es mit (dauert beim ersten Mal einige Minuten, holt SDL3 und Dear ImGui); `-C cmake.define.SBM_VIEWER=OFF` lässt es weg. Im NuGet-Paket liegt es unter `runtimes/<rid>/native/` (E206). Unter Linux braucht der Build die X11-Header (`libx11-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libxfixes-dev`).
 
 ## Lokaler Bot gegen die Web-API
 
-Umgesetzt für Python (E116):
+Umgesetzt für Python (E116) und C# (E207, dort `dotnet MyBot.dll --remote …` mit denselben Optionen):
 
 1. Ein Coder legt auf der Kontoseite ein API-Token an.
 2. Start des Bots: `SBM_TOKEN=sbm_… python bot.py --remote https://schachbotmanager.example.org --opponent Material [--color white|black|random] [--discipline NAME | --time 60+1]`.
 3. Das SDK fragt `POST /api/v1/remote/matches` an, öffnet die WebSocket-Verbindung zum Gateway und nimmt seinen Sitz ein; der Play-Runner startet den Gegner in der Sandbox.
 4. Danach sind die Nachrichten dieselben wie im `stdio`-Protokoll. Die Partie ist nie gewertet, aber öffentlich (E119).
 
-Aus einem Skript geht dasselbe mit `sbm.play(MyBot, "Material", server=URL, token="sbm_…", games=2)`; das Token steht dann im Code statt in der Umgebung und darf weder eingecheckt noch hochgeladen werden (E120).
+Aus einem Skript geht dasselbe mit `sbm.play(MyBot, "Material", server=URL, token="sbm_…", games=2)`; das Token steht dann im Code statt in der Umgebung und darf weder eingecheckt noch hochgeladen werden (E120). In C# entsprechend `Sdk.Play<MyBot>("Material", server: URL, token: "sbm_…", games: 2)` (E208).
 
 Zu beachten:
 

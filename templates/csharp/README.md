@@ -34,6 +34,10 @@ python -m sbm.arena "dotnet bin/Release/net10.0/MyBot.dll" material --games 10 -
 
 oder in VS Code die Aufgabe „Arena: 10 Partien gegen material“. Die Partien landen in `games.pgn`.
 
+**Partien per Code, ohne Python:** In `Program.cs` statt `Sdk.Run` z. B. `Sbm.Sdk.Play<MyBot.TemplateBot>("material", games: 2, viewer: true);` aufrufen und `dotnet run` starten. Gegner sind die eingebauten Referenzbots `random` und `material`, eine Bot-Datei (`.py`, `.dll`, Programm) oder eine Befehlszeile; den Schiedsrichter spielt das Programm selbst. Mit `viewer: true` laufen die Partien live in einem Fenster mit. Gegen einen Bot der Website gehen `server` und das API-Token von der Kontoseite mit (`token` oder `SBM_TOKEN`); das Token ist ein Passwort, also nicht einchecken. Für das Debuggen mit der Arena wieder `Sdk.Run` eintragen.
+
+**Gegen Bots auf dem Server über die Kommandozeile:** `SBM_TOKEN=sbm_… dotnet bin/Release/net10.0/MyBot.dll --remote URL --opponent NAME` (optional `--color`, `--time 60+1` oder `--discipline NAME`).
+
 ## Debuggen
 
 1. Haltepunkt in `ChooseMove` setzen.
@@ -52,4 +56,4 @@ Das Muster ist überall gleich: erst die Arena mit `tcp` starten, dann den Bot m
 
 ## Hochladen
 
-Hochgeladen werden die `.cs`-Dateien, `MyBot.csproj` und der Ordner `data/` (Datendateien bis 1 MB), nicht `bin/` und `obj/`. Auf dem Server liest der Bot über stdin/stdout, deshalb dort ohne `--tcp`. `Console.WriteLine` geht auf stderr, stdout gehört dem Protokoll. Der Upload von C#-Bots auf die Website folgt in Schritt 4 von M5 (E192); Partien per Code wie mit `sbm.play` in Python folgen in Schritt 5.
+Hochgeladen werden die `.cs`-Dateien außerhalb von `data/` und der Ordner `data/` (Datendateien bis 1 MB), nicht `Program.cs`, `MyBot.csproj`, `bin/` und `obj/`. Auf `/bots/new` die Bot-Klasse angeben, hier `MyBot.TemplateBot`; den Einstieg mit `Sdk.Run` schreibt der Server selbst. Dort liest der Bot über stdin/stdout. `Console.WriteLine` geht auf stderr, stdout gehört dem Protokoll. Erlaubt sind nur die Teile von .NET, die der Analyzer im Paket zulässt; die IDE meldet Verstöße schon beim Bauen.

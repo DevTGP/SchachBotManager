@@ -35,6 +35,19 @@ sbm-arena tcp material --no-clock
 dotnet run -- --tcp
 ```
 
+## Partien per Code
+
+`Sdk.Play` spielt Partien ohne Arena und ohne Python; den Schiedsrichter stellt das Programm selbst, die Referenzbots `random` und `material` sind eingebaut:
+
+```csharp
+foreach (var game in Sdk.Play<MyBot>("material", games: 2, viewer: true))
+{
+    Console.Error.WriteLine($"{game.Color} {game.Result} {game.Termination}");
+}
+```
+
+Gegner kann auch eine Bot-Datei (`.py`, `.dll`, Programm) oder eine Befehlszeile sein. Mit `server` und dem API-Token eines Coders (`token` oder `SBM_TOKEN`) spielt der Bot gegen einen Bot der Website; dasselbe geht mit `--remote URL --opponent NAME` beim Start eines Programms mit `Sdk.Run`. `viewer: true` (bei `Sdk.Run` ebenso) öffnet ein Fenster, in dem die Partien live mitlaufen; das Viewer-Programm liegt im Paket.
+
 Eine Vorlage mit Eröffnungsbuch und Debug-Konfiguration für VS Code liegt unter [`templates/csharp`](https://github.com/DevTGP/SchachBotManager/tree/master/templates/csharp).
 
 ## Lizenz

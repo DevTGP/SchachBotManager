@@ -1,6 +1,6 @@
 # Code-Karte: C#-SDK
 
-Das C#-SDK unter `sdk/csharp` ist die erste Sprache von M5 (E192). Schritt 1 ist umgesetzt: das Binding auf den Kern mit `Board`, `Move`, Konstanten, Fehlern, `PlacedPiece` und `Sdk.Version`. Schritt 2 ist umgesetzt: die Hauptschleife mit `Bot`, `Clock`, `Log`, `Info`, `Sdk.Run` (`stdio`, `tcp`) und `Sdk.LoadData` (E196, E197), der Referenzbot `Material` und der Kreuztest gegen die Python-Arena (E198). Schritt 3 ist umgesetzt: das NuGet-Paket mit dem Kern für alle Plattformen (E199), der Workflow `nuget.yml` (E200) und die Vorlage `templates/csharp` (E201). Schritt 4 ist umgesetzt: der Roslyn-Analyzer im NuGet-Paket, das Build-Werkzeug `sbm-build`, der Launcher und der native Starter für die Sandbox (E202–E205). Der Viewer folgt in Schritt 5. Konzepte: [sdk-api.md](../komponenten/sdk-api.md), [bot-protokoll.md](../komponenten/bot-protokoll.md), [kern-c-schnittstelle.md](../komponenten/kern-c-schnittstelle.md), Form der API in E194.
+Das C#-SDK unter `sdk/csharp` ist die erste Sprache von M5 (E192). Schritt 1 ist umgesetzt: das Binding auf den Kern mit `Board`, `Move`, Konstanten, Fehlern, `PlacedPiece` und `Sdk.Version`. Schritt 2 ist umgesetzt: die Hauptschleife mit `Bot`, `Clock`, `Log`, `Info`, `Sdk.Run` (`stdio`, `tcp`) und `Sdk.LoadData` (E196, E197), der Referenzbot `Material` und der Kreuztest gegen die Python-Arena (E198). Schritt 3 ist umgesetzt: das NuGet-Paket mit dem Kern für alle Plattformen (E199), der Workflow `nuget.yml` (E200) und die Vorlage `templates/csharp` (E201). Schritt 4 ist umgesetzt: der Roslyn-Analyzer im NuGet-Paket, das Build-Werkzeug `sbm-build`, der Launcher und der native Starter für die Sandbox (E202–E205). Schritt 5 ist umgesetzt: Viewer im NuGet-Paket (E206), Transport `remote` (E207) und `Sdk.Play` mit einem Referee in C# und eingebauten Referenzbots (E208, E209). Konzepte: [sdk-api.md](../komponenten/sdk-api.md), [bot-protokoll.md](../komponenten/bot-protokoll.md), [kern-c-schnittstelle.md](../komponenten/kern-c-schnittstelle.md), Form der API in E194.
 
 ## Einstieg
 
@@ -11,12 +11,13 @@ Das C#-SDK unter `sdk/csharp` ist die erste Sprache von M5 (E192). Schritt 1 ist
 | `Sbm.csproj` | [`src/Sbm/`](../../sdk/csharp/src/Sbm/) | Bibliothek mit Assembly und Paket-ID `SchachBotManager`, Namensraum `Sbm` (nicht `Sbm.dll`, das wäre unter Windows dieselbe Datei wie `sbm.dll`), kopiert die geteilte Bibliothek des Kerns neben die Assembly (E193); Angaben des NuGet-Pakets (E199) |
 | `README.md` | [`sdk/csharp/README.md`](../../sdk/csharp/README.md) | Paketseite auf nuget.org |
 | `Bot`, `Sdk.Run` | [`src/Sbm/Bot.cs`](../../sdk/csharp/src/Sbm/Bot.cs), [`src/Sbm/Sdk.Run.cs`](../../sdk/csharp/src/Sbm/Sdk.Run.cs) | Einstieg für Bot-Autoren: Unterklasse von `Bot`, in `Main` nur `Sdk.Run<MyBot>()` |
+| `Sdk.Play` | [`src/Sbm/Sdk.Play.cs`](../../sdk/csharp/src/Sbm/Sdk.Play.cs) | Partien aus dem eigenen Programm, lokal auf dem Referee in C# oder gegen einen Bot der Website; Rückgabe als Liste von `PlayedGame` (E208) |
 | `Board` | [`src/Sbm/Board.cs`](../../sdk/csharp/src/Sbm/Board.cs) | Brett |
 | `Material` | [`bots/Material/`](../../sdk/csharp/bots/Material/) | Referenzbot wie `sbm.bots.material`: Negamax Tiefe 2 mit Material, gleich gute Züge zufällig (E198) |
 | `Sbm.Tests` | [`tests/Sbm.Tests/`](../../sdk/csharp/tests/Sbm.Tests/) | xUnit v3: Vektoren, Oberfläche, Konstanten, Fehler, Objekte, Hauptschleife, Referenzbot |
 | Kreuztest | [`tests/cross/`](../../sdk/csharp/tests/cross/) | pytest: `Material` in C# gegen die Python-Referenzbots in der Arena (E198), Vorlage gegen das Paket (E201) |
 | Vorlage | [`templates/csharp/`](../../templates/csharp/) | Bot für Autoren mit Paket von nuget.org und Debug-Konfiguration für VS Code (E201) |
-| `nuget.yml` | [`.github/workflows/nuget.yml`](../../.github/workflows/nuget.yml), [`build-core-shared.sh`](../../.github/scripts/build-core-shared.sh) | Kern je Plattform, Paket, Test der Vorlage, Veröffentlichung (E200) |
+| `nuget.yml` | [`.github/workflows/nuget.yml`](../../.github/workflows/nuget.yml), [`build-core-shared.sh`](../../.github/scripts/build-core-shared.sh), [`build-viewer.sh`](../../.github/scripts/build-viewer.sh) | Kern und Viewer je Plattform, Paket, Test der Vorlage, Veröffentlichung (E200, E206) |
 | `Sbm.Analyzers` | [`src/Sbm.Analyzers/`](../../sdk/csharp/src/Sbm.Analyzers/) | Roslyn-Analyzer für hochgeladene Bots (netstandard2.0, im Paket unter `analyzers/dotnet/cs`): Whitelist aus `csharp_rules.txt` (`RuleSet`), `ApiCheck` für Namen und Typen, `SyntaxCheck` für verbotene Sprachmittel, Regeln in `Descriptors` (E203) |
 | `sbm-build` | [`server/Sbm.Build/`](../../sdk/csharp/server/Sbm.Build/) | Analyse und Kompilieren in einem Prozess in der Sandbox: Quellen ohne `data/` (`SourceFiles`), erzeugter Einstieg `Sdk.Run<Klasse>()` (`EntryPoint`), Prüfung des fertigen Programms auf Assemblies und nativen Code (`ProgramCheck`), Bericht als JSON auf stdout (`Report`); Exit-Code 0 mit Programm, 1 mit Befunden, 2 bei falscher Befehlszeile (E203) |
 | `sbm-launch` | [`server/Sbm.Launcher/`](../../sdk/csharp/server/Sbm.Launcher/) | Lädt das Programm aus `SBM_PROGRAM` in den Speicher neben das SDK und startet seinen Einstieg; `--versions` für die Selbstprüfung des Runners (E204) |
@@ -32,6 +33,7 @@ Lesereihenfolge:
 5. `tests/Sbm.Tests/VectorTests.cs` mit `VectorCodec.cs`: wie die Vektoren laufen.
 6. `spec/protocol/v1/` und `Bot.cs`, dann `Sdk.Run.cs`, `Runtime/Runner.cs`, `Runtime/Game.cs`: wie eine Partie läuft.
 7. `bots/Material/MaterialBot.cs`: ein vollständiger Bot.
+8. `Sdk.Play.cs`, `Runtime/Play/Starter.cs`, `Runtime/Play/LocalGame.cs` und `Runtime/Referee/Match.cs`: wie eine lokale Partie ohne Arena läuft.
 
 ## Bau
 
@@ -45,6 +47,7 @@ Lesereihenfolge:
 - `dotnet pack sdk/csharp/src/Sbm -c Release -o feed` packt `lib/net10.0/SchachBotManager.dll`, `README.md` und den Kern aus `SbmNativeDir` unter `runtimes/<rid>/native/` – nur für die eigene Plattform (`NETCoreSdkPortableRuntimeIdentifier`, z. B. `linux-x64`). Die Version kommt aus `sdk/core/CMakeLists.txt`.
 - Mit `-p:SbmRuntimesDir=<ordner>` packt es stattdessen alles unter `<ordner>/<rid>/native/`. So baut `nuget.yml` das Paket für alle fünf Plattformen aus den Bibliotheken von `.github/scripts/build-core-shared.sh` (E199, E200).
 - `build-core-shared.sh RID OUT` baut den Kern mit `SBM_SHARED=ON`: unter Linux im Container `manylinux_2_28` mit `-static-libstdc++ -static-libgcc` und prüft danach mit `readelf`/`objdump`, dass weder `libstdc++` noch ein glibc-Symbol nach 2.28 gebraucht wird; unter Windows mit `CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded`, unter macOS mit `CMAKE_OSX_DEPLOYMENT_TARGET=11.0`. Lokal braucht der Linux-Fall Docker.
+- `build-viewer.sh RID OUT` baut `sbm-viewer` für eine Plattform nach `OUT/<rid>/native/` samt Lizenzen; `nuget.yml` legt es mit `SbmRuntimesDir` ins Paket (E206). Ein lokal gepacktes Paket hat keinen Viewer.
 - Die Vorlage verweist auf das Paket in der Version des Kerns; nach einer neuen Version auch `templates/csharp/MyBot.csproj` anpassen, `test_template.py` prüft das.
 
 ## Module
@@ -61,7 +64,8 @@ Lesereihenfolge:
 | `Move.cs` | `readonly struct` mit 16-Bit-Wert; Bitoperationen und Prüfungen im Binding, `Parse` und `Uci` im Kern |
 | `PlacedPiece.cs` | Feld und Figur aus `Board.Pieces` (E190) |
 | `Sdk.cs` | `Sdk.Version` aus `sbm_version()` |
-| `Sdk.Run.cs` | `Sdk.Run<TBot>(viewer)`: eine Partie, bei einem Fehler Ende mit Exit-Code 1; Optionen `--tcp [PORT]`, `--log-level`, `--log-file` bzw. `SBM_TRANSPORT`, `SBM_PORT`, `SBM_LOG_LEVEL`, `SBM_LOG_FILE` (E61, E197); `viewer` und `--remote` melden, dass sie erst mit Schritt 5 kommen |
+| `Sdk.Run.cs` | `Sdk.Run<TBot>(viewer)`: eine Partie, bei einem Fehler Ende mit Exit-Code 1; Optionen `--tcp [PORT]`, `--log-level`, `--log-file` bzw. `SBM_TRANSPORT`, `SBM_PORT`, `SBM_LOG_LEVEL`, `SBM_LOG_FILE` (E61, E197); `viewer` öffnet das Fenster (E206), `--remote` spielt auf dem Server (E207) |
+| `Sdk.Play.cs`, `PlayedGame.cs` | `Sdk.Play<TBot>(opponent, server, token, color, time, discipline, games, viewer)` und das Ergebnis je Partie (E208) |
 | `Sdk.LoadData.cs` | `Sdk.LoadData(name)`: Datei aus `SBM_DATA_DIR` bzw. `data/` neben dem Programm (E62) |
 | `Bot.cs` | Basisklasse: `ChooseMove`, optional `OnGameStart` und `OnGameEnd`, `Report(Info)` für die Suchinfo des nächsten Zugs |
 | `Clock.cs` | Zeit des Zugs: `RemainingMs`, `OpponentRemainingMs`, `IncrementMs`, `ElapsedMs` mit monotoner Uhr ab Empfang von `turn` |
@@ -95,6 +99,53 @@ Lesereihenfolge:
 | `Guard.cs`, `BotFailureException.cs` | Ausnahmen aus Bot-Code mit Stacktrace ins Log, dann Ende des Prozesses (E49) |
 | `DataFiles.cs` | Ort und Namensprüfung der Datendateien |
 
+### Viewer (`src/Sbm/Runtime/Viewer/`, E206)
+
+| Modul | Aufgabe |
+|-------|---------|
+| `ViewerWindow.cs` | Das eine Fenster eines Programms: `Open` startet es einmal, Partien finden es über `Active`, das Log schreibt mit hinein; am Ende wartet `Run` bzw. `Play`, bis es geschlossen ist |
+| `ViewerProgram.cs` | Sucht `sbm-viewer` neben der Assembly, sonst unter `runtimes/<portabler RID>/native/`, setzt das Ausführungsrecht und startet es |
+| `UnixViewerProcess.cs`, `WindowsViewerProcess.cs`, `IViewerProcess.cs` | Start mit `posix_spawn` in eigener Sitzung bzw. außerhalb des Job-Objekts der Arena |
+| `ViewerMessages.cs` | Nachrichten nach `spec/protocol/viewer-v1/` |
+| `GameView.cs` | Eine Partie aus Sicht von `Game` für das Fenster; stumme Threads (Referenzbots von `Play`) bleiben draußen |
+
+### Remote (`src/Sbm/Runtime/Remote/`, E207)
+
+| Modul | Aufgabe |
+|-------|---------|
+| `GameRequest.cs` | `POST /api/v1/remote/matches` mit `HttpClient`; Fehler als `RemoteException` mit Code |
+| `Seat.cs` | Sitz aus der Antwort: Token und Adresse des Gateways |
+| `RemoteSocket.cs` | `ClientWebSocket` mit Leser im Hintergrund, damit Pings auch während des Rechnens beantwortet werden |
+| `RemoteOpening.cs` | Anfrage plus `join`; ohne `joined` binnen 45 s Fehler `no_game` |
+| `RemoteChannel.cs` | Die Partie als Kanal wie `stdio` oder `tcp` für `Game` |
+
+### Referee (`src/Sbm/Runtime/Referee/`, E208)
+
+Portierung des Referees aus dem Python-SDK mit denselben Meldungen; die Regeln kommen aus dem Kern.
+
+| Modul | Aufgabe |
+|-------|---------|
+| `Match.cs` | Partie von `init` bis `game_over`: maßgebliches Brett, Uhr, Ergebnis |
+| `MatchSettings.cs`, `GameClock.cs`, `Monotonic.cs` | Einstellungen, Wanduhrzeit mit Toleranz und Inkrement (E19), monotone Zeitbasis |
+| `BotMessages.cs`, `BotJson.cs`, `BotMessage.cs`, `NumberText.cs`, `PyText.cs` | Strenge Prüfung der Bot-Zeilen (E66), JSON-Lesen wie Pythons `json`, Längen und `repr()` wie in Python |
+| `RefereeMessages.cs` | `init`, `turn`, `error`, `game_over` an den Bot |
+| `Player.cs`, `Outcome.cs` und die Ausnahmen | Seite einer Partie mit Fristen; Ende mit Ergebnis, Grund und Sieger |
+
+### Play (`src/Sbm/Runtime/Play/`, E208, E209)
+
+| Modul | Aufgabe |
+|-------|---------|
+| `Starter.cs`, `PlayRequest.cs` | `Sdk.Play` ohne Prozess: Argumente prüfen, Partien spielen, Ergebnis und Stand loggen |
+| `LocalGame.cs` | Eine lokale Partie: eigener Bot im Thread, Referee im aufrufenden Thread |
+| `RemoteGame.cs` | Eine Partie auf dem Server; bei `too_many_games` bis zu 15 × 2 s warten |
+| `OpponentParser.cs`, `Opponent.cs`, `CommandLine.cs` | Gegner wie in der Arena: Referenzbot, Datei oder Befehl (POSIX wie `shlex`, Windows mit dessen Regeln), eindeutige Namen bis 64 Zeichen |
+| `ThreadPlayer.cs` | Bot in einem Thread mit 8 MiB Stack über ein Socket-Paar auf Loopback; Referenzbots stumm |
+| `ProcessPlayer.cs`, `StreamPlayer.cs`, `PlayerLines.cs` | Gegner als Prozess (nicht eingefroren, stderr verworfen); Zeilen im Hintergrund lesen und mit Frist abwarten |
+
+### Eingebaute Referenzbots (`src/Sbm/Bots/`, Namensraum `Sbm.Bots`)
+
+`RandomBot.cs` wie `sbm.bots.random_mover`; `MaterialBot` wird aus `bots/Material/MaterialBot.cs` in die Bibliothek kompiliert (E208).
+
 ### Referenzbot (`bots/Material/`, Namensraum `Sbm.Bots`)
 
 | Modul | Aufgabe |
@@ -115,11 +166,15 @@ Starten: `dotnet run --project sdk/csharp/bots/Material` (stdio) bzw. mit `-- --
 | `ApiSurfaceTests.cs` | Jede Funktion von `spec/api` existiert als Konstruktor, statische oder Instanzmethode mit passender Parameterzahl |
 | `ConstantsTests.cs` | Werte gleich `constants.json`, keine zusätzlichen Konstanten |
 | `ErrorTests.cs`, `MoveTests.cs`, `BoardTests.cs` | Was kein Vektor abdeckt: Hierarchie, `null` und NUL in Texten, Meldungen, Gleichheit, `ToString`, unabhängige Kopien, langer Verlauf, viele Bretter mit GC |
-| `Runtime/RuntimeSurfaceTests.cs` | `Clock`, `Log`, `Bot`, `Run`, `LoadData` und die Records aus `spec/api/runtime.json` existieren mit ihren Parametern (`Play` folgt mit Schritt 5) |
+| `Runtime/RuntimeSurfaceTests.cs` | `Clock`, `Log`, `Bot`, `Run`, `Play`, `LoadData` und die Records aus `spec/api/runtime.json` existieren mit ihren Parametern |
 | `Runtime/Referee.cs` | Geskripteter Referee aus den Beispielen von `spec/protocol/v1/examples` |
 | `Runtime/GameTests.cs`, `ChannelTests.cs`, `InfoFieldsTests.cs` | Partie gegen den geskripteten Referee, Zeilenrahmen, Grenzen der Suchinfo |
-| `Runtime/RunnerTests.cs`, `OptionsParserTests.cs` | Exit-Code, Optionen, Log-Datei, Viewer-Hinweis, TCP |
+| `Runtime/RunnerTests.cs`, `OptionsParserTests.cs` | Exit-Code, Optionen, Log-Datei, Viewer-Fenster, TCP |
 | `Runtime/ClockTests.cs`, `LogTests.cs`, `DataFilesTests.cs` | Uhr, Log-Format und Stufen, Datendateien |
+| `Runtime/Viewer/*Tests.cs` | Nachrichten gegen viewer-v1, Fenster mit `FakeViewerProcess`, Suche des Programms, Start als Prozess mit einem Ersatzprogramm |
+| `Runtime/Remote/RemoteTests.cs`, `FakeServer.cs` | Anfrage, Sitz und ganze Partie gegen Web-API und Gateway in einem Listener |
+| `Runtime/Matches/*Tests.cs` | Referee: strenge Prüfung der Bot-Zeilen an den Beispielen der Spezifikation, Uhr, ganze Partien mit geskripteten Spielern (portiert aus dem Python-SDK) |
+| `Runtime/Play/*Tests.cs` | `Sdk.Play`: lokale und entfernte Serien, Gegner, Befehlszeilen, Lesen mit Frist |
 | `Bots/MaterialBotTests.cs` | Referenzbot auf denselben Stellungen wie die Python-Tests: hängende Dame, gedeckter Bauer, Matt in eins, Matt vermeiden, Zufall bei gleich guten Zügen |
 | `../cross/conftest.py` | Fixtures der Sitzung: `core_version`, `dotnet`, `csharp_material` (baut `Material`), `nuget_feed` (`SBM_NUGET_SOURCE` oder `dotnet pack` in ein temporäres Verzeichnis) |
 | `../cross/test_cross.py` | Kreuztest mit `Series` und strengem Referee: gegen Python-`material` über stdio, gegen `random` über TCP; jede Partie endet regulär, `ready` meldet `csharp` und die Version des Kerns, jeder C#-Zug trägt `info` |

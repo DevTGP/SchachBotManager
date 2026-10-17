@@ -3,18 +3,15 @@ using System.Text.Json.Nodes;
 
 namespace Sbm.Tests.Runtime;
 
-/// <summary>Clock, Log, Bot, Run, LoadData and the records of spec/api/ exist with their parameters.</summary>
+/// <summary>Clock, Log, Bot, Run, Play, LoadData and the records of spec/api/ exist with their parameters.</summary>
 public sealed class RuntimeSurfaceTests
 {
-    // Sdk.Play and its record PlayedGame come with step 5 of M5 (E192).
     private static readonly IReadOnlyDictionary<string, JsonObject> Functions = SpecFiles
         .Functions("bot", "clock", "log", "runtime")
-        .Where(function => SpecFiles.Str(function, "name") != "play")
         .ToDictionary(FullName);
 
     private static readonly IReadOnlyDictionary<string, JsonObject> Records = SpecFiles
         .Records()
-        .Where(record => SpecFiles.Str(record, "name") != "PlayedGame")
         .ToDictionary(record => SpecFiles.Str(record, "name"));
 
     public static TheoryData<string> FunctionNames() =>
@@ -38,7 +35,7 @@ public sealed class RuntimeSurfaceTests
             method => method.Name == Names.Pascal(SpecFiles.Str(function, "name"))
         );
         Assert.Equal(kind == "callback", method.IsVirtual);
-        // The bot of Sdk.Run is its type parameter.
+        // The bot of Sdk.Run and Sdk.Play is their type parameter.
         Assert.Equal(
             function["params"]!.AsArray().Count,
             method.GetGenericArguments().Length + method.GetParameters().Length
