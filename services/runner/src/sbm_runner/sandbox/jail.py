@@ -58,7 +58,7 @@ class Sandbox:
             return self._jailed(
                 bot["name"], RUNTIMES[PYTHON], self._no_files, ["-m", f"sbm.bots.{module}"]
             )
-        runtime = _runtime(bot)
+        runtime = _runtime(bot["_id"], bot.get("language"))
         if self._files is None:
             raise UnsupportedBot(f"bot {bot['_id']} is uploaded, and this sandbox has no files")
         if runtime is RUNTIMES[CSHARP]:
@@ -77,15 +77,16 @@ class Sandbox:
 
     def candidate(self, bot: dict, bot_dir: Path, program_dir: Path | None) -> Player:
         """The bot under verification from its checked-out files and, for C#, its new program."""
-        if _runtime(bot) is RUNTIMES[CSHARP]:
+        if _runtime(bot["_id"], bot.get("language")) is RUNTIMES[CSHARP]:
             if program_dir is None:
                 raise ValueError(f"bot {bot['_id']} is written in C# and has no program")
             return self.program_player(bot["name"], bot_dir, program_dir)
-        return self.script_player(bot["name"], bot_dir, bot["entry"])
+        return self.script_player(bot["name"], bot_dir, bot["entry"], bot["language"])
 
-    def script_player(self, name: str, bot_dir: Path, script: str) -> Player:
-        """A Python bot whose files are in bot_dir, started with the file script there."""
-        return self._jailed(name, RUNTIMES[PYTHON], lambda: BotDir(bot_dir), [f"/bot/{script}"])
+    def script_player(self, name: str, bot_dir: Path, script: str, language: str) -> Player:
+        """A Python or JavaScript bot whose files are in bot_dir, started with the file script."""
+        runtime = _runtime(name, language)
+        return self._jailed(name, runtime, lambda: BotDir(bot_dir), [f"/bot/{script}"])
 
     def program_player(self, name: str, bot_dir: Path, program_dir: Path) -> Player:
         """A C# bot whose files are in bot_dir and whose compiled program is in program_dir."""
@@ -93,22 +94,10 @@ class Sandbox:
             name, RUNTIMES[CSHARP], lambda: BotDir(bot_dir, program=BotDir(program_dir)), []
         )
 
-    def analyze(self, bot_dir: Path, entry: str, timeout: float) -> Completed:
-        """sbm-check of the runtime over bot_dir, in the jail: the analysis reads untrusted files.
-
-        -I keeps /bot off the module path, so no uploaded file can stand in for the analyzer.
-        """
-        command = [
-            *RUNTIMES[PYTHON].start,
-            "-I",
-            "-m",
-            "sbm.analysis",
-            "--json",
-            "--entry",
-            entry,
-            "/bot",
-        ]
-        return self._run(RUNTIMES[PYTHON], command, BotDir(bot_dir), timeout)
+    def analyze(self, bot_dir: Path, entry: str, timeout: float, language: str) -> Completed:
+        """sbm-check of the bot's runtime over bot_dir, in the jail: it reads untrusted files."""
+        runtime = _runtime(bot_dir, language)
+        return self._run(runtime, runtime.analysis(entry), BotDir(bot_dir), timeout)
 
     def build(self, bot_dir: Path, entry: str, timeout: float) -> Completed:
         """sbm-build over the C# sources in bot_dir, in the jail: Roslyn reads untrusted files.
@@ -195,10 +184,10 @@ class Sandbox:
         return versions
 
 
-def _runtime(bot: dict) -> Runtime:
-    runtime = RUNTIMES.get(bot.get("language"))
+def _runtime(bot: object, language: str | None) -> Runtime:
+    runtime = RUNTIMES.get(language) if language is not None else None
     if runtime is None:
-        raise UnsupportedBot(f"bot {bot['_id']} is written in {bot.get('language')!r}")
+        raise UnsupportedBot(f"bot {bot} is written in {language!r}")
     return runtime
 
 

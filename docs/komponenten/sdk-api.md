@@ -24,7 +24,7 @@ Schachkern (C++)     ── Stellung, Zuggenerierung, make/undo, Endbedingungen,
 | C++ | Direkt (Header + Bibliothek) | Archiv mit CMake-Einbindung |
 | Java | JNI oder Foreign-Function-API | JAR mit eingebetteten nativen Bibliotheken je Plattform |
 | C# | P/Invoke mit `LibraryImport` auf den Kern als geteilte Bibliothek (nur innerhalb des SDK, E193); Form der API in E194 | NuGet-Paket `SchachBotManager` mit dem Kern und dem Viewer-Programm unter `runtimes/<rid>/native` für Windows x64, Linux x64/arm64 und macOS x64/arm64 (`dotnet add package SchachBotManager`, E199, E200, E206) |
-| JavaScript | Nativer Node-Addon (A12) | npm-Paket mit vorkompilierten Binaries |
+| JavaScript | Nativer Addon über Node-API mit `node-addon-api`, Kern statisch eingebunden (E221) | npm-Paket `schachbotmanager` mit einem Addon je Plattform, ESM mit Typen (`npm install schachbotmanager`, E222) |
 
 ## Eigene Brett-Instanz pro Bot (E22)
 

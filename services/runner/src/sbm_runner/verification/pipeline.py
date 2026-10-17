@@ -1,10 +1,10 @@
 """Verifies an uploaded bot: static analysis, build, the Mindesttests, then the report (E92).
 
 Only C# has a build stage; sbm-build analyzes and compiles in one run (E203), and the program
-goes into GridFS with the bot once it passes (E204). The bot's files are checked out once and
-removed at the end; a bot that passes is verified at once (E93). A recheck by an admin runs the
-same stages but only writes a report of kind recheck; the bot keeps its status and its program
-(E153).
+goes into GridFS with the bot once it passes (E204). Python and JavaScript are only analyzed
+(E227). The bot's files are checked out once and removed at the end; a bot that passes is
+verified at once (E93). A recheck by an admin runs the same stages but only writes a report of
+kind recheck; the bot keeps its status and its program (E153).
 """
 
 import logging
@@ -37,7 +37,7 @@ class Verifier(Protocol):
 
     def checkout(self, bot: dict) -> BotDir: ...
 
-    def analyze(self, bot_dir: Path, entry: str, timeout: float) -> Completed: ...
+    def analyze(self, bot_dir: Path, entry: str, timeout: float, language: str) -> Completed: ...
 
     def build(self, bot_dir: Path, entry: str, timeout: float) -> Completed: ...
 
@@ -68,6 +68,7 @@ def run_verification(
         bot["name"],
         bot["version"],
     )
+    runtime = verifier.runtimes.get(bot["language"], {})
     started_at = now()
     bot_dir = verifier.checkout(bot)
     try:
@@ -125,7 +126,7 @@ def _stages(
         completed = verifier.build(bot_dir, bot["entry"], BUILD_SECONDS)
         stages, ruleset, program = build_stages(completed, _ms_since(start))
     else:
-        completed = verifier.analyze(bot_dir, bot["entry"], ANALYSIS_SECONDS)
+        completed = verifier.analyze(bot_dir, bot["entry"], ANALYSIS_SECONDS, bot["language"])
         analysis, ruleset = analysis_stage(completed, _ms_since(start))
         stages, program = [analysis], None
     if stages[-1]["status"] == FAILED:
@@ -165,7 +166,7 @@ def _tests_stage(bot: dict, verifier: Verifier, bot_dir: Path, program_dir: Path
 
 
 def _runtime_version(runtime: dict[str, str]) -> str | None:
-    """ "python 3.12.1" or "dotnet 10.0.13"; None if the runtime was not reached."""
+    """ "python 3.12.1", "node 24.1.0" or "dotnet 10.0.13"; None if the runtime was not reached."""
     names = [name for name in runtime if name != "sdk"]
     return f"{names[0]} {runtime[names[0]]}" if len(names) == 1 else None
 

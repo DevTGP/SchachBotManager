@@ -1,36 +1,43 @@
 """The verification in the real jail: the analyzer runs there, and an uploaded bot passes (E92)."""
 
-from sandbox_suite import BOTS, RANDOM, REGULAR
+import pytest
+from sandbox_suite import ENTRIES, LANGUAGES, RANDOM, REGULAR, bot_dir
 from sbm_store.verification_reports import FAILED, PASSED
 
 from sbm_runner.verification.analysis_stage import ANALYSIS_SECONDS, analysis_stage
 from sbm_runner.verification.minimum_tests import TEST_GAMES, play_test
 
 
-def analyze(sandbox, name: str) -> dict:
-    completed = sandbox.analyze(BOTS / name, "bot.py", ANALYSIS_SECONDS)
+def analyze(sandbox, name: str, language: str) -> dict:
+    entry = ENTRIES[language]
+    completed = sandbox.analyze(bot_dir(name, language), entry, ANALYSIS_SECONDS, language)
     stage, ruleset = analysis_stage(completed, 0)
     assert ruleset is not None, completed.stderr.decode(errors="replace")
     return stage
 
 
-def test_the_analysis_passes_a_clean_bot(sandbox):
-    stage = analyze(sandbox, "uploaded")
+@pytest.mark.parametrize("language", LANGUAGES)
+def test_the_analysis_passes_a_clean_bot(sandbox, language):
+    stage = analyze(sandbox, "uploaded", language)
     assert (stage["status"], stage["findings"]) == (PASSED, [])
 
 
-def test_the_analysis_finds_a_forbidden_import(sandbox):
-    stage = analyze(sandbox, "forbidden")
+@pytest.mark.parametrize("language", LANGUAGES)
+def test_the_analysis_finds_a_forbidden_import(sandbox, language):
+    stage = analyze(sandbox, "forbidden", language)
     assert stage["status"] == FAILED
-    assert [(finding["file"], finding["line"]) for finding in stage["findings"]] == [("bot.py", 3)]
+    findings = [(finding["file"], finding["line"]) for finding in stage["findings"]]
+    assert findings == [(ENTRIES[language], 3)]
 
 
-def test_an_uploaded_bot_reads_its_module_and_data(play):
-    outcome = play("uploaded")
+@pytest.mark.parametrize("language", LANGUAGES)
+def test_an_uploaded_bot_reads_its_module_and_data(play, language):
+    outcome = play("uploaded", language=language)
     assert outcome.termination in REGULAR, outcome.detail
 
 
-def test_an_uploaded_bot_passes_the_minimum_tests(sandbox, jailed):
+@pytest.mark.parametrize("language", LANGUAGES)
+def test_an_uploaded_bot_passes_the_minimum_tests(sandbox, jailed, language):
     for game in TEST_GAMES:
-        result = play_test(game, jailed("uploaded"), sandbox.player(RANDOM))
+        result = play_test(game, jailed("uploaded", language), sandbox.player(RANDOM))
         assert result["passed"], result

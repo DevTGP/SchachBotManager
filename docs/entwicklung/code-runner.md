@@ -54,16 +54,17 @@ Lesereihenfolge:
 |-------|---------|
 | [`__init__.py`](../../services/runner/src/sbm_runner/sandbox/__init__.py) | Paketbeschreibung |
 | [`settings.py`](../../services/runner/src/sbm_runner/sandbox/settings.py) | `SandboxSettings` aus `SBM_SANDBOX` (`nsjail` oder `none`); Pfade zu nsjail, Konfiguration und leerem Bot-Verzeichnis |
+| [`runtimes.py`](../../services/runner/src/sbm_runner/sandbox/runtimes.py) | `Runtime` je Sprache (E227): Interpreter samt Flags von Node, Befehle für Bot, Analyse und Selbstprüfung, Konfiguration `<sprache>.cfg`; `REFERENCE` für die Referenzbots |
 | [`limits.py`](../../services/runner/src/sbm_runner/sandbox/limits.py) | Feste Grenzen je Bot: 1024 MiB, 128 Prozesse, 4096 Byte stderr-Ende (A14) |
 | [`cgroup_tree.py`](../../services/runner/src/sbm_runner/sandbox/cgroup_tree.py) | `CgroupTree.prepare`: cgroup-v2-Baum beschreibbar machen, Runner nach `runner/`, Controller `memory` und `pids` für `bots/`, Reste entfernen; `create` legt die cgroup eines Bots an |
 | [`cgroup.py`](../../services/runner/src/sbm_runner/sandbox/cgroup.py) | `BotCgroup`: Grenzen setzen, `enter` (Shell schreibt sich in `cgroup.procs`), `freeze`/`thaw`, `kill`, `oom_killed` |
-| [`jail.py`](../../services/runner/src/sbm_runner/sandbox/jail.py) | `Sandbox`: `prepare` mit Selbstprüfung je Laufzeit (Versionen in `runtimes`), `player` je Bot, `candidate` (Bot in der Verifikation), `script_player`, `program_player`, `analyze` (`sbm.analysis` im Jail), `build` (`sbm-build` im Jail), `checkout`; `SandboxBroken` |
-| [`runtimes.py`](../../services/runner/src/sbm_runner/sandbox/runtimes.py) | `Runtime` je Sprache: nsjail-Konfiguration, Start, Selbstprüfung, Build und Referenzen (E205) |
+| [`jail.py`](../../services/runner/src/sbm_runner/sandbox/jail.py) | `Sandbox`: `prepare` mit Selbstprüfung je Laufzeit (Versionen in `runtimes`), `player` je Bot, `candidate` (Bot in der Verifikation), `script_player`, `program_player`, `analyze` (Analyzer der Sprache im Jail), `build` (`sbm-build` im Jail), `checkout`; `SandboxBroken` |
+| [`runtimes.py`](../../services/runner/src/sbm_runner/sandbox/runtimes.py) | `Runtime` je Sprache: nsjail-Konfiguration, Start, Selbstprüfung, Analyse (Python, JavaScript, E227) bzw. Build und Referenzen (C#, E205) |
 | [`jail_player.py`](../../services/runner/src/sbm_runner/sandbox/jail_player.py) | `JailPlayer`: Bot über nsjail in eigener cgroup, außerhalb des Zuges eingefroren; `exited_cleanly`, `stderr_bytes`; OOM ergibt `memory_limit` |
 | [`run_once.py`](../../services/runner/src/sbm_runner/sandbox/run_once.py) | `run_once`: Befehl im Jail bis zum Ende mit Zeitlimit; `Completed` (`returncode` `None` bei Zeitüberschreitung) |
 | [`stderr_tail.py`](../../services/runner/src/sbm_runner/sandbox/stderr_tail.py) | `StderrTail`: liest stderr in einem Thread leer, behält das Ende und zählt alle Bytes |
 
-Zur Sandbox gehören außerhalb des Pakets [`sandbox/python.cfg`](../../sandbox/python.cfg) (nsjail-Konfiguration) und [`sandbox/python.policy`](../../sandbox/python.policy) (seccomp-Whitelist in kafel-Syntax), für C# [`sandbox/csharp.cfg`](../../sandbox/csharp.cfg) und [`sandbox/csharp.policy`](../../sandbox/csharp.policy) (E205). Das Runner-Image kopiert sie nach `/opt/sbm/sandbox` (`deploy/python.Dockerfile`, Ziel `runner`).
+Zur Sandbox gehören außerhalb des Pakets [`sandbox/python.cfg`](../../sandbox/python.cfg) (nsjail-Konfiguration) und [`sandbox/python.policy`](../../sandbox/python.policy) (seccomp-Whitelist in kafel-Syntax), für JavaScript [`sandbox/javascript.cfg`](../../sandbox/javascript.cfg) und [`sandbox/javascript.policy`](../../sandbox/javascript.policy) (E227), für C# [`sandbox/csharp.cfg`](../../sandbox/csharp.cfg) und [`sandbox/csharp.policy`](../../sandbox/csharp.policy) (E205). Das Runner-Image kopiert sie nach `/opt/sbm/sandbox` (`deploy/python.Dockerfile`, Ziel `runner`).
 
 ### Verifikation `sbm_runner/verification/` (E92)
 
@@ -177,10 +178,10 @@ Einstellungen, die Admins ändern, gehören nicht in die Umgebung, sondern in di
 ### Änderung der Sandbox-Policy
 
 1. Änderung in [sandbox.md](../komponenten/sandbox.md) begründen; Grenzen sind fest und für alle Sprachen gleich (A14), konfigurierbare Limits sind zurückgestellt.
-2. nsjail-Optionen (Mounts, Namespaces, Umgebung, rlimits) in `sandbox/python.cfg`, Systemaufrufe in `sandbox/python.policy`, cgroup-Grenzen in `sandbox/limits.py`.
+2. nsjail-Optionen (Mounts, Namespaces, Umgebung, rlimits) in `sandbox/<sprache>.cfg`, Systemaufrufe in `sandbox/<sprache>.policy`, cgroup-Grenzen in `sandbox/limits.py`.
 3. Einen Testbot unter `services/runner/tests/sandbox/bots/<name>/bot.py` anlegen, der den Fall versucht (Fluchtversuche enden mit Exit-Code 42, wenn sie etwas erreichen), und einen Test in `test_sandbox_escape.py`, `test_sandbox_limits.py` oder `test_sandbox_freeze.py`.
 4. Die Negativ-Suite mit `bash services/runner/tests/sandbox/run-in-docker.sh` laufen lassen. Ändern sich Rechte des Containers, die Optionen dort und beim Dienst `runner` in `deploy/compose.yaml` gleich halten.
-5. Neue Sprache: eigene `sandbox/<sprache>.cfg` und Whitelist, Laufzeitverzeichnis im Image (Vorbild Stufe `bot-csharp` in `deploy/python.Dockerfile`), Eintrag in `RUNTIMES` (`sandbox/runtimes.py`), Testbots der Sprache in `suite.Dockerfile`.
+5. Neue Sprache: eigene `sandbox/<sprache>.cfg` und Whitelist, Laufzeitverzeichnis im Image (Vorbild Stufe `bot-csharp` in `deploy/python.Dockerfile`), Eintrag in `RUNTIMES` (`sandbox/runtimes.py`), Upload-Regeln in `sbm.analysis.upload` (`LANGUAGES`), Testbots unter `tests/sandbox/bots/<sprache>/` (Vorbild JavaScript, E227), kompilierte Sprachen gebaut in `suite.Dockerfile` (Vorbild C#).
 
 ## Tests
 
@@ -196,12 +197,12 @@ Fixtures und Hilfsmodule:
 |-------|-------|
 | `sbm_store.testing` (Plugin über `pytest11`) | `db`: frische Datenbank je Test; ohne MongoDB übersprungen, mit `SBM_REQUIRE_MONGO=1` Fehler; Adresse aus `SBM_TEST_MONGO_URI` |
 | `tests/conftest.py` | `config` (`RunnerConfig`), `reference_bots` (migriert, gibt Random und Material), `worker` (ohne Warten), `enqueue` (Partie in der Vergangenheit), `foreign_bot`; Disziplin `QUICK` mit drei Zügen |
-| `tests/uploads.py` | `upload` legt einen Bot mit Dateien und Verifikationsjob an; Dateisätze `GOOD`, `CRASHING`; Berichte `CLEAN`, `DIRTY`; `FakeVerifier` (echter Checkout, Analyse nach Vorgabe, Bots als Prozesse ohne nsjail); `CheckedPlayer` |
+| `tests/uploads.py` | `upload` legt einen Bot mit Dateien und Verifikationsjob an; Dateisätze `GOOD`, `JAVASCRIPT`, `CRASHING`; Berichte `CLEAN`, `DIRTY`; `FakeVerifier` (echter Checkout, Analyse nach Vorgabe, Bots als Prozesse ohne nsjail); `CheckedPlayer` |
 | `tests/play/conftest.py` | `RunningGateway` im eigenen Thread, `RemoteBot` (Bot-Protokoll v1 über WebSocket), `Person` (Browser mit play-v1), `Watcher` (Zuschauer des Live-Kanals über HTTP); Fixtures `gateway`, `play_config` (mit Live-Port), `play_worker`, `create_remote` |
 | `tests/live_listener.py` | `LiveListener`: echter TCP-Server auf `127.0.0.1` als Gegenstelle des `LiveFeed`, sammelt die Zeilen je Verbindung (`connections`, `wait_closed`) |
 | `tests/sandbox/conftest.py` | `sandbox` (überspringt ohne `SBM_SANDBOX=nsjail`, scheitert mit `SBM_REQUIRE_SANDBOX=1`), `no_leftovers` (nach jedem Test keine cgroup unter `bots/`), `jailed`, `play`, für C# `programmed` und `play_csharp`; Fehler als GitHub-Annotation |
-| `tests/sandbox/sandbox_suite.py` | `BOTS`, `CSHARP_BOTS` (gebaute C#-Testbots im Suite-Image), `RANDOM`, `QUICK`, `REGULAR` (reguläre Endgründe) |
-| `tests/sandbox/bots/` | Testbots: Endlosschleife, Dateien, verbotene Aufrufe, fork, lange Zeile, Speicher, Netz, Spinner, stderr-Flut, Threads, ein Upload mit Datendatei; unter `csharp/` dieselben Angriffe in C# (Netz, Dateien, Prozesse, Systemaufrufe, Threads, verwalteter und nativer Speicher), dazu `csharp_uploaded` (Upload mit Datendatei) und `csharp_forbidden` (verbotener Typ) |
+| `tests/sandbox/sandbox_suite.py` | `BOTS`, `LANGUAGES`, `ENTRIES` und `bot_dir` (Testbots je Sprache), `CSHARP_BOTS` (gebaute C#-Testbots im Suite-Image), `RANDOM`, `QUICK`, `REGULAR` (reguläre Endgründe) |
+| `tests/sandbox/bots/` | Testbots: Endlosschleife, Dateien, verbotene Aufrufe, fork, lange Zeile, Speicher, Netz, Spinner, stderr-Flut, Threads, ein Upload mit Datendatei; unter `javascript/` Node-Bots für Dateien, Netz, Prozesse, verbotene Aufrufe, Code aus Zeichenketten und einen Upload; unter `csharp/` dieselben Angriffe in C# (Netz, Dateien, Prozesse, Systemaufrufe, Threads, verwalteter und nativer Speicher), dazu `csharp_uploaded` (Upload mit Datendatei) und `csharp_forbidden` (verbotener Typ) |
 
 Befehle aus dem Repo-Wurzelverzeichnis:
 

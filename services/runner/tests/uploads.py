@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from bson import ObjectId
-from sbm.analysis.upload import CSHARP, DATA, PYTHON, SOURCE
+from sbm.analysis.upload import CSHARP, DATA, JAVASCRIPT, PYTHON, SOURCE
 from sbm.arena.process_player import ProcessPlayer
 from sbm.referee import Player
 from sbm_store import bot_files, bots, jobs
@@ -29,6 +29,11 @@ GOOD = [
         b"    sbm.run(First)\n",
     ),
     ("helper.py", SOURCE, b"def first(moves):\n    return moves[0]\n"),
+    ("data/book.txt", DATA, b"e2e4\n"),
+]
+# A JavaScript bot; FakeVerifier lets the random bot play for it.
+JAVASCRIPT_FILES = [
+    ("bot.js", SOURCE, b'import * as sbm from "schachbotmanager";\n'),
     ("data/book.txt", DATA, b"e2e4\n"),
 ]
 # Exits before it says hello.
@@ -109,6 +114,7 @@ class FakeVerifier:
     def __init__(self, db, root: Path, report: dict = CLEAN, built: dict = BUILT) -> None:
         self.runtimes = {
             PYTHON: {"python": "3.12.1", "sdk": "0.4.0"},
+            JAVASCRIPT: {"node": "24.1.0", "sdk": "0.4.0"},
             CSHARP: {"dotnet": "10.0.13", "sdk": "0.4.0"},
         }
         self.report = report
@@ -117,6 +123,7 @@ class FakeVerifier:
         self.error: BaseException | None = None
         self.checked_out: list[BotDir] = []
         self.analyzed: list[str] = []
+        self.languages: list[str] = []
         self._db = db
         self._root = root
 
@@ -125,9 +132,10 @@ class FakeVerifier:
         self.checked_out.append(bot_dir)
         return bot_dir
 
-    def analyze(self, bot_dir: Path, entry: str, timeout: float) -> Completed:
+    def analyze(self, bot_dir: Path, entry: str, timeout: float, language: str) -> Completed:
         if self.error is not None:
             raise self.error
+        self.languages.append(language)
         self.analyzed = sorted(
             path.relative_to(bot_dir).as_posix() for path in bot_dir.rglob("*") if path.is_file()
         )
@@ -144,6 +152,11 @@ class FakeVerifier:
         return Completed(1 if self.built["program"] is None else 0, stdout, b"")
 
     def candidate(self, bot: dict, bot_dir: Path, program_dir: Path | None) -> Player:
+        self.languages.append(bot["language"])
+        if bot["language"] == JAVASCRIPT:
+            return CheckedPlayer(
+                bot["name"], [sys.executable, "-m", "sbm.bots.random_mover"], log=None
+            )
         if program_dir is None:
             script = bot_dir / bot["entry"]
         else:

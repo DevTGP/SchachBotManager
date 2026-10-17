@@ -2963,7 +2963,7 @@
         "additionalProperties": false
       },
       "BotUpload": {
-        "description": "Paths are relative with /; source files (.py for Python, .cs for C#) and data files directly in data/, at most 100 of each and 1 MiB each in all (verifikation.md). At most 20 uploads a day per account.",
+        "description": "Paths are relative with /; source files of the language (.py for Python, .js and .mjs for JavaScript without a folder node_modules, .cs for C#) and data files directly in data/, at most 100 of each and 1 MiB each in all (verifikation.md, E202, E227). At most 20 uploads a day per account.",
         "type": "object",
         "properties": {
           "name": { "$ref": "#/components/schemas/BotName" },
@@ -2971,9 +2971,9 @@
             "description": "Higher than every earlier version of the name.",
             "$ref": "#/components/schemas/BotVersion"
           },
-          "language": { "description": "Python and C# so far (E202).", "enum": ["python", "csharp"] },
+          "language": { "description": "Python, JavaScript and C# so far (E202, E227).", "enum": ["python", "javascript", "csharp"] },
           "entry": {
-            "description": "Python: the file the bot starts with, in the top folder, by default bot.py. C#: the full name of the bot class, e.g. MyBot.TemplateBot; required (E203).",
+            "description": "Python and JavaScript: the file the bot starts with, in the top folder, by default bot.py or bot.js. C#: the full name of the bot class, e.g. MyBot.TemplateBot; required (E203).",
             "type": "string",
             "maxLength": 200
           },

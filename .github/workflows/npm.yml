@@ -1,0 +1,158 @@
+name: npm
+
+# Builds the addon of the JavaScript SDK for every platform, tests it there and packs the npm
+# package schachbotmanager with all of them (E221, E222). A version tag such as v0.5.0 also
+# publishes it on npm through trusted publishing; npm knows this file and the environment npm as
+# the allowed publisher. Like wheels.yml it runs only for a version tag or by hand (E79); the CI
+# tests the SDK on every platform anyway.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  addon:
+    name: Addon (${{ matrix.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux builds in manylinux_2_28, so the addon runs with glibc 2.28 or later.
+          - platform: linux-x64
+            os: ubuntu-latest
+            container: quay.io/pypa/manylinux_2_28_x86_64
+          - platform: linux-arm64
+            os: ubuntu-24.04-arm
+            container: quay.io/pypa/manylinux_2_28_aarch64
+          - platform: win32-x64
+            os: windows-latest
+          - platform: darwin-x64
+            os: macos-15-intel
+          - platform: darwin-arm64
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+    container: ${{ matrix.container }}
+    defaults:
+      run:
+        working-directory: sdk/javascript
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "11.0"
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+
+      - name: Install
+        run: npm ci
+
+      - name: Build the addon with the core
+        run: npm run build:native
+
+      - name: Test (API vectors, protocol, run, template)
+        run: npm test
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: addon-${{ matrix.platform }}
+          path: sdk/javascript/prebuilds/${{ matrix.platform }}/sbm.node
+          if-no-files-found: error
+
+  package:
+    name: Package
+    needs: addon
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk/javascript
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: addon-*
+          path: sdk/javascript/artifacts
+
+      - name: Put the addons into prebuilds/
+        run: |
+          for directory in artifacts/addon-*; do
+            platform="${directory#artifacts/addon-}"
+            mkdir -p "prebuilds/$platform"
+            mv "$directory/sbm.node" "prebuilds/$platform/sbm.node"
+          done
+          ls -R prebuilds
+
+      - name: Install and build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Pack
+        run: npm pack
+
+      # The packed package as a user gets it: installed in an empty folder, loaded by plain Node.
+      - name: Check the package
+        run: |
+          check="$RUNNER_TEMP/check"
+          mkdir -p "$check"
+          cp schachbotmanager-*.tgz "$check/"
+          cd "$check"
+          npm init -y > /dev/null
+          npm install ./schachbotmanager-*.tgz
+          node --input-type=module -e '
+            import { Board, version } from "schachbotmanager";
+            if (new Board().legalMoves().length !== 20) throw new Error("wrong move count");
+            console.log("schachbotmanager " + version);
+          '
+          tar -tzf schachbotmanager-*.tgz
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: npm-package
+          path: sdk/javascript/schachbotmanager-*.tgz
+          if-no-files-found: error
+
+  publish:
+    name: Publish on npm
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: package
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/schachbotmanager
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: npm-package
+
+      # The version comes from sdk/core/CMakeLists.txt (E36, E222); the tag only triggers the upload.
+      - name: Check that the tag matches the package version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          ls schachbotmanager-*.tgz
+          if [ ! -f "schachbotmanager-$version.tgz" ]; then
+            echo "::error::the package does not carry version $version"
+            exit 1
+          fi
+
+      # Trusted publishing needs npm 11.5.1 or later; it adds provenance on its own.
+      - name: Publish
+        run: |
+          npm install -g npm@^11.5.1
+          npm publish "schachbotmanager-${GITHUB_REF_NAME#v}.tgz" --access public

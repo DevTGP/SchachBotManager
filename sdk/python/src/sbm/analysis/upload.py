@@ -2,9 +2,10 @@
 sbm-check apply the same rules.
 
 Paths are relative and use /. Source files are the files of the bot's language outside data/
-(.py, .cs); data files lie directly in data/, since load_data only takes plain names (E62). A
-Python bot starts with a file in the top folder, a C# bot with the class named at the upload,
-for which the server writes the entry (E203).
+(.py, .cs, .js and .mjs); data files lie directly in data/, since load_data only takes plain names
+(E62). A Python or JavaScript bot starts with a file in the top folder, a C# bot with the class
+named at the upload, for which the server writes the entry (E203). A JavaScript upload has no
+node_modules folder, which would come before the SDK when Node resolves an import (E227).
 """
 
 import re
@@ -23,9 +24,8 @@ MAX_DEPTH = 8
 MAX_PATH_LENGTH = 200
 PYTHON = "python"
 CSHARP = "csharp"
+JAVASCRIPT = "javascript"
 DEFAULT_ENTRY = "bot.py"
-SOURCE_SUFFIXES = {PYTHON: ".py", CSHARP: ".cs"}
-LANGUAGES = tuple(SOURCE_SUFFIXES)
 _COMPONENT = re.compile(r"[A-Za-z0-9_][A-Za-z0-9_.-]*")
 # Name or Namespace.Name, as sbm-build accepts it.
 _CLASS_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]{0,99}(\.[A-Za-z_][A-Za-z0-9_]{0,99}){0,9}")
@@ -40,6 +40,36 @@ class UploadError(ValueError):
 
 
 @dataclass(frozen=True)
+class Language:
+    suffixes: tuple[str, ...]
+    # The entry an upload may leave out; None where the bot names its class (C#).
+    default_entry: str | None
+    # Path parts an upload may not contain, in lower case.
+    reserved: frozenset[str] = frozenset()
+
+    def is_source(self, path: str) -> bool:
+        return path.endswith(self.suffixes)
+
+    def describe(self) -> str:
+        return " and ".join(self.suffixes)
+
+
+RULES = {
+    PYTHON: Language((".py",), DEFAULT_ENTRY),
+    CSHARP: Language((".cs",), None),
+    JAVASCRIPT: Language((".js", ".mjs"), "bot.js", frozenset({"node_modules"})),
+}
+LANGUAGES = tuple(RULES)
+
+
+def language_rules(language: str) -> Language:
+    try:
+        return RULES[language]
+    except KeyError:
+        raise UploadError(f"unknown language {language}") from None
+
+
+@dataclass(frozen=True)
 class UploadFile:
     path: str
     kind: str
@@ -48,12 +78,12 @@ class UploadFile:
 
 def default_entry(language: str) -> str | None:
     """The entry an upload may leave out; a C# bot must name its class."""
-    return DEFAULT_ENTRY if language == PYTHON else None
+    return language_rules(language).default_entry
 
 
 def file_kind(path: str, language: str = PYTHON) -> str:
     """SOURCE or DATA; raises UploadError for a path an upload may not contain."""
-    suffix = SOURCE_SUFFIXES[language]
+    rules = language_rules(language)
     if len(path) > MAX_PATH_LENGTH:
         raise UploadError(f"the path is longer than {MAX_PATH_LENGTH} characters", path)
     parts = path.split("/")
@@ -66,12 +96,16 @@ def file_kind(path: str, language: str = PYTHON) -> str:
                 "letters, digits, _, . and -",
                 path,
             )
+        if part.lower() in rules.reserved:
+            raise UploadError(f"no part of a path may be {part}", path)
     if parts[0] == DATA_DIR:
         if len(parts) != 2:
             raise UploadError(f"data files must lie directly in {DATA_DIR}/", path)
         return DATA
-    if not path.endswith(suffix):
-        raise UploadError(f"only {suffix} files and data files in {DATA_DIR}/ are allowed", path)
+    if not rules.is_source(path):
+        raise UploadError(
+            f"only {rules.describe()} files and data files in {DATA_DIR}/ are allowed", path
+        )
     return SOURCE
 
 
@@ -93,13 +127,15 @@ def check_upload(
     if language == CSHARP:
         _check_class(entry, checked)
     else:
-        _check_entry_file(entry, checked)
+        _check_entry_file(entry, checked, language_rules(language))
     return checked
 
 
-def _check_entry_file(entry: str, files: list[UploadFile]) -> None:
-    if "/" in entry or not entry.endswith(".py"):
-        raise UploadError("the entry file must be a .py file in the top folder", entry)
+def _check_entry_file(entry: str, files: list[UploadFile], rules: Language) -> None:
+    if "/" in entry or not rules.is_source(entry):
+        raise UploadError(
+            f"the entry file must be a {rules.describe()} file in the top folder", entry
+        )
     if not any(file.path == entry and file.kind == SOURCE for file in files):
         raise UploadError("the entry file is missing", entry)
 

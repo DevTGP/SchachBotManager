@@ -36,6 +36,21 @@ Die Regeln liegen als versionierte Konfiguration pro Sprache vor (Whitelist + Ve
 | Lokal | `sbm-check [ordner] [--entry bot.py] [--exclude GLOB] [--json]`; wählt die Dateien wie die Upload-Seite, Exit-Code 0 ohne Befund, 1 mit Befunden, 2 bei falschen Argumenten |
 | Auf dem Server | Der Runner startet `python -I -m sbm.analysis --json --entry … /bot` in der Sandbox mit höchstens 60 s und prüft die Ausgabe, bevor sie in den Report kommt ([verifikation.md](verifikation.md)) |
 
+## JavaScript (umgesetzt, E228)
+
+| Teil | Umsetzung |
+|------|-----------|
+| Paket | `sbm-check` im npm-Paket `schachbotmanager` (`src/analysis/`), Parser acorn als einzige Abhängigkeit; Regeln in `javascript-rules.json`, Regelsatz `javascript-1` im Report |
+| Eingabe | Alle Quelldateien (`.js`, `.mjs`) als AST, nichts wird ausgeführt; Dateien müssen UTF-8 sein |
+| Module | Jede Datei ist ein ES-Modul; eine `.js`-Datei ohne `import` oder `export` ist ein Befund (`not_module`), weil Node sie sonst als CommonJS im Sloppy Mode liefe |
+| Importe | Nur `schachbotmanager` und relative Pfade auf Quelldateien des Uploads; keine `node:`-Module, kein `import()`, `import.meta` nur als `import.meta.main` |
+| Verbotene Namen | u. a. `eval`, `Function`, `globalThis`, `process`, `require`, `Reflect`, `Proxy`, `WebAssembly`, `fetch`, `Worker`, `SharedArrayBuffer` |
+| Verbotene Eigenschaften | u. a. `constructor`, `prototype`, `__proto__`, `getPrototypeOf`, `defineProperty`, `caller`, `callee`, `prepareStackTrace`; auch als Zeichenkette gemeldet |
+| Grenzen | Zur Laufzeit zusammengesetzte Zeichenketten erkennt die Analyse nicht; dafür stehen die Flags von Node und die Sandbox (E227) |
+| Report | Wie bei Python: Regel, Datei, Zeile, Meldung; höchstens 100 Befunde, danach `truncated` |
+| Lokal | `npx sbm-check [ordner] [--entry bot.js] [--exclude GLOB] [--json]`; wählt die Dateien wie die Upload-Seite, Exit-Codes wie bei Python |
+| Auf dem Server | Der Runner startet `node <Flags> /node_modules/schachbotmanager/dist/analysis/bin.js --json --entry … /bot` in der Sandbox; Grenzen und Prüfung der Ausgabe wie bei Python |
+
 ## C# (umgesetzt, E203)
 
 | Teil | Umsetzung |
@@ -84,6 +99,6 @@ Die Liste liegt als versionierte Konfiguration vor und ist erweiterbar; jede Erw
 ## Zu beachten
 
 - **Fehlablehnungen** sind bei strikten Regeln unvermeidbar. Der Report muss so konkret sein, dass Autoren den Code anpassen können; ein Admin kann jede Ablehnung per Override aufheben (E153).
-- **Lokale Prüfung:** Derselbe Analyzer wird als CLI im SDK/Tooling ausgeliefert, damit Autoren vor dem Upload prüfen können; für Python ist das `sbm-check`.
+- **Lokale Prüfung:** Derselbe Analyzer wird als CLI im SDK/Tooling ausgeliefert, damit Autoren vor dem Upload prüfen können; für Python ist das `sbm-check`, für JavaScript `npx sbm-check` aus dem npm-Paket.
 - **Regeländerungen** betreffen nur neue Uploads; verifizierte Bots behalten ihren Status. Eine Neuprüfung durch einen Admin zeigt, wie ein Bot mit den aktuellen Regeln abschneidet, ändert den Status aber nicht (E153); sperren muss der Admin selbst.
 - **Aufwand:** Fünf Analyzer sind neben den fünf SDK-Kernen der größte Einzelposten des Projekts; C++ ist am aufwendigsten.

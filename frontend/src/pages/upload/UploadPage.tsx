@@ -10,6 +10,7 @@ import { useApi } from "../../hooks/useApi";
 import { useSubmit } from "../../hooks/useSubmit";
 import { classCandidates } from "../../upload/botClasses";
 import {
+  detectLanguage,
   entryCandidates,
   type FoundFile,
   type Language,
@@ -17,14 +18,15 @@ import {
   type Selection,
   selectionProblem,
   selectPaths,
+  sourceSuffixes,
 } from "../../upload/selection";
 import { NAME, parseVersion, suggestVersion } from "../../upload/version";
 import { DESCRIPTION_LENGTH } from "../bot/BotDescription";
 import { FileDrop } from "./FileDrop";
 
 /**
- * Upload of a bot as a folder of sources (E91, E92): a Python bot starts with a file, a C# bot
- * with a class the server calls (E202). The own bots are on "My bots".
+ * Upload of a bot as a folder of sources (E91, E92): a Python or JavaScript bot starts with a
+ * file (E227), a C# bot with a class the server calls (E202). The own bots are on "My bots".
  */
 export function UploadPage() {
   const { t } = useTranslation();
@@ -43,7 +45,8 @@ export function UploadPage() {
   const [description, setDescription] = useState("");
 
   const selection = useMemo(() => found && selectPaths(found, language), [found, language]);
-  const candidates = selection && language === "python" ? entryCandidates(selection.files) : [];
+  const candidates =
+    selection && language !== "csharp" ? entryCandidates(selection.files, language) : [];
   const entryFile = entryChoice && candidates.includes(entryChoice) ? entryChoice : candidates[0];
   const classes =
     language === "csharp" && foundClasses && foundClasses.of === selection
@@ -61,8 +64,15 @@ export function UploadPage() {
       current = false;
     };
   }, [selection, language]);
+  const sources = sourceSuffixes(language);
   const version = versionInput ?? suggestVersion(ownBots.data ?? [], name);
   const ownNames = [...new Set(ownBots.data?.map((bot) => bot.name))];
+
+  // Files of only one language switch to it; the choice stays free.
+  function onFound(files: FoundFile[]) {
+    setFound(files);
+    setLanguage((current) => detectLanguage(files) ?? current);
+  }
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -97,7 +107,7 @@ export function UploadPage() {
           onChange={setLanguage}
         />
         <p className="hint">{t(`upload.files.${language}`)}</p>
-        <FileDrop language={language} selection={selection} onFound={setFound} />
+        <FileDrop language={language} selection={selection} onFound={onFound} />
         {language === "csharp" && (
           <label>
             {t("upload.botClass")}
@@ -168,7 +178,7 @@ export function UploadPage() {
           {t("upload.review")}
           {limits.data && ` ${t("upload.limit", { uploads: limits.data.uploads_per_day })}`}
         </p>
-        <FormError error={error} />
+        <FormError error={error} values={{ sources }} />
         <button type="submit" className="primary" disabled={pending}>
           {t("upload.submit")}
         </button>

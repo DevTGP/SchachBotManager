@@ -45,6 +45,35 @@ def test_the_description_keeps_line_breaks_as_lf(login):
     assert response.json["description"] == "Plays e4.\nNever resigns."
 
 
+def test_a_javascript_bot_starts_with_bot_js(login, db):
+    coder, _ = login()
+    files = {"bot.js": b'import * as sbm from "schachbotmanager";\n', "lib/helper.mjs": b""}
+
+    response = post_upload(coder, files, language="javascript")
+
+    assert response.status_code == 201
+    assert response.json["details"]["entry"] == "bot.js"
+    bot = bots.get(db, ObjectId(response.json["id"]))
+    assert (bot["language"], bot["entry"]) == ("javascript", "bot.js")
+
+
+@pytest.mark.parametrize(
+    ("files", "path"),
+    [
+        ({"bot.js": b"", "helper.py": b""}, "helper.py"),
+        ({"bot.js": b"", "node_modules/sbm.js": b""}, "node_modules/sbm.js"),
+        ({"bot.mjs": b""}, "bot.js"),
+    ],
+)
+def test_a_javascript_bot_follows_its_own_rules(login, files, path):
+    coder, _ = login()
+
+    response = post_upload(coder, files, language="javascript")
+
+    assert response.status_code == 400
+    assert (response.json["code"], response.json["path"]) == ("invalid_upload", path)
+
+
 def test_the_same_name_makes_a_new_version(login, db, clock):
     coder, user = login()
     first = store_bot(db, user["_id"])

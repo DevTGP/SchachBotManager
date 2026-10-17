@@ -62,10 +62,12 @@ def test_uploaded_bots_need_their_files():
         sandbox.player(UNKNOWN)
 
 
-def test_only_python_bots_run():
+def test_bots_of_other_languages_do_not_run():
     sandbox = Sandbox(SandboxSettings(mode=NSJAIL), tree=BrokenTree(), files=BotDir)
     with pytest.raises(UnsupportedBot, match="'java'"):
         sandbox.player({**UPLOADED, "language": "java"})
+    with pytest.raises(UnsupportedBot, match="'java'"):
+        sandbox.script_player("Uploaded", Path("/bot"), "Bot.java", "java")
 
 
 def test_csharp_bots_run_only_with_their_program():
@@ -84,6 +86,10 @@ def test_the_self_check_reports_both_versions():
     }
     assert _versions(b'{"dotnet": "10.0.13", "sdk": "0.4.0"}', "dotnet") == {
         "dotnet": "10.0.13",
+        "sdk": "0.4.0",
+    }
+    assert _versions(b'{"node": "24.1.0", "sdk": "0.4.0"}', "node") == {
+        "node": "24.1.0",
         "sdk": "0.4.0",
     }
     assert _versions(b'{"python": "3.12.1", "sdk": "0.4.0"}', "dotnet") is None

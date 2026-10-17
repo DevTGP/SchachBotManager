@@ -1778,17 +1778,17 @@ export interface components {
             finished_at: components["schemas"]["Timestamp"];
             stages: components["schemas"]["VerificationStage"][];
         };
-        /** @description Paths are relative with /; source files (.py for Python, .cs for C#) and data files directly in data/, at most 100 of each and 1 MiB each in all (verifikation.md). At most 20 uploads a day per account. */
+        /** @description Paths are relative with /; source files of the language (.py for Python, .js and .mjs for JavaScript without a folder node_modules, .cs for C#) and data files directly in data/, at most 100 of each and 1 MiB each in all (verifikation.md, E202, E227). At most 20 uploads a day per account. */
         BotUpload: {
             name: components["schemas"]["BotName"];
             /** @description Higher than every earlier version of the name. */
             version: components["schemas"]["BotVersion"];
             /**
-             * @description Python and C# so far (E202).
+             * @description Python, JavaScript and C# so far (E202, E227).
              * @enum {unknown}
              */
-            language: "python" | "csharp";
-            /** @description Python: the file the bot starts with, in the top folder, by default bot.py. C#: the full name of the bot class, e.g. MyBot.TemplateBot; required (E203). */
+            language: "python" | "javascript" | "csharp";
+            /** @description Python and JavaScript: the file the bot starts with, in the top folder, by default bot.py or bot.js. C#: the full name of the bot class, e.g. MyBot.TemplateBot; required (E203). */
             entry?: string;
             /**
              * @description Plain text by the owner, at most 500 characters; line breaks but no other control characters (E95).

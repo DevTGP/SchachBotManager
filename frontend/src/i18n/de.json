@@ -328,6 +328,7 @@
     "intro": "Wähle die Sprache und den Ordner deines Bots, zum Beispiel eine Kopie der Vorlage. Hochgeladen werden nur die Quelldateien und Dateien direkt in data/ (für load_data); alles andere bleibt auf deinem Rechner.",
     "files": {
       "python": "Hochgeladen werden .py-Dateien außerhalb von data/; __pycache__/ bleibt zu Hause.",
+      "javascript": "Hochgeladen werden .js- und .mjs-Dateien außerhalb von data/; node_modules/ bleibt zu Hause.",
       "csharp": "Hochgeladen werden .cs-Dateien außerhalb von data/; bin/, obj/, die .csproj-Datei und Program.cs bleiben zu Hause. Den Einstieg schreibt der Server: Er ruft die Bot-Klasse auf."
     },
     "fileCount_one": "{{count}} Datei wird hochgeladen:",
@@ -347,12 +348,13 @@
     "noFiles": "Einen Ordner oder Dateien mit mindestens einer Quelldatei auswählen.",
     "tooManyFiles": "Erlaubt sind höchstens 100 Quelldateien und 100 Datendateien.",
     "tooLarge": "Die Quelldateien und die Datendateien dürfen je höchstens 1 MB zusammen haben.",
-    "noEntry": "Im obersten Ordner fehlt eine .py-Datei, mit der der Bot startet.",
+    "noEntry": "Im obersten Ordner fehlt eine Quelldatei ({{sources}}), mit der der Bot startet.",
     "noClass": "Gib die Bot-Klasse an, mit der der Bot startet.",
     "ownLink": "Alle deine Bots und Versionen",
     "review": "Der Bot wird geprüft und getestet, bevor er spielen darf.",
     "drop": {
       "python": "Ordner deines Bots oder einzelne .py-Dateien hierher ziehen oder auswählen.",
+      "javascript": "Ordner deines Bots oder einzelne .js- und .mjs-Dateien hierher ziehen oder auswählen.",
       "csharp": "Ordner deines Bots oder einzelne .cs-Dateien hierher ziehen oder auswählen."
     },
     "chooseFolder": "Ordner wählen",

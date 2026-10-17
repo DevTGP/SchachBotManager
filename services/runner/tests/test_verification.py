@@ -6,7 +6,7 @@ import pytest
 from sbm_store import bots, jobs, matches, queue_settings, verification_reports
 from sbm_store.names import BOTS, JOBS
 from sbm_store.verification_reports import ANALYSIS, FAILED, INTERNAL, PASSED, TESTS
-from uploads import CRASHING, DIRTY, FINDING, FakeVerifier, upload
+from uploads import CRASHING, DIRTY, FINDING, JAVASCRIPT_FILES, FakeVerifier, upload
 
 from sbm_runner.recovery import recover_expired
 from sbm_runner.shutdown import Shutdown
@@ -52,6 +52,19 @@ def test_a_bot_that_plays_by_the_rules_is_verified(db, verifying, verifier):
     assert verifier.analyzed == ["bot.py", "data/book.txt", "helper.py"]
     assert not verifier.checked_out[0].path.exists()
     assert job_of(db, bot)["status"] == jobs.DONE
+
+
+def test_a_javascript_bot_is_checked_and_played_with_node(db, verifying, verifier):
+    bot = upload(db, JAVASCRIPT_FILES, language="javascript", entry="bot.js")
+
+    assert verifying.step()
+
+    stored = bots.get(db, bot["_id"])
+    assert stored["status"] == bots.VERIFIED
+    assert (stored["sdk_version"], stored["runtime_version"]) == ("0.4.0", "node 24.1.0")
+    assert report_of(db, bot)["runtime"] == verifier.runtimes["javascript"]
+    assert verifier.analyzed == ["bot.js", "data/book.txt"]
+    assert set(verifier.languages) == {"javascript"}
 
 
 def test_findings_reject_the_bot_before_any_game(db, verifying, verifier):

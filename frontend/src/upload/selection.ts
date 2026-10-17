@@ -1,15 +1,30 @@
-// What a folder selection uploads (verifikation.md): the sources of the language (.py or .cs)
-// outside data/ and files directly in data/. Everything else, such as .vscode/, README.md,
-// __pycache__/ or bin/ and obj/ of a C# build, stays at home; the API checks the remaining rules
-// and names the file to blame.
+// What a folder selection uploads (verifikation.md, E227): the sources of the language (.py,
+// .js/.mjs or .cs) outside data/ and files directly in data/. Everything else, such as .vscode/,
+// README.md, __pycache__/, node_modules/ or bin/ and obj/ of a C# build, stays at home; the API
+// checks the remaining rules and names the file to blame.
 
 export const DATA_DIR = "data";
-export const DEFAULT_ENTRY = "bot.py";
-export const LANGUAGES = ["python", "csharp"] as const;
+export const LANGUAGES = ["python", "javascript", "csharp"] as const;
 export type Language = (typeof LANGUAGES)[number];
-const SUFFIX: Record<Language, string> = { python: ".py", csharp: ".cs" };
+const SUFFIXES: Record<Language, string[]> = {
+  python: [".py"],
+  javascript: [".js", ".mjs"],
+  csharp: [".cs"],
+};
+/** The entry the template starts with; a C# bot has none (E203). */
+const DEFAULT_ENTRY: Record<Language, string | undefined> = {
+  python: "bot.py",
+  javascript: "bot.js",
+  csharp: undefined,
+};
 /** Folders of a local build, which hold nothing to upload. */
-const SKIPPED: Record<Language, string[]> = { python: ["__pycache__"], csharp: ["bin", "obj"] };
+const SKIPPED: Record<Language, string[]> = {
+  python: ["__pycache__"],
+  javascript: [],
+  csharp: ["bin", "obj"],
+};
+/** node_modules/ holds thousands of files, often with sources of other languages. */
+const SKIPPED_EVERYWHERE = ["node_modules"];
 /** The server writes the entry of a C# bot itself (E203), so the template's one stays home. */
 const CSHARP_ENTRY_FILE = "Program.cs";
 export const MAX_FILES = 100;
@@ -44,7 +59,9 @@ export function relativePath(file: File): string {
 
 /** Whether a folder of the selection is skipped as a whole, also while reading a drop. */
 export function skippedFolder(name: string, language: Language): boolean {
-  return name.startsWith(".") || SKIPPED[language].includes(name);
+  return (
+    name.startsWith(".") || SKIPPED_EVERYWHERE.includes(name) || SKIPPED[language].includes(name)
+  );
 }
 
 export function fileKind(path: string, language: Language = "python"): FileKind | undefined {
@@ -53,7 +70,16 @@ export function fileKind(path: string, language: Language = "python"): FileKind 
   if (parts.slice(0, -1).some((part) => skippedFolder(part, language))) return undefined;
   if (parts[0] === DATA_DIR) return parts.length === 2 ? "data" : undefined;
   if (language === "csharp" && path === CSHARP_ENTRY_FILE) return undefined;
-  return path.endsWith(SUFFIX[language]) ? "source" : undefined;
+  return isSource(path, language) ? "source" : undefined;
+}
+
+function isSource(path: string, language: Language): boolean {
+  return SUFFIXES[language].some((suffix) => path.endsWith(suffix));
+}
+
+/** The source suffixes for texts and the file input, e.g. ".js, .mjs". */
+export function sourceSuffixes(language: Language): string {
+  return SUFFIXES[language].join(", ");
 }
 
 /** A file and its path inside the chosen or dropped folder. */
@@ -102,13 +128,22 @@ export function selectionProblem(files: PickedFile[]): string | undefined {
   return undefined;
 }
 
-/** .py files in the top folder; bot.py first, since the template starts there. */
-export function entryCandidates(files: PickedFile[]): string[] {
+/** Sources in the top folder; bot.py or bot.js first, since the template starts there. */
+export function entryCandidates(files: PickedFile[], language: Language = "python"): string[] {
+  const defaultEntry = DEFAULT_ENTRY[language];
   const top = files
     .filter((file) => file.kind === "source" && !file.path.includes("/"))
     .map((file) => file.path)
     .sort();
-  return top.includes(DEFAULT_ENTRY)
-    ? [DEFAULT_ENTRY, ...top.filter((path) => path !== DEFAULT_ENTRY)]
+  return defaultEntry && top.includes(defaultEntry)
+    ? [defaultEntry, ...top.filter((path) => path !== defaultEntry)]
     : top;
+}
+
+/** The only language with sources among the files, if there is one. */
+export function detectLanguage(found: FoundFile[]): Language | undefined {
+  const languages = LANGUAGES.filter((language) =>
+    found.some(({ path }) => fileKind(path, language) === "source"),
+  );
+  return languages.length === 1 ? languages[0] : undefined;
 }

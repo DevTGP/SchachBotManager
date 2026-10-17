@@ -123,16 +123,16 @@ Abnahme: Ein Python-Bot aus der Vorlage öffnet beim lokalen Lauf ein Fenster, d
 
 ### M5 – Weitere Sprachen (P2)
 
-Für C# läuft M5 (E192), die übrigen Sprachen sind zurückgestellt (E110). Mit jeder Sprache kommt auch ihr Transport `remote` für M7 (E111).
+M5 läuft für C# (E192) und parallel dazu für JavaScript (E220), die übrigen Sprachen sind zurückgestellt (E110). C# nutzt die Nummern E192–E219, JavaScript E220–E239 und Migrationen ab `0220`. Mit jeder Sprache kommt auch ihr Transport `remote` für M7 (E111).
 
 Pro Sprache: Binding auf den Kern, Paket mit eingebetteten Binaries samt Viewer (E106), API- und Protokolltests, Laufzeitverzeichnis + seccomp-Whitelist, Analyzer mit Bibliotheks-Whitelist, Vorlagenprojekt, Aufnahme in den Kreuztest. Die Schachregeln selbst müssen nicht erneut implementiert werden.
 
 | Reihenfolge | Sprache | Begründung der Position |
 |-------------|---------|-------------------------|
 | 1 | C# | Gewünscht vorgezogen (E192) |
+| 1 | JavaScript | Gewünscht parallel zu C# (E220); Analyseform ähnlich zu Python (AST); nativer Addon als neue Bindungsart |
 | 2 | C++ | Binding entfällt praktisch (direkter Zugriff auf den Kern); der Analyzer ist der aufwendigste, kann aber früh beginnen |
-| 3 | JavaScript | Analyseform ähnlich zu Python (AST); nativer Addon als neue Bindungsart |
-| 4 | Java | Bytecode-Analyse gut abgrenzbar; Laufzeit mit größerer seccomp-Whitelist |
+| 3 | Java | Bytecode-Analyse gut abgrenzbar; Laufzeit mit größerer seccomp-Whitelist |
 
 Die Reihenfolge ist frei änderbar; die Sprachen sind untereinander unabhängig.
 
@@ -145,6 +145,14 @@ C# in fünf Schritten (E192):
 | 3 | NuGet-Paket mit `runtimes/<rid>/native`, Workflow `nuget.yml`, Vorlagenprojekt `templates/csharp` (E199–E201) | Umgesetzt |
 | 4 | Serverseite: Laufzeitverzeichnis, seccomp-Whitelist, Analyzer (Roslyn), Verifikation im Runner, Negativ-Suite (E202–E205) | Umgesetzt |
 | 5 | Viewer im NuGet-Paket, Transport `remote`, `Sdk.Play` mit Referee in C# und eingebauten Referenzbots (E206–E209) | Umgesetzt |
+
+JavaScript in drei Schritten (E220):
+
+| Schritt | Inhalt | Stand |
+|---------|--------|-------|
+| 1 | Lokales SDK: Node-API-Addon (E221), npm-Paket `schachbotmanager` in TypeScript (E222, E223), API in camelCase (E224), `run` mit `stdio` und `tcp`, `loadData` (E225), Vorlage `templates/javascript/`, Partie gegen Python-Bots in `sbm-arena`, Veröffentlichung über CI (E226) | Umgesetzt |
+| 2 | Server: Laufzeit Node 24 im Runner-Image mit eigener nsjail-Konfiguration und Flags, Negativ-Suite, Upload mit Sprachauswahl (E227), statische Analyse `sbm-check` mit acorn (E228) | Umgesetzt |
+| 3 | Transport `remote`, `play` und Viewer | Offen |
 
 Abnahme je Sprache: Alle API-Vektoren bestanden, Bot der Sprache spielt regulär gegen Bots aller bereits unterstützten Sprachen, Negativ-Suite bestanden, Setup auf frischem Rechner mit einem Paketbefehl.
 

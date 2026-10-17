@@ -8,7 +8,7 @@ import type { Bot, BotDetail, EnqueuedMatches, OwnBotUpdate, OwnMatchRequest } f
 export interface BotUpload {
   name: string;
   version: string;
-  language: "python" | "csharp";
+  language: "python" | "javascript" | "csharp";
   entry: string;
   description: string;
   files: { path: string; content: Blob }[];

@@ -29,6 +29,18 @@ def test_missing_python_file(tmp_path):
         parse_bot(str(tmp_path / "missing.py"))
 
 
+@pytest.mark.parametrize("suffix", [".js", ".mjs", ".cjs", ".JS"])
+def test_javascript_file(tmp_path, suffix):
+    path = tmp_path / f"bot{suffix}"
+    path.write_text("", encoding="utf-8")
+    assert parse_bot(str(path)) == BotSpec("bot", ["node", str(path)])
+
+
+def test_missing_javascript_file(tmp_path):
+    with pytest.raises(BotSpecError, match="not a file"):
+        parse_bot(str(tmp_path / "missing.mjs"))
+
+
 def test_program_file(tmp_path):
     path = tmp_path / "engine.exe"
     path.write_text("", encoding="utf-8")

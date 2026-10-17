@@ -328,6 +328,7 @@
     "intro": "Choose the language and the folder of your bot, for example a copy of the template. Only the source files and files directly in data/ (for load_data) are uploaded; everything else stays on your computer.",
     "files": {
       "python": ".py files outside data/ are uploaded; __pycache__/ stays at home.",
+      "javascript": ".js and .mjs files outside data/ are uploaded; node_modules/ stays at home.",
       "csharp": ".cs files outside data/ are uploaded; bin/, obj/, the .csproj file and Program.cs stay at home. The server writes the entry: it calls the bot class."
     },
     "fileCount_one": "{{count}} file will be uploaded:",
@@ -347,12 +348,13 @@
     "noFiles": "Choose a folder or files with at least one source file.",
     "tooManyFiles": "At most 100 source files and 100 data files are allowed.",
     "tooLarge": "The source files and the data files may each be at most 1 MB in all.",
-    "noEntry": "The top folder needs a .py file the bot starts with.",
+    "noEntry": "The top folder needs a source file ({{sources}}) the bot starts with.",
     "noClass": "Name the bot class the bot starts with.",
     "ownLink": "All your bots and versions",
     "review": "The bot is checked and tested before it may play.",
     "drop": {
       "python": "Drag the folder of your bot or single .py files here, or choose them.",
+      "javascript": "Drag the folder of your bot or single .js and .mjs files here, or choose them.",
       "csharp": "Drag the folder of your bot or single .cs files here, or choose them."
     },
     "chooseFolder": "Choose folder",

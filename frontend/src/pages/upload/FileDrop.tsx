@@ -10,7 +10,7 @@ function chooseFolders(input: HTMLInputElement | null) {
   input?.setAttribute("webkitdirectory", "");
 }
 
-const ACCEPT: Record<Language, string> = { python: ".py", csharp: ".cs" };
+const ACCEPT: Record<Language, string> = { python: ".py", javascript: ".js,.mjs", csharp: ".cs" };
 
 /**
  * One area for the sources (G16): drop a folder or files, or choose them with buttons in the

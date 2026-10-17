@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 # Images for the Python services; the build context is the repository root.
 # Target services: migrate, api and gateway. Target runner (also the play runner): adds nsjail, the sandbox configuration and the
-# runtime directory the bots run in (sandbox.md).
+# runtime directories the bots run in, one per language (sandbox.md, E227).
 
 FROM python:3.12-slim AS build
 # The SDK compiles the C++ core; CMake and Ninja come from PyPI through scikit-build-core.
@@ -52,6 +52,39 @@ RUN --mount=type=bind,from=bot-python-build,source=/wheels,target=/wheels \
 # the jail exist as empty directories and files, since the root is mounted read-only.
 RUN mkdir -p /rt/usr/lib /rt/etc /rt/dev /rt/bot \
     && cp -a /usr/local /rt/usr/local \
+    && cp -a /usr/lib/x86_64-linux-gnu /usr/lib64 /rt/usr/lib/ \
+    && mv /rt/usr/lib/lib64 /rt/usr/lib64 \
+    && ln -s usr/lib /rt/lib \
+    && ln -s usr/lib64 /rt/lib64 \
+    && cp /etc/ld.so.cache /rt/etc/ \
+    && touch /rt/dev/null
+
+# The Node the JavaScript bots run with, pinned (E223, E227); the npm package with its addon.
+FROM node:24.22.0-trixie-slim AS bot-javascript-build
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends cmake g++ make \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /src
+COPY sdk/core sdk/core
+COPY sdk/javascript sdk/javascript
+WORKDIR /src/sdk/javascript
+RUN npm ci --no-audit --no-fund \
+    && npm run build:native \
+    && npm run build \
+    && npm pack --pack-destination /pkg
+
+# Without a compiler: this tree becomes the read-only root of every JavaScript bot. The package
+# lies nested in /node_modules, so a bot finds schachbotmanager but none of its dependencies; the
+# root has no package.json, so Node reads every file of the bot as an ES module (E227).
+FROM node:24.22.0-trixie-slim AS bot-javascript
+RUN --mount=type=bind,from=bot-javascript-build,source=/pkg,target=/pkg \
+    mkdir /install \
+    && npm install --prefix /install --omit=dev --ignore-scripts --install-strategy=nested \
+       --no-audit --no-fund --no-package-lock /pkg/*.tgz
+RUN mkdir -p /rt/usr/local/bin /rt/usr/lib /rt/etc /rt/dev /rt/bot \
+    && cp -a /usr/local/bin/node /rt/usr/local/bin/ \
+    && cp -a /install/node_modules /rt/node_modules \
+    && rm -f /rt/node_modules/.package-lock.json \
     && cp -a /usr/lib/x86_64-linux-gnu /usr/lib64 /rt/usr/lib/ \
     && mv /rt/usr/lib/lib64 /rt/usr/lib64 \
     && ln -s usr/lib /rt/lib \
@@ -112,6 +145,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=nsjail /nsjail/nsjail /usr/local/bin/nsjail
 COPY --from=bot-python /rt /opt/sbm/runtimes/python
+COPY --from=bot-javascript /rt /opt/sbm/runtimes/javascript
 COPY --from=bot-csharp /rt /opt/sbm/runtimes/csharp
 COPY sandbox /opt/sbm/sandbox
 # The bot directory of the reference bots, which live in the SDK of the runtime.
